@@ -1,9 +1,9 @@
 "use client"
 
 import Link from "next/link"
+import type { LucideIcon } from "lucide-react"
 import {
   Award,
-  BarChart3,
   BookOpen,
   CheckCircle2,
   Clock,
@@ -11,6 +11,7 @@ import {
   LayoutDashboard,
   Layers,
   Palette,
+  ScrollText,
   Settings,
   ShieldCheck,
   Sparkles,
@@ -25,7 +26,40 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
-const featureHighlights = [
+type FeatureHighlight = {
+  title: string
+  description: string
+  icon: LucideIcon
+}
+
+type AutomationPerk = FeatureHighlight
+
+type PlatformTab = {
+  value: string
+  label: string
+  title: string
+  description: string
+  bullets: string[]
+}
+
+type ImplementationStep = {
+  title: string
+  description: string
+}
+
+type ExperiencePanel = {
+  title: string
+  icon: LucideIcon
+  blurb: string
+  bullets: string[]
+}
+
+type Faq = {
+  question: string
+  answer: string
+}
+
+const featureHighlights: FeatureHighlight[] = [
   {
     title: "Immersive Quran Reader",
     description:
@@ -46,7 +80,7 @@ const featureHighlights = [
   },
 ]
 
-const automationPerks = [
+const automationPerks: AutomationPerk[] = [
   {
     title: "Automated Hasanat Tracking",
     description: "Calculate letters read across every device and surface the rewards in real time for your community.",
@@ -69,7 +103,7 @@ const automationPerks = [
   },
 ]
 
-const platformTabs = [
+const platformTabs: PlatformTab[] = [
   {
     value: "reader",
     label: "Reader",
@@ -108,7 +142,7 @@ const platformTabs = [
   },
 ]
 
-const implementationSteps = [
+const implementationSteps: ImplementationStep[] = [
   {
     title: "Install & Connect",
     description: "Upload the plugin, activate it, and link your WordPress users in minutes with the guided onboarding wizard.",
@@ -123,7 +157,7 @@ const implementationSteps = [
   },
 ]
 
-const experiencePanels = [
+const experiencePanels: ExperiencePanel[] = [
   {
     title: "Quran Reader",
     icon: BookOpen,
@@ -192,7 +226,7 @@ const experiencePanels = [
   },
 ]
 
-const faqs = [
+const faqs: Faq[] = [
   {
     question: "Does Alfawz Quran work with my existing WordPress members?",
     answer:
@@ -212,10 +246,16 @@ const faqs = [
 
 export default function SyntheticV0PageForDeployment() {
   return (
-    <main className="min-h-screen bg-gradient-to-b from-[#20070a] via-[#641822] to-[#f9f4ec] text-[#2f1b1a]">
+    <main className="min-h-screen bg-gradient-to-br from-[#2a0b11] via-[#5c1520] to-[#f8f1e6] text-[#2f1b1a]">
       <div className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(249,244,236,0.22),_transparent_60%)]" aria-hidden />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_right,_rgba(125,29,45,0.4),_transparent_70%)]" aria-hidden />
+        <div
+          className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(248,241,230,0.28),_transparent_65%)]"
+          aria-hidden="true"
+        />
+        <div
+          className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_bottom_right,_rgba(111,29,27,0.45),_transparent_70%)]"
+          aria-hidden="true"
+        />
         <div className="relative mx-auto flex max-w-6xl flex-col gap-20 px-6 pb-24 pt-24 lg:px-12">
           <section className="grid gap-12 lg:grid-cols-[2fr,1fr] lg:items-center">
             <div className="space-y-6">
@@ -227,7 +267,7 @@ export default function SyntheticV0PageForDeployment() {
                 Deliver a premium reading, memorising, and coaching experience right inside WordPress. Alfawz Quran now ships with a maroon & milk aesthetic, refined layouts, and automation so your masjid or school can focus on teaching—not juggling spreadsheets.
               </p>
               <div className="flex flex-col gap-4 sm:flex-row">
-                <Button size="lg" className="bg-[#f8f1e6] text-[#6f1d1b] hover:bg-[#f1dfd5]" asChild>
+                <Button size="lg" className="bg-[#f8f1e6] text-[#6f1d1b] shadow-lg shadow-[#27080d]/40 hover:bg-[#f1dfd5]" asChild>
                   <Link href="https://alfawzquran.com" target="_blank" rel="noreferrer">
                     View full documentation
                   </Link>
@@ -243,15 +283,15 @@ export default function SyntheticV0PageForDeployment() {
               </div>
               <div className="flex flex-wrap gap-6 pt-4 text-sm text-[#f1dfd5]">
                 <div className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-[#f8f1e6]" />
+                  <CheckCircle2 aria-hidden className="h-4 w-4 text-[#f8f1e6]" />
                   Unlimited community members
                 </div>
                 <div className="flex items-center gap-2">
-                  <ShieldCheck className="h-4 w-4 text-[#f8f1e6]" />
+                  <ShieldCheck aria-hidden className="h-4 w-4 text-[#f8f1e6]" />
                   Secure role-based dashboards
                 </div>
                 <div className="flex items-center gap-2">
-                  <Headphones className="h-4 w-4 text-[#f8f1e6]" />
+                  <Headphones aria-hidden className="h-4 w-4 text-[#f8f1e6]" />
                   Global recitations & translations
                 </div>
               </div>
@@ -259,7 +299,7 @@ export default function SyntheticV0PageForDeployment() {
             <Card className="border-[#f8f1e6]/30 bg-[#401016]/70 text-[#fceee0] backdrop-blur">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-[#fceee0]">
-                  <LayoutDashboard className="h-5 w-5" />
+                  <LayoutDashboard aria-hidden className="h-5 w-5" />
                   Live engagement snapshot
                 </CardTitle>
                 <CardDescription className="text-[#f1dfd5]">
@@ -268,12 +308,12 @@ export default function SyntheticV0PageForDeployment() {
               </CardHeader>
               <CardContent className="space-y-4 text-sm text-[#fceee0]">
                 <div className="grid grid-cols-2 gap-3">
-                  <div className="rounded-lg border border-[#f8f1e6]/30 bg-[#2b090e]/60 p-4">
+                  <div className="rounded-lg border border-[#f8f1e6]/30 bg-gradient-to-br from-[#2b090e]/80 via-[#3d0e16]/70 to-[#6f1d1b]/30 p-4">
                     <p className="text-xs uppercase tracking-wide text-[#f1dfd5]/70">Daily verses read</p>
                     <p className="mt-2 text-2xl font-semibold text-[#fdfaf5]">3,284</p>
                     <p className="text-xs text-[#f8f1e6]">+12% vs yesterday</p>
                   </div>
-                  <div className="rounded-lg border border-[#f8f1e6]/30 bg-[#2b090e]/60 p-4">
+                  <div className="rounded-lg border border-[#f8f1e6]/30 bg-gradient-to-br from-[#2b090e]/80 via-[#3d0e16]/70 to-[#6f1d1b]/30 p-4">
                     <p className="text-xs uppercase tracking-wide text-[#f1dfd5]/70">Memorisation streaks</p>
                     <p className="mt-2 text-2xl font-semibold text-[#fdfaf5]">87 active</p>
                     <p className="text-xs text-[#f8f1e6]">Longest streak: 46 days</p>
@@ -283,11 +323,11 @@ export default function SyntheticV0PageForDeployment() {
                 <div className="space-y-2">
                   <p className="text-xs uppercase tracking-wide text-[#f1dfd5]/70">Upcoming milestones</p>
                   <ul className="space-y-2 text-[#fdfaf5]">
-                    <li className="flex items-center justify-between rounded-md bg-[#2b090e]/50 px-3 py-2">
+                    <li className="flex items-center justify-between rounded-md bg-gradient-to-r from-[#2b090e]/70 via-[#401016]/60 to-[#6f1d1b]/30 px-3 py-2">
                       <span>Hifth group review • 12 Juz complete</span>
                       <Badge className="bg-[#f8f1e6]/20 text-[#fceee0]">Saturday</Badge>
                     </li>
-                    <li className="flex items-center justify-between rounded-md bg-[#2b090e]/50 px-3 py-2">
+                    <li className="flex items-center justify-between rounded-md bg-gradient-to-r from-[#2b090e]/70 via-[#401016]/60 to-[#6f1d1b]/30 px-3 py-2">
                       <span>Community khatm celebration</span>
                       <Badge className="bg-[#f8f1e6]/20 text-[#fceee0]">In 5 days</Badge>
                     </li>
@@ -306,10 +346,13 @@ export default function SyntheticV0PageForDeployment() {
             </div>
             <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
               {featureHighlights.map(feature => (
-                <Card key={feature.title} className="border-[#f8f1e6]/40 bg-[#461017]/80 text-[#fceee0] shadow-lg shadow-[#1b0406]/40">
+                <Card
+                  key={feature.title}
+                  className="border-[#f8f1e6]/40 bg-gradient-to-br from-[#461017]/80 via-[#2e0b11]/75 to-[#6f1d1b]/50 text-[#fceee0] shadow-lg shadow-[#1b0406]/40"
+                >
                   <CardHeader className="space-y-4">
-                    <span className="flex h-12 w-12 items-center justify-center rounded-full bg-[#f8f1e6]/20 text-[#f8f1e6]">
-                      <feature.icon className="h-6 w-6" />
+                    <span className="flex h-12 w-12 items-center justify-center rounded-full bg-[#f8f1e6]/20 text-[#6f1d1b]">
+                      <feature.icon aria-hidden className="h-6 w-6" />
                     </span>
                     <CardTitle className="text-xl text-[#fdfaf5]">{feature.title}</CardTitle>
                     <CardDescription className="text-[#f1dfd5]">{feature.description}</CardDescription>
@@ -342,7 +385,7 @@ export default function SyntheticV0PageForDeployment() {
                 <TabsContent
                   key={tab.value}
                   value={tab.value}
-                  className="rounded-b-lg border border-[#f8f1e6]/20 bg-[#3a0d14]/70 p-8 text-[#fceee0]"
+                  className="rounded-b-lg border border-[#f8f1e6]/20 bg-gradient-to-br from-[#3a0d14]/80 via-[#2b0a10]/75 to-[#58141d]/50 p-8 text-[#fceee0]"
                 >
                   <div className="grid gap-8 lg:grid-cols-[1.4fr,1fr] lg:items-center">
                     <div className="space-y-4">
@@ -351,7 +394,7 @@ export default function SyntheticV0PageForDeployment() {
                       <ul className="space-y-3 text-sm text-[#fceee0]">
                         {tab.bullets.map(bullet => (
                           <li key={bullet} className="flex items-start gap-2">
-                            <CheckCircle2 className="mt-0.5 h-4 w-4 text-[#f8f1e6]" />
+                            <CheckCircle2 aria-hidden className="mt-0.5 h-4 w-4 text-[#f8f1e6]" />
                             <span>{bullet}</span>
                           </li>
                         ))}
@@ -360,12 +403,12 @@ export default function SyntheticV0PageForDeployment() {
                     <div className="rounded-xl border border-[#f8f1e6]/30 bg-[#2b090e]/70 p-6 text-sm text-[#fceee0] shadow-lg">
                       <p className="text-xs uppercase tracking-wide text-[#f1dfd5]/70">Sample interface</p>
                       <div className="mt-4 space-y-3">
-                        <div className="rounded-lg border border-[#f8f1e6]/20 bg-[#401016]/70 p-4">
+                        <div className="rounded-lg border border-[#f8f1e6]/20 bg-gradient-to-br from-[#401016]/80 via-[#2f0c12]/70 to-[#6f1d1b]/40 p-4">
                           <p className="text-sm font-medium text-[#fdfaf5]">Highlighted Verse</p>
                           <p className="mt-2 text-lg leading-relaxed">"إِنَّ هَٰذَا الْقُرْآنَ يَهْدِي لِلَّتِي هِيَ أَقْوَمُ"</p>
                           <p className="mt-3 text-xs text-[#f1dfd5]/80">Surah Al-Isra (17:9) • Tap to play recitation</p>
                         </div>
-                        <div className="rounded-lg border border-[#f8f1e6]/20 bg-[#401016]/70 p-4">
+                        <div className="rounded-lg border border-[#f8f1e6]/20 bg-gradient-to-br from-[#401016]/80 via-[#2f0c12]/70 to-[#6f1d1b]/40 p-4">
                           <p className="text-sm font-medium text-[#fdfaf5]">Action shortcuts</p>
                           <ul className="mt-2 grid gap-2 text-xs text-[#fceee0]">
                             <li>• Resume memorisation plan</li>
@@ -383,7 +426,7 @@ export default function SyntheticV0PageForDeployment() {
 
           <section className="space-y-8">
             <div className="grid gap-6 lg:grid-cols-2">
-              <Card className="border-[#f8f1e6]/30 bg-[#401016]/70 text-[#fceee0]">
+              <Card className="border-[#f8f1e6]/30 bg-gradient-to-br from-[#401016]/80 via-[#2f0c12]/75 to-[#61161f]/45 text-[#fceee0]">
                 <CardHeader>
                   <CardTitle className="text-2xl text-[#fdfaf5]">Automation that guides every believer</CardTitle>
                   <CardDescription className="text-[#f1dfd5]">
@@ -392,9 +435,12 @@ export default function SyntheticV0PageForDeployment() {
                 </CardHeader>
                 <CardContent className="grid gap-5 sm:grid-cols-2">
                   {automationPerks.map(perk => (
-                    <div key={perk.title} className="space-y-3 rounded-lg border border-[#f8f1e6]/20 bg-[#2b090e]/60 p-4">
-                      <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#f8f1e6]/20 text-[#fdfaf5]">
-                        <perk.icon className="h-5 w-5" />
+                    <div
+                      key={perk.title}
+                      className="space-y-3 rounded-lg border border-[#f8f1e6]/20 bg-gradient-to-br from-[#2b090e]/80 via-[#3d0e16]/70 to-[#6f1d1b]/30 p-4"
+                    >
+                      <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#f8f1e6]/20 text-[#6f1d1b]">
+                        <perk.icon aria-hidden className="h-5 w-5" />
                       </span>
                       <p className="text-sm font-semibold text-[#fdfaf5]">{perk.title}</p>
                       <p className="text-xs text-[#f1dfd5]">{perk.description}</p>
@@ -402,7 +448,7 @@ export default function SyntheticV0PageForDeployment() {
                   ))}
                 </CardContent>
               </Card>
-              <Card className="border-[#f8f1e6]/30 bg-[#401016]/70 text-[#fceee0]">
+              <Card className="border-[#f8f1e6]/30 bg-gradient-to-br from-[#401016]/80 via-[#2f0c12]/75 to-[#61161f]/45 text-[#fceee0]">
                 <CardHeader>
                   <CardTitle className="text-2xl text-[#fdfaf5]">Launch in three simple steps</CardTitle>
                   <CardDescription className="text-[#f1dfd5]">
@@ -435,10 +481,13 @@ export default function SyntheticV0PageForDeployment() {
             </div>
             <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
               {experiencePanels.map(panel => (
-                <Card key={panel.title} className="border-[#f8f1e6]/30 bg-[#fdfaf5]/90 text-[#3c1e1d] shadow-lg">
+                <Card
+                  key={panel.title}
+                  className="border-[#f8f1e6]/40 bg-[#fdfaf5]/95 text-[#3c1e1d] shadow-lg shadow-[#2b090e]/15"
+                >
                   <CardHeader className="space-y-4">
                     <span className="flex h-12 w-12 items-center justify-center rounded-full bg-[#6f1d1b]/10 text-[#6f1d1b]">
-                      <panel.icon className="h-6 w-6" />
+                      <panel.icon aria-hidden className="h-6 w-6" />
                     </span>
                     <CardTitle className="text-xl text-[#2f1b1a]">{panel.title}</CardTitle>
                     <CardDescription className="text-[#5c322f]">{panel.blurb}</CardDescription>
@@ -447,7 +496,7 @@ export default function SyntheticV0PageForDeployment() {
                     <ul className="space-y-2 text-sm text-[#3c1e1d]/80">
                       {panel.bullets.map(bullet => (
                         <li key={bullet} className="flex items-start gap-2">
-                          <BarChart3 className="mt-0.5 h-4 w-4 text-[#6f1d1b]" />
+                          <ScrollText aria-hidden className="mt-0.5 h-4 w-4 text-[#6f1d1b]" />
                           <span>{bullet}</span>
                         </li>
                       ))}
@@ -467,7 +516,7 @@ export default function SyntheticV0PageForDeployment() {
             </div>
             <div className="grid gap-4">
               {faqs.map(faq => (
-                <Card key={faq.question} className="border-[#f8f1e6]/30 bg-[#401016]/70 text-[#fceee0]">
+                <Card key={faq.question} className="border-[#f8f1e6]/30 bg-gradient-to-br from-[#401016]/80 via-[#2f0c12]/75 to-[#61161f]/45 text-[#fceee0]">
                   <CardHeader>
                     <CardTitle className="text-xl text-[#fdfaf5]">{faq.question}</CardTitle>
                     <CardDescription className="text-[#f1dfd5]">{faq.answer}</CardDescription>
@@ -477,7 +526,7 @@ export default function SyntheticV0PageForDeployment() {
             </div>
           </section>
 
-          <section className="rounded-2xl border border-[#f8f1e6]/40 bg-[#401016]/80 p-10 text-center shadow-xl">
+          <section className="rounded-2xl border border-[#f8f1e6]/40 bg-gradient-to-br from-[#401016]/85 via-[#2f0c12]/75 to-[#6f1d1b]/40 p-10 text-center shadow-xl">
             <div className="flex flex-col items-center gap-4">
               <Badge className="bg-[#f8f1e6]/20 text-[#fceee0]">Ready to elevate your Quran programme?</Badge>
               <h2 className="text-3xl font-semibold text-[#fdfaf5] sm:text-4xl">Bring Alfawz Quran to your community today</h2>

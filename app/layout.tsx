@@ -5,8 +5,9 @@ import { Analytics } from '@vercel/analytics/next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'v0 App',
-  description: 'Created with v0',
+  title: 'Alfawz Quran Plugin',
+  description:
+    'Alfawz Quran brings a beautifully branded maroon and milk experience to WordPress for Quran reading, memorisation, and community insights.',
   generator: 'v0.app',
 }
 
@@ -26,7 +27,7 @@ html {
 }
         `}</style>
       </head>
-      <body>
+      <body className="min-h-screen bg-background text-foreground antialiased">
         {children}
         <Analytics />
       </body>
