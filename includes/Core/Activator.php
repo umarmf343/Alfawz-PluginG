@@ -144,6 +144,11 @@ class Activator {
                 'shortcode' => '[alfawz_settings]',
             ],
             [
+                'slug'      => 'alfawz-qaidah',
+                'title'     => __( "Alfawz Qa'idah", 'alfawzquran' ),
+                'shortcode' => '[alfawz_qaidah]',
+            ],
+            [
                 'slug'      => 'alfawz-games',
                 'title'     => __( 'Alfawz Games', 'alfawzquran' ),
                 'shortcode' => '[alfawz_games]',

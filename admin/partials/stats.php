@@ -2,46 +2,38 @@
     <h1><?php echo esc_html(get_admin_page_title()); ?></h1>
     
     <div class="alfawz-admin-stats">
+        <?php
+        $total_users      = isset($overall_stats['total_users']) ? (int) $overall_stats['total_users'] : count($user_stats);
+        $total_hasanat    = isset($overall_stats['total_hasanat']) ? (int) $overall_stats['total_hasanat'] : array_sum(array_column($user_stats, 'total_hasanat'));
+        $total_verses     = isset($overall_stats['verses_read']) ? (int) $overall_stats['verses_read'] : array_sum(array_column($user_stats, 'verses_read'));
+        $total_memorized  = isset($overall_stats['verses_memorized']) ? (int) $overall_stats['verses_memorized'] : array_sum(array_column($user_stats, 'verses_memorized'));
+        ?>
+
         <div class="alfawz-stats-summary">
             <div class="alfawz-summary-card">
                 <h3><?php _e('Total Users', 'alfawzquran'); ?></h3>
-                <div class="alfawz-summary-number"><?php echo count($user_stats); ?></div>
+                <div class="alfawz-summary-number"><?php echo number_format_i18n($total_users); ?></div>
             </div>
-            
+
             <div class="alfawz-summary-card">
                 <h3><?php _e('Total Hasanat', 'alfawzquran'); ?></h3>
-                <div class="alfawz-summary-number">
-                    <?php 
-                    $total_hasanat = array_sum(array_column($user_stats, 'total_hasanat'));
-                    echo number_format($total_hasanat);
-                    ?>
-                </div>
+                <div class="alfawz-summary-number"><?php echo number_format_i18n($total_hasanat); ?></div>
             </div>
-            
+
             <div class="alfawz-summary-card">
                 <h3><?php _e('Total Verses Read', 'alfawzquran'); ?></h3>
-                <div class="alfawz-summary-number">
-                    <?php 
-                    $total_verses = array_sum(array_column($user_stats, 'verses_read'));
-                    echo number_format($total_verses);
-                    ?>
-                </div>
+                <div class="alfawz-summary-number"><?php echo number_format_i18n($total_verses); ?></div>
             </div>
-            
+
             <div class="alfawz-summary-card">
                 <h3><?php _e('Total Memorized', 'alfawzquran'); ?></h3>
-                <div class="alfawz-summary-number">
-                    <?php 
-                    $total_memorized = array_sum(array_column($user_stats, 'verses_memorized'));
-                    echo number_format($total_memorized);
-                    ?>
-                </div>
+                <div class="alfawz-summary-number"><?php echo number_format_i18n($total_memorized); ?></div>
             </div>
         </div>
-        
+
         <div class="alfawz-users-table">
             <h2><?php _e('Top Users', 'alfawzquran'); ?></h2>
-            
+
             <?php if (!empty($user_stats)): ?>
                 <table class="wp-list-table widefat fixed striped">
                     <thead>
@@ -63,7 +55,7 @@
                                     <strong>#<?php echo $index + 1; ?></strong>
                                     <?php if ($index < 3): ?>
                                         <span class="alfawz-medal">
-                                            <?php 
+                                            <?php
                                             $medals = ['🥇', '🥈', '🥉'];
                                             echo $medals[$index];
                                             ?>
@@ -71,37 +63,37 @@
                                     <?php endif; ?>
                                 </td>
                                 <td>
-                                    <strong><?php echo esc_html($user->display_name); ?></strong>
+                                    <strong><?php echo esc_html($user['display_name']); ?></strong>
                                 </td>
                                 <td>
-                                    <a href="mailto:<?php echo esc_attr($user->user_email); ?>">
-                                        <?php echo esc_html($user->user_email); ?>
+                                    <a href="mailto:<?php echo esc_attr($user['user_email']); ?>">
+                                        <?php echo esc_html($user['user_email']); ?>
                                     </a>
                                 </td>
                                 <td>
                                     <span class="alfawz-hasanat-badge">
-                                        ⭐ <?php echo number_format($user->total_hasanat); ?>
+                                        ⭐ <?php echo number_format_i18n($user['total_hasanat']); ?>
                                     </span>
                                 </td>
                                 <td>
                                     <span class="alfawz-stat-badge alfawz-read-badge">
-                                        📖 <?php echo number_format($user->verses_read); ?>
+                                        📖 <?php echo number_format_i18n($user['verses_read']); ?>
                                     </span>
                                 </td>
                                 <td>
                                     <span class="alfawz-stat-badge alfawz-memorized-badge">
-                                        🧠 <?php echo number_format($user->verses_memorized); ?>
+                                        🧠 <?php echo number_format_i18n($user['verses_memorized']); ?>
                                     </span>
                                 </td>
                                 <td>
                                     <span class="alfawz-stat-badge alfawz-streak-badge">
-                                        🔥 <?php echo $user->current_streak; ?> days
+                                        🔥 <?php echo number_format_i18n($user['current_streak']); ?> <?php _e('days', 'alfawzquran'); ?>
                                     </span>
                                 </td>
                                 <td>
-                                    <?php if ($user->last_activity): ?>
-                                        <span title="<?php echo esc_attr($user->last_activity); ?>">
-                                            <?php echo human_time_diff(strtotime($user->last_activity)); ?> ago
+                                    <?php if (!empty($user['last_activity'])): ?>
+                                        <span title="<?php echo esc_attr($user['last_activity']); ?>">
+                                            <?php echo esc_html(human_time_diff(strtotime($user['last_activity']))); ?> <?php _e('ago', 'alfawzquran'); ?>
                                         </span>
                                     <?php else: ?>
                                         <span class="alfawz-no-activity"><?php _e('No activity', 'alfawzquran'); ?></span>
