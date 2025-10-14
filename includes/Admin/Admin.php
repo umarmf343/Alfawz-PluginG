@@ -76,6 +76,17 @@ class Admin {
             'alfawz-quran-settings',
             [ $this, 'display_admin_settings' ]
         );
+
+        if ( $this->user_can_manage_boards() ) {
+            add_submenu_page(
+                'alfawz-quran',
+                __( "Qa'idah Boards", 'alfawzquran' ),
+                __( "Qa'idah Boards", 'alfawzquran' ),
+                'edit_posts',
+                'alfawz-qaidah-boards',
+                [ $this, 'display_qaidah_boards' ]
+            );
+        }
     }
 
     /**
@@ -93,10 +104,17 @@ class Admin {
     }
 
     /**
+     * Display the Qa'idah board management page.
+     */
+    public function display_qaidah_boards() {
+        include ALFAWZQURAN_PLUGIN_PATH . 'admin/partials/qaidah-boards.php';
+    }
+
+    /**
      * Enqueue admin-specific assets.
      */
     public function enqueue_admin_assets() {
-        if ( isset( $_GET['page'] ) && strpos( $_GET['page'], 'alfawz-quran' ) !== false ) {
+        if ( isset( $_GET['page'] ) && strpos( sanitize_key( wp_unslash( $_GET['page'] ) ), 'alfawz-quran' ) !== false ) {
             wp_enqueue_style(
                 'alfawz-admin-style',
                 ALFAWZQURAN_PLUGIN_URL . 'assets/css/admin.css',
@@ -112,10 +130,44 @@ class Admin {
                 true
             );
 
+            if ( isset( $_GET['page'] ) && 'alfawz-qaidah-boards' === sanitize_key( wp_unslash( $_GET['page'] ) ) ) {
+                wp_enqueue_media();
+            }
+
             wp_localize_script('alfawz-admin-script', 'alfawzAdminData', [
-                'apiUrl' => rest_url('alfawzquran/v1/'),
-                'nonce' => wp_create_nonce('wp_rest'),
+                'apiUrl'           => rest_url('alfawzquran/v1/'),
+                'nonce'            => wp_create_nonce('wp_rest'),
+                'currentUserId'    => get_current_user_id(),
+                'canManageBoards'  => $this->user_can_manage_boards(),
+                'strings'          => [
+                    'boardSaved'    => __( 'Qa\'idah board saved successfully.', 'alfawzquran' ),
+                    'boardDeleted'  => __( 'Qa\'idah board deleted successfully.', 'alfawzquran' ),
+                    'confirmDelete' => __( 'Are you sure you want to delete this board?', 'alfawzquran' ),
+                ],
             ]);
         }
+    }
+
+    /**
+     * Determine whether the current user can manage Qa'idah boards.
+     *
+     * @return bool
+     */
+    private function user_can_manage_boards() {
+        if ( ! is_user_logged_in() ) {
+            return false;
+        }
+
+        $user = wp_get_current_user();
+
+        if ( current_user_can( 'manage_options' ) ) {
+            return true;
+        }
+
+        if ( in_array( 'teacher', (array) $user->roles, true ) ) {
+            return true;
+        }
+
+        return current_user_can( 'edit_posts' );
     }
 }

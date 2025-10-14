@@ -57,6 +57,21 @@ if ( ! defined( 'ABSPATH' ) ) {
         </div>
     </section>
 
+    <section class="alfawz-qaidah-boards" aria-labelledby="qaidah-boards-title">
+        <div class="alfawz-qaidah-boards-header">
+            <h3 id="qaidah-boards-title"><?php esc_html_e( 'Assigned practice sheets', 'alfawzquran' ); ?></h3>
+            <label class="alfawz-switch" for="qaidah-audio-toggle">
+                <input type="checkbox" id="qaidah-audio-toggle" checked="checked" />
+                <span><?php esc_html_e( 'Play audio on tap', 'alfawzquran' ); ?></span>
+            </label>
+        </div>
+        <div class="alfawz-qaidah-board-listing" id="qaidah-boards-container">
+            <div class="alfawz-empty-state">
+                <p><?php esc_html_e( 'Loading assignments…', 'alfawzquran' ); ?></p>
+            </div>
+        </div>
+    </section>
+
     <section class="alfawz-qaidah-lessons" aria-labelledby="qaidah-lessons-title">
         <h3 id="qaidah-lessons-title"><?php esc_html_e( 'Lesson Explorer', 'alfawzquran' ); ?></h3>
         <p class="alfawz-qaidah-lessons-copy"><?php esc_html_e( 'Choose a focus set to tailor the flashcards to your current Qa\'idah goal.', 'alfawzquran' ); ?></p>

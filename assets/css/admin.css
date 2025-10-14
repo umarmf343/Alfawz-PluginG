@@ -1,0 +1,239 @@
+.alfawz-qaidah-board-admin {
+  margin-top: 24px;
+}
+
+.alfawz-qaidah-board-admin .description {
+  max-width: 720px;
+  color: #555d66;
+}
+
+.alfawz-qaidah-board-app {
+  margin-top: 24px;
+  background: #fff;
+  border: 1px solid #dcdcde;
+  border-radius: 8px;
+  padding: 24px;
+  box-shadow: 0 8px 24px rgba(18, 43, 70, 0.06);
+}
+
+.alfawz-qaidah-board-grid {
+  display: grid;
+  grid-template-columns: minmax(240px, 320px) 1fr;
+  gap: 24px;
+}
+
+@media (max-width: 960px) {
+  .alfawz-qaidah-board-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.alfawz-qaidah-board-list {
+  border-right: 1px solid #ececec;
+  padding-right: 16px;
+}
+
+@media (max-width: 960px) {
+  .alfawz-qaidah-board-list {
+    border-right: none;
+    border-bottom: 1px solid #ececec;
+    padding-bottom: 16px;
+    margin-bottom: 16px;
+  }
+}
+
+.alfawz-qaidah-board-list h2 {
+  margin-top: 0;
+  font-size: 16px;
+}
+
+.alfawz-qaidah-board-items {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.alfawz-qaidah-board-items li {
+  border: 1px solid #d7d7d9;
+  border-radius: 6px;
+  padding: 12px;
+  margin-bottom: 12px;
+  background: #f9fafb;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.alfawz-qaidah-board-items li.is-active {
+  border-color: #2271b1;
+  background: #f0f6fc;
+}
+
+.alfawz-qaidah-board-items .board-meta {
+  font-size: 12px;
+  color: #555d66;
+}
+
+.alfawz-qaidah-board-items button.button-link {
+  color: #2271b1;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.alfawz-qaidah-board-form h2 {
+  margin-top: 0;
+  font-size: 18px;
+}
+
+.alfawz-qaidah-board-form .form-field {
+  margin-bottom: 20px;
+}
+
+.alfawz-qaidah-board-form label {
+  font-weight: 600;
+  display: block;
+  margin-bottom: 6px;
+}
+
+.alfawz-qaidah-board-form .form-field input[type="text"],
+.alfawz-qaidah-board-form .form-field select,
+.alfawz-qaidah-board-form .form-field textarea {
+  width: 100%;
+  border-radius: 4px;
+}
+
+.alfawz-qaidah-hotspot-stage {
+  position: relative;
+  border: 1px dashed #c0c4c8;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #f8f9fa;
+}
+
+.alfawz-qaidah-hotspot-stage img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.alfawz-qaidah-hotspot-stage .alfawz-hotspot-box {
+  position: absolute;
+  border: 2px solid rgba(34, 113, 177, 0.9);
+  background: rgba(34, 113, 177, 0.18);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.alfawz-qaidah-hotspot-stage .alfawz-hotspot-box.is-selected {
+  border-color: rgba(220, 53, 69, 0.9);
+  background: rgba(220, 53, 69, 0.15);
+}
+
+.alfawz-hotspot-box .alfawz-hotspot-label {
+  position: absolute;
+  top: -28px;
+  left: 0;
+  background: #111827;
+  color: #fff;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 12px;
+  white-space: nowrap;
+}
+
+.alfawz-hotspot-editor {
+  margin-top: 24px;
+  border-top: 1px solid #ececec;
+  padding-top: 16px;
+}
+
+.alfawz-hotspot-editor .hotspot-card {
+  border: 1px solid #d7d7d9;
+  border-radius: 6px;
+  padding: 16px;
+  margin-bottom: 12px;
+  background: #fdfdfd;
+}
+
+.alfawz-hotspot-editor .hotspot-card h3 {
+  margin-top: 0;
+  font-size: 15px;
+}
+
+.alfawz-hotspot-editor .hotspot-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+
+.alfawz-hotspot-editor .hotspot-actions button.button-link-delete {
+  color: #b32d2e;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.alfawz-hotspot-editor .hotspot-audio-preview {
+  margin-top: 8px;
+}
+
+.alfawz-hotspot-empty {
+  text-align: center;
+  padding: 24px 16px;
+  color: #6b7280;
+  border: 1px dashed #cbd5f1;
+  border-radius: 6px;
+  background: #f8fbff;
+}
+
+.alfawz-qaidah-board-form .alfawz-toolbar {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.alfawz-qaidah-board-form .alfawz-toolbar .button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.alfawz-qaidah-board-form .alfawz-toolbar .dashicons {
+  font-size: 16px;
+  line-height: 1;
+}
+
+.alfawz-qaidah-board-form .alfawz-alert {
+  margin-top: 0;
+  margin-bottom: 16px;
+}
+
+.alfawz-qaidah-board-form .alfawz-form-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 24px;
+}
+
+.alfawz-loading-state {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #444;
+}
+
+.alfawz-qaidah-board-form .badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: #f0f6fc;
+  color: #1d4ed8;
+  font-size: 11px;
+  font-weight: 600;
+}

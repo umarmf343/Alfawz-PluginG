@@ -1,7 +1,11 @@
 <?php
 namespace AlfawzQuran\API;
 
+use AlfawzQuran\Models\QaidahBoard;
 use AlfawzQuran\Models\UserProgress;
+use WP_Error;
+use WP_REST_Request;
+use WP_REST_Response;
 
 /**
  * Register REST API routes for the plugin.
@@ -131,6 +135,49 @@ class Routes {
                 return current_user_can( 'manage_options' );
             },
         ]);
+
+        register_rest_route( $namespace, '/qaidah/students', [
+            'methods'             => 'GET',
+            'callback'            => [ $this, 'get_qaidah_students' ],
+            'permission_callback' => [ $this, 'teacher_permission_callback' ],
+        ] );
+
+        register_rest_route( $namespace, '/qaidah/audio', [
+            'methods'             => 'POST',
+            'callback'            => [ $this, 'upload_qaidah_audio' ],
+            'permission_callback' => [ $this, 'teacher_permission_callback' ],
+        ] );
+
+        register_rest_route( $namespace, '/qaidah/boards', [
+            [
+                'methods'             => 'GET',
+                'callback'            => [ $this, 'get_qaidah_boards' ],
+                'permission_callback' => [ $this, 'check_permission' ],
+            ],
+            [
+                'methods'             => 'POST',
+                'callback'            => [ $this, 'create_qaidah_board' ],
+                'permission_callback' => [ $this, 'teacher_permission_callback' ],
+            ],
+        ] );
+
+        register_rest_route( $namespace, '/qaidah/boards/(?P<id>\d+)', [
+            [
+                'methods'             => 'GET',
+                'callback'            => [ $this, 'get_single_qaidah_board' ],
+                'permission_callback' => [ $this, 'teacher_permission_callback' ],
+            ],
+            [
+                'methods'             => 'PUT',
+                'callback'            => [ $this, 'update_qaidah_board' ],
+                'permission_callback' => [ $this, 'teacher_permission_callback' ],
+            ],
+            [
+                'methods'             => 'DELETE',
+                'callback'            => [ $this, 'delete_qaidah_board' ],
+                'permission_callback' => [ $this, 'teacher_permission_callback' ],
+            ],
+        ] );
     }
 
     /**
@@ -138,6 +185,13 @@ class Routes {
      */
     public function check_permission( \WP_REST_Request $request ) {
         return is_user_logged_in();
+    }
+
+    /**
+     * Check whether the user can manage Qa'idah boards.
+     */
+    public function teacher_permission_callback( WP_REST_Request $request ) {
+        return $this->current_user_is_teacher();
     }
 
     /**
@@ -190,6 +244,262 @@ class Routes {
         $stats['member_since'] = $user_data ? date( 'M Y', strtotime( $user_data->user_registered ) ) : 'N/A';
 
         return new \WP_REST_Response( $stats, 200 );
+    }
+
+    /**
+     * Return students eligible for Qa'idah board assignments.
+     */
+    public function get_qaidah_students( WP_REST_Request $request ) {
+        $roles = apply_filters( 'alfawz_qaidah_student_roles', [ 'student', 'subscriber' ] );
+
+        $users = get_users( [
+            'role__in' => $roles,
+            'orderby'  => 'display_name',
+            'order'    => 'ASC',
+        ] );
+
+        $students = array_map( static function ( $user ) {
+            return [
+                'id'   => (int) $user->ID,
+                'name' => $user->display_name,
+                'email' => $user->user_email,
+            ];
+        }, $users );
+
+        return new WP_REST_Response( $students, 200 );
+    }
+
+    /**
+     * Handle audio uploads for Qa'idah hotspots.
+     */
+    public function upload_qaidah_audio( WP_REST_Request $request ) {
+        $files = $request->get_file_params();
+
+        if ( empty( $files['audio'] ) || ! empty( $files['audio']['error'] ) ) {
+            return new WP_Error( 'alfawz_audio_upload_error', \__( 'Audio file is required.', 'alfawzquran' ), [ 'status' => 400 ] );
+        }
+
+        $audio = $files['audio'];
+
+        require_once ABSPATH . 'wp-admin/includes/file.php';
+        require_once ABSPATH . 'wp-admin/includes/media.php';
+        require_once ABSPATH . 'wp-admin/includes/image.php';
+
+        $allowed_types = [
+            'audio/webm',
+            'audio/wav',
+            'audio/mpeg',
+            'audio/mp4',
+            'audio/ogg',
+        ];
+
+        $overrides = [
+            'test_form' => false,
+            'mimes'     => [
+                'webm' => 'audio/webm',
+                'wav'  => 'audio/wav',
+                'mp3'  => 'audio/mpeg',
+                'm4a'  => 'audio/mp4',
+                'ogg'  => 'audio/ogg',
+                'oga'  => 'audio/ogg',
+            ],
+        ];
+
+        $uploaded = wp_handle_upload( $audio, $overrides );
+
+        if ( isset( $uploaded['error'] ) ) {
+            return new WP_Error( 'alfawz_audio_upload_error', $uploaded['error'], [ 'status' => 400 ] );
+        }
+
+        if ( ! in_array( $uploaded['type'], $allowed_types, true ) ) {
+            return new WP_Error( 'alfawz_audio_upload_error', \__( 'Unsupported audio format.', 'alfawzquran' ), [ 'status' => 400 ] );
+        }
+
+        $attachment = [
+            'post_mime_type' => $uploaded['type'],
+            'post_title'     => sanitize_file_name( pathinfo( $uploaded['file'], PATHINFO_FILENAME ) ),
+            'post_content'   => '',
+            'post_status'    => 'inherit',
+        ];
+
+        $attach_id = wp_insert_attachment( $attachment, $uploaded['file'] );
+
+        if ( is_wp_error( $attach_id ) ) {
+            return new WP_Error( 'alfawz_audio_upload_error', \__( 'Unable to save audio file.', 'alfawzquran' ), [ 'status' => 500 ] );
+        }
+
+        $metadata = wp_generate_attachment_metadata( $attach_id, $uploaded['file'] );
+        wp_update_attachment_metadata( $attach_id, $metadata );
+
+        return new WP_REST_Response(
+            [
+                'id'  => (int) $attach_id,
+                'url' => wp_get_attachment_url( $attach_id ),
+            ],
+            201
+        );
+    }
+
+    /**
+     * Retrieve Qa'idah boards for the current user.
+     */
+    public function get_qaidah_boards( WP_REST_Request $request ) {
+        $user_id = get_current_user_id();
+
+        if ( ! $user_id ) {
+            return new WP_REST_Response( [], 200 );
+        }
+
+        $context = $request->get_param( 'context' );
+        $model   = new QaidahBoard();
+
+        if ( 'manage' === $context && $this->current_user_is_teacher() ) {
+            $author_id = current_user_can( 'manage_options' ) ? 0 : $user_id;
+            $boards    = $model->get_boards_for_teacher( $author_id );
+        } else {
+            $boards = $model->get_boards_for_student( $user_id );
+        }
+
+        return new WP_REST_Response( $boards, 200 );
+    }
+
+    /**
+     * Retrieve a single Qa'idah board.
+     */
+    public function get_single_qaidah_board( WP_REST_Request $request ) {
+        $board_id = (int) $request['id'];
+        $post     = get_post( $board_id );
+
+        if ( ! $post || QaidahBoard::POST_TYPE !== $post->post_type ) {
+            return new WP_REST_Response( [ 'message' => \__( 'Board not found.', 'alfawzquran' ) ], 404 );
+        }
+
+        if ( ! $this->can_manage_board( $post ) ) {
+            return new WP_REST_Response( [ 'message' => \__( 'You cannot access this board.', 'alfawzquran' ) ], 403 );
+        }
+
+        $model  = new QaidahBoard();
+        $board  = $model->prepare_board_for_response( $post, 'manage' );
+
+        return new WP_REST_Response( $board, 200 );
+    }
+
+    /**
+     * Create a new Qa'idah board.
+     */
+    public function create_qaidah_board( WP_REST_Request $request ) {
+        $data  = $request->get_json_params();
+        $model = new QaidahBoard();
+
+        $result = $model->save_board(
+            [
+                'title'       => $data['title'] ?? '',
+                'image_id'    => $data['image_id'] ?? 0,
+                'student_ids' => $data['student_ids'] ?? [],
+                'hotspots'    => $data['hotspots'] ?? [],
+                'author_id'   => get_current_user_id(),
+            ]
+        );
+
+        if ( is_wp_error( $result ) ) {
+            return new WP_REST_Response( [ 'message' => $result->get_error_message() ], 400 );
+        }
+
+        $post  = get_post( $result );
+        $board = $model->prepare_board_for_response( $post, 'manage' );
+
+        return new WP_REST_Response( $board, 201 );
+    }
+
+    /**
+     * Update an existing Qa'idah board.
+     */
+    public function update_qaidah_board( WP_REST_Request $request ) {
+        $board_id = (int) $request['id'];
+        $post     = get_post( $board_id );
+
+        if ( ! $post || QaidahBoard::POST_TYPE !== $post->post_type ) {
+            return new WP_REST_Response( [ 'message' => \__( 'Board not found.', 'alfawzquran' ) ], 404 );
+        }
+
+        if ( ! $this->can_manage_board( $post ) ) {
+            return new WP_REST_Response( [ 'message' => \__( 'You cannot modify this board.', 'alfawzquran' ) ], 403 );
+        }
+
+        $data  = $request->get_json_params();
+        $model = new QaidahBoard();
+
+        $result = $model->save_board(
+            [
+                'title'       => $data['title'] ?? $post->post_title,
+                'image_id'    => $data['image_id'] ?? (int) get_post_meta( $post->ID, '_alfawz_qaidah_image_id', true ),
+                'student_ids' => $data['student_ids'] ?? [],
+                'hotspots'    => $data['hotspots'] ?? [],
+                'author_id'   => (int) $post->post_author,
+            ],
+            $board_id
+        );
+
+        if ( is_wp_error( $result ) ) {
+            return new WP_REST_Response( [ 'message' => $result->get_error_message() ], 400 );
+        }
+
+        $updated_post = get_post( $result );
+        $board        = $model->prepare_board_for_response( $updated_post, 'manage' );
+
+        return new WP_REST_Response( $board, 200 );
+    }
+
+    /**
+     * Delete a Qa'idah board.
+     */
+    public function delete_qaidah_board( WP_REST_Request $request ) {
+        $board_id = (int) $request['id'];
+        $post     = get_post( $board_id );
+
+        if ( ! $post || QaidahBoard::POST_TYPE !== $post->post_type ) {
+            return new WP_REST_Response( [ 'message' => \__( 'Board not found.', 'alfawzquran' ) ], 404 );
+        }
+
+        if ( ! $this->can_manage_board( $post ) ) {
+            return new WP_REST_Response( [ 'message' => \__( 'You cannot delete this board.', 'alfawzquran' ) ], 403 );
+        }
+
+        wp_delete_post( $board_id, true );
+
+        return new WP_REST_Response( null, 204 );
+    }
+
+    /**
+     * Determine whether the current user can manage Qa'idah boards.
+     */
+    private function current_user_is_teacher() {
+        if ( ! is_user_logged_in() ) {
+            return false;
+        }
+
+        if ( current_user_can( 'manage_options' ) ) {
+            return true;
+        }
+
+        $user = wp_get_current_user();
+
+        if ( in_array( 'teacher', (array) $user->roles, true ) ) {
+            return true;
+        }
+
+        return current_user_can( 'edit_posts' );
+    }
+
+    /**
+     * Check if the current user can edit a specific board.
+     */
+    private function can_manage_board( $post ) {
+        if ( current_user_can( 'manage_options' ) ) {
+            return true;
+        }
+
+        return (int) $post->post_author === get_current_user_id();
     }
 
     /**

@@ -2353,6 +2353,28 @@
       return
     }
 
+    const boardTranslate = window.wp && window.wp.i18n && typeof window.wp.i18n.__ === "function" ? window.wp.i18n.__ : text => text
+    const boardText = text => boardTranslate(text, "alfawzquran")
+    const $boardsContainer = $("#qaidah-boards-container")
+    const $audioToggle = $("#qaidah-audio-toggle")
+    let boardsAudioEnabled = true
+    let activeHotspotAudio = null
+    let activeHotspotButton = null
+
+    if ($boardsContainer.length) {
+      boardsAudioEnabled = $audioToggle.is(":checked")
+
+      $audioToggle.on("change", () => {
+        boardsAudioEnabled = $audioToggle.is(":checked")
+
+        if (!boardsAudioEnabled) {
+          stopHotspotAudio()
+        }
+      })
+
+      loadAssignedBoards()
+    }
+
     const $cardSymbol = $("#qaidah-card-symbol")
     const $cardTransliteration = $("#qaidah-card-transliteration")
     const $cardTip = $("#qaidah-card-tip")
@@ -2375,6 +2397,199 @@
     let currentLesson = qaidahLessons[0] || null
     let currentIndex = 0
     let masteredSet = new Set(loadMastered())
+
+    function loadAssignedBoards() {
+      if (!alfawzData.isLoggedIn) {
+        renderBoardMessage(boardText("Log in to access your Qa'idah assignments."))
+        return
+      }
+
+      renderBoardLoading()
+
+      $.ajax({
+        url: `${alfawzData.apiUrl}qaidah/boards`,
+        method: "GET",
+        headers: {
+          "X-WP-Nonce": alfawzData.nonce,
+        },
+      })
+        .done(response => {
+          const boards = Array.isArray(response) ? response : []
+          renderBoards(boards)
+        })
+        .fail(() => {
+          renderBoardMessage(boardText("We couldn't load your Qa'idah sheets right now."))
+        })
+    }
+
+    function renderBoardLoading() {
+      $boardsContainer.html(
+        `<div class="alfawz-empty-state"><p>${boardText('Loading assignments…')}</p></div>`
+      )
+    }
+
+    function renderBoardMessage(message) {
+      $boardsContainer.html(`<div class="alfawz-empty-state"><p>${message}</p></div>`)
+    }
+
+    function renderBoards(boards) {
+      stopHotspotAudio()
+
+      if (!boards.length) {
+        renderBoardMessage(boardText('Your teacher has not shared any Qa\'idah sheets yet.'))
+        return
+      }
+
+      $boardsContainer.empty()
+
+      boards.forEach(board => {
+        $boardsContainer.append(createBoardCard(board))
+      })
+    }
+
+    function createBoardCard(board) {
+      const title = board.title || boardText("Qa'idah sheet")
+      const teacherName = board.teacher && board.teacher.name ? board.teacher.name : null
+      const hotspotCount = Array.isArray(board.hotspots) ? board.hotspots.length : 0
+
+      const $card = $("<article>", { class: "alfawz-qaidah-board-card" })
+      const $header = $("<header>", { class: "alfawz-qaidah-board-card-header" })
+      $("<h4>", { text: title }).appendTo($header)
+
+      if (teacherName) {
+        $("<p>", {
+          class: "alfawz-qaidah-board-card-meta",
+          text: `${boardText('Teacher')}: ${teacherName}`,
+        }).appendTo($header)
+      }
+
+      const $stage = $("<div>", { class: "alfawz-qaidah-board-stage" })
+
+      if (board.image && board.image.url) {
+        $("<img>", {
+          src: board.image.url,
+          alt: board.image.alt || title,
+          loading: "lazy",
+        }).appendTo($stage)
+
+        if (Array.isArray(board.hotspots)) {
+          board.hotspots.forEach(hotspot => {
+            $stage.append(createHotspotButton(hotspot))
+          })
+        }
+      } else {
+        $stage.append(
+          $("<div>", {
+            class: "alfawz-empty-state",
+            text: boardText('This sheet is missing an image.'),
+          })
+        )
+      }
+
+      const $footer = $("<footer>", { class: "alfawz-qaidah-board-card-footer" })
+      $("<span>", {
+        text: `${hotspotCount} ${boardText('hotspots')}`,
+      }).appendTo($footer)
+
+      $card.append($header, $stage, $footer)
+
+      return $card
+    }
+
+    function createHotspotButton(hotspot) {
+      const label = hotspot.label || boardText("Qa'idah hotspot")
+      const audioUrl = hotspot.audio_url || ""
+
+      const $button = $("<button>", {
+        class: "alfawz-qaidah-board-hotspot",
+        type: "button",
+        "aria-label": label,
+      })
+        .css({
+          left: `${hotspot.x}%`,
+          top: `${hotspot.y}%`,
+          width: `${hotspot.width}%`,
+          height: `${hotspot.height}%`,
+        })
+
+      if (!audioUrl) {
+        $button.addClass("is-muted")
+      }
+
+      if (label) {
+        $("<span>", {
+          class: "alfawz-qaidah-board-hotspot-label",
+          text: label,
+        }).appendTo($button)
+      }
+
+      const handleTap = event => {
+        event.preventDefault()
+
+        if (!boardsAudioEnabled || !audioUrl) {
+          $button.addClass("is-pulsed")
+          window.setTimeout(() => $button.removeClass("is-pulsed"), 250)
+          return
+        }
+
+        playHotspotAudio(audioUrl, $button)
+      }
+
+      $button.on("click", handleTap)
+      $button.on("touchstart", handleTap)
+
+      return $button
+    }
+
+    function playHotspotAudio(url, $button) {
+      stopHotspotAudio()
+
+      try {
+        activeHotspotAudio = new Audio(url)
+        activeHotspotButton = $button
+        $button.addClass("is-playing")
+
+        activeHotspotAudio.addEventListener("ended", () => {
+          stopHotspotAudio()
+        })
+
+        activeHotspotAudio.addEventListener("error", () => {
+          stopHotspotAudio()
+          flashHotspotError($button)
+        })
+
+        activeHotspotAudio.play().catch(() => {
+          stopHotspotAudio()
+          flashHotspotError($button)
+        })
+      } catch (error) {
+        console.error('Unable to play hotspot audio', error)
+        stopHotspotAudio()
+        flashHotspotError($button)
+      }
+    }
+
+    function stopHotspotAudio() {
+      if (activeHotspotAudio) {
+        try {
+          activeHotspotAudio.pause()
+        } catch (error) {
+          // Ignore pause errors
+        }
+        activeHotspotAudio.currentTime = 0
+        activeHotspotAudio = null
+      }
+
+      if (activeHotspotButton) {
+        activeHotspotButton.removeClass("is-playing")
+        activeHotspotButton = null
+      }
+    }
+
+    function flashHotspotError($button) {
+      $button.addClass("is-error")
+      window.setTimeout(() => $button.removeClass("is-error"), 600)
+    }
 
     $progressTotal.text(qaidahDeck.length)
 
