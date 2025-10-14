@@ -1,62 +1,17 @@
 <div class="alfawz-reader">
-    <div class="alfawz-reader-header">
-        <div class="alfawz-header-content">
-            <h2><?php _e('Quran Reader', 'alfawzquran'); ?></h2>
-            <p><?php _e('Select a Surah and Verse to start reading.', 'alfawzquran'); ?></p>
-            <div class="alfawz-selected-surah alfawz-hidden" id="selected-surah-display">
-                <span class="alfawz-surah-icon">📖</span>
-                <span id="selected-surah-name"></span>
+    <div class="alfawz-page-stack">
+        <div class="alfawz-reader-header">
+            <div class="alfawz-header-content">
+                <h2><?php _e('Quran Reader', 'alfawzquran'); ?></h2>
+                <p><?php _e('Select a Surah and Verse to start reading.', 'alfawzquran'); ?></p>
+                <div class="alfawz-selected-surah alfawz-hidden" id="selected-surah-display">
+                    <span class="alfawz-surah-icon">📖</span>
+                    <span id="selected-surah-name"></span>
+                </div>
             </div>
         </div>
-    </div>
 
-    <div class="alfawz-live-progress">
-        <h3><?php _e('Your Session Progress', 'alfawzquran'); ?></h3>
-        <div class="alfawz-progress-grid">
-            <div class="alfawz-progress-card">
-                <div class="alfawz-card-icon">
-                    <div class="alfawz-icon-circle alfawz-hasanat-icon"><span class="alfawz-icon">⭐</span></div>
-                </div>
-                <div class="alfawz-card-content">
-                    <div class="alfawz-card-value" id="session-hasanat">0</div>
-                    <div class="alfawz-card-label"><?php _e('Hasanat Earned', 'alfawzquran'); ?></div>
-                </div>
-                <div class="alfawz-card-decoration"></div>
-            </div>
-            <div class="alfawz-progress-card">
-                <div class="alfawz-card-icon">
-                    <div class="alfawz-icon-circle alfawz-verses-icon"><span class="alfawz-icon">📜</span></div>
-                </div>
-                <div class="alfawz-card-content">
-                    <div class="alfawz-card-value" id="verses-read-session">0</div>
-                    <div class="alfawz-card-label"><?php _e('Verses Read', 'alfawzquran'); ?></div>
-                </div>
-                <div class="alfawz-card-decoration"></div>
-            </div>
-            <div class="alfawz-progress-card">
-                <div class="alfawz-card-icon">
-                    <div class="alfawz-icon-circle alfawz-time-icon"><span class="alfawz-icon">⏱️</span></div>
-                </div>
-                <div class="alfawz-card-content">
-                    <div class="alfawz-card-value" id="session-time">0m 0s</div>
-                    <div class="alfawz-card-label"><?php _e('Session Time', 'alfawzquran'); ?></div>
-                </div>
-                <div class="alfawz-card-decoration"></div>
-            </div>
-            <div class="alfawz-progress-card">
-                <div class="alfawz-card-icon">
-                    <div class="alfawz-icon-circle alfawz-streak-icon"><span class="alfawz-icon">🔥</span></div>
-                </div>
-                <div class="alfawz-card-content">
-                    <div class="alfawz-card-value" id="current-streak-display">0</div>
-                    <div class="alfawz-card-label"><?php _e('Current Streak', 'alfawzquran'); ?></div>
-                </div>
-                <div class="alfawz-card-decoration"></div>
-            </div>
-        </div>
-    </div>
-
-    <div class="alfawz-reader-controls">
+        <div class="alfawz-reader-controls">
         <div class="alfawz-selection-controls">
             <div class="alfawz-surah-selection">
                 <label for="reader-surah-select" class="alfawz-control-label">
@@ -89,22 +44,22 @@
                 </div>
             </div>
         </div>
-    </div>
-
-    <div class="alfawz-verse-display">
-        <div class="alfawz-loading-message" id="reader-loading-message">
-            <span class="alfawz-loading-icon">⏳</span>
-            <h3><?php _e('Select a verse to begin', 'alfawzquran'); ?></h3>
-            <p><?php _e('Choose a Surah and Verse from the dropdowns above.', 'alfawzquran'); ?></p>
         </div>
 
-        <div class="alfawz-verse-card alfawz-hidden" id="reader-verse-card">
-            <div class="alfawz-verse-arabic" id="reader-quran-text"></div>
-            <div class="alfawz-verse-translation" id="reader-quran-translation"></div>
-        </div>
-    </div>
+        <div class="alfawz-verse-display">
+            <div class="alfawz-loading-message" id="reader-loading-message">
+                <span class="alfawz-loading-icon">⏳</span>
+                <h3><?php _e('Select a verse to begin', 'alfawzquran'); ?></h3>
+                <p><?php _e('Choose a Surah and Verse from the dropdowns above.', 'alfawzquran'); ?></p>
+            </div>
 
-    <div class="alfawz-reader-actions alfawz-hidden">
+            <div class="alfawz-verse-card alfawz-focus-card alfawz-hidden" id="reader-verse-card" tabindex="0" role="group" aria-live="polite">
+                <div class="alfawz-verse-arabic" id="reader-quran-text"></div>
+                <div class="alfawz-verse-translation" id="reader-quran-translation"></div>
+            </div>
+        </div>
+
+        <div class="alfawz-reader-actions alfawz-hidden">
         <div class="alfawz-primary-actions">
             <button id="reader-play-audio" class="alfawz-beautiful-btn">
                 <span class="alfawz-btn-icon-wrapper"><span class="alfawz-btn-icon">🔊</span></span>
@@ -138,6 +93,53 @@
             <button id="next-verse-btn" class="alfawz-mobile-nav-btn" disabled>
                 <?php _e('Next', 'alfawzquran'); ?> <span class="alfawz-btn-icon">▶️</span>
             </button>
+        </div>
+        </div>
+
+        <div class="alfawz-live-progress">
+            <h3><?php _e('Your Session Progress', 'alfawzquran'); ?></h3>
+            <div class="alfawz-progress-grid">
+                <div class="alfawz-progress-card">
+                    <div class="alfawz-card-icon">
+                        <div class="alfawz-icon-circle alfawz-hasanat-icon"><span class="alfawz-icon">⭐</span></div>
+                    </div>
+                    <div class="alfawz-card-content">
+                        <div class="alfawz-card-value" id="session-hasanat">0</div>
+                        <div class="alfawz-card-label"><?php _e('Hasanat Earned', 'alfawzquran'); ?></div>
+                    </div>
+                    <div class="alfawz-card-decoration"></div>
+                </div>
+                <div class="alfawz-progress-card">
+                    <div class="alfawz-card-icon">
+                        <div class="alfawz-icon-circle alfawz-verses-icon"><span class="alfawz-icon">📜</span></div>
+                    </div>
+                    <div class="alfawz-card-content">
+                        <div class="alfawz-card-value" id="verses-read-session">0</div>
+                        <div class="alfawz-card-label"><?php _e('Verses Read', 'alfawzquran'); ?></div>
+                    </div>
+                    <div class="alfawz-card-decoration"></div>
+                </div>
+                <div class="alfawz-progress-card">
+                    <div class="alfawz-card-icon">
+                        <div class="alfawz-icon-circle alfawz-time-icon"><span class="alfawz-icon">⏱️</span></div>
+                    </div>
+                    <div class="alfawz-card-content">
+                        <div class="alfawz-card-value" id="session-time">0m 0s</div>
+                        <div class="alfawz-card-label"><?php _e('Session Time', 'alfawzquran'); ?></div>
+                    </div>
+                    <div class="alfawz-card-decoration"></div>
+                </div>
+                <div class="alfawz-progress-card">
+                    <div class="alfawz-card-icon">
+                        <div class="alfawz-icon-circle alfawz-streak-icon"><span class="alfawz-icon">🔥</span></div>
+                    </div>
+                    <div class="alfawz-card-content">
+                        <div class="alfawz-card-value" id="current-streak-display">0</div>
+                        <div class="alfawz-card-label"><?php _e('Current Streak', 'alfawzquran'); ?></div>
+                    </div>
+                    <div class="alfawz-card-decoration"></div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
