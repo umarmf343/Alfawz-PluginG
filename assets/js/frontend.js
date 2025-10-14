@@ -643,6 +643,12 @@
   let currentMemorizationVerse = null
   let repetitionCount = 0
   const REPETITION_TARGET = 20 // Default repetition target
+  let memorizationSessionActive = false
+  let reviewStatusDefaultText = ""
+  let markMemorizedDefaultLabel = ""
+  const REVIEW_STORAGE_KEY_PREFIX = "alfawzMemoReview"
+  let playAudioDefaultLabel = ""
+  let currentReviewState = { rating: null, notes: "" }
 
   function initializeMemorizer() {
     if ($(".alfawz-memorizer").length) {
@@ -652,10 +658,21 @@
       $("#load-memorization-verse").on("click", loadMemorizationVerse)
       $("#memo-play-audio").on("click", playMemorizationAudio)
       $("#repeat-verse-btn").on("click", incrementRepetition)
-      $("#repeat-verse-btn-mobile").on("click", incrementRepetition)
+      $("#prev-memo-verse-btn").on("click", () => navigateMemorizationVerse(-1))
+      $("#next-memo-verse-btn").on("click", () => navigateMemorizationVerse(1))
       $("#memo-mark-memorized").on("click", markVerseAsMemorized)
       $("#memo-select-another").on("click", resetMemorizationSession)
       $("#continue-memorization").on("click", resetMemorizationSession)
+
+      $("#memo-review-actions .alfawz-review-chip").on("click", handleReviewSelection)
+      $("#memo-review-notes").on("input", handleReviewNotesInput)
+      $("#memo-save-review").on("click", saveReviewSnapshot)
+
+      reviewStatusDefaultText = $("#memo-review-status").text().trim()
+      markMemorizedDefaultLabel = $("#memo-mark-memorized .alfawz-btn-text").text().trim() || $("#memo-mark-memorized").text().trim()
+      playAudioDefaultLabel = $("#memo-play-audio .alfawz-audio-text").text().trim() || $("#memo-play-audio").text().trim()
+      updateNavigationButtons()
+      resetReviewUI()
 
       // Memorization Plan Revision
       loadMemorizationPlans()
@@ -672,6 +689,10 @@
     $("#load-memorization-verse").prop("disabled", true)
     $(".alfawz-memorization-session").hide()
     $("#selected-memo-verse-display").hide()
+    memorizationSessionActive = false
+    stopCurrentAudioPlayback()
+    resetReviewUI()
+    updateNavigationButtons()
 
     if (surahId) {
       fetch(`${ALQURAN_API_BASE}surah/${surahId}`)
@@ -679,9 +700,10 @@
         .then(data => {
           if (data.status === "OK" && data.data.ayahs) {
             data.data.ayahs.forEach(ayah => {
-              verseDropdown.append(`<option value="${ayah.number}">Verse ${ayah.number}</option>`)
+              verseDropdown.append(`<option value="${ayah.numberInSurah}" data-global-number="${ayah.number}">Verse ${ayah.numberInSurah}</option>`)
             })
             verseDropdown.prop("disabled", false)
+            updateNavigationButtons()
           } else {
             verseDropdown.append('<option value="">Error loading verses</option>')
           }
@@ -707,20 +729,34 @@
     }
   }
 
-  function loadMemorizationVerse() {
-    const surahId = $("#memo-surah-select").val()
+  function loadMemorizationVerse(event) {
+    event?.preventDefault?.()
     const verseId = $("#memo-verse-select").val()
+    startMemorizationForVerse(verseId)
+  }
+
+  function startMemorizationForVerse(verseId, { triggeredByNavigation = false } = {}) {
+    const surahId = $("#memo-surah-select").val()
 
     if (!surahId || !verseId) {
       showNotification("Please select a surah and verse to memorize.", "error")
+      updateNavigationButtons()
       return
     }
 
-    // Reset session for new verse
+    memorizationSessionActive = true
     repetitionCount = 0
     updateRepetitionDisplay()
     $("#repeat-verse-btn").removeClass("alfawz-repeat-completed").prop("disabled", false)
     $("#memo-mark-memorized").prop("disabled", false)
+    $("#memo-mark-memorized .alfawz-btn-text").text(markMemorizedDefaultLabel || $("#memo-mark-memorized").text())
+
+    stopCurrentAudioPlayback()
+
+    $("#memo-verse-select").val(verseId)
+    refreshSelectedVerseDisplay(surahId, verseId)
+    updateNavigationButtons()
+    hydrateReviewUI(surahId, verseId)
 
     $("#memo-quran-text").html('<div class="alfawz-loading-verse">Loading Arabic text...</div>')
     $("#memo-quran-translation").html('<div class="alfawz-loading-verse">Loading translation...</div>')
@@ -732,7 +768,6 @@
     $("#memo-surah-select").prop("disabled", true)
     $("#memo-verse-select").prop("disabled", true)
 
-    // Fetch Arabic text
     currentMemorizationVerse = null
 
     fetch(`${ALQURAN_API_BASE}ayah/${surahId}:${verseId}/${ARABIC_EDITION}`)
@@ -761,7 +796,6 @@
         currentMemorizationVerse = null
       })
 
-    // Fetch English translation
     fetch(`${ALQURAN_API_BASE}ayah/${surahId}:${verseId}/${ENGLISH_EDITION}`)
       .then(response => response.json())
       .then(data => {
@@ -793,7 +827,7 @@
     if (currentAudio) {
       currentAudio.pause()
       if (currentAudioButton) {
-        currentAudioButton.removeClass("playing").find(".alfawz-audio-text").text("Play Audio")
+        currentAudioButton.removeClass("playing").find(".alfawz-audio-text").text(playAudioDefaultLabel || "Play Audio")
       }
       if (currentAudio.src === audioUrl) {
         currentAudio = null
@@ -813,13 +847,13 @@
     }
 
     currentAudio.onended = () => {
-      audioButton.removeClass("playing").find(".alfawz-audio-text").text("Play Audio")
+      audioButton.removeClass("playing").find(".alfawz-audio-text").text(playAudioDefaultLabel || "Play Audio")
       currentAudio = null
       currentAudioButton = null
     }
 
     currentAudio.onerror = () => {
-      audioButton.removeClass("loading").removeClass("playing").find(".alfawz-audio-text").text("Play Audio")
+      audioButton.removeClass("loading").removeClass("playing").find(".alfawz-audio-text").text(playAudioDefaultLabel || "Play Audio")
       showNotification("Failed to load audio. Please try again.", "error")
       currentAudio = null
       currentAudioButton = null
@@ -832,14 +866,22 @@
       return
     }
 
+    if (!memorizationSessionActive) {
+      showNotification("Please load a verse to start repetitions.", "error")
+      return
+    }
+
     repetitionCount++
+    if (repetitionCount > REPETITION_TARGET) {
+      repetitionCount = REPETITION_TARGET
+    }
     updateRepetitionDisplay()
     showRepetitionFeedback()
 
     if (repetitionCount >= REPETITION_TARGET) {
       $("#repeat-verse-btn").addClass("alfawz-repeat-completed").prop("disabled", true)
-      $("#repeat-verse-btn-mobile").addClass("alfawz-repeat-completed").prop("disabled", true)
-      showNotification("Repetition target reached! You can now mark as memorized.", "success")
+      showNotification("Repetition target reached! Advancing to the next verse.", "success")
+      autoAdvanceToNextVerse()
     }
   }
 
@@ -919,15 +961,16 @@
           if (selectedPlanId) {
             loadMemorizationPlanProgress(selectedPlanId)
           }
+          button.text(markMemorizedDefaultLabel || "Mark as Memorized")
         } else {
           showNotification(response.message || "Failed to mark verse as memorized.", "error")
-          button.prop("disabled", false).text("Mark Memorized")
+          button.prop("disabled", false).text(markMemorizedDefaultLabel || "Mark as Memorized")
         }
       },
       error: (xhr, status, error) => {
         console.error("Error marking verse as memorized:", error)
         showNotification("Error marking verse as memorized. Please try again.", "error")
-        button.prop("disabled", false).text("Mark Memorized")
+        button.prop("disabled", false).text(markMemorizedDefaultLabel || "Mark as Memorized")
       },
     })
   }
@@ -949,6 +992,208 @@
     updateRepetitionDisplay()
     $("#repeat-verse-btn").removeClass("alfawz-repeat-completed").prop("disabled", false)
     $("#memo-mark-memorized").prop("disabled", false)
+    $("#memo-mark-memorized .alfawz-btn-text").text(markMemorizedDefaultLabel || $("#memo-mark-memorized").text())
+    memorizationSessionActive = false
+    stopCurrentAudioPlayback()
+    resetReviewUI()
+    updateNavigationButtons()
+  }
+
+  function stopCurrentAudioPlayback() {
+    if (currentAudio) {
+      currentAudio.pause()
+      currentAudio = null
+    }
+    if (currentAudioButton) {
+      currentAudioButton.removeClass("playing loading").find(".alfawz-audio-text").text(playAudioDefaultLabel || "Play Audio")
+      currentAudioButton = null
+    }
+  }
+
+  function getVerseOptions() {
+    return $("#memo-verse-select option")
+      .toArray()
+      .filter(option => option.value)
+  }
+
+  function updateNavigationButtons() {
+    const options = getVerseOptions()
+    const currentValue = $("#memo-verse-select").val()
+    const prevButton = $("#prev-memo-verse-btn")
+    const nextButton = $("#next-memo-verse-btn")
+
+    if (!memorizationSessionActive || !currentValue) {
+      prevButton.prop("disabled", true)
+      nextButton.prop("disabled", true)
+      return
+    }
+
+    const index = options.findIndex(option => option.value === currentValue)
+    if (index === -1) {
+      prevButton.prop("disabled", true)
+      nextButton.prop("disabled", true)
+      return
+    }
+
+    prevButton.prop("disabled", index <= 0)
+    nextButton.prop("disabled", index >= options.length - 1)
+  }
+
+  function navigateMemorizationVerse(step, triggeredByAuto = false) {
+    if (!memorizationSessionActive) {
+      return
+    }
+
+    const options = getVerseOptions()
+    const currentValue = $("#memo-verse-select").val()
+    const currentIndex = options.findIndex(option => option.value === currentValue)
+
+    if (currentIndex === -1) {
+      return
+    }
+
+    const nextIndex = currentIndex + step
+    if (nextIndex < 0 || nextIndex >= options.length) {
+      if (triggeredByAuto) {
+        showNotification("You have reached the end of this selection.", "info")
+        $("#repeat-verse-btn").prop("disabled", false)
+      }
+      return
+    }
+
+    const nextVerseId = options[nextIndex].value
+    startMemorizationForVerse(nextVerseId, { triggeredByNavigation: true })
+
+    if (triggeredByAuto) {
+      showNotification(`Now reciting verse ${nextVerseId}.`, "success")
+    }
+  }
+
+  function autoAdvanceToNextVerse() {
+    setTimeout(() => {
+      navigateMemorizationVerse(1, true)
+    }, 800)
+  }
+
+  function refreshSelectedVerseDisplay(surahId, verseId) {
+    const surahName = $("#memo-surah-select option:selected").text().split('(')[0].trim()
+    if (surahName && verseId) {
+      $("#selected-memo-verse-name").text(`${surahName}, Verse ${verseId}`)
+      $("#selected-memo-verse-display").show()
+    }
+  }
+
+  function handleReviewSelection() {
+    const identifiers = getActiveMemorizationIdentifiers()
+    if (!memorizationSessionActive || !identifiers) {
+      showNotification("Load a verse before recording a review.", "error")
+      return
+    }
+
+    const selectedScore = $(this).data("review-score")
+    currentReviewState.rating = selectedScore
+
+    $("#memo-review-actions .alfawz-review-chip").attr("aria-checked", "false")
+    $(this).attr("aria-checked", "true")
+    updateReviewStatusLabel()
+  }
+
+  function handleReviewNotesInput() {
+    currentReviewState.notes = $(this).val()
+  }
+
+  function saveReviewSnapshot() {
+    const identifiers = getActiveMemorizationIdentifiers()
+    if (!memorizationSessionActive || !identifiers) {
+      showNotification("Load a verse before saving a review.", "error")
+      return
+    }
+
+    if (!currentReviewState.rating && !currentReviewState.notes.trim()) {
+      showNotification("Select a review outcome or add notes before saving.", "error")
+      return
+    }
+
+    const key = getReviewStorageKey(identifiers.surahId, identifiers.verseId)
+    try {
+      window.localStorage.setItem(key, JSON.stringify(currentReviewState))
+      $("#memo-review-feedback").text("Review saved for this verse.")
+      updateReviewStatusLabel()
+    } catch (error) {
+      console.error("Failed to store review:", error)
+      showNotification("Unable to save review on this device.", "error")
+    }
+  }
+
+  function hydrateReviewUI(surahId, verseId) {
+    resetReviewUI()
+    if (!surahId || !verseId) {
+      return
+    }
+
+    const key = getReviewStorageKey(surahId, verseId)
+    try {
+      const stored = window.localStorage.getItem(key)
+      if (stored) {
+        const parsed = JSON.parse(stored)
+        currentReviewState = {
+          rating: parsed.rating || null,
+          notes: parsed.notes || "",
+        }
+
+        if (currentReviewState.rating) {
+          $("#memo-review-actions .alfawz-review-chip").each(function () {
+            const isSelected = $(this).data("review-score") === currentReviewState.rating
+            $(this).attr("aria-checked", isSelected ? "true" : "false")
+          })
+        }
+
+        if (currentReviewState.notes) {
+          $("#memo-review-notes").val(currentReviewState.notes)
+        }
+
+        updateReviewStatusLabel()
+        $("#memo-review-feedback").text("")
+      }
+    } catch (error) {
+      console.error("Failed to hydrate review state:", error)
+    }
+  }
+
+  function resetReviewUI() {
+    currentReviewState = { rating: null, notes: "" }
+    $("#memo-review-actions .alfawz-review-chip").attr("aria-checked", "false")
+    $("#memo-review-notes").val("")
+    $("#memo-review-feedback").text("")
+    $("#memo-review-status").text(reviewStatusDefaultText || "No review yet")
+  }
+
+  function updateReviewStatusLabel() {
+    if (currentReviewState.rating) {
+      const labelMap = {
+        perfect: "Perfect recall logged",
+        solid: "Solid with notes",
+        revisit: "Flagged to revisit",
+      }
+      $("#memo-review-status").text(labelMap[currentReviewState.rating] || reviewStatusDefaultText || "Review updated")
+    } else if (currentReviewState.notes.trim()) {
+      $("#memo-review-status").text("Notes captured")
+    } else {
+      $("#memo-review-status").text(reviewStatusDefaultText || "No review yet")
+    }
+  }
+
+  function getReviewStorageKey(surahId, verseId) {
+    return `${REVIEW_STORAGE_KEY_PREFIX}-${surahId}-${verseId}`
+  }
+
+  function getActiveMemorizationIdentifiers() {
+    const surahId = $("#memo-surah-select").val()
+    const verseId = $("#memo-verse-select").val()
+    if (!surahId || !verseId) {
+      return null
+    }
+    return { surahId, verseId }
   }
 
   // Memorization Plan Revision Functions

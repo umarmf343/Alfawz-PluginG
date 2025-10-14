@@ -131,9 +131,19 @@
                 </div>
             </div>
 
-            <div class="alfawz-memorization-audio-controls">
-                <button id="memo-play-audio" class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md alfawz-btn alfawz-audio-control-btn">
-                    <span class="alfawz-btn-icon">🔊</span> <span class="alfawz-audio-text"><?php _e('Play Audio', 'alfawzquran'); ?></span>
+            <div class="alfawz-session-navigation" role="group" aria-label="Memorization navigation controls">
+                <button id="prev-memo-verse-btn" class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md alfawz-btn alfawz-mobile-nav-btn" disabled>
+                    <span class="alfawz-btn-icon" aria-hidden="true">◀️</span>
+                    <span><?php _e('Previous', 'alfawzquran'); ?></span>
+                </button>
+                <button id="memo-mark-memorized" class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md alfawz-btn alfawz-beautiful-btn alfawz-btn-success">
+                    <span class="alfawz-btn-icon-wrapper"><span class="alfawz-btn-icon" aria-hidden="true">✅</span></span>
+                    <span class="alfawz-btn-text"><?php _e('Mark as Memorized', 'alfawzquran'); ?></span>
+                    <span class="alfawz-btn-glow"></span>
+                </button>
+                <button id="next-memo-verse-btn" class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md alfawz-btn alfawz-mobile-nav-btn" disabled>
+                    <span><?php _e('Next', 'alfawzquran'); ?></span>
+                    <span class="alfawz-btn-icon" aria-hidden="true">▶️</span>
                 </button>
             </div>
 
@@ -153,39 +163,57 @@
                 </div>
                 <div class="alfawz-repeat-button-container">
                     <button id="repeat-verse-btn" class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md alfawz-btn alfawz-repeat-btn">
-                        <span class="alfawz-repeat-icon-wrapper"><span class="alfawz-repeat-icon">🔁</span></span>
+                        <span class="alfawz-repeat-icon-wrapper"><span class="alfawz-repeat-icon" aria-hidden="true">🔁</span></span>
                         <div class="alfawz-repeat-content">
                             <span class="alfawz-repeat-text"><?php _e('Repeat Verse', 'alfawzquran'); ?></span>
-                            <span class="alfawz-repeat-subtitle"><?php _e('Click to repeat and track progress', 'alfawzquran'); ?></span>
+                            <span class="alfawz-repeat-subtitle"><?php _e('Each click adds one repetition towards 20x auto-advance', 'alfawzquran'); ?></span>
                         </div>
                     </button>
                 </div>
             </div>
 
             <div class="alfawz-session-actions">
-                <div class="alfawz-primary-actions">
-                    <button id="memo-mark-memorized" class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md alfawz-btn alfawz-beautiful-btn alfawz-btn-success">
-                        <span class="alfawz-btn-icon-wrapper"><span class="alfawz-btn-icon">✅</span></span>
-                        <span class="alfawz-btn-text"><?php _e('Mark as Memorized', 'alfawzquran'); ?></span>
-                        <span class="alfawz-btn-glow"></span>
+                <button id="memo-select-another" class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md alfawz-btn alfawz-beautiful-btn alfawz-btn-secondary">
+                    <span class="alfawz-btn-icon-wrapper"><span class="alfawz-btn-icon" aria-hidden="true">➕</span></span>
+                    <span class="alfawz-btn-text"><?php _e('Select Another Verse', 'alfawzquran'); ?></span>
+                    <span class="alfawz-btn-glow"></span>
+                </button>
+            </div>
+
+            <div class="alfawz-memorization-audio-controls">
+                <button id="memo-play-audio" class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md alfawz-btn alfawz-audio-control-btn">
+                    <span class="alfawz-btn-icon" aria-hidden="true">🔊</span> <span class="alfawz-audio-text"><?php _e('Play Audio', 'alfawzquran'); ?></span>
+                </button>
+            </div>
+
+            <div class="alfawz-review-panel" id="memo-review-panel">
+                <div class="alfawz-review-header">
+                    <h4><?php _e('Memorization Review', 'alfawzquran'); ?></h4>
+                    <span class="alfawz-review-status" id="memo-review-status"><?php _e('No review yet', 'alfawzquran'); ?></span>
+                </div>
+                <p class="alfawz-review-intro"><?php _e('Capture pronunciation, fluency, and confidence insights after each verse to power guardian and coach feedback.', 'alfawzquran'); ?></p>
+                <div class="alfawz-review-actions" id="memo-review-actions" role="radiogroup" aria-label="<?php esc_attr_e('Select review outcome', 'alfawzquran'); ?>">
+                    <button type="button" class="alfawz-review-chip" data-review-score="perfect" role="radio" aria-checked="false">
+                        <span class="alfawz-review-icon" aria-hidden="true">🌟</span>
+                        <span><?php _e('Perfect recall', 'alfawzquran'); ?></span>
                     </button>
-                    <button id="memo-select-another" class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md alfawz-btn alfawz-beautiful-btn alfawz-btn-secondary">
-                        <span class="alfawz-btn-icon-wrapper"><span class="alfawz-btn-icon">➕</span></span>
-                        <span class="alfawz-btn-text"><?php _e('Select Another Verse', 'alfawzquran'); ?></span>
-                        <span class="alfawz-btn-glow"></span>
+                    <button type="button" class="alfawz-review-chip" data-review-score="solid" role="radio" aria-checked="false">
+                        <span class="alfawz-review-icon" aria-hidden="true">👍</span>
+                        <span><?php _e('Solid with notes', 'alfawzquran'); ?></span>
+                    </button>
+                    <button type="button" class="alfawz-review-chip" data-review-score="revisit" role="radio" aria-checked="false">
+                        <span class="alfawz-review-icon" aria-hidden="true">🔁</span>
+                        <span><?php _e('Needs revisit', 'alfawzquran'); ?></span>
                     </button>
                 </div>
-                <div class="alfawz-mobile-controls-row alfawz-hidden">
-                    <button id="prev-memo-verse-btn" class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md alfawz-btn alfawz-mobile-nav-btn" disabled>
-                        <span class="alfawz-btn-icon">◀️</span> Prev
+                <label for="memo-review-notes" class="alfawz-review-label"><?php _e('Review notes', 'alfawzquran'); ?></label>
+                <textarea id="memo-review-notes" class="alfawz-review-notes" rows="3" placeholder="<?php esc_attr_e('Add tajwid observations, pacing feedback, or motivation cues…', 'alfawzquran'); ?>"></textarea>
+                <div class="alfawz-review-footer">
+                    <button type="button" id="memo-save-review" class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md alfawz-btn alfawz-btn-primary">
+                        <span class="alfawz-btn-icon" aria-hidden="true">💾</span>
+                        <span><?php _e('Save review snapshot', 'alfawzquran'); ?></span>
                     </button>
-                    <button id="repeat-verse-btn-mobile" class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md alfawz-btn alfawz-repeat-btn-mobile">
-                        <span class="alfawz-repeat-icon">🔁</span>
-                        <span class="alfawz-repeat-text">Repeat</span>
-                    </button>
-                    <button id="next-memo-verse-btn" class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md alfawz-btn alfawz-mobile-nav-btn" disabled>
-                        Next <span class="alfawz-btn-icon">▶️</span>
-                    </button>
+                    <span class="alfawz-review-feedback" id="memo-review-feedback" aria-live="polite"></span>
                 </div>
             </div>
         </div>
