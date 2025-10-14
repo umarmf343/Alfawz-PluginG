@@ -868,10 +868,33 @@
 
 .alfawz-selection-controls,
 .alfawz-memo-selection-controls {
-  display: grid;
-  grid-template-columns: 1fr 1fr auto;
+  display: flex;
+  flex-direction: column;
   gap: var(--spacing-lg);
-  align-items: end;
+  width: 100%;
+}
+
+@media (min-width: 640px) {
+  .alfawz-selection-controls,
+  .alfawz-memo-selection-controls {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: flex-end;
+  }
+
+  .alfawz-selection-controls > .alfawz-surah-selection,
+  .alfawz-selection-controls > .alfawz-verse-selection,
+  .alfawz-memo-selection-controls > .alfawz-surah-selection,
+  .alfawz-memo-selection-controls > .alfawz-verse-selection {
+    flex: 1 1 240px;
+    min-width: 0;
+  }
+
+  .alfawz-selection-controls > .alfawz-reading-options,
+  .alfawz-memo-selection-controls > .alfawz-memo-actions {
+    flex: 0 0 auto;
+    width: auto;
+  }
 }
 
 .alfawz-memorization-plan-section {
@@ -977,12 +1000,24 @@
   display: flex;
   flex-direction: column;
   gap: var(--spacing-md);
-  align-items: end;
+  align-items: flex-start;
+  width: 100%;
 }
 
 .alfawz-memo-actions {
   display: flex;
   align-items: end;
+  width: 100%;
+}
+
+.alfawz-memo-actions .alfawz-btn {
+  width: 100%;
+}
+
+@media (min-width: 640px) {
+  .alfawz-memo-actions .alfawz-btn {
+    width: auto;
+  }
 }
 
 /* Toggle Switch */
@@ -1002,8 +1037,21 @@
 }
 
 .alfawz-toggle-text {
-  color: #2d3748;
+  color: inherit;
   transition: color 0.2s ease;
+}
+
+.alfawz-switch {
+  color: #4a5568;
+  font-weight: 600;
+}
+
+.alfawz-switch.on {
+  color: #ffffff;
+}
+
+.alfawz-switch.off {
+  color: #4a5568;
 }
 
 .alfawz-toggle-label input[type="checkbox"] {
@@ -1040,7 +1088,7 @@
   transform: translateX(20px);
 }
 
-.alfawz-toggle-label input[type="checkbox"]:checked ~ .alfawz-toggle-text {
+.alfawz-toggle-label input[type="checkbox"]:checked ~ .alfawz-switch {
   color: #ffffff;
 }
 
@@ -1074,13 +1122,31 @@
 }
 
 .alfawz-verse-card {
-  background: #fff9f2;
-  border-radius: var(--radius-lg);
-  padding: var(--spacing-xl);
-  box-shadow: var(--shadow-md);
-  border: 1px solid #f1dfd5;
   position: relative;
   margin-bottom: var(--spacing-lg);
+  padding: 0;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+.alfawz-verse-focus-card {
+  background: #ffffff;
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-xl);
+  box-shadow: var(--shadow-sm);
+  width: 100%;
+  overflow: hidden;
+  word-break: break-word;
+  outline: 3px solid transparent;
+  transition: box-shadow 0.25s ease, transform 0.2s ease, outline-color 0.2s ease;
+}
+
+.alfawz-verse-focus-card:focus,
+.alfawz-verse-focus-card:focus-visible {
+  outline-color: rgba(111, 29, 27, 0.35);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
 }
 
 .alfawz-focus-card {
@@ -1899,6 +1965,20 @@
   background: var(--success-gradient) !important;
   color: white !important;
   border-color: transparent !important;
+}
+
+.alfawz-create-plan-btn {
+  background: linear-gradient(90deg, #b3724d, #9f5238);
+  color: #ffffff;
+  border: none;
+  box-shadow: var(--shadow-sm);
+  width: 100%;
+  margin-top: var(--spacing-md);
+}
+
+.alfawz-create-plan-btn:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
 }
 
 /* ========================================
@@ -3060,8 +3140,12 @@
 
   .alfawz-selection-controls,
   .alfawz-memo-selection-controls {
-    grid-template-columns: 1fr;
     gap: var(--spacing-md);
+  }
+
+  .alfawz-reading-options,
+  .alfawz-memo-actions {
+    width: 100%;
   }
 
   .alfawz-plan-selection-controls {

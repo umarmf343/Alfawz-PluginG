@@ -92,6 +92,7 @@
     initializeSettings()
     initializeGames()
     initializeBottomNavigation()
+    initializeSwitches()
     loadUserStats()
     startReadingTimer()
   })
@@ -2301,19 +2302,40 @@
   // BOTTOM NAVIGATION
   // ========================================
   function initializeBottomNavigation() {
-    const currentPath = window.location.pathname
     const $nav = $(".alfawz-bottom-navigation")
 
     if (!$nav.length) {
       return
     }
 
-    $nav.find(".alfawz-nav-item").each(function() {
-      const href = $(this).attr("href") || ""
-      if (href && currentPath.includes(href.replace(alfawzData.pluginUrl, ""))) {
-        $(this).addClass("active")
+    const currentPage = ($nav.data("current-page") || "").toString()
+    const activateItem = ($item) => {
+      $nav.find(".alfawz-nav-item").removeClass("active").removeAttr("aria-current")
+      $item.addClass("active").attr("aria-current", "page")
+    }
+
+    if (currentPage) {
+      const $current = $nav.find(`.alfawz-nav-item[data-page="${currentPage}"]`).first()
+      if ($current.length) {
+        activateItem($current)
       }
-    })
+    }
+
+    if (!$nav.find(".alfawz-nav-item.active").length) {
+      const locationPath = window.location.pathname.replace(/\/+$/, "").toLowerCase()
+      $nav.find(".alfawz-nav-item").each(function() {
+        const href = $(this).attr("href")
+        if (!href) {
+          return
+        }
+
+        const linkPath = new URL(href, window.location.origin).pathname.replace(/\/+$/, "").toLowerCase()
+        if (linkPath === locationPath) {
+          activateItem($(this))
+          return false
+        }
+      })
+    }
 
     let lastScrollTop = window.scrollY || 0
     let navHidden = false
@@ -2326,14 +2348,36 @@
           $nav.addClass("alfawz-nav-hidden")
           navHidden = true
         }
-      } else {
-        if (navHidden || currentScrollTop <= 80) {
-          $nav.removeClass("alfawz-nav-hidden")
-          navHidden = false
-        }
+      } else if (navHidden || currentScrollTop <= 80) {
+        $nav.removeClass("alfawz-nav-hidden")
+        navHidden = false
       }
 
       lastScrollTop = currentScrollTop
+    })
+  }
+
+  function initializeSwitches() {
+    const updateSwitchState = (input) => {
+      const $input = $(input)
+      const $label = $input.closest(".alfawz-toggle-label")
+      const $switchText = $label.find(".alfawz-switch")
+
+      if (!$switchText.length) {
+        return
+      }
+
+      const isChecked = $input.is(":checked")
+      $switchText.toggleClass("on", isChecked)
+      $switchText.toggleClass("off", !isChecked)
+    }
+
+    $(document).on("change", ".alfawz-toggle-label input[type='checkbox']", function() {
+      updateSwitchState(this)
+    })
+
+    $(".alfawz-toggle-label input[type='checkbox']").each(function() {
+      updateSwitchState(this)
     })
   }
 })(jQuery)
