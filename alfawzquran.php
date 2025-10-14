@@ -68,6 +68,12 @@ function run_alfawz_quran() {
     $error_handler = new AlfawzQuran\Core\ErrorHandler();
     $error_handler->register();
 
+    // Load Qa'idah board registration
+    require_once ALFAWZQURAN_PLUGIN_PATH . 'includes/Core/QaidahBoards.php';
+    $qaidah_boards = new AlfawzQuran\Core\QaidahBoards();
+    $loader->add_action( 'init', $qaidah_boards, 'register_post_type' );
+    $loader->add_action( 'init', $qaidah_boards, 'register_meta' );
+
     // Load admin-specific functionality
     require_once ALFAWZQURAN_PLUGIN_PATH . 'includes/Admin/Admin.php';
     $admin = new AlfawzQuran\Admin\Admin();
@@ -88,6 +94,7 @@ function run_alfawz_quran() {
 
     // Load Models
     require_once ALFAWZQURAN_PLUGIN_PATH . 'includes/Models/UserProgress.php';
+    require_once ALFAWZQURAN_PLUGIN_PATH . 'includes/Models/QaidahBoard.php';
     require_once ALFAWZQURAN_PLUGIN_PATH . 'includes/API/QuranAPI.php'; // Ensure this is loaded if used by other classes
 
     $loader->run();

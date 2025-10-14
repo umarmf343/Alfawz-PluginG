@@ -3655,3 +3655,145 @@
 /* ========================================
    END OF STYLES
    ======================================== */
+
+/* Qa'idah audio boards */
+.alfawz-qaidah-boards {
+  margin-top: 40px;
+  background: rgba(64, 16, 22, 0.55);
+  border: 1px solid rgba(248, 241, 230, 0.3);
+  border-radius: 18px;
+  padding: 24px;
+  backdrop-filter: blur(6px);
+}
+
+.alfawz-qaidah-boards-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.alfawz-qaidah-boards-header h3 {
+  font-size: 1.25rem;
+  margin: 0;
+}
+
+.alfawz-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: rgba(248, 241, 230, 0.12);
+  color: #f8f1e6;
+  font-size: 0.85rem;
+}
+
+.alfawz-switch input {
+  accent-color: #f4c069;
+}
+
+.alfawz-qaidah-board-listing {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 20px;
+}
+
+.alfawz-qaidah-board-card {
+  background: rgba(24, 5, 8, 0.65);
+  border: 1px solid rgba(248, 241, 230, 0.12);
+  border-radius: 16px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  position: relative;
+  overflow: hidden;
+}
+
+.alfawz-qaidah-board-card-header h4 {
+  font-size: 1.05rem;
+  margin: 0;
+  color: #fceee0;
+}
+
+.alfawz-qaidah-board-card-meta {
+  margin: 4px 0 0;
+  color: rgba(248, 241, 230, 0.72);
+  font-size: 0.85rem;
+}
+
+.alfawz-qaidah-board-stage {
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px;
+  border: 1px solid rgba(248, 241, 230, 0.16);
+  background: rgba(12, 3, 5, 0.6);
+}
+
+.alfawz-qaidah-board-stage img {
+  width: 100%;
+  display: block;
+}
+
+.alfawz-qaidah-board-hotspot {
+  position: absolute;
+  border: 2px solid rgba(244, 192, 105, 0.8);
+  background: rgba(244, 192, 105, 0.25);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+}
+
+.alfawz-qaidah-board-hotspot.is-muted {
+  border-style: dashed;
+  opacity: 0.6;
+}
+
+.alfawz-qaidah-board-hotspot.is-playing {
+  border-color: rgba(76, 201, 240, 0.85);
+  background: rgba(76, 201, 240, 0.25);
+  transform: scale(1.02);
+}
+
+.alfawz-qaidah-board-hotspot.is-pulsed {
+  transform: scale(1.04);
+}
+
+.alfawz-qaidah-board-hotspot.is-error {
+  border-color: rgba(242, 99, 99, 0.85);
+  background: rgba(242, 99, 99, 0.2);
+}
+
+.alfawz-qaidah-board-hotspot-label {
+  position: absolute;
+  bottom: 4px;
+  left: 4px;
+  right: 4px;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: rgba(17, 17, 17, 0.65);
+  color: #f8f1e6;
+  font-size: 0.7rem;
+  text-align: center;
+  pointer-events: none;
+}
+
+.alfawz-qaidah-board-card-footer {
+  display: flex;
+  justify-content: flex-end;
+  color: rgba(248, 241, 230, 0.72);
+  font-size: 0.8rem;
+}
+
+@media (max-width: 768px) {
+  .alfawz-qaidah-boards {
+    padding: 18px;
+  }
+
+  .alfawz-qaidah-board-card {
+    padding: 16px;
+  }
+}
