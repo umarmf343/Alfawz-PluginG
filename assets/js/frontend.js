@@ -26,6 +26,7 @@
   let currentSurahId = null
   let currentVerseId = null
   let currentSurahData = null
+  let currentVerseAudioUrl = null
 
   // Initialize when document is ready
   $(document).ready(() => {
@@ -211,6 +212,7 @@
       currentSurahId = surahId
       currentVerseId = null // Reset verse when surah changes
       currentSurahData = null // Clear cached surah data
+      currentVerseAudioUrl = null
       
       // Fetch full surah data for navigation
       fetch(`${ALQURAN_API_BASE}surah/${surahId}/${ARABIC_EDITION}`)
@@ -243,6 +245,7 @@
       $("#reader-verse-card").hide()
       $(".alfawz-loading-message").show()
       $(".alfawz-reader-actions").hide()
+      currentVerseAudioUrl = null
     }
     updateNavigationButtons()
   }
@@ -257,6 +260,8 @@
     $(".alfawz-verse-counter-display").show()
 
     // Fetch Arabic text
+    currentVerseAudioUrl = null
+
     fetch(`${ALQURAN_API_BASE}ayah/${surahId}:${verseId}/${ARABIC_EDITION}`)
       .then(response => response.json())
       .then(data => {
@@ -264,6 +269,11 @@
           $("#reader-quran-text").text(data.data.text)
           const hasanat = data.data.text.replace(/[^\u0600-\u06FF]/g, "").length * alfawzData.hasanatPerLetter
           $("#current-verse-hasanat").text(hasanat)
+          if (data.data.audioSecondary && data.data.audioSecondary.length) {
+            currentVerseAudioUrl = data.data.audioSecondary[0]
+          } else if (data.data.audio) {
+            currentVerseAudioUrl = data.data.audio
+          }
         } else {
           $("#reader-quran-text").text("Failed to load Arabic text.")
         }
@@ -271,6 +281,7 @@
       .catch(error => {
         console.error("Error fetching Arabic text:", error)
         $("#reader-quran-text").text("Failed to load Arabic text.")
+        currentVerseAudioUrl = null
       })
 
     // Fetch English translation
@@ -314,7 +325,12 @@
       return
     }
 
-    const audioUrl = `https://cdn.alquran.cloud/media/audio/ayah/${ARABIC_EDITION}/${surahId}:${verseId}`
+    const audioUrl = currentVerseAudioUrl
+
+    if (!audioUrl) {
+      showNotification("Audio is not available for this verse.", "error")
+      return
+    }
 
     if (currentAudio) {
       currentAudio.pause()
@@ -615,16 +631,23 @@
     $("#memo-verse-select").prop("disabled", true)
 
     // Fetch Arabic text
+    currentMemorizationVerse = null
+
     fetch(`${ALQURAN_API_BASE}ayah/${surahId}:${verseId}/${ARABIC_EDITION}`)
       .then(response => response.json())
       .then(data => {
         if (data.status === "OK") {
           $("#memo-quran-text").text(data.data.text)
+          const audioUrl =
+            data.data.audioSecondary && data.data.audioSecondary.length
+              ? data.data.audioSecondary[0]
+              : data.data.audio || null
           currentMemorizationVerse = {
             surah_id: surahId,
             verse_id: verseId,
             text: data.data.text,
             hasanat: data.data.text.replace(/[^\u0600-\u06FF]/g, "").length * alfawzData.hasanatPerLetter,
+            audioUrl,
           }
         } else {
           $("#memo-quran-text").text("Failed to load Arabic text.")
@@ -633,6 +656,7 @@
       .catch(error => {
         console.error("Error fetching Arabic text for memorizer:", error)
         $("#memo-quran-text").text("Failed to load Arabic text.")
+        currentMemorizationVerse = null
       })
 
     // Fetch English translation
@@ -657,7 +681,11 @@
       return
     }
 
-    const audioUrl = `https://cdn.alquran.cloud/media/audio/ayah/${ARABIC_EDITION}/${currentMemorizationVerse.surah_id}:${currentMemorizationVerse.verse_id}`
+    const audioUrl = currentMemorizationVerse.audioUrl
+    if (!audioUrl) {
+      showNotification("Audio is not available for this verse.", "error")
+      return
+    }
     const audioButton = $(this)
 
     if (currentAudio) {
