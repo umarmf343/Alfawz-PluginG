@@ -40,12 +40,12 @@
     </div>
 
     <div class="alfawz-quick-actions">
-        <a href="<?php echo esc_url(ALFAWZQURAN_PLUGIN_URL . 'reader/'); ?>" class="alfawz-beautiful-btn">
+        <a href="<?php echo esc_url(ALFAWZQURAN_PLUGIN_URL . 'reader/'); ?>" class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md alfawz-beautiful-btn" role="button">
             <span class="alfawz-btn-icon-wrapper"><span class="alfawz-btn-icon">📖</span></span>
             <span class="alfawz-btn-text"><?php _e('Start Reading', 'alfawzquran'); ?></span>
             <span class="alfawz-btn-glow"></span>
         </a>
-        <a href="<?php echo esc_url(ALFAWZQURAN_PLUGIN_URL . 'memorizer/'); ?>" class="alfawz-beautiful-btn">
+        <a href="<?php echo esc_url(ALFAWZQURAN_PLUGIN_URL . 'memorizer/'); ?>" class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md alfawz-beautiful-btn" role="button">
             <span class="alfawz-btn-icon-wrapper"><span class="alfawz-btn-icon">🧠</span></span>
             <span class="alfawz-btn-text"><?php _e('Start Memorizing', 'alfawzquran'); ?></span>
             <span class="alfawz-btn-glow"></span>
@@ -75,38 +75,36 @@
     </div>
 </div>
 
-<div class="alfawz-bottom-navigation">
-    <div class="alfawz-nav-container">
-        <a href="<?php echo esc_url(ALFAWZQURAN_PLUGIN_URL . 'dashboard/'); ?>" class="alfawz-nav-item active">
-            <span class="alfawz-nav-icon">🏠</span>
-            <span class="alfawz-nav-label"><?php _e('Dashboard', 'alfawzquran'); ?></span>
-        </a>
-        <a href="<?php echo esc_url(ALFAWZQURAN_PLUGIN_URL . 'reader/'); ?>" class="alfawz-nav-item">
-            <span class="alfawz-nav-icon">📖</span>
-            <span class="alfawz-nav-label"><?php _e('Reader', 'alfawzquran'); ?></span>
-        </a>
-        <a href="<?php echo esc_url(ALFAWZQURAN_PLUGIN_URL . 'memorizer/'); ?>" class="alfawz-nav-item">
-            <span class="alfawz-nav-icon">🧠</span>
-            <span class="alfawz-nav-label"><?php _e('Memorizer', 'alfawzquran'); ?></span>
-        </a>
-        <a href="<?php echo esc_url(ALFAWZQURAN_PLUGIN_URL . 'leaderboard/'); ?>" class="alfawz-nav-item">
-            <span class="alfawz-nav-icon">🏆</span>
-            <span class="alfawz-nav-label"><?php _e('Leaderboard', 'alfawzquran'); ?></span>
-        </a>
-        <a href="<?php echo esc_url(ALFAWZQURAN_PLUGIN_URL . 'games/'); ?>" class="alfawz-nav-item">
-            <span class="alfawz-nav-icon">🎮</span>
-            <span class="alfawz-nav-label"><?php _e('Games', 'alfawzquran'); ?></span>
-        </a>
-        <a href="<?php echo esc_url(ALFAWZQURAN_PLUGIN_URL . 'profile/'); ?>" class="alfawz-nav-item">
-            <span class="alfawz-nav-icon">👤</span>
-            <span class="alfawz-nav-label"><?php _e('Profile', 'alfawzquran'); ?></span>
-        </a>
-        <a href="<?php echo esc_url(ALFAWZQURAN_PLUGIN_URL . 'settings/'); ?>" class="alfawz-nav-item">
-            <span class="alfawz-nav-icon">⚙️</span>
-            <span class="alfawz-nav-label"><?php _e('Settings', 'alfawzquran'); ?></span>
-        </a>
-    </div>
-</div>
+<nav class="alfawz-bottom-navigation fixed bottom-0 left-0 right-0 bg-white border-t z-50 flex justify-around py-2 md:hidden" aria-label="<?php esc_attr_e('Primary mobile navigation', 'alfawzquran'); ?>">
+    <a href="<?php echo esc_url(ALFAWZQURAN_PLUGIN_URL . 'dashboard/'); ?>" class="alfawz-nav-item active flex flex-col items-center justify-center gap-1 text-xs">
+        <span class="alfawz-nav-icon">🏠</span>
+        <span class="alfawz-nav-label"><?php _e('Dashboard', 'alfawzquran'); ?></span>
+    </a>
+    <a href="<?php echo esc_url(ALFAWZQURAN_PLUGIN_URL . 'reader/'); ?>" class="alfawz-nav-item flex flex-col items-center justify-center gap-1 text-xs">
+        <span class="alfawz-nav-icon">📖</span>
+        <span class="alfawz-nav-label"><?php _e('Reader', 'alfawzquran'); ?></span>
+    </a>
+    <a href="<?php echo esc_url(ALFAWZQURAN_PLUGIN_URL . 'memorizer/'); ?>" class="alfawz-nav-item flex flex-col items-center justify-center gap-1 text-xs">
+        <span class="alfawz-nav-icon">🧠</span>
+        <span class="alfawz-nav-label"><?php _e('Memorizer', 'alfawzquran'); ?></span>
+    </a>
+    <a href="<?php echo esc_url(ALFAWZQURAN_PLUGIN_URL . 'leaderboard/'); ?>" class="alfawz-nav-item flex flex-col items-center justify-center gap-1 text-xs">
+        <span class="alfawz-nav-icon">🏆</span>
+        <span class="alfawz-nav-label"><?php _e('Leaderboard', 'alfawzquran'); ?></span>
+    </a>
+    <a href="<?php echo esc_url(ALFAWZQURAN_PLUGIN_URL . 'games/'); ?>" class="alfawz-nav-item flex flex-col items-center justify-center gap-1 text-xs">
+        <span class="alfawz-nav-icon">🎮</span>
+        <span class="alfawz-nav-label"><?php _e('Games', 'alfawzquran'); ?></span>
+    </a>
+    <a href="<?php echo esc_url(ALFAWZQURAN_PLUGIN_URL . 'profile/'); ?>" class="alfawz-nav-item flex flex-col items-center justify-center gap-1 text-xs">
+        <span class="alfawz-nav-icon">👤</span>
+        <span class="alfawz-nav-label"><?php _e('Profile', 'alfawzquran'); ?></span>
+    </a>
+    <a href="<?php echo esc_url(ALFAWZQURAN_PLUGIN_URL . 'settings/'); ?>" class="alfawz-nav-item flex flex-col items-center justify-center gap-1 text-xs">
+        <span class="alfawz-nav-icon">⚙️</span>
+        <span class="alfawz-nav-label"><?php _e('Settings', 'alfawzquran'); ?></span>
+    </a>
+</nav>
 
 <script>
 jQuery(document).ready(function($) {
