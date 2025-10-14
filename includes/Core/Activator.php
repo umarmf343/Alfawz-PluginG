@@ -102,7 +102,90 @@ class Activator {
             wp_schedule_event( strtotime( '00:00:00' ) + ( 24 * 60 * 60 ), 'daily', 'alfawz_quran_daily_cron' );
         }
 
+        self::create_pages();
+
         // Log activation
         error_log('AlfawzQuran Plugin activated successfully');
+    }
+
+    /**
+     * Create public-facing pages required for the plugin shortcodes.
+     */
+    private static function create_pages() {
+        $pages = [
+            [
+                'slug'      => 'alfawz-dashboard',
+                'title'     => __( 'Alfawz Dashboard', 'alfawzquran' ),
+                'shortcode' => '[alfawz_dashboard]',
+            ],
+            [
+                'slug'      => 'alfawz-reader',
+                'title'     => __( 'Alfawz Reader', 'alfawzquran' ),
+                'shortcode' => '[alfawz_reader]',
+            ],
+            [
+                'slug'      => 'alfawz-memorizer',
+                'title'     => __( 'Alfawz Memorizer', 'alfawzquran' ),
+                'shortcode' => '[alfawz_memorizer]',
+            ],
+            [
+                'slug'      => 'alfawz-leaderboard',
+                'title'     => __( 'Alfawz Leaderboard', 'alfawzquran' ),
+                'shortcode' => '[alfawz_leaderboard]',
+            ],
+            [
+                'slug'      => 'alfawz-profile',
+                'title'     => __( 'Alfawz Profile', 'alfawzquran' ),
+                'shortcode' => '[alfawz_profile]',
+            ],
+            [
+                'slug'      => 'alfawz-settings',
+                'title'     => __( 'Alfawz Settings', 'alfawzquran' ),
+                'shortcode' => '[alfawz_settings]',
+            ],
+        ];
+
+        $stored_page_ids = get_option( 'alfawz_created_pages', [] );
+        if ( ! is_array( $stored_page_ids ) ) {
+            $stored_page_ids = [];
+        }
+
+        $new_page_ids = [];
+
+        foreach ( $pages as $page ) {
+            $existing_page = get_page_by_path( $page['slug'], OBJECT, 'page' );
+
+            if ( $existing_page instanceof \WP_Post ) {
+                if ( 'trash' === $existing_page->post_status ) {
+                    wp_update_post([
+                        'ID'          => $existing_page->ID,
+                        'post_status' => 'publish',
+                    ]);
+                }
+
+                continue;
+            }
+
+            $page_id = wp_insert_post([
+                'post_title'   => $page['title'],
+                'post_name'    => $page['slug'],
+                'post_content' => $page['shortcode'],
+                'post_status'  => 'publish',
+                'post_type'    => 'page',
+                'post_author'  => get_current_user_id(),
+            ]);
+
+            if ( ! is_wp_error( $page_id ) && $page_id ) {
+                $new_page_ids[] = (int) $page_id;
+            }
+        }
+
+        $all_page_ids = array_unique( array_merge( $stored_page_ids, $new_page_ids ) );
+
+        if ( ! empty( $all_page_ids ) ) {
+            update_option( 'alfawz_created_pages', array_values( array_map( 'intval', $all_page_ids ) ) );
+        } else {
+            delete_option( 'alfawz_created_pages' );
+        }
     }
 }

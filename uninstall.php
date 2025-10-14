@@ -47,6 +47,21 @@ foreach ( $users as $user_id ) {
 // Clear any scheduled cron jobs
 wp_clear_scheduled_hook( 'alfawz_quran_daily_cron' );
 
+// Remove pages that were created during activation
+$created_pages = get_option( 'alfawz_created_pages', [] );
+if ( is_array( $created_pages ) ) {
+    foreach ( $created_pages as $page_id ) {
+        $page_id = (int) $page_id;
+        $page    = get_post( $page_id );
+
+        if ( $page && 'page' === $page->post_type ) {
+            wp_delete_post( $page_id, true );
+        }
+    }
+}
+
+delete_option( 'alfawz_created_pages' );
+
 // Flush rewrite rules to remove custom endpoints
 flush_rewrite_rules();
 
