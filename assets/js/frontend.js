@@ -107,7 +107,7 @@
               $("#read-daily-verse").on("click", function() {
                 const surahId = $(this).data("surah-id")
                 const verseId = $(this).data("verse-id")
-                window.location.href = `${alfawzData.pluginUrl}reader/?surah=${surahId}&verse=${verseId}`
+                window.location.href = `${getPageUrl("reader")}?surah=${surahId}&verse=${verseId}`
               })
             })
             .catch(error => {
@@ -198,9 +198,10 @@
     const surahId = $(this).val()
     const verseDropdown = $("#reader-verse-select")
     verseDropdown.empty().append('<option value="">Select Verse</option>').prop("disabled", true)
-    $("#reader-verse-card").hide()
+    $("#reader-verse-card").addClass("alfawz-hidden")
     $(".alfawz-loading-message").show()
-    $(".alfawz-reader-actions").hide()
+    $(".alfawz-reader-actions").addClass("alfawz-hidden")
+    $(".alfawz-verse-counter-display").addClass("alfawz-hidden")
     $("#selected-surah-display").hide()
 
     if (surahId) {
@@ -242,9 +243,10 @@
       loadVerse(surahId, verseId)
       currentVerseId = verseId
     } else {
-      $("#reader-verse-card").hide()
+      $("#reader-verse-card").addClass("alfawz-hidden")
       $(".alfawz-loading-message").show()
-      $(".alfawz-reader-actions").hide()
+      $(".alfawz-reader-actions").addClass("alfawz-hidden")
+      $(".alfawz-verse-counter-display").addClass("alfawz-hidden")
       currentVerseAudioUrl = null
     }
     updateNavigationButtons()
@@ -254,10 +256,10 @@
     $("#reader-quran-text").html('<div class="alfawz-loading-verse">Loading Arabic text...</div>')
     $("#reader-quran-translation").html('<div class="alfawz-loading-verse">Loading translation...</div>')
     $("#current-verse-hasanat").text("0")
-    $("#reader-verse-card").show()
+    $("#reader-verse-card").removeClass("alfawz-hidden")
     $(".alfawz-loading-message").hide()
-    $(".alfawz-reader-actions").show()
-    $(".alfawz-verse-counter-display").show()
+    $(".alfawz-reader-actions").removeClass("alfawz-hidden")
+    $(".alfawz-verse-counter-display").removeClass("alfawz-hidden")
 
     // Fetch Arabic text
     currentVerseAudioUrl = null
@@ -568,8 +570,8 @@
     const verseDropdown = $("#memo-verse-select")
     verseDropdown.empty().append('<option value="">Select Verse</option>').prop("disabled", true)
     $("#load-memorization-verse").prop("disabled", true)
-    $(".alfawz-memorization-session").hide()
-    $("#selected-memo-verse-display").hide()
+    $(".alfawz-memorization-session").addClass("alfawz-hidden")
+    $("#selected-memo-verse-display").addClass("alfawz-hidden")
 
     if (surahId) {
       fetch(`${ALQURAN_API_BASE}surah/${surahId}`)
@@ -577,7 +579,8 @@
         .then(data => {
           if (data.status === "OK" && data.data.ayahs) {
             data.data.ayahs.forEach(ayah => {
-              verseDropdown.append(`<option value="${ayah.number}">Verse ${ayah.number}</option>`)
+              const verseNumber = ayah.numberInSurah || ayah.number
+              verseDropdown.append(`<option value="${verseNumber}">Verse ${verseNumber}</option>`)
             })
             verseDropdown.prop("disabled", false)
           } else {
@@ -598,10 +601,10 @@
       $("#load-memorization-verse").prop("disabled", false)
       const surahName = $("#memo-surah-select option:selected").text().split('(')[0].trim()
       $("#selected-memo-verse-name").text(`${surahName}, Verse ${verseId}`)
-      $("#selected-memo-verse-display").show()
+      $("#selected-memo-verse-display").removeClass("alfawz-hidden")
     } else {
       $("#load-memorization-verse").prop("disabled", true)
-      $("#selected-memo-verse-display").hide()
+      $("#selected-memo-verse-display").addClass("alfawz-hidden")
     }
   }
 
@@ -625,7 +628,7 @@
     $("#memo-verse-number").text(verseId)
     $("#session-verse-info").text(`Surah ${surahId}, Verse ${verseId}`)
 
-    $(".alfawz-memorization-session").show()
+    $(".alfawz-memorization-session").removeClass("alfawz-hidden")
     $("#load-memorization-verse").prop("disabled", true)
     $("#memo-surah-select").prop("disabled", true)
     $("#memo-verse-select").prop("disabled", true)
@@ -837,11 +840,11 @@
 
   function resetMemorizationSession() {
     $("#congratulations-modal").fadeOut().find(".alfawz-modal-content").removeClass("alfawz-modal-celebrate")
-    $(".alfawz-memorization-session").hide()
+    $(".alfawz-memorization-session").addClass("alfawz-hidden")
     $("#memo-surah-select").val("").prop("disabled", false)
     $("#memo-verse-select").empty().append('<option value="">Select surah first</option>').prop("disabled", true)
     $("#load-memorization-verse").prop("disabled", true)
-    $("#selected-memo-verse-display").hide()
+    $("#selected-memo-verse-display").addClass("alfawz-hidden")
     currentMemorizationVerse = null
     repetitionCount = 0
     updateRepetitionDisplay()
@@ -1030,7 +1033,7 @@
     }
 
     // Redirect to reader page with selected verse
-    window.location.href = `${alfawzData.pluginUrl}reader/?surah=${surahId}&verse=${verseId}`
+    window.location.href = `${getPageUrl("reader")}?surah=${surahId}&verse=${verseId}`
   }
 
   function restartMemorizationPlan() {
@@ -1127,8 +1130,9 @@
         .then(data => {
           if (data.status === "OK" && data.data.ayahs) {
             data.data.ayahs.forEach(ayah => {
-              startVerseDropdown.append(`<option value="${ayah.number}">Verse ${ayah.number}</option>`)
-              endVerseDropdown.append(`<option value="${ayah.number}">Verse ${ayah.number}</option>`)
+              const verseNumber = ayah.numberInSurah || ayah.number
+              startVerseDropdown.append(`<option value="${verseNumber}">Verse ${verseNumber}</option>`)
+              endVerseDropdown.append(`<option value="${verseNumber}">Verse ${verseNumber}</option>`)
             })
             startVerseDropdown.prop("disabled", false)
             endVerseDropdown.prop("disabled", false)
@@ -1155,9 +1159,34 @@
     const dailyGoal = $("#plan-daily-goal").val()
 
     const surahName = surahId ? $("#plan-surah-select option:selected").text().split('(')[0].trim() : "N/A"
-    const totalVerses = (startVerse && endVerse) ? (parseInt(endVerse) - parseInt(startVerse) + 1) : 0
+    const startVerseNumber = startVerse ? parseInt(startVerse, 10) : null
+    const endVerseNumber = endVerse ? parseInt(endVerse, 10) : null
+    const totalVerses = (startVerseNumber !== null && endVerseNumber !== null) ? (endVerseNumber - startVerseNumber + 1) : 0
+    const dailyGoalNumber = dailyGoal ? parseInt(dailyGoal, 10) : 0
 
     let summaryText = ""
+
+    if (startVerseNumber !== null && endVerseNumber !== null && startVerseNumber > endVerseNumber) {
+      summaryText = "Start verse cannot be greater than end verse."
+      $("#create-plan-btn").prop("disabled", true)
+      $("#plan-summary-text").text(summaryText)
+      return
+    }
+
+    if (totalVerses > 0 && dailyGoalNumber > totalVerses) {
+      summaryText = "Daily goal cannot exceed the total number of verses in the plan."
+      $("#create-plan-btn").prop("disabled", true)
+      $("#plan-summary-text").text(summaryText)
+      return
+    }
+
+    if (dailyGoal && dailyGoalNumber < 1) {
+      summaryText = "Daily goal must be at least 1 verse."
+      $("#create-plan-btn").prop("disabled", true)
+      $("#plan-summary-text").text(summaryText)
+      return
+    }
+
     if (planName && surahId && startVerse && endVerse && dailyGoal) {
       summaryText = `You are creating a plan "${planName}" to memorize Surah ${surahName} (Verses ${startVerse}-${endVerse}). This plan covers ${totalVerses} verses with a daily goal of ${dailyGoal} verses.`
       $("#create-plan-btn").prop("disabled", false)
@@ -1183,7 +1212,7 @@
     const endVerse = $("#plan-end-verse").val()
     const dailyGoal = $("#plan-daily-goal").val()
 
-    if (!planName || !surahId || !startVerse || !endVerse || dailyGoal) {
+    if (!planName || !surahId || !startVerse || !endVerse || !dailyGoal) {
       showNotification("Please fill in all plan details.", "error")
       return
     }
@@ -1280,7 +1309,7 @@
           })
           $(".alfawz-continue-plan-btn").on("click", function() {
             const planId = $(this).data("plan-id")
-            window.location.href = `${alfawzData.pluginUrl}memorizer/?plan=${planId}`
+            window.location.href = `${getPageUrl("memorizer")}?plan=${planId}`
           })
           $(".alfawz-delete-plan-btn").on("click", deleteMemorizationPlan)
         } else {
@@ -1487,7 +1516,7 @@
           $(".alfawz-view-bookmark-btn").on("click", function() {
             const surahId = $(this).data("surah-id")
             const verseId = $(this).data("verse-id")
-            window.location.href = `${alfawzData.pluginUrl}reader/?surah=${surahId}&verse=${verseId}`
+            window.location.href = `${getPageUrl("reader")}?surah=${surahId}&verse=${verseId}`
           })
           $(".alfawz-delete-bookmark-btn").on("click", deleteBookmark)
         } else {
@@ -1581,7 +1610,7 @@
           })
           $(".alfawz-continue-plan-btn").on("click", function() {
             const planId = $(this).data("plan-id")
-            window.location.href = `${alfawzData.pluginUrl}memorizer/?plan=${planId}`
+            window.location.href = `${getPageUrl("memorizer")}?plan=${planId}`
           })
           $(".alfawz-delete-plan-btn").on("click", deleteMemorizationPlan) // Re-use delete function
         } else {
@@ -1598,6 +1627,20 @@
   // ========================================
   // GENERAL UTILITIES
   // ========================================
+  function getPageUrl(pageKey) {
+    if (alfawzData.pages && alfawzData.pages[pageKey]) {
+      return alfawzData.pages[pageKey]
+    }
+    return `${alfawzData.pluginUrl}${pageKey}/`
+  }
+
+  function normalizePath(path) {
+    if (!path) {
+      return "/"
+    }
+    return path.endsWith("/") ? path : `${path}/`
+  }
+
   function showNotification(message, type = "info") {
     let notificationClass = ""
     let icon = ""
@@ -1664,10 +1707,11 @@
   // BOTTOM NAVIGATION
   // ========================================
   function initializeBottomNavigation() {
-    const currentPath = window.location.pathname
+    const currentPath = normalizePath(window.location.pathname)
     $(".alfawz-nav-item").each(function() {
       const href = $(this).attr("href")
-      if (currentPath.includes(href.replace(alfawzData.pluginUrl, ""))) {
+      const targetPath = normalizePath(new URL(href, window.location.origin).pathname)
+      if (currentPath === targetPath) {
         $(this).addClass("active")
       }
     })
