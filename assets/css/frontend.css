@@ -12,6 +12,12 @@
   --warning-gradient: linear-gradient(135deg, #f5c16c, #f6d9a6);
   --danger-gradient: linear-gradient(135deg, #b63c3c, #8c1f24);
   --info-gradient: linear-gradient(135deg, #d47c6a, #ba4d57);
+  --icon-gradient-sunrise: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%);
+  --icon-gradient-ocean: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  --icon-gradient-emerald: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+  --icon-gradient-violet: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%);
+  --icon-gradient-flame: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+  --icon-ring-color: rgba(255, 255, 255, 0.55);
 
   /* Shadows */
   --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
@@ -169,8 +175,56 @@
 }
 
 .alfawz-surah-icon,
-.alfawz-plan-icon {
-  font-size: 1.2em;
+.alfawz-plan-icon,
+.alfawz-label-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 10px;
+  font-size: 1.1em;
+  position: relative;
+  overflow: hidden;
+  background-size: 200% 200%;
+  animation: iconSheen 12s ease infinite;
+  border: 1px solid var(--icon-ring-color);
+  box-shadow: 0 8px 20px rgba(79, 172, 254, 0.25);
+  isolation: isolate;
+}
+
+.alfawz-surah-icon {
+  background: var(--icon-gradient-sunrise);
+}
+
+.alfawz-plan-icon,
+.alfawz-label-icon {
+  background: var(--icon-gradient-ocean);
+}
+
+.alfawz-surah-icon::before,
+.alfawz-plan-icon::before,
+.alfawz-label-icon::before {
+  content: "";
+  position: absolute;
+  inset: 3px;
+  border-radius: inherit;
+  background: rgba(255, 255, 255, 0.25);
+  pointer-events: none;
+  z-index: -1;
+}
+
+.alfawz-surah-icon::after,
+.alfawz-plan-icon::after,
+.alfawz-label-icon::after {
+  content: "";
+  position: absolute;
+  inset: -35%;
+  border-radius: inherit;
+  background: radial-gradient(circle at 50% 15%, rgba(255, 255, 255, 0.65), transparent 60%);
+  pointer-events: none;
+  opacity: 0.85;
+  z-index: -1;
 }
 
 /* ========================================
@@ -229,32 +283,73 @@
   justify-content: center;
   position: relative;
   overflow: hidden;
+  background: var(--icon-gradient-ocean);
+  border: 1px solid var(--icon-ring-color);
+  box-shadow: 0 12px 28px rgba(79, 172, 254, 0.25);
+  background-size: 200% 200%;
+  animation: iconSheen 10s ease infinite;
+  isolation: isolate;
+}
+
+.alfawz-icon-circle::before {
+  content: "";
+  position: absolute;
+  inset: 4px;
+  border-radius: inherit;
+  background: rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(6px);
+  opacity: 0.85;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.alfawz-icon-circle::after {
+  content: "";
+  position: absolute;
+  inset: -40%;
+  border-radius: inherit;
+  background: radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.6), transparent 60%);
+  opacity: 0.85;
+  pointer-events: none;
+  z-index: -1;
 }
 
 .alfawz-hasanat-icon {
-  background: var(--warning-gradient);
-  box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
+  background: var(--icon-gradient-sunrise);
+  box-shadow: 0 12px 28px rgba(253, 160, 133, 0.35);
 }
 
 .alfawz-verses-icon {
-  background: var(--primary-gradient);
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+  background: var(--icon-gradient-ocean);
+  box-shadow: 0 12px 28px rgba(79, 172, 254, 0.35);
 }
 
 .alfawz-time-icon {
-  background: var(--success-gradient);
-  box-shadow: 0 4px 15px rgba(72, 187, 120, 0.3);
+  background: var(--icon-gradient-emerald);
+  box-shadow: 0 12px 28px rgba(67, 233, 123, 0.35);
 }
 
 .alfawz-streak-icon {
-  background: var(--danger-gradient);
-  box-shadow: 0 4px 15px rgba(245, 101, 101, 0.3);
+  background: var(--icon-gradient-flame);
+  box-shadow: 0 12px 28px rgba(246, 211, 101, 0.35);
+}
+
+@keyframes iconSheen {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
 }
 
 .alfawz-icon {
   font-size: 1.5em;
   color: white;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  position: relative;
+  z-index: 1;
 }
 
 .alfawz-card-content {
@@ -333,27 +428,54 @@
   align-items: center;
   justify-content: center;
   position: relative;
+  overflow: hidden;
+  background: var(--icon-gradient-violet);
+  border: 1px solid var(--icon-ring-color);
+  box-shadow: 0 10px 24px rgba(161, 140, 209, 0.35);
+  background-size: 200% 200%;
+  animation: iconSheen 12s ease infinite;
+  isolation: isolate;
+}
+
+.alfawz-stat-icon-circle::before,
+.alfawz-stat-icon-circle::after {
+  content: "";
+  position: absolute;
+  inset: 3px;
+  border-radius: inherit;
+  background: rgba(255, 255, 255, 0.2);
+  pointer-events: none;
+  z-index: -1;
+}
+
+.alfawz-stat-icon-circle::after {
+  inset: -35%;
+  background: radial-gradient(circle at 65% 25%, rgba(255, 255, 255, 0.65), transparent 60%);
+  opacity: 0.8;
+  z-index: -1;
 }
 
 .alfawz-memorized-container .alfawz-stat-icon-circle {
-  background: var(--success-gradient);
-  box-shadow: 0 4px 15px rgba(72, 187, 120, 0.3);
+  background: var(--icon-gradient-emerald);
+  box-shadow: 0 12px 28px rgba(67, 233, 123, 0.35);
 }
 
 .alfawz-streak-container .alfawz-stat-icon-circle {
-  background: var(--danger-gradient);
-  box-shadow: 0 4px 15px rgba(245, 101, 101, 0.3);
+  background: var(--icon-gradient-flame);
+  box-shadow: 0 12px 28px rgba(246, 211, 101, 0.35);
 }
 
 .alfawz-plans-container .alfawz-stat-icon-circle {
-  background: var(--primary-gradient);
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+  background: var(--icon-gradient-violet);
+  box-shadow: 0 12px 28px rgba(161, 140, 209, 0.35);
 }
 
 .alfawz-stat-icon {
   font-size: 1.3em;
   color: white;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  position: relative;
+  z-index: 1;
 }
 
 .alfawz-stat-pulse,
@@ -776,16 +898,64 @@
   width: 30px;
   height: 30px;
   border-radius: var(--radius-full);
-  background: rgba(255, 255, 255, 0.2);
+  background: var(--icon-gradient-ocean);
   display: flex;
   align-items: center;
   justify-content: center;
   backdrop-filter: blur(10px);
+  border: 1px solid var(--icon-ring-color);
+  box-shadow: 0 10px 24px rgba(79, 172, 254, 0.3);
+  position: relative;
+  overflow: hidden;
+  background-size: 200% 200%;
+  animation: iconSheen 8s ease infinite;
+  isolation: isolate;
+}
+
+.alfawz-beautiful-btn.alfawz-btn-success .alfawz-btn-icon-wrapper,
+.alfawz-beautiful-btn.alfawz-btn-primary .alfawz-btn-icon-wrapper {
+  background: var(--icon-gradient-emerald);
+  box-shadow: 0 10px 24px rgba(67, 233, 123, 0.35);
+}
+
+.alfawz-beautiful-btn.alfawz-btn-secondary .alfawz-btn-icon-wrapper,
+.alfawz-repeat-btn .alfawz-repeat-icon-wrapper {
+  background: var(--icon-gradient-violet);
+  box-shadow: 0 10px 24px rgba(161, 140, 209, 0.35);
+}
+
+.alfawz-beautiful-btn.alfawz-btn-success .alfawz-btn-icon-wrapper::before,
+.alfawz-beautiful-btn.alfawz-btn-primary .alfawz-btn-icon-wrapper::before,
+.alfawz-beautiful-btn.alfawz-btn-success .alfawz-btn-icon-wrapper::after,
+.alfawz-beautiful-btn.alfawz-btn-primary .alfawz-btn-icon-wrapper::after,
+.alfawz-beautiful-btn.alfawz-btn-secondary .alfawz-btn-icon-wrapper::before,
+.alfawz-beautiful-btn.alfawz-btn-secondary .alfawz-btn-icon-wrapper::after {
+  opacity: 0.9;
+}
+
+.alfawz-btn-icon-wrapper::before,
+.alfawz-btn-icon-wrapper::after {
+  content: "";
+  position: absolute;
+  inset: 3px;
+  border-radius: inherit;
+  background: rgba(255, 255, 255, 0.2);
+  pointer-events: none;
+  z-index: -1;
+}
+
+.alfawz-btn-icon-wrapper::after {
+  inset: -40%;
+  background: radial-gradient(circle at 70% 20%, rgba(255, 255, 255, 0.6), transparent 60%);
+  opacity: 0.85;
+  z-index: -1;
 }
 
 .alfawz-btn-icon {
   font-size: 1.2em;
   font-weight: bold;
+  position: relative;
+  z-index: 1;
 }
 
 .alfawz-btn-content {
@@ -838,16 +1008,41 @@
   width: 40px;
   height: 40px;
   border-radius: var(--radius-full);
-  background: rgba(255, 255, 255, 0.3);
+  background: var(--icon-gradient-sunrise);
   display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
+  overflow: hidden;
+  border: 1px solid var(--icon-ring-color);
+  box-shadow: 0 12px 28px rgba(253, 160, 133, 0.35);
+  background-size: 200% 200%;
+  animation: iconSheen 9s ease infinite;
+}
+
+.alfawz-hasanat-icon-wrapper::before,
+.alfawz-hasanat-icon-wrapper::after {
+  content: "";
+  position: absolute;
+  inset: 4px;
+  border-radius: inherit;
+  background: rgba(255, 255, 255, 0.25);
+  pointer-events: none;
+  z-index: -1;
+}
+
+.alfawz-hasanat-icon-wrapper::after {
+  inset: -35%;
+  background: radial-gradient(circle at 50% 15%, rgba(255, 255, 255, 0.65), transparent 60%);
+  opacity: 0.9;
+  z-index: -1;
 }
 
 .alfawz-hasanat-icon {
   font-size: 1.3em;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  position: relative;
+  z-index: 1;
 }
 
 .alfawz-hasanat-sparkle {
@@ -1189,16 +1384,41 @@
   width: 40px;
   height: 40px;
   border-radius: var(--radius-full);
-  background: rgba(255, 255, 255, 0.2);
+  background: var(--icon-gradient-violet);
   display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
+  overflow: hidden;
+  border: 1px solid var(--icon-ring-color);
+  box-shadow: 0 12px 28px rgba(161, 140, 209, 0.35);
+  background-size: 200% 200%;
+  animation: iconSheen 9s ease infinite;
+}
+
+.alfawz-repeat-icon-wrapper::before,
+.alfawz-repeat-icon-wrapper::after {
+  content: "";
+  position: absolute;
+  inset: 4px;
+  border-radius: inherit;
+  background: rgba(255, 255, 255, 0.25);
+  pointer-events: none;
+  z-index: -1;
+}
+
+.alfawz-repeat-icon-wrapper::after {
+  inset: -35%;
+  background: radial-gradient(circle at 40% 15%, rgba(255, 255, 255, 0.65), transparent 60%);
+  opacity: 0.85;
+  z-index: -1;
 }
 
 .alfawz-repeat-icon {
   font-size: 1.3em;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  position: relative;
+  z-index: 1;
 }
 
 .alfawz-repeat-content {
@@ -2231,7 +2451,68 @@
 }
 
 .alfawz-nav-icon {
-  font-size: 1.5em;
+  font-size: 1.1em;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 14px;
+  background: var(--icon-gradient-ocean);
+  border: 1px solid var(--icon-ring-color);
+  box-shadow: 0 10px 24px rgba(79, 172, 254, 0.25);
+  position: relative;
+  overflow: hidden;
+  background-size: 200% 200%;
+  animation: iconSheen 12s ease infinite;
+  isolation: isolate;
+}
+
+.alfawz-nav-icon::before,
+.alfawz-nav-icon::after {
+  content: "";
+  position: absolute;
+  inset: 4px;
+  border-radius: inherit;
+  background: rgba(255, 255, 255, 0.25);
+  pointer-events: none;
+  z-index: -1;
+}
+
+.alfawz-nav-icon::after {
+  inset: -40%;
+  background: radial-gradient(circle at 60% 20%, rgba(255, 255, 255, 0.65), transparent 60%);
+  opacity: 0.85;
+}
+
+.alfawz-nav-item:nth-child(1) .alfawz-nav-icon {
+  background: var(--icon-gradient-sunrise);
+  box-shadow: 0 10px 24px rgba(253, 160, 133, 0.35);
+}
+
+.alfawz-nav-item:nth-child(2) .alfawz-nav-icon {
+  background: var(--icon-gradient-ocean);
+  box-shadow: 0 10px 24px rgba(79, 172, 254, 0.35);
+}
+
+.alfawz-nav-item:nth-child(3) .alfawz-nav-icon {
+  background: var(--icon-gradient-emerald);
+  box-shadow: 0 10px 24px rgba(67, 233, 123, 0.35);
+}
+
+.alfawz-nav-item:nth-child(4) .alfawz-nav-icon {
+  background: var(--icon-gradient-flame);
+  box-shadow: 0 10px 24px rgba(246, 211, 101, 0.35);
+}
+
+.alfawz-nav-item:nth-child(5) .alfawz-nav-icon {
+  background: var(--icon-gradient-violet);
+  box-shadow: 0 10px 24px rgba(161, 140, 209, 0.35);
+}
+
+.alfawz-nav-item:nth-child(6) .alfawz-nav-icon {
+  background: linear-gradient(135deg, #6f1d1b, #a33f44);
+  box-shadow: 0 10px 24px rgba(163, 63, 68, 0.35);
 }
 
 .alfawz-nav-label {
