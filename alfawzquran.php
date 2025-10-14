@@ -69,6 +69,7 @@ function run_alfawz_quran() {
     $admin = new AlfawzQuran\Admin\Admin();
     $loader->add_action( 'admin_menu', $admin, 'add_admin_menu' );
     $loader->add_action( 'admin_enqueue_scripts', $admin, 'enqueue_admin_assets' );
+    $loader->add_action( 'admin_notices', $admin, 'display_api_connection_notice' );
 
     // Load public-facing functionality
     require_once ALFAWZQURAN_PLUGIN_PATH . 'includes/Frontend/Frontend.php';

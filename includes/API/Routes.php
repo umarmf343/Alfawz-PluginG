@@ -2,12 +2,16 @@
 namespace AlfawzQuran\API;
 
 use AlfawzQuran\Models\UserProgress;
-use AlfawzQuran\API\QuranAPI;
 
 /**
  * Register REST API routes for the plugin.
  */
 class Routes {
+
+    /**
+     * Base URL for the external Quran API.
+     */
+    const API_BASE = 'https://api.alquran.cloud/v1';
 
     public function __construct() {
         add_action( 'rest_api_init', [ $this, 'register_routes' ] );
@@ -453,40 +457,162 @@ class Routes {
     }
     
     public function get_surahs($request) {
-        // Use AlQuran.cloud API directly
-        $response = wp_remote_get('https://api.alquran.cloud/v1/surah');
-        
-        if (is_wp_error($response)) {
-            return new \WP_Error('api_error', 'Failed to fetch surahs', ['status' => 500]);
+        $surahs = $this->get_surah_catalog();
+
+        if (is_wp_error($surahs)) {
+            return $surahs;
         }
-        
-        $body = wp_remote_retrieve_body($response);
-        $data = json_decode($body, true);
-        
-        if (!$data || $data['code'] !== 200) {
-            return new \WP_Error('api_error', 'Invalid API response', ['status' => 500]);
-        }
-        
-        return rest_ensure_response($data['data']);
+
+        return rest_ensure_response($surahs);
     }
-    
+
     public function get_verses($request) {
         $surah_id = $request->get_param('id');
-        
-        // Get basic surah info for verse count
-        $response = wp_remote_get("https://api.alquran.cloud/v1/surah/{$surah_id}");
-        
-        if (is_wp_error($response)) {
-            return new \WP_Error('api_error', 'Failed to fetch verses', ['status' => 500]);
+
+        $verses = $this->get_surah_verses((int) $surah_id);
+
+        if (is_wp_error($verses)) {
+            return $verses;
         }
-        
+
+        return rest_ensure_response($verses);
+    }
+
+    /**
+     * Retrieve the full surah catalog, leveraging caching and fallbacks when
+     * external requests fail.
+     *
+     * @return array|\WP_Error
+     */
+    private function get_surah_catalog() {
+        $transient_key = 'alfawz_surah_catalog';
+        $option_key    = 'alfawz_surah_catalog';
+
+        $cached = get_transient($transient_key);
+        if (is_array($cached) && !empty($cached)) {
+            return $cached;
+        }
+
+        $stored = get_option($option_key);
+        if (is_array($stored) && !empty($stored)) {
+            set_transient($transient_key, $stored, DAY_IN_SECONDS);
+            return $stored;
+        }
+
+        $response = wp_remote_get(
+            self::API_BASE . '/surah',
+            [
+                'timeout' => 20,
+                'headers' => [
+                    'Accept' => 'application/json',
+                ],
+            ]
+        );
+
+        if (is_wp_error($response)) {
+            return $this->record_api_failure($response);
+        }
+
         $body = wp_remote_retrieve_body($response);
         $data = json_decode($body, true);
-        
-        if (!$data || $data['code'] !== 200) {
-            return new \WP_Error('api_error', 'Invalid API response', ['status' => 500]);
+
+        if (empty($data) || !isset($data['code']) || 200 !== (int) $data['code'] || empty($data['data'])) {
+            return $this->record_api_failure(new \WP_Error('api_error', __('Invalid response received from the Quran API.', 'alfawzquran')));
         }
-        
-        return rest_ensure_response($data['data']['ayahs']);
+
+        $surahs = $data['data'];
+
+        set_transient($transient_key, $surahs, DAY_IN_SECONDS);
+        update_option($option_key, $surahs, false);
+        $this->clear_api_failure_notice();
+
+        return $surahs;
+    }
+
+    /**
+     * Retrieve the verses for a particular surah. Falls back to the cached
+     * value when the external API cannot be reached.
+     *
+     * @param int $surah_id
+     *
+     * @return array|\WP_Error
+     */
+    private function get_surah_verses(int $surah_id) {
+        $transient_key = sprintf('alfawz_surah_%d_verses', $surah_id);
+        $option_key    = sprintf('alfawz_surah_%d_verses', $surah_id);
+
+        $cached = get_transient($transient_key);
+        if (is_array($cached) && !empty($cached)) {
+            return $cached;
+        }
+
+        $stored = get_option($option_key);
+        if (is_array($stored) && !empty($stored)) {
+            set_transient($transient_key, $stored, WEEK_IN_SECONDS);
+            return $stored;
+        }
+
+        $response = wp_remote_get(
+            sprintf('%s/surah/%d', self::API_BASE, $surah_id),
+            [
+                'timeout' => 20,
+                'headers' => [
+                    'Accept' => 'application/json',
+                ],
+            ]
+        );
+
+        if (is_wp_error($response)) {
+            return $this->record_api_failure($response);
+        }
+
+        $body = wp_remote_retrieve_body($response);
+        $data = json_decode($body, true);
+
+        if (empty($data) || !isset($data['code']) || 200 !== (int) $data['code'] || empty($data['data']['ayahs'])) {
+            return $this->record_api_failure(new \WP_Error('api_error', __('Invalid response received from the Quran API.', 'alfawzquran')));
+        }
+
+        $verses = $data['data']['ayahs'];
+
+        set_transient($transient_key, $verses, WEEK_IN_SECONDS);
+        update_option($option_key, $verses, false);
+        $this->clear_api_failure_notice();
+
+        return $verses;
+    }
+
+    /**
+     * Store an admin notice when an API call fails and return a user-friendly
+     * WP_Error instance.
+     *
+     * @param \WP_Error $error
+     *
+     * @return \WP_Error
+     */
+    private function record_api_failure(\WP_Error $error) {
+        $message = sprintf(
+            /* translators: %s: Error message returned by the remote request. */
+            __('AlfawzQuran could not reach the external Quran API. The reported error was: %s. Please verify that your server can make secure HTTPS requests. Cached data will be used when available.', 'alfawzquran'),
+            $error->get_error_message()
+        );
+
+        set_transient('alfawz_quran_api_notice', $message, HOUR_IN_SECONDS * 12);
+
+        return new \WP_Error(
+            'api_error',
+            __('Unable to connect to the Quran API. Please contact your server administrator to ensure outgoing HTTPS requests are allowed.', 'alfawzquran'),
+            [
+                'status'  => 500,
+                'details' => $error->get_error_message(),
+            ]
+        );
+    }
+
+    /**
+     * Remove the admin notice transient after a successful API call.
+     */
+    private function clear_api_failure_notice() {
+        delete_transient('alfawz_quran_api_notice');
     }
 }
