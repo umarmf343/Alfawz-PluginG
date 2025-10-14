@@ -14,16 +14,44 @@ class Admin {
      * Display admin notices that inform the site owner about connectivity issues.
      */
     public function display_api_connection_notice() {
-        $message = get_transient( 'alfawz_quran_api_notice' );
+        $notices = array_filter([
+            get_transient( 'alfawz_quran_api_notice' ),
+            get_transient( 'alfawz_wp_org_connection_warning' ),
+        ]);
 
-        if ( empty( $message ) ) {
+        if ( empty( $notices ) ) {
             return;
         }
 
-        printf(
-            '<div class="notice notice-error"><p>%s</p></div>',
-            esc_html( $message )
-        );
+        foreach ( $notices as $notice ) {
+            $type    = 'error';
+            $message = $notice;
+
+            if ( is_array( $notice ) ) {
+                $type    = ! empty( $notice['type'] ) ? $notice['type'] : 'error';
+                $message = isset( $notice['message'] ) ? $notice['message'] : '';
+
+                if ( ! empty( $notice['details'] ) ) {
+                    $message .= ' ' . sprintf(
+                        /* translators: %s: Original error message returned by WordPress. */
+                        __( 'Reported error: %s', 'alfawzquran' ),
+                        $notice['details']
+                    );
+                }
+            }
+
+            if ( empty( $message ) ) {
+                continue;
+            }
+
+            $class = 'notice notice-' . sanitize_html_class( $type );
+
+            printf(
+                '<div class="%1$s"><p>%2$s</p></div>',
+                esc_attr( $class ),
+                esc_html( $message )
+            );
+        }
     }
 
     /**

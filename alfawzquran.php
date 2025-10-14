@@ -51,6 +51,7 @@ register_deactivation_hook( __FILE__, 'deactivate_alfawz_quran' );
  * admin-specific hooks, and public-facing hooks.
  */
 require ALFAWZQURAN_PLUGIN_PATH . 'includes/Core/Loader.php';
+require_once ALFAWZQURAN_PLUGIN_PATH . 'includes/Core/ErrorHandler.php';
 
 /**
  * Begins execution of the plugin.
@@ -63,6 +64,9 @@ require ALFAWZQURAN_PLUGIN_PATH . 'includes/Core/Loader.php';
  */
 function run_alfawz_quran() {
     $loader = new AlfawzQuran\Core\Loader();
+
+    $error_handler = new AlfawzQuran\Core\ErrorHandler();
+    $error_handler->register();
 
     // Load admin-specific functionality
     require_once ALFAWZQURAN_PLUGIN_PATH . 'includes/Admin/Admin.php';
