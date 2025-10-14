@@ -11,7 +11,7 @@
             </div>
         </div>
 
-        <div class="alfawz-memorization-stats">
+        <div class="alfawz-memorization-stats alfawz-progress-grid">
             <div class="alfawz-stat-container alfawz-memorized-container">
                 <div class="alfawz-stat-icon-wrapper">
                     <div class="alfawz-stat-pulse"></div>
@@ -118,10 +118,16 @@
                 </div>
             </div>
 
-            <div class="alfawz-memorization-verse-card alfawz-focus-card" tabindex="0" role="group" aria-live="polite">
+            <div
+                class="alfawz-memorization-verse-card alfawz-focus-card"
+                tabindex="0"
+                role="group"
+                aria-live="polite"
+                aria-labelledby="memo-verse-number memo-quran-text memo-quran-translation"
+            >
                 <div class="alfawz-verse-number-mem" id="memo-verse-number"></div>
-                <div class="alfawz-verse-arabic-mem" id="memo-quran-text"></div>
-                <div class="alfawz-verse-translation-mem" id="memo-quran-translation"></div>
+                <div class="alfawz-verse-arabic-mem" id="memo-quran-text" lang="ar" dir="rtl"></div>
+                <div class="alfawz-verse-translation-mem" id="memo-quran-translation" lang="en"></div>
             </div>
 
             <div class="alfawz-memorization-audio-controls">

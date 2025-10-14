@@ -34,9 +34,9 @@
             <div class="alfawz-reading-options">
                 <label class="alfawz-toggle-label">
                     <input type="checkbox" id="show-translation" checked>
-                    <span class="alfawz-toggle-slider"></span>
-                    <span class="alfawz-label-icon">🌐</span>
-                    <?php _e('Show Translation', 'alfawzquran'); ?>
+                    <span class="alfawz-toggle-slider" aria-hidden="true"></span>
+                    <span class="alfawz-label-icon" aria-hidden="true">🌐</span>
+                    <span class="alfawz-toggle-text"><?php _e('Show Translation', 'alfawzquran'); ?></span>
                 </label>
                 <div class="alfawz-verse-counter-display alfawz-hidden">
                     <span class="alfawz-counter-label"><?php _e('Current Verse:', 'alfawzquran'); ?></span>
@@ -53,9 +53,16 @@
                 <p><?php _e('Choose a Surah and Verse from the dropdowns above.', 'alfawzquran'); ?></p>
             </div>
 
-            <div class="alfawz-verse-card alfawz-focus-card alfawz-hidden" id="reader-verse-card" tabindex="0" role="group" aria-live="polite">
-                <div class="alfawz-verse-arabic" id="reader-quran-text"></div>
-                <div class="alfawz-verse-translation" id="reader-quran-translation"></div>
+            <div
+                class="alfawz-verse-card alfawz-focus-card alfawz-hidden"
+                id="reader-verse-card"
+                tabindex="0"
+                role="group"
+                aria-live="polite"
+                aria-labelledby="reader-quran-text reader-quran-translation"
+            >
+                <div class="alfawz-verse-arabic" id="reader-quran-text" lang="ar" dir="rtl"></div>
+                <div class="alfawz-verse-translation" id="reader-quran-translation" lang="en"></div>
             </div>
         </div>
 
