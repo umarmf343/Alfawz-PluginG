@@ -83,33 +83,7 @@
     </div>
 </div>
 
-<nav class="alfawz-bottom-navigation fixed bottom-0 left-0 right-0 bg-white border-t z-50 flex justify-around py-2 md:hidden" aria-label="<?php esc_attr_e('Primary mobile navigation', 'alfawzquran'); ?>">
-    <a href="<?php echo esc_url(ALFAWZQURAN_PLUGIN_URL . 'dashboard/'); ?>" class="alfawz-nav-item flex flex-col items-center justify-center gap-1 text-xs">
-        <span class="alfawz-nav-icon">🏠</span>
-        <span class="alfawz-nav-label"><?php _e('Dashboard', 'alfawzquran'); ?></span>
-    </a>
-    <a href="<?php echo esc_url(ALFAWZQURAN_PLUGIN_URL . 'reader/'); ?>" class="alfawz-nav-item flex flex-col items-center justify-center gap-1 text-xs">
-        <span class="alfawz-nav-icon">📖</span>
-        <span class="alfawz-nav-label"><?php _e('Reader', 'alfawzquran'); ?></span>
-    </a>
-    <a href="<?php echo esc_url(ALFAWZQURAN_PLUGIN_URL . 'memorizer/'); ?>" class="alfawz-nav-item flex flex-col items-center justify-center gap-1 text-xs">
-        <span class="alfawz-nav-icon">🧠</span>
-        <span class="alfawz-nav-label"><?php _e('Memorizer', 'alfawzquran'); ?></span>
-    </a>
-    <a href="<?php echo esc_url(ALFAWZQURAN_PLUGIN_URL . 'leaderboard/'); ?>" class="alfawz-nav-item flex flex-col items-center justify-center gap-1 text-xs">
-        <span class="alfawz-nav-icon">🏆</span>
-        <span class="alfawz-nav-label"><?php _e('Leaderboard', 'alfawzquran'); ?></span>
-    </a>
-    <a href="<?php echo esc_url(ALFAWZQURAN_PLUGIN_URL . 'games/'); ?>" class="alfawz-nav-item active flex flex-col items-center justify-center gap-1 text-xs">
-        <span class="alfawz-nav-icon">🎮</span>
-        <span class="alfawz-nav-label"><?php _e('Games', 'alfawzquran'); ?></span>
-    </a>
-    <a href="<?php echo esc_url(ALFAWZQURAN_PLUGIN_URL . 'profile/'); ?>" class="alfawz-nav-item flex flex-col items-center justify-center gap-1 text-xs">
-        <span class="alfawz-nav-icon">👤</span>
-        <span class="alfawz-nav-label"><?php _e('Profile', 'alfawzquran'); ?></span>
-    </a>
-    <a href="<?php echo esc_url(ALFAWZQURAN_PLUGIN_URL . 'settings/'); ?>" class="alfawz-nav-item flex flex-col items-center justify-center gap-1 text-xs">
-        <span class="alfawz-nav-icon">⚙️</span>
-        <span class="alfawz-nav-label"><?php _e('Settings', 'alfawzquran'); ?></span>
-    </a>
-</nav>
+<?php
+$current_page = 'games';
+include ALFAWZQURAN_PLUGIN_PATH . 'public/partials/mobile-nav.php';
+?>

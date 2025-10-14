@@ -12,8 +12,8 @@
         </div>
 
         <div class="alfawz-reader-controls">
-        <div class="alfawz-selection-controls flex flex-wrap gap-2 w-full">
-            <div class="alfawz-surah-selection w-full sm:w-auto flex-1 min-w-0">
+        <div class="alfawz-selection-controls">
+            <div class="alfawz-surah-selection">
                 <label for="reader-surah-select" class="alfawz-control-label">
                     <span class="alfawz-label-icon">📚</span>
                     <?php _e('Select Surah:', 'alfawzquran'); ?>
@@ -22,7 +22,7 @@
                     <option value=""><?php _e('Loading Surahs...', 'alfawzquran'); ?></option>
                 </select>
             </div>
-            <div class="alfawz-verse-selection w-full sm:w-auto flex-1 min-w-0">
+            <div class="alfawz-verse-selection">
                 <label for="reader-verse-select" class="alfawz-control-label">
                     <span class="alfawz-label-icon">📜</span>
                     <?php _e('Select Verse:', 'alfawzquran'); ?>
@@ -31,12 +31,12 @@
                     <option value=""><?php _e('Select surah first', 'alfawzquran'); ?></option>
                 </select>
             </div>
-            <div class="alfawz-reading-options w-full sm:w-auto flex-1 min-w-0 flex flex-col sm:flex-row sm:items-center gap-2">
+            <div class="alfawz-reading-options">
                 <label class="alfawz-toggle-label">
                     <input type="checkbox" id="show-translation" checked>
                     <span class="alfawz-toggle-slider"></span>
                     <span class="alfawz-label-icon">🌐</span>
-                    <span class="alfawz-toggle-text"><?php _e('Show Translation', 'alfawzquran'); ?></span>
+                    <span class="alfawz-toggle-text alfawz-switch off"><?php _e('Show Translation', 'alfawzquran'); ?></span>
                 </label>
                 <div class="alfawz-verse-counter-display alfawz-hidden">
                     <span class="alfawz-counter-label"><?php _e('Current Verse:', 'alfawzquran'); ?></span>
@@ -53,8 +53,8 @@
                 <p><?php _e('Choose a Surah and Verse from the dropdowns above.', 'alfawzquran'); ?></p>
             </div>
 
-            <div class="alfawz-verse-card alfawz-focus-card alfawz-hidden" id="reader-verse-card" role="group" aria-live="polite">
-                <div class="w-full overflow-hidden break-words focus:outline-none focus:ring-2 focus:ring-blue-500 rounded" tabindex="0">
+            <div class="alfawz-verse-card alfawz-hidden" id="reader-verse-card" role="group" aria-live="polite">
+                <div class="alfawz-focus-card alfawz-verse-focus-card" tabindex="0">
                     <div class="alfawz-verse-arabic" id="reader-quran-text" dir="rtl" lang="ar"></div>
                     <div class="alfawz-verse-translation" id="reader-quran-translation"></div>
                 </div>
@@ -63,17 +63,17 @@
 
         <div class="alfawz-reader-actions alfawz-hidden">
         <div class="alfawz-primary-actions">
-            <button id="reader-play-audio" class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md alfawz-beautiful-btn">
+            <button id="reader-play-audio" class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md alfawz-btn alfawz-beautiful-btn">
                 <span class="alfawz-btn-icon-wrapper"><span class="alfawz-btn-icon">🔊</span></span>
                 <span class="alfawz-btn-text alfawz-audio-text"><?php _e('Play Audio', 'alfawzquran'); ?></span>
                 <span class="alfawz-btn-glow"></span>
             </button>
-            <button id="reader-mark-read" class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md alfawz-beautiful-btn">
+            <button id="reader-mark-read" class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md alfawz-btn alfawz-beautiful-btn">
                 <span class="alfawz-btn-icon-wrapper"><span class="alfawz-btn-icon">✅</span></span>
                 <span class="alfawz-btn-text"><?php _e('Mark as Read', 'alfawzquran'); ?></span>
                 <span class="alfawz-btn-glow"></span>
             </button>
-            <button id="reader-bookmark" class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md alfawz-beautiful-btn">
+            <button id="reader-bookmark" class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md alfawz-btn alfawz-beautiful-btn">
                 <span class="alfawz-btn-icon-wrapper"><span class="alfawz-btn-icon">🔖</span></span>
                 <span class="alfawz-btn-text"><?php _e('Bookmark', 'alfawzquran'); ?></span>
                 <span class="alfawz-btn-glow"></span>
@@ -89,10 +89,10 @@
             <span class="alfawz-hasanat-glow"></span>
         </div>
         <div class="alfawz-mobile-controls-row">
-            <button id="prev-verse-btn" class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md alfawz-mobile-nav-btn" disabled>
+            <button id="prev-verse-btn" class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md alfawz-btn alfawz-mobile-nav-btn" disabled>
                 <span class="alfawz-btn-icon">◀️</span> <?php _e('Previous', 'alfawzquran'); ?>
             </button>
-            <button id="next-verse-btn" class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md alfawz-mobile-nav-btn" disabled>
+            <button id="next-verse-btn" class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md alfawz-btn alfawz-mobile-nav-btn" disabled>
                 <?php _e('Next', 'alfawzquran'); ?> <span class="alfawz-btn-icon">▶️</span>
             </button>
         </div>
@@ -146,33 +146,7 @@
     </div>
 </div>
 
-<nav class="alfawz-bottom-navigation fixed bottom-0 left-0 right-0 bg-white border-t z-50 flex justify-around py-2 md:hidden" aria-label="<?php esc_attr_e('Primary mobile navigation', 'alfawzquran'); ?>">
-    <a href="<?php echo esc_url(ALFAWZQURAN_PLUGIN_URL . 'dashboard/'); ?>" class="alfawz-nav-item flex flex-col items-center justify-center gap-1 text-xs">
-        <span class="alfawz-nav-icon">🏠</span>
-        <span class="alfawz-nav-label"><?php _e('Dashboard', 'alfawzquran'); ?></span>
-    </a>
-    <a href="<?php echo esc_url(ALFAWZQURAN_PLUGIN_URL . 'reader/'); ?>" class="alfawz-nav-item active flex flex-col items-center justify-center gap-1 text-xs">
-        <span class="alfawz-nav-icon">📖</span>
-        <span class="alfawz-nav-label"><?php _e('Reader', 'alfawzquran'); ?></span>
-    </a>
-    <a href="<?php echo esc_url(ALFAWZQURAN_PLUGIN_URL . 'memorizer/'); ?>" class="alfawz-nav-item flex flex-col items-center justify-center gap-1 text-xs">
-        <span class="alfawz-nav-icon">🧠</span>
-        <span class="alfawz-nav-label"><?php _e('Memorizer', 'alfawzquran'); ?></span>
-    </a>
-    <a href="<?php echo esc_url(ALFAWZQURAN_PLUGIN_URL . 'leaderboard/'); ?>" class="alfawz-nav-item flex flex-col items-center justify-center gap-1 text-xs">
-        <span class="alfawz-nav-icon">🏆</span>
-        <span class="alfawz-nav-label"><?php _e('Leaderboard', 'alfawzquran'); ?></span>
-    </a>
-    <a href="<?php echo esc_url(ALFAWZQURAN_PLUGIN_URL . 'games/'); ?>" class="alfawz-nav-item flex flex-col items-center justify-center gap-1 text-xs">
-        <span class="alfawz-nav-icon">🎮</span>
-        <span class="alfawz-nav-label"><?php _e('Games', 'alfawzquran'); ?></span>
-    </a>
-    <a href="<?php echo esc_url(ALFAWZQURAN_PLUGIN_URL . 'profile/'); ?>" class="alfawz-nav-item flex flex-col items-center justify-center gap-1 text-xs">
-        <span class="alfawz-nav-icon">👤</span>
-        <span class="alfawz-nav-label"><?php _e('Profile', 'alfawzquran'); ?></span>
-    </a>
-    <a href="<?php echo esc_url(ALFAWZQURAN_PLUGIN_URL . 'settings/'); ?>" class="alfawz-nav-item flex flex-col items-center justify-center gap-1 text-xs">
-        <span class="alfawz-nav-icon">⚙️</span>
-        <span class="alfawz-nav-label"><?php _e('Settings', 'alfawzquran'); ?></span>
-    </a>
-</nav>
+<?php
+$current_page = 'reader';
+include ALFAWZQURAN_PLUGIN_PATH . 'public/partials/mobile-nav.php';
+?>
