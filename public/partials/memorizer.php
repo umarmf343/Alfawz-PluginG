@@ -12,32 +12,37 @@
         </div>
 
         <div class="alfawz-memorization-stats">
-            <div class="alfawz-stat-container alfawz-memorized-container">
-                <div class="alfawz-stat-icon-wrapper">
-                    <div class="alfawz-stat-pulse"></div>
-                    <div class="alfawz-stat-icon-circle"><span class="alfawz-stat-icon">🧠</span></div>
+            <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+                <div class="alfawz-stat-container alfawz-memorized-container">
+                    <div class="alfawz-stat-icon-wrapper">
+                        <div class="alfawz-stat-pulse"></div>
+                        <div class="alfawz-stat-icon-circle"><span class="alfawz-stat-icon">🧠</span></div>
+                    </div>
+                    <div class="alfawz-stat-number" id="total-memorized-verses">0</div>
+                    <div class="alfawz-stat-label"><?php _e('Memorized Verses', 'alfawzquran'); ?></div>
+                    <div class="alfawz-stat-decoration"></div>
                 </div>
-                <div class="alfawz-stat-number" id="total-memorized-verses">0</div>
-                <div class="alfawz-stat-label"><?php _e('Memorized Verses', 'alfawzquran'); ?></div>
-                <div class="alfawz-stat-decoration"></div>
-            </div>
-            <div class="alfawz-stat-container alfawz-streak-container">
-                <div class="alfawz-stat-icon-wrapper">
-                    <div class="alfawz-stat-flame"></div>
-                    <div class="alfawz-stat-icon-circle"><span class="alfawz-stat-icon">🔥</span></div>
+                <div class="alfawz-stat-container alfawz-streak-container">
+                    <div class="alfawz-stat-icon-wrapper">
+                        <div class="alfawz-stat-flame"></div>
+                        <div class="alfawz-stat-icon-circle"><span class="alfawz-stat-icon">🔥</span></div>
+                    </div>
+                    <div class="alfawz-stat-number" id="current-memorization-streak">0</div>
+                    <div class="alfawz-stat-label"><?php _e('Current Streak', 'alfawzquran'); ?></div>
+                    <div class="alfawz-stat-decoration"></div>
                 </div>
-                <div class="alfawz-stat-number" id="current-memorization-streak">0</div>
-                <div class="alfawz-stat-label"><?php _e('Current Streak', 'alfawzquran'); ?></div>
-                <div class="alfawz-stat-decoration"></div>
-            </div>
-            <div class="alfawz-stat-container alfawz-plans-container">
-                <div class="alfawz-stat-icon-wrapper">
-                    <div class="alfawz-stat-shine"></div>
-                    <div class="alfawz-stat-icon-circle"><span class="alfawz-stat-icon">📝</span></div>
+                <div class="alfawz-stat-container alfawz-plans-container">
+                    <div class="alfawz-stat-icon-wrapper">
+                        <div class="alfawz-stat-shine"></div>
+                        <div class="alfawz-stat-icon-circle"><span class="alfawz-stat-icon">📝</span></div>
+                    </div>
+                    <div class="alfawz-stat-number" id="active-plans-count">0</div>
+                    <div class="alfawz-stat-label"><?php _e('Active Plans', 'alfawzquran'); ?></div>
+                    <a href="<?php echo esc_url(ALFAWZQURAN_PLUGIN_URL . 'settings/#create-plan'); ?>" role="button" class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md alfawz-btn alfawz-btn-primary mt-3 w-full">
+                        <span aria-hidden="true" class="mr-2">+</span><?php _e('Create Plan', 'alfawzquran'); ?>
+                    </a>
+                    <div class="alfawz-stat-decoration"></div>
                 </div>
-                <div class="alfawz-stat-number" id="active-plans-count">0</div>
-                <div class="alfawz-stat-label"><?php _e('Active Plans', 'alfawzquran'); ?></div>
-                <div class="alfawz-stat-decoration"></div>
             </div>
         </div>
 
@@ -62,7 +67,7 @@
                     </select>
                 </div>
                 <div class="alfawz-memo-actions">
-                    <button id="load-memorization-verse" class="alfawz-btn alfawz-btn-primary alfawz-btn-large" disabled>
+                    <button id="load-memorization-verse" class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md alfawz-btn alfawz-btn-primary alfawz-btn-large" disabled>
                         <span class="alfawz-btn-icon">▶️</span> <?php _e('Load Verse', 'alfawzquran'); ?>
                     </button>
                 </div>
@@ -82,7 +87,7 @@
                         <option value=""><?php _e('Loading plans...', 'alfawzquran'); ?></option>
                     </select>
                 </div>
-                <button id="load-memorization-plan" class="alfawz-btn alfawz-btn-primary alfawz-btn-large" disabled>
+                <button id="load-memorization-plan" class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md alfawz-btn alfawz-btn-primary alfawz-btn-large" disabled>
                     <span class="alfawz-btn-icon">🚀</span> <?php _e('Load Plan', 'alfawzquran'); ?>
                 </button>
             </div>
@@ -96,7 +101,7 @@
                     <div class="alfawz-progress-fill" style="width: 0%" id="plan-progress-fill"></div>
                 </div>
                 <p class="alfawz-text-center"><span id="plan-percentage">0%</span> Completed</p>
-                <button id="restart-plan" class="alfawz-btn alfawz-btn-secondary alfawz-btn-small">
+                <button id="restart-plan" class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md alfawz-btn alfawz-btn-secondary alfawz-btn-small">
                     <span class="alfawz-btn-icon">🔄</span> <?php _e('Restart Plan', 'alfawzquran'); ?>
                 </button>
             </div>
@@ -118,14 +123,16 @@
                 </div>
             </div>
 
-            <div class="alfawz-memorization-verse-card alfawz-focus-card" tabindex="0" role="group" aria-live="polite">
+            <div class="alfawz-memorization-verse-card alfawz-focus-card" role="group" aria-live="polite">
                 <div class="alfawz-verse-number-mem" id="memo-verse-number"></div>
-                <div class="alfawz-verse-arabic-mem" id="memo-quran-text"></div>
-                <div class="alfawz-verse-translation-mem" id="memo-quran-translation"></div>
+                <div class="w-full overflow-hidden break-words focus:outline-none focus:ring-2 focus:ring-blue-500 rounded" tabindex="0">
+                    <div class="alfawz-verse-arabic-mem" id="memo-quran-text" dir="rtl" lang="ar"></div>
+                    <div class="alfawz-verse-translation-mem" id="memo-quran-translation"></div>
+                </div>
             </div>
 
             <div class="alfawz-memorization-audio-controls">
-                <button id="memo-play-audio" class="alfawz-audio-control-btn">
+                <button id="memo-play-audio" class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md alfawz-audio-control-btn">
                     <span class="alfawz-btn-icon">🔊</span> <span class="alfawz-audio-text"><?php _e('Play Audio', 'alfawzquran'); ?></span>
                 </button>
             </div>
@@ -145,7 +152,7 @@
                     <p class="alfawz-text-center alfawz-mb-0" id="session-progress-text"><?php _e('Repetitions: 0 / 20', 'alfawzquran'); ?></p>
                 </div>
                 <div class="alfawz-repeat-button-container">
-                    <button id="repeat-verse-btn" class="alfawz-repeat-btn">
+                    <button id="repeat-verse-btn" class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md alfawz-repeat-btn">
                         <span class="alfawz-repeat-icon-wrapper"><span class="alfawz-repeat-icon">🔁</span></span>
                         <div class="alfawz-repeat-content">
                             <span class="alfawz-repeat-text"><?php _e('Repeat Verse', 'alfawzquran'); ?></span>
@@ -157,26 +164,26 @@
 
             <div class="alfawz-session-actions">
                 <div class="alfawz-primary-actions">
-                    <button id="memo-mark-memorized" class="alfawz-beautiful-btn alfawz-btn-success">
+                    <button id="memo-mark-memorized" class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md alfawz-beautiful-btn alfawz-btn-success">
                         <span class="alfawz-btn-icon-wrapper"><span class="alfawz-btn-icon">✅</span></span>
                         <span class="alfawz-btn-text"><?php _e('Mark as Memorized', 'alfawzquran'); ?></span>
                         <span class="alfawz-btn-glow"></span>
                     </button>
-                    <button id="memo-select-another" class="alfawz-beautiful-btn alfawz-btn-secondary">
+                    <button id="memo-select-another" class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md alfawz-beautiful-btn alfawz-btn-secondary">
                         <span class="alfawz-btn-icon-wrapper"><span class="alfawz-btn-icon">➕</span></span>
                         <span class="alfawz-btn-text"><?php _e('Select Another Verse', 'alfawzquran'); ?></span>
                         <span class="alfawz-btn-glow"></span>
                     </button>
                 </div>
                 <div class="alfawz-mobile-controls-row alfawz-hidden">
-                    <button id="prev-memo-verse-btn" class="alfawz-mobile-nav-btn" disabled>
+                    <button id="prev-memo-verse-btn" class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md alfawz-mobile-nav-btn" disabled>
                         <span class="alfawz-btn-icon">◀️</span> Prev
                     </button>
-                    <button id="repeat-verse-btn-mobile" class="alfawz-repeat-btn-mobile">
+                    <button id="repeat-verse-btn-mobile" class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md alfawz-repeat-btn-mobile">
                         <span class="alfawz-repeat-icon">🔁</span>
                         <span class="alfawz-repeat-text">Repeat</span>
                     </button>
-                    <button id="next-memo-verse-btn" class="alfawz-mobile-nav-btn" disabled>
+                    <button id="next-memo-verse-btn" class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md alfawz-mobile-nav-btn" disabled>
                         Next <span class="alfawz-btn-icon">▶️</span>
                     </button>
                 </div>
@@ -204,45 +211,43 @@
             </div>
         </div>
         <div class="alfawz-modal-actions">
-            <button id="continue-memorization" class="alfawz-btn alfawz-btn-primary alfawz-btn-large">
+            <button id="continue-memorization" class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md alfawz-btn alfawz-btn-primary alfawz-btn-large">
                 <?php _e('Continue Memorizing', 'alfawzquran'); ?>
             </button>
-            <a href="<?php echo esc_url(ALFAWZQURAN_PLUGIN_URL . 'profile/'); ?>" class="alfawz-btn alfawz-btn-secondary alfawz-btn-large">
+            <a href="<?php echo esc_url(ALFAWZQURAN_PLUGIN_URL . 'profile/'); ?>" class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md alfawz-btn alfawz-btn-secondary alfawz-btn-large" role="button">
                 <?php _e('View Profile', 'alfawzquran'); ?>
             </a>
         </div>
     </div>
 </div>
 
-<div class="alfawz-bottom-navigation">
-    <div class="alfawz-nav-container">
-        <a href="<?php echo esc_url(ALFAWZQURAN_PLUGIN_URL . 'dashboard/'); ?>" class="alfawz-nav-item">
-            <span class="alfawz-nav-icon">🏠</span>
-            <span class="alfawz-nav-label"><?php _e('Dashboard', 'alfawzquran'); ?></span>
-        </a>
-        <a href="<?php echo esc_url(ALFAWZQURAN_PLUGIN_URL . 'reader/'); ?>" class="alfawz-nav-item">
-            <span class="alfawz-nav-icon">📖</span>
-            <span class="alfawz-nav-label"><?php _e('Reader', 'alfawzquran'); ?></span>
-        </a>
-        <a href="<?php echo esc_url(ALFAWZQURAN_PLUGIN_URL . 'memorizer/'); ?>" class="alfawz-nav-item active">
-            <span class="alfawz-nav-icon">🧠</span>
-            <span class="alfawz-nav-label"><?php _e('Memorizer', 'alfawzquran'); ?></span>
-        </a>
-        <a href="<?php echo esc_url(ALFAWZQURAN_PLUGIN_URL . 'leaderboard/'); ?>" class="alfawz-nav-item">
-            <span class="alfawz-nav-icon">🏆</span>
-            <span class="alfawz-nav-label"><?php _e('Leaderboard', 'alfawzquran'); ?></span>
-        </a>
-        <a href="<?php echo esc_url(ALFAWZQURAN_PLUGIN_URL . 'games/'); ?>" class="alfawz-nav-item">
-            <span class="alfawz-nav-icon">🎮</span>
-            <span class="alfawz-nav-label"><?php _e('Games', 'alfawzquran'); ?></span>
-        </a>
-        <a href="<?php echo esc_url(ALFAWZQURAN_PLUGIN_URL . 'profile/'); ?>" class="alfawz-nav-item">
-            <span class="alfawz-nav-icon">👤</span>
-            <span class="alfawz-nav-label"><?php _e('Profile', 'alfawzquran'); ?></span>
-        </a>
-        <a href="<?php echo esc_url(ALFAWZQURAN_PLUGIN_URL . 'settings/'); ?>" class="alfawz-nav-item">
-            <span class="alfawz-nav-icon">⚙️</span>
-            <span class="alfawz-nav-label"><?php _e('Settings', 'alfawzquran'); ?></span>
-        </a>
-    </div>
-</div>
+<nav class="alfawz-bottom-navigation fixed bottom-0 left-0 right-0 bg-white border-t z-50 flex justify-around py-2 md:hidden" aria-label="<?php esc_attr_e('Primary mobile navigation', 'alfawzquran'); ?>">
+    <a href="<?php echo esc_url(ALFAWZQURAN_PLUGIN_URL . 'dashboard/'); ?>" class="alfawz-nav-item flex flex-col items-center justify-center gap-1 text-xs">
+        <span class="alfawz-nav-icon">🏠</span>
+        <span class="alfawz-nav-label"><?php _e('Dashboard', 'alfawzquran'); ?></span>
+    </a>
+    <a href="<?php echo esc_url(ALFAWZQURAN_PLUGIN_URL . 'reader/'); ?>" class="alfawz-nav-item flex flex-col items-center justify-center gap-1 text-xs">
+        <span class="alfawz-nav-icon">📖</span>
+        <span class="alfawz-nav-label"><?php _e('Reader', 'alfawzquran'); ?></span>
+    </a>
+    <a href="<?php echo esc_url(ALFAWZQURAN_PLUGIN_URL . 'memorizer/'); ?>" class="alfawz-nav-item active flex flex-col items-center justify-center gap-1 text-xs">
+        <span class="alfawz-nav-icon">🧠</span>
+        <span class="alfawz-nav-label"><?php _e('Memorizer', 'alfawzquran'); ?></span>
+    </a>
+    <a href="<?php echo esc_url(ALFAWZQURAN_PLUGIN_URL . 'leaderboard/'); ?>" class="alfawz-nav-item flex flex-col items-center justify-center gap-1 text-xs">
+        <span class="alfawz-nav-icon">🏆</span>
+        <span class="alfawz-nav-label"><?php _e('Leaderboard', 'alfawzquran'); ?></span>
+    </a>
+    <a href="<?php echo esc_url(ALFAWZQURAN_PLUGIN_URL . 'games/'); ?>" class="alfawz-nav-item flex flex-col items-center justify-center gap-1 text-xs">
+        <span class="alfawz-nav-icon">🎮</span>
+        <span class="alfawz-nav-label"><?php _e('Games', 'alfawzquran'); ?></span>
+    </a>
+    <a href="<?php echo esc_url(ALFAWZQURAN_PLUGIN_URL . 'profile/'); ?>" class="alfawz-nav-item flex flex-col items-center justify-center gap-1 text-xs">
+        <span class="alfawz-nav-icon">👤</span>
+        <span class="alfawz-nav-label"><?php _e('Profile', 'alfawzquran'); ?></span>
+    </a>
+    <a href="<?php echo esc_url(ALFAWZQURAN_PLUGIN_URL . 'settings/'); ?>" class="alfawz-nav-item flex flex-col items-center justify-center gap-1 text-xs">
+        <span class="alfawz-nav-icon">⚙️</span>
+        <span class="alfawz-nav-label"><?php _e('Settings', 'alfawzquran'); ?></span>
+    </a>
+</nav>

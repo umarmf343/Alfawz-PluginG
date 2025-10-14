@@ -152,7 +152,7 @@
                 <div class="alfawz-verse-arabic">${verse.text}</div>
                 <div class="alfawz-verse-translation">${translation}</div>
                 <div class="alfawz-verse-controls">
-                  <button class="alfawz-btn alfawz-btn-primary alfawz-btn-small" data-surah-id="${surah.id}" data-verse-id="1" id="read-daily-verse">
+                  <button class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md alfawz-btn alfawz-btn-primary alfawz-btn-small" data-surah-id="${surah.id}" data-verse-id="1" id="read-daily-verse">
                     <span class="alfawz-btn-icon">📖</span> Read Now
                   </button>
                   <span class="alfawz-hasanat-counter">
@@ -998,7 +998,7 @@
                       </div>
                       <div class="alfawz-verse-preview">${verseTextPreview}</div>
                       <div class="alfawz-verse-actions">
-                        <button class="alfawz-btn alfawz-btn-small alfawz-btn-secondary alfawz-preview-verse-btn" data-surah-id="${response.surah_id}" data-verse-id="${i}">
+                        <button class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md alfawz-btn alfawz-btn-small alfawz-btn-secondary alfawz-preview-verse-btn" data-surah-id="${response.surah_id}" data-verse-id="${i}">
                           Preview
                         </button>
                         <span class="alfawz-verse-status">${isCompleted ? 'Memorized' : 'Pending'}</span>
@@ -1322,10 +1322,10 @@
                   </div>
                 </div>
                 <div class="alfawz-plan-actions">
-                  <button class="alfawz-btn alfawz-btn-small alfawz-btn-primary alfawz-continue-plan-btn" data-plan-id="${plan.id}">
+                  <button class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md alfawz-btn alfawz-btn-small alfawz-btn-primary alfawz-continue-plan-btn" data-plan-id="${plan.id}">
                     Continue Plan
                   </button>
-                  <button class="alfawz-btn alfawz-btn-small alfawz-btn-secondary alfawz-delete-plan-btn" data-plan-id="${plan.id}">
+                  <button class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md alfawz-btn alfawz-btn-small alfawz-btn-secondary alfawz-delete-plan-btn" data-plan-id="${plan.id}">
                     Delete
                   </button>
                 </div>
@@ -1531,10 +1531,10 @@
                   <span class="alfawz-bookmark-verse">Surah ${bookmark.surah_id}, Verse ${bookmark.verse_id}</span>
                   <span class="alfawz-bookmark-date">${new Date(bookmark.timestamp).toLocaleDateString()}</span>
                 </div>
-                <button class="alfawz-btn alfawz-btn-small alfawz-btn-secondary alfawz-view-bookmark-btn" data-surah-id="${bookmark.surah_id}" data-verse-id="${bookmark.verse_id}">
+                <button class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md alfawz-btn alfawz-btn-small alfawz-btn-secondary alfawz-view-bookmark-btn" data-surah-id="${bookmark.surah_id}" data-verse-id="${bookmark.verse_id}">
                   View
                 </button>
-                <button class="alfawz-btn alfawz-btn-small alfawz-btn-danger alfawz-delete-bookmark-btn" data-bookmark-id="${bookmark.id}">
+                <button class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md alfawz-btn alfawz-btn-small alfawz-btn-danger alfawz-delete-bookmark-btn" data-bookmark-id="${bookmark.id}">
                   Delete
                 </button>
               </div>
@@ -1625,10 +1625,10 @@
                   </div>
                 </div>
                 <div class="alfawz-plan-actions">
-                  <button class="alfawz-btn alfawz-btn-small alfawz-btn-primary alfawz-continue-plan-btn" data-plan-id="${plan.id}">
+                  <button class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md alfawz-btn alfawz-btn-small alfawz-btn-primary alfawz-continue-plan-btn" data-plan-id="${plan.id}">
                     Continue Plan
                   </button>
-                  <button class="alfawz-btn alfawz-btn-small alfawz-btn-secondary alfawz-delete-plan-btn" data-plan-id="${plan.id}">
+                  <button class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md alfawz-btn alfawz-btn-small alfawz-btn-secondary alfawz-delete-plan-btn" data-plan-id="${plan.id}">
                     Delete
                   </button>
                 </div>
@@ -2302,11 +2302,38 @@
   // ========================================
   function initializeBottomNavigation() {
     const currentPath = window.location.pathname
-    $(".alfawz-nav-item").each(function() {
-      const href = $(this).attr("href")
-      if (currentPath.includes(href.replace(alfawzData.pluginUrl, ""))) {
+    const $nav = $(".alfawz-bottom-navigation")
+
+    if (!$nav.length) {
+      return
+    }
+
+    $nav.find(".alfawz-nav-item").each(function() {
+      const href = $(this).attr("href") || ""
+      if (href && currentPath.includes(href.replace(alfawzData.pluginUrl, ""))) {
         $(this).addClass("active")
       }
+    })
+
+    let lastScrollTop = window.scrollY || 0
+    let navHidden = false
+
+    $(window).on("scroll", () => {
+      const currentScrollTop = window.scrollY || 0
+
+      if (currentScrollTop > lastScrollTop && currentScrollTop > 80) {
+        if (!navHidden) {
+          $nav.addClass("alfawz-nav-hidden")
+          navHidden = true
+        }
+      } else {
+        if (navHidden || currentScrollTop <= 80) {
+          $nav.removeClass("alfawz-nav-hidden")
+          navHidden = false
+        }
+      }
+
+      lastScrollTop = currentScrollTop
     })
   }
 })(jQuery)
