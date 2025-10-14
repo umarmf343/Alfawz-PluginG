@@ -1580,15 +1580,51 @@
   box-shadow: var(--shadow-sm);
 }
 
+.alfawz-session-navigation {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--spacing-md);
+  align-items: stretch;
+  margin-bottom: var(--spacing-xl);
+}
+
+.alfawz-session-navigation .alfawz-mobile-nav-btn {
+  min-height: 58px;
+  font-size: 0.9em;
+  font-weight: 600;
+}
+
+#memo-mark-memorized {
+  width: 100%;
+  justify-content: center;
+  text-align: center;
+  gap: var(--spacing-sm);
+}
+
+.alfawz-session-actions {
+  display: flex;
+  justify-content: center;
+  margin-bottom: var(--spacing-xl);
+}
+
+.alfawz-session-actions #memo-select-another {
+  min-width: 220px;
+  justify-content: center;
+}
+
 /* Audio Controls */
 .alfawz-memorization-audio-controls {
   text-align: center;
-  margin: var(--spacing-lg) 0;
+  margin: var(--spacing-xl) 0 0;
   padding: var(--spacing-lg);
   background: #fff9f2;
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-md);
   border: 1px solid #f1dfd5;
+}
+
+.alfawz-memorization-audio-controls .alfawz-audio-control-btn {
+  min-width: 230px;
 }
 
 .alfawz-memorization-audio-controls .alfawz-audio-control-btn {
@@ -1750,6 +1786,119 @@
   box-shadow: 0 10px 30px rgba(72, 187, 120, 0.4);
 }
 
+.alfawz-review-panel {
+  background: #fff9f2;
+  border-radius: var(--radius-lg);
+  border: 1px solid #f1dfd5;
+  box-shadow: var(--shadow-md);
+  padding: var(--spacing-xl);
+  margin-top: var(--spacing-xl);
+  display: grid;
+  gap: var(--spacing-lg);
+}
+
+.alfawz-review-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+}
+
+.alfawz-review-status {
+  background: linear-gradient(135deg, rgba(111, 29, 27, 0.1), rgba(111, 29, 27, 0.05));
+  color: #6f1d1b;
+  padding: var(--spacing-xs) var(--spacing-md);
+  border-radius: var(--radius-xl);
+  font-weight: 600;
+  font-size: 0.85em;
+}
+
+.alfawz-review-intro {
+  margin: 0;
+  color: #4a5568;
+  font-size: 0.95em;
+}
+
+.alfawz-review-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-md);
+}
+
+.alfawz-review-chip {
+  flex: 1 1 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  border: 2px solid transparent;
+  border-radius: var(--radius-xl);
+  padding: var(--spacing-md) var(--spacing-lg);
+  background: linear-gradient(135deg, #fdf6ed, #fff);
+  color: #2d3748;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  box-shadow: var(--shadow-sm);
+}
+
+.alfawz-review-chip:hover,
+.alfawz-review-chip:focus-visible {
+  border-color: #b3724d;
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+  outline: none;
+}
+
+.alfawz-review-chip[aria-checked="true"] {
+  border-color: #6f1d1b;
+  background: linear-gradient(135deg, rgba(111, 29, 27, 0.1), rgba(179, 114, 77, 0.15));
+  color: #6f1d1b;
+  box-shadow: 0 8px 24px rgba(111, 29, 27, 0.2);
+}
+
+.alfawz-review-icon {
+  font-size: 1.3em;
+}
+
+.alfawz-review-label {
+  font-weight: 600;
+  color: #2d3748;
+}
+
+.alfawz-review-notes {
+  width: 100%;
+  border-radius: var(--radius-md);
+  border: 1px solid #f1dfd5;
+  padding: var(--spacing-md);
+  font-family: inherit;
+  font-size: 0.95em;
+  line-height: 1.5;
+  background: #fff;
+  resize: vertical;
+  min-height: 120px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.alfawz-review-notes:focus {
+  border-color: #6f1d1b;
+  box-shadow: 0 0 0 3px rgba(111, 29, 27, 0.15);
+  outline: none;
+}
+
+.alfawz-review-footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-md);
+  align-items: center;
+}
+
+.alfawz-review-feedback {
+  font-size: 0.9em;
+  font-weight: 600;
+  color: #2f855a;
+}
+
 .alfawz-repeat-btn:active {
   transform: translateY(-1px);
 }
@@ -1901,6 +2050,21 @@
 .alfawz-repeat-btn-mobile .alfawz-repeat-text {
   font-size: 0.8em;
   font-weight: 700;
+}
+
+@media (min-width: 768px) {
+  .alfawz-session-navigation {
+    grid-template-columns: 160px minmax(0, 1fr) 160px;
+    gap: var(--spacing-lg);
+  }
+
+  .alfawz-session-navigation .alfawz-mobile-nav-btn {
+    font-size: 1em;
+  }
+
+  .alfawz-review-panel {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* ========================================
