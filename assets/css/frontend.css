@@ -1,0 +1,2458 @@
+/* ========================================
+   AlfawzQuran Plugin - Beautiful UI Styles
+   ======================================== */
+
+/* ========================================
+   1. BASE STYLES & VARIABLES
+   ======================================== */
+:root {
+  /* Color Palette */
+  --primary-gradient: linear-gradient(135deg, #667eea, #764ba2);
+  --success-gradient: linear-gradient(135deg, #48bb78, #38a169);
+  --warning-gradient: linear-gradient(135deg, #ffd700, #ffed4e);
+  --danger-gradient: linear-gradient(135deg, #f56565, #e53e3e);
+  --info-gradient: linear-gradient(135deg, #4299e1, #3182ce);
+
+  /* Shadows */
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.12);
+  --shadow-xl: 0 20px 60px rgba(0, 0, 0, 0.3);
+
+  /* Spacing */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 12px;
+  --spacing-lg: 16px;
+  --spacing-xl: 20px;
+  --spacing-2xl: 24px;
+
+  /* Border Radius */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-full: 50%;
+
+  /* Typography */
+  --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-arabic: "Amiri", "Times New Roman", serif;
+}
+
+/* ========================================
+   2. LAYOUT & CONTAINERS
+   ======================================== */
+.alfawz-dashboard,
+.alfawz-reader,
+.alfawz-memorizer,
+.alfawz-leaderboard,
+.alfawz-profile,
+.alfawz-settings { /* Added .alfawz-settings */
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: var(--spacing-lg);
+  font-family: var(--font-family);
+  min-height: 100vh;
+  background: #f8fafc;
+}
+
+/* ========================================
+   3. HEADERS
+   ======================================== */
+.alfawz-reader-header,
+.alfawz-memorizer-header,
+.alfawz-dashboard-header,
+.alfawz-leaderboard-header,
+.alfawz-profile-header,
+.alfawz-settings-header { /* Added .alfawz-settings-header */
+  background: var(--primary-gradient);
+  color: white;
+  padding: var(--spacing-xl) var(--spacing-2xl);
+  border-radius: var(--radius-lg);
+  margin-bottom: var(--spacing-lg);
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.alfawz-reader-header::before,
+.alfawz-memorizer-header::before,
+.alfawz-dashboard-header::before,
+.alfawz-leaderboard-header::before,
+.alfawz-profile-header::before,
+.alfawz-settings-header::before { /* Added .alfawz-settings-header */
+  content: "";
+  position: absolute;
+  top: -50%;
+  right: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.1), transparent);
+  animation: headerGlow 4s infinite;
+}
+
+@keyframes headerGlow {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  50% {
+    transform: rotate(180deg);
+  }
+}
+
+.alfawz-header-content h2 {
+  font-size: 1.6em;
+  margin: 0 0 5px 0;
+  font-weight: 700;
+  position: relative;
+  z-index: 2;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.alfawz-header-content p {
+  font-size: 0.9em;
+  opacity: 0.9;
+  margin: 0;
+  position: relative;
+  z-index: 2;
+}
+
+/* ========================================
+   WELCOME SECTIONS
+   ======================================== */
+.alfawz-welcome-section {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  padding: var(--spacing-xl);
+  border-radius: var(--radius-lg);
+  margin-bottom: var(--spacing-lg);
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.alfawz-welcome-section::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  right: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.1), transparent);
+  animation: headerGlow 4s infinite;
+}
+
+.alfawz-selected-surah,
+.alfawz-selected-plan {
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-md) var(--spacing-lg);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  position: relative;
+  z-index: 2;
+  font-weight: 600;
+  margin-top: var(--spacing-md);
+}
+
+.alfawz-surah-icon,
+.alfawz-plan-icon {
+  font-size: 1.2em;
+}
+
+/* ========================================
+   4. BEAUTIFUL PROGRESS CARDS
+   ======================================== */
+.alfawz-live-progress {
+  margin-bottom: var(--spacing-lg);
+}
+
+.alfawz-progress-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--spacing-md);
+}
+
+/* Reader Progress Grid - 2x2 Layout */
+.alfawz-reader .alfawz-progress-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--spacing-md);
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.alfawz-progress-card {
+  background: white;
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-xl);
+  box-shadow: var(--shadow-md);
+  border: 1px solid #e2e8f0;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.alfawz-progress-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.alfawz-card-icon {
+  position: relative;
+  margin-bottom: var(--spacing-md);
+}
+
+.alfawz-icon-circle {
+  width: 50px;
+  height: 50px;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.alfawz-hasanat-icon {
+  background: var(--warning-gradient);
+  box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
+}
+
+.alfawz-verses-icon {
+  background: var(--primary-gradient);
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.alfawz-time-icon {
+  background: var(--success-gradient);
+  box-shadow: 0 4px 15px rgba(72, 187, 120, 0.3);
+}
+
+.alfawz-streak-icon {
+  background: var(--danger-gradient);
+  box-shadow: 0 4px 15px rgba(245, 101, 101, 0.3);
+}
+
+.alfawz-icon {
+  font-size: 1.5em;
+  color: white;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.alfawz-card-content {
+  text-align: center;
+}
+
+.alfawz-card-value {
+  font-size: 2em;
+  font-weight: 800;
+  color: #2d3748;
+  margin-bottom: 4px;
+  background: linear-gradient(135deg, #2d3748, #4a5568);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.alfawz-card-label {
+  font-size: 0.8em;
+  color: #718096;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.alfawz-card-decoration {
+  position: absolute;
+  top: -20px;
+  right: -20px;
+  width: 60px;
+  height: 60px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+  border-radius: var(--radius-full);
+  pointer-events: none;
+}
+
+/* ========================================
+   5. MEMORIZATION STATS CONTAINERS
+   ======================================== */
+.alfawz-memorization-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+}
+
+.alfawz-stat-container {
+  background: white;
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-xl);
+  box-shadow: var(--shadow-md);
+  border: 1px solid #e2e8f0;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  text-align: center;
+}
+
+.alfawz-stat-container:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.alfawz-stat-icon-wrapper {
+  position: relative;
+  margin-bottom: var(--spacing-md);
+  display: flex;
+  justify-content: center;
+}
+
+.alfawz-stat-icon-circle {
+  width: 45px;
+  height: 45px;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.alfawz-memorized-container .alfawz-stat-icon-circle {
+  background: var(--success-gradient);
+  box-shadow: 0 4px 15px rgba(72, 187, 120, 0.3);
+}
+
+.alfawz-streak-container .alfawz-stat-icon-circle {
+  background: var(--danger-gradient);
+  box-shadow: 0 4px 15px rgba(245, 101, 101, 0.3);
+}
+
+.alfawz-plans-container .alfawz-stat-icon-circle {
+  background: var(--primary-gradient);
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.alfawz-stat-icon {
+  font-size: 1.3em;
+  color: white;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.alfawz-stat-pulse,
+.alfawz-stat-flame,
+.alfawz-stat-shine {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 60px;
+  height: 60px;
+  border-radius: var(--radius-full);
+  opacity: 0.3;
+  animation: pulse 2s infinite;
+}
+
+.alfawz-stat-pulse {
+  background: radial-gradient(circle, rgba(72, 187, 120, 0.3), transparent);
+}
+
+.alfawz-stat-flame {
+  background: radial-gradient(circle, rgba(245, 101, 101, 0.3), transparent);
+}
+
+.alfawz-stat-shine {
+  background: radial-gradient(circle, rgba(102, 126, 234, 0.3), transparent);
+}
+
+@keyframes pulse {
+  0% {
+    transform: translate(-50%, -50%) scale(0.8);
+    opacity: 0.3;
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.2);
+    opacity: 0.1;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(0.8);
+    opacity: 0.3;
+  }
+}
+
+.alfawz-stat-number {
+  font-size: 1.8em;
+  font-weight: 800;
+  color: #2d3748;
+  margin-bottom: 4px;
+}
+
+.alfawz-stat-label {
+  font-size: 0.75em;
+  color: #718096;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.alfawz-stat-decoration {
+  position: absolute;
+  top: -15px;
+  right: -15px;
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+  border-radius: var(--radius-full);
+  pointer-events: none;
+}
+
+/* ========================================
+   6. READER & MEMORIZER CONTROLS
+   ======================================== */
+.alfawz-reader-controls,
+.alfawz-memorization-controls {
+  background: white;
+  padding: var(--spacing-lg);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  margin-bottom: var(--spacing-lg);
+  border: 1px solid #e2e8f0;
+}
+
+.alfawz-selection-controls,
+.alfawz-memo-selection-controls {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: var(--spacing-lg);
+  align-items: end;
+}
+
+.alfawz-surah-selection,
+.alfawz-verse-selection {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.alfawz-control-label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-weight: 600;
+  color: #2d3748;
+  font-size: 0.85em;
+}
+
+.alfawz-label-icon {
+  font-size: 1em;
+}
+
+.alfawz-surah-dropdown,
+.alfawz-verse-dropdown {
+  padding: var(--spacing-md) var(--spacing-lg);
+  border: 2px solid #e2e8f0;
+  border-radius: var(--radius-sm);
+  font-size: 0.9em;
+  background: white;
+  color: #2d3748;
+  transition: all 0.2s ease;
+  min-width: 200px;
+}
+
+.alfawz-surah-dropdown:focus,
+.alfawz-verse-dropdown:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1);
+}
+
+.alfawz-surah-dropdown:disabled,
+.alfawz-verse-dropdown:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.alfawz-reading-options {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  align-items: end;
+}
+
+.alfawz-memo-actions {
+  display: flex;
+  align-items: end;
+}
+
+/* Toggle Switch */
+.alfawz-translation-toggle {
+  display: flex;
+  align-items: center;
+}
+
+.alfawz-toggle-label {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  cursor: pointer;
+  font-weight: 600;
+  color: #2d3748;
+  font-size: 0.85em;
+}
+
+.alfawz-toggle-label input[type="checkbox"] {
+  display: none;
+}
+
+.alfawz-toggle-slider {
+  width: 40px;
+  height: 20px;
+  background: #cbd5e0;
+  border-radius: var(--radius-md);
+  position: relative;
+  transition: background 0.3s ease;
+}
+
+.alfawz-toggle-slider::before {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  background: white;
+  border-radius: var(--radius-full);
+  transition: transform 0.3s ease;
+  box-shadow: var(--shadow-sm);
+}
+
+.alfawz-toggle-label input[type="checkbox"]:checked + .alfawz-toggle-slider {
+  background: #667eea;
+}
+
+.alfawz-toggle-label input[type="checkbox"]:checked + .alfawz-toggle-slider::before {
+  transform: translateX(20px);
+}
+
+.alfawz-verse-counter-display {
+  background: #f8fafc;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--radius-sm);
+  border: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.alfawz-counter-label {
+  font-weight: 600;
+  color: #718096;
+  font-size: 0.8em;
+}
+
+.alfawz-verse-counter {
+  font-weight: 700;
+  color: #2d3748;
+  font-size: 0.9em;
+}
+
+/* ========================================
+   7. VERSE DISPLAY
+   ======================================== */
+.alfawz-verse-display {
+  margin-bottom: var(--spacing-lg);
+}
+
+.alfawz-verse-card {
+  background: white;
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-xl);
+  box-shadow: var(--shadow-md);
+  border: 1px solid #e2e8f0;
+  position: relative;
+  margin-bottom: var(--spacing-lg);
+}
+
+.alfawz-verse-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--primary-gradient);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+}
+
+.alfawz-verse-arabic {
+  font-size: 1.8em;
+  line-height: 1.6;
+  text-align: right;
+  margin-bottom: var(--spacing-lg);
+  color: #2d3748;
+  font-family: var(--font-arabic);
+  font-weight: 500;
+}
+
+.alfawz-verse-translation {
+  font-size: 1em;
+  line-height: 1.5;
+  color: #4a5568;
+  font-style: italic;
+  margin-bottom: 0;
+  padding: var(--spacing-lg);
+  background: #f8fafc;
+  border-radius: var(--radius-sm);
+  border-left: 3px solid #48bb78;
+}
+
+.alfawz-loading-message {
+  text-align: center;
+  padding: var(--spacing-xl);
+  background: white;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  border: 1px solid #e2e8f0;
+}
+
+.alfawz-loading-icon {
+  font-size: 2.5em;
+  margin-bottom: var(--spacing-lg);
+  opacity: 0.7;
+}
+
+.alfawz-loading-message h3 {
+  color: #2d3748;
+  font-size: 1.3em;
+  margin: 0 0 var(--spacing-sm) 0;
+  font-weight: 600;
+}
+
+.alfawz-loading-message p {
+  color: #718096;
+  font-size: 0.9em;
+  margin: 0;
+}
+
+/* ========================================
+   8. ACTION BUTTONS
+   ======================================== */
+.alfawz-reader-actions {
+  background: white;
+  padding: var(--spacing-lg);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  border: 1px solid #e2e8f0;
+  margin-bottom: var(--spacing-lg);
+}
+
+.alfawz-primary-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+}
+
+.alfawz-beautiful-btn {
+  padding: var(--spacing-lg) var(--spacing-xl);
+  border: none;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-md);
+  font-size: 0.9em;
+  position: relative;
+  overflow: hidden;
+  min-height: 60px;
+  background: var(--primary-gradient);
+  color: white;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.alfawz-beautiful-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.alfawz-beautiful-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.alfawz-beautiful-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.alfawz-btn-icon-wrapper {
+  width: 30px;
+  height: 30px;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(10px);
+}
+
+.alfawz-btn-icon {
+  font-size: 1.2em;
+  font-weight: bold;
+}
+
+.alfawz-btn-content {
+  flex: 1;
+  text-align: center;
+}
+
+.alfawz-btn-text {
+  font-weight: 700;
+  font-size: 0.9em;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.alfawz-btn-glow {
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s ease;
+}
+
+.alfawz-beautiful-btn:hover .alfawz-btn-glow {
+  left: 100%;
+}
+
+.alfawz-hasanat-display {
+  background: var(--warning-gradient);
+  color: #744210;
+  padding: var(--spacing-lg);
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-md);
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.alfawz-hasanat-display:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(255, 215, 0, 0.4);
+}
+
+.alfawz-hasanat-icon-wrapper {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.alfawz-hasanat-icon {
+  font-size: 1.3em;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.alfawz-hasanat-sparkle {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 8px;
+  height: 8px;
+  background: white;
+  border-radius: var(--radius-full);
+  animation: sparkle 2s infinite;
+}
+
+@keyframes sparkle {
+  0%,
+  100% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.alfawz-hasanat-content {
+  text-align: center;
+}
+
+.alfawz-hasanat-value {
+  font-size: 1.3em;
+  font-weight: 800;
+  display: block;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.alfawz-hasanat-label {
+  font-size: 0.8em;
+  opacity: 0.9;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.alfawz-hasanat-glow {
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transition: left 0.8s ease;
+}
+
+.alfawz-hasanat-display:hover .alfawz-hasanat-glow {
+  left: 100%;
+}
+
+/* ========================================
+   9. MEMORIZATION SESSION
+   ======================================== */
+.alfawz-memorization-session {
+  background: white;
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-xl);
+  box-shadow: var(--shadow-md);
+  border: 1px solid #e2e8f0;
+  margin-bottom: var(--spacing-lg);
+}
+
+.alfawz-session-header {
+  text-align: center;
+  margin-bottom: var(--spacing-xl);
+  padding-bottom: var(--spacing-lg);
+  border-bottom: 2px solid #f7fafc;
+}
+
+.alfawz-session-header h3 {
+  margin: 0 0 var(--spacing-sm) 0;
+  color: #2d3748;
+  font-size: 1.4em;
+  font-weight: 700;
+}
+
+.alfawz-session-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.9em;
+  color: #718096;
+  font-weight: 600;
+}
+
+/* Memorization Verse Card */
+.alfawz-memorization-verse-card {
+  background: linear-gradient(135deg, #f7fafc, #edf2f7);
+  border-radius: var(--radius-lg);
+  padding: 25px;
+  margin-bottom: var(--spacing-xl);
+  position: relative;
+  border: 2px solid #e2e8f0;
+}
+
+.alfawz-verse-number-mem {
+  position: absolute;
+  top: var(--spacing-lg);
+  right: var(--spacing-lg);
+  background: var(--primary-gradient);
+  color: white;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 1.1em;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.alfawz-verse-arabic-mem {
+  font-size: 2em;
+  line-height: 1.6;
+  text-align: right;
+  margin-bottom: var(--spacing-lg);
+  color: #2d3748;
+  font-family: var(--font-arabic);
+  padding-right: 60px;
+  font-weight: 500;
+}
+
+.alfawz-verse-translation-mem {
+  font-size: 1.1em;
+  line-height: 1.5;
+  color: #4a5568;
+  font-style: italic;
+  margin-bottom: 0;
+  padding: var(--spacing-lg);
+  background: white;
+  border-radius: var(--radius-md);
+  border-left: 4px solid #48bb78;
+  box-shadow: var(--shadow-sm);
+}
+
+/* Audio Controls */
+.alfawz-memorization-audio-controls {
+  text-align: center;
+  margin: var(--spacing-lg) 0;
+  padding: var(--spacing-lg);
+  background: white;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  border: 1px solid #e2e8f0;
+}
+
+.alfawz-memorization-audio-controls .alfawz-audio-control-btn {
+  background: var(--primary-gradient);
+  color: white;
+  border: none;
+  padding: var(--spacing-lg) var(--spacing-2xl);
+  border-radius: var(--radius-xl);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  font-size: 1em;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.alfawz-memorization-audio-controls .alfawz-audio-control-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+.alfawz-memorization-audio-controls .alfawz-audio-control-btn.playing {
+  background: var(--danger-gradient);
+  box-shadow: 0 4px 15px rgba(245, 101, 101, 0.3);
+}
+
+.alfawz-memorization-audio-controls .alfawz-audio-control-btn.loading {
+  background: var(--info-gradient);
+  box-shadow: 0 4px 15px rgba(66, 153, 225, 0.3);
+}
+
+/* Repetition Controls */
+.alfawz-repetition-controls {
+  background: white;
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-xl);
+  margin-bottom: var(--spacing-xl);
+  box-shadow: var(--shadow-md);
+  border: 1px solid #e2e8f0;
+}
+
+.alfawz-repetition-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-xl);
+}
+
+.alfawz-repetition-header h4 {
+  margin: 0;
+  color: #2d3748;
+  font-size: 1.2em;
+  font-weight: 600;
+}
+
+.alfawz-repetition-counter {
+  background: linear-gradient(135deg, #f7fafc, #edf2f7);
+  padding: var(--spacing-sm) var(--spacing-lg);
+  border-radius: var(--radius-xl);
+  font-weight: 700;
+  color: #2d3748;
+  border: 2px solid #e2e8f0;
+}
+
+/* Progress Bar */
+.alfawz-repetition-progress {
+  margin-bottom: 25px;
+}
+
+.alfawz-progress-track {
+  width: 100%;
+  height: 12px;
+  background: #e2e8f0;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  position: relative;
+  margin-bottom: var(--spacing-lg);
+}
+
+.alfawz-progress-fill {
+  height: 100%;
+  background: var(--success-gradient);
+  border-radius: var(--radius-sm);
+  transition: width 0.5s ease;
+  position: relative;
+}
+
+.alfawz-progress-glow {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  animation: progressGlow 2s infinite;
+}
+
+@keyframes progressGlow {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.alfawz-progress-markers {
+  display: flex;
+  justify-content: space-between;
+  gap: 2px;
+}
+
+.alfawz-progress-marker {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-full);
+  background: #e2e8f0;
+  transition: all 0.3s ease;
+}
+
+.alfawz-marker-completed {
+  background: var(--success-gradient);
+  box-shadow: 0 2px 8px rgba(72, 187, 120, 0.3);
+  transform: scale(1.2);
+}
+
+/* Repeat Button */
+.alfawz-repeat-button-container {
+  text-align: center;
+}
+
+.alfawz-repeat-btn {
+  background: var(--success-gradient);
+  color: white;
+  border: none;
+  padding: var(--spacing-xl) 40px;
+  border-radius: var(--radius-xl);
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-lg);
+  font-size: 1.1em;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 6px 20px rgba(72, 187, 120, 0.3);
+  min-width: 200px;
+}
+
+.alfawz-repeat-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 30px rgba(72, 187, 120, 0.4);
+}
+
+.alfawz-repeat-btn:active {
+  transform: translateY(-1px);
+}
+
+.alfawz-repeat-btn.alfawz-repeat-clicked {
+  transform: scale(0.95);
+}
+
+.alfawz-repeat-btn.alfawz-repeat-completed {
+  background: var(--warning-gradient);
+  color: #744210;
+  box-shadow: 0 6px 20px rgba(255, 215, 0, 0.3);
+}
+
+.alfawz-repeat-icon-wrapper {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.alfawz-repeat-icon {
+  font-size: 1.3em;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.alfawz-repeat-content {
+  flex: 1;
+  text-align: left;
+}
+
+.alfawz-repeat-text {
+  display: block;
+  font-size: 1.1em;
+  font-weight: 800;
+  margin-bottom: 2px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.alfawz-repeat-subtitle {
+  display: block;
+  font-size: 0.8em;
+  opacity: 0.9;
+  font-weight: 500;
+}
+
+/* Session Actions */
+.alfawz-session-actions {
+  background: white;
+  padding: var(--spacing-lg);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  border: 1px solid #e2e8f0;
+}
+
+.alfawz-mobile-controls-row {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: var(--spacing-sm);
+  align-items: center;
+}
+
+.alfawz-mobile-nav-btn {
+  padding: var(--spacing-md) var(--spacing-lg);
+  border: 2px solid #e2e8f0;
+  border-radius: var(--radius-md);
+  background: white;
+  color: #2d3748;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  font-size: 0.85em;
+  min-height: 50px;
+}
+
+.alfawz-mobile-nav-btn:hover:not(:disabled) {
+  border-color: #667eea;
+  background: #f7fafc;
+  transform: translateY(-1px);
+}
+
+.alfawz-mobile-nav-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.alfawz-repeat-btn-mobile {
+  background: var(--success-gradient);
+  color: white;
+  border: none;
+  padding: var(--spacing-lg);
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.8em;
+  box-shadow: 0 4px 15px rgba(72, 187, 120, 0.3);
+  min-height: 60px;
+  justify-content: center;
+  min-width: 80px;
+}
+
+.alfawz-repeat-btn-mobile:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(72, 187, 120, 0.4);
+}
+
+.alfawz-repeat-btn-mobile .alfawz-repeat-icon {
+  font-size: 1.5em;
+}
+
+.alfawz-repeat-btn-mobile .alfawz-repeat-text {
+  font-size: 0.8em;
+  font-weight: 700;
+}
+
+/* ========================================
+   10. GENERAL BUTTON STYLES
+   ======================================== */
+.alfawz-btn {
+  padding: var(--spacing-md) var(--spacing-xl);
+  border-radius: var(--radius-sm);
+  text-decoration: none;
+  font-weight: 600;
+  text-align: center;
+  transition: all 0.2s ease;
+  border: none;
+  cursor: pointer;
+  font-size: 0.85em;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  position: relative;
+  overflow: hidden;
+}
+
+.alfawz-btn-primary {
+  background: var(--primary-gradient);
+  color: white;
+}
+
+.alfawz-btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+}
+
+.alfawz-btn-secondary {
+  background: white;
+  color: #667eea;
+  border: 2px solid #667eea;
+}
+
+.alfawz-btn-secondary:hover {
+  background: #667eea;
+  color: white;
+  transform: translateY(-1px);
+}
+
+.alfawz-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.alfawz-btn-small {
+  padding: var(--spacing-sm) var(--spacing-md);
+  font-size: 0.8em;
+}
+
+.alfawz-btn-large {
+  padding: var(--spacing-lg) var(--spacing-2xl);
+  font-size: 1em;
+}
+
+.alfawz-btn-success {
+  background: var(--success-gradient) !important;
+  color: white !important;
+  border-color: transparent !important;
+}
+
+/* ========================================
+   11. MODALS & NOTIFICATIONS
+   ======================================== */
+.alfawz-congratulations-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-xl);
+}
+
+.alfawz-modal-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(5px);
+}
+
+.alfawz-modal-content {
+  background: white;
+  border-radius: var(--radius-xl);
+  padding: 30px;
+  max-width: 400px;
+  width: 100%;
+  position: relative;
+  box-shadow: var(--shadow-xl);
+  text-align: center;
+  transform: scale(0.9);
+  transition: all 0.3s ease;
+}
+
+.alfawz-modal-content.alfawz-modal-celebrate {
+  transform: scale(1);
+  animation: celebrate 0.6s ease;
+}
+
+@keyframes celebrate {
+  0% {
+    transform: scale(0.9) rotate(-5deg);
+  }
+  50% {
+    transform: scale(1.05) rotate(2deg);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+.alfawz-modal-header {
+  margin-bottom: var(--spacing-xl);
+}
+
+.alfawz-celebration-icon {
+  font-size: 4em;
+  margin-bottom: var(--spacing-lg);
+  animation: bounce 1s infinite;
+}
+
+@keyframes bounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.alfawz-modal-header h3 {
+  margin: 0;
+  color: #2d3748;
+  font-size: 1.8em;
+  font-weight: 700;
+  background: var(--success-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.alfawz-modal-body {
+  margin-bottom: 25px;
+}
+
+.alfawz-modal-body p {
+  color: #4a5568;
+  font-size: 1.1em;
+  margin-bottom: var(--spacing-xl);
+  line-height: 1.5;
+}
+
+.alfawz-achievement-display {
+  background: linear-gradient(135deg, #f7fafc, #edf2f7);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-xl);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-lg);
+  border: 2px solid #e2e8f0;
+}
+
+.alfawz-achievement-icon {
+  font-size: 2.5em;
+  animation: sparkle 2s infinite;
+}
+
+.alfawz-achievement-text {
+  flex: 1;
+  text-align: left;
+}
+
+.alfawz-achievement-title {
+  font-weight: 700;
+  color: #2d3748;
+  font-size: 1.1em;
+  margin-bottom: 5px;
+}
+
+.alfawz-achievement-subtitle {
+  color: #48bb78;
+  font-weight: 600;
+  font-size: 0.9em;
+}
+
+.alfawz-modal-actions {
+  display: flex;
+  gap: var(--spacing-md);
+  justify-content: center;
+}
+
+/* Notifications */
+.alfawz-hasanat-notification,
+.alfawz-success-notification,
+.alfawz-error-notification {
+  position: fixed;
+  top: var(--spacing-lg);
+  right: var(--spacing-lg);
+  padding: var(--spacing-md) 18px;
+  border-radius: var(--spacing-sm);
+  font-weight: 600;
+  font-size: 0.85em;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transform: translateX(100%);
+  transition: transform 0.3s ease;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  max-width: 280px;
+}
+
+.alfawz-hasanat-notification {
+  background: var(--warning-gradient);
+  color: #744210;
+}
+
+.alfawz-success-notification {
+  background: var(--success-gradient);
+  color: white;
+}
+
+.alfawz-error-notification {
+  background: var(--danger-gradient);
+  color: white;
+}
+
+.alfawz-hasanat-notification.show,
+.alfawz-success-notification.show,
+.alfawz-error-notification.show {
+  transform: translateX(0);
+}
+
+/* Repetition Feedback */
+.alfawz-repetition-feedback {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.5);
+  background: var(--success-gradient);
+  color: white;
+  padding: var(--spacing-lg) 25px;
+  border-radius: 25px;
+  font-weight: 700;
+  font-size: 1.2em;
+  box-shadow: 0 8px 30px rgba(72, 187, 120, 0.4);
+  z-index: 1000;
+  opacity: 0;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.alfawz-repetition-feedback.alfawz-feedback-show {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.alfawz-feedback-icon {
+  font-size: 1.3em;
+}
+
+.alfawz-feedback-text {
+  font-weight: 800;
+}
+
+/* ========================================
+   12. DASHBOARD SPECIFIC STYLES
+   ======================================== */
+.alfawz-greeting {
+  background: var(--primary-gradient);
+  color: white;
+  padding: var(--spacing-xl);
+  border-radius: var(--radius-lg);
+  margin-bottom: var(--spacing-lg);
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.alfawz-greeting::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  right: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.1), transparent);
+  animation: headerGlow 4s infinite;
+}
+
+.alfawz-greeting h2 {
+  font-size: 1.8em;
+  margin: 0 0 var(--spacing-sm) 0;
+  font-weight: 700;
+  position: relative;
+  z-index: 2;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.alfawz-greeting p {
+  font-size: 1em;
+  opacity: 0.9;
+  margin: 0;
+  position: relative;
+  z-index: 2;
+}
+
+.alfawz-stats-overview {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+}
+
+.alfawz-stat-card {
+  background: white;
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-xl);
+  box-shadow: var(--shadow-md);
+  border: 1px solid #e2e8f0;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.alfawz-stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.alfawz-stat-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--primary-gradient);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+}
+
+.alfawz-stat-number {
+  font-size: 2.5em;
+  font-weight: 800;
+  color: #2d3748;
+  margin-bottom: var(--spacing-sm);
+  background: linear-gradient(135deg, #2d3748, #4a5568);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.alfawz-stat-label {
+  font-size: 0.9em;
+  color: #718096;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.alfawz-daily-progress {
+  background: white;
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-xl);
+  box-shadow: var(--shadow-md);
+  border: 1px solid #e2e8f0;
+  margin-bottom: var(--spacing-lg);
+}
+
+.alfawz-daily-progress h3 {
+  margin: 0 0 var(--spacing-lg) 0;
+  color: #2d3748;
+  font-size: 1.3em;
+  font-weight: 700;
+}
+
+.alfawz-progress-bar {
+  width: 100%;
+  height: 12px;
+  background: #e2e8f0;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  margin-bottom: var(--spacing-md);
+  position: relative;
+}
+
+.alfawz-progress-fill {
+  height: 100%;
+  background: var(--success-gradient);
+  border-radius: var(--radius-sm);
+  transition: width 1s ease;
+  position: relative;
+}
+
+.alfawz-progress-fill::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  animation: progressGlow 2s infinite;
+}
+
+.alfawz-congratulations {
+  background: linear-gradient(135deg, #f0fff4, #c6f6d5);
+  border: 2px solid #48bb78;
+  border-radius: var(--radius-md);
+  padding: var(--spacing-lg);
+  margin-top: var(--spacing-lg);
+  text-align: center;
+}
+
+.alfawz-congratulations h4 {
+  margin: 0 0 var(--spacing-sm) 0;
+  color: #22543d;
+  font-size: 1.2em;
+  font-weight: 700;
+}
+
+.alfawz-congratulations p {
+  margin: 0;
+  color: #2f855a;
+  font-weight: 600;
+}
+
+.alfawz-quick-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+}
+
+.alfawz-recent-activity {
+  background: white;
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-xl);
+  box-shadow: var(--shadow-md);
+  border: 1px solid #e2e8f0;
+  margin-bottom: var(--spacing-lg);
+}
+
+.alfawz-recent-activity h3 {
+  margin: 0 0 var(--spacing-lg) 0;
+  color: #2d3748;
+  font-size: 1.3em;
+  font-weight: 700;
+}
+
+.alfawz-activity-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.alfawz-activity-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md);
+  background: #f8fafc;
+  border-radius: var(--radius-md);
+  border: 1px solid #e2e8f0;
+  transition: all 0.2s ease;
+}
+
+.alfawz-activity-item:hover {
+  background: #edf2f7;
+  transform: translateX(2px);
+}
+
+.alfawz-activity-icon {
+  font-size: 1.5em;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: white;
+  border-radius: var(--radius-full);
+  box-shadow: var(--shadow-sm);
+}
+
+.alfawz-activity-content {
+  flex: 1;
+}
+
+.alfawz-activity-text {
+  font-weight: 600;
+  color: #2d3748;
+  margin-bottom: 2px;
+}
+
+.alfawz-activity-meta {
+  display: flex;
+  gap: var(--spacing-md);
+  font-size: 0.8em;
+}
+
+.alfawz-hasanat {
+  color: #d69e2e;
+  font-weight: 600;
+}
+
+.alfawz-time {
+  color: #718096;
+}
+
+.alfawz-daily-surah {
+  background: white;
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-xl);
+  box-shadow: var(--shadow-md);
+  border: 1px solid #e2e8f0;
+}
+
+.alfawz-daily-surah h3 {
+  margin: 0 0 var(--spacing-lg) 0;
+  color: #2d3748;
+  font-size: 1.3em;
+  font-weight: 700;
+}
+
+.alfawz-surah-header {
+  text-align: center;
+  margin-bottom: var(--spacing-lg);
+  padding-bottom: var(--spacing-md);
+  border-bottom: 2px solid #f7fafc;
+}
+
+.alfawz-surah-header h4 {
+  margin: 0 0 var(--spacing-sm) 0;
+  color: #2d3748;
+  font-size: 1.2em;
+  font-weight: 700;
+}
+
+.alfawz-surah-reason {
+  color: #718096;
+  font-size: 0.9em;
+  font-weight: 500;
+  margin: 0;
+}
+
+.alfawz-verse-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: var(--spacing-lg);
+  padding-top: var(--spacing-lg);
+  border-top: 1px solid #e2e8f0;
+}
+
+.alfawz-hasanat-counter {
+  background: var(--warning-gradient);
+  color: #744210;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--radius-md);
+  font-weight: 700;
+  font-size: 0.8em;
+}
+
+/* ========================================
+   13. LEADERBOARD STYLES
+   ======================================== */
+.alfawz-leaderboard-controls {
+  background: white;
+  padding: var(--spacing-lg);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  border: 1px solid #e2e8f0;
+  margin-bottom: var(--spacing-lg);
+}
+
+.alfawz-period-selector-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  max-width: 200px;
+}
+
+.alfawz-period-selector {
+  padding: var(--spacing-md) var(--spacing-lg);
+  border: 2px solid #e2e8f0;
+  border-radius: var(--radius-sm);
+  font-size: 0.9em;
+  background: white;
+  color: #2d3748;
+  transition: all 0.2s ease;
+}
+
+.alfawz-period-selector:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1);
+}
+
+.alfawz-leaderboard-table {
+  background: white;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  border: 1px solid #e2e8f0;
+  overflow: hidden;
+}
+
+.alfawz-leaderboard-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.alfawz-leaderboard-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-lg);
+  padding: var(--spacing-lg);
+  border-bottom: 1px solid #f7fafc;
+  transition: all 0.2s ease;
+}
+
+.alfawz-leaderboard-item:hover {
+  background: #f8fafc;
+}
+
+.alfawz-leaderboard-item:last-child {
+  border-bottom: none;
+}
+
+.alfawz-rank {
+  width: 50px;
+  height: 50px;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 1.1em;
+  color: white;
+  background: #718096;
+  box-shadow: var(--shadow-sm);
+}
+
+.alfawz-rank.gold {
+  background: linear-gradient(135deg, #ffd700, #ffed4e);
+  color: #744210;
+  box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
+}
+
+.alfawz-rank.silver {
+  background: linear-gradient(135deg, #c0c0c0, #e2e8f0);
+  color: #4a5568;
+  box-shadow: 0 4px 15px rgba(192, 192, 192, 0.3);
+}
+
+.alfawz-rank.bronze {
+  background: linear-gradient(135deg, #cd7f32, #d69e2e);
+  color: white;
+  box-shadow: 0 4px 15px rgba(205, 127, 50, 0.3);
+}
+
+.alfawz-user-info {
+  flex: 1;
+}
+
+.alfawz-user-name {
+  font-weight: 700;
+  color: #2d3748;
+  font-size: 1.1em;
+  margin-bottom: 4px;
+}
+
+.alfawz-user-stats {
+  display: flex;
+  gap: var(--spacing-md);
+  font-size: 0.8em;
+  color: #718096;
+}
+
+.alfawz-user-hasanat {
+  font-weight: 800;
+  color: #d69e2e;
+  font-size: 1.2em;
+  text-align: right;
+  min-width: 80px;
+}
+
+.alfawz-loading {
+  text-align: center;
+  padding: var(--spacing-xl);
+  color: #718096;
+  font-style: italic;
+}
+
+.alfawz-empty-state {
+  text-align: center;
+  padding: var(--spacing-xl);
+  color: #718096;
+}
+
+.alfawz-empty-icon {
+  font-size: 2em;
+  margin-bottom: var(--spacing-md);
+  opacity: 0.7;
+}
+
+/* ========================================
+   14. PROFILE STYLES
+   ======================================== */
+.alfawz-profile-header {
+  background: var(--primary-gradient);
+  color: white;
+  padding: var(--spacing-xl);
+  border-radius: var(--radius-lg);
+  margin-bottom: var(--spacing-lg);
+  position: relative;
+  overflow: hidden;
+}
+
+.alfawz-profile-header::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  right: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.1), transparent);
+  animation: headerGlow 4s infinite;
+}
+
+.alfawz-profile-avatar-section {
+  display: flex;
+  justify-content: center;
+  margin-bottom: var(--spacing-lg);
+  position: relative;
+  z-index: 2;
+}
+
+.alfawz-profile-avatar {
+  position: relative;
+}
+
+.alfawz-profile-avatar img {
+  width: 100px;
+  height: 100px;
+  border-radius: var(--radius-full);
+  border: 4px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+}
+
+.alfawz-avatar-badge {
+  position: absolute;
+  bottom: -5px;
+  right: -5px;
+  background: var(--warning-gradient);
+  color: #744210;
+  padding: 4px 8px;
+  border-radius: var(--radius-md);
+  font-size: 0.7em;
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(255, 215, 0, 0.3);
+}
+
+.alfawz-profile-info {
+  text-align: center;
+  position: relative;
+  z-index: 2;
+}
+
+.alfawz-profile-info h2 {
+  font-size: 2em;
+  margin: 0 0 var(--spacing-sm) 0;
+  font-weight: 700;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.alfawz-member-since {
+  font-size: 0.9em;
+  opacity: 0.9;
+  margin-bottom: var(--spacing-lg);
+}
+
+.alfawz-total-hasanat {
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-md);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  max-width: 300px;
+  margin: 0 auto;
+}
+
+.alfawz-hasanat-icon {
+  font-size: 2em;
+  animation: sparkle 2s infinite;
+}
+
+.alfawz-hasanat-content {
+  text-align: center;
+}
+
+.alfawz-hasanat-number {
+  font-size: 2em;
+  font-weight: 800;
+  display: block;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0
+}
+
+.alfawz-profile-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-md);
+}
+
+/* ========================================
+   15. LOGIN REQUIRED STYLES
+   ======================================== */
+.alfawz-login-required {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+  padding: var(--spacing-xl);
+}
+
+.alfawz-login-card {
+  background: white;
+  border-radius: var(--radius-xl);
+  padding: 40px;
+  box-shadow: var(--shadow-lg);
+  border: 1px solid #e2e8f0;
+  text-align: center;
+  max-width: 400px;
+  width: 100%;
+}
+
+.alfawz-login-icon {
+  font-size: 4em;
+  margin-bottom: var(--spacing-lg);
+  opacity: 0.7;
+}
+
+.alfawz-login-card h3 {
+  margin: 0 0 var(--spacing-lg) 0;
+  color: #2d3748;
+  font-size: 1.8em;
+  font-weight: 700;
+}
+
+.alfawz-login-card p {
+  color: #4a5568;
+  font-size: 1.1em;
+  margin-bottom: var(--spacing-xl);
+  line-height: 1.5;
+}
+
+.alfawz-login-actions {
+  display: flex;
+  gap: var(--spacing-md);
+  justify-content: center;
+}
+
+/* ========================================
+   16. BOTTOM NAVIGATION
+   ======================================== */
+.alfawz-bottom-navigation {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: white;
+  border-top: 1px solid #e2e8f0;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
+  z-index: 100;
+  padding: var(--spacing-sm) 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.alfawz-bottom-navigation::-webkit-scrollbar {
+  display: none;
+}
+
+.alfawz-nav-container {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.alfawz-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: var(--spacing-sm);
+  text-decoration: none;
+  color: #718096;
+  transition: all 0.2s ease;
+  border-radius: var(--radius-md);
+  min-width: 60px;
+}
+
+.alfawz-nav-item:hover,
+.alfawz-nav-item.active {
+  color: #667eea;
+  background: rgba(102, 126, 234, 0.1);
+  transform: translateY(-2px);
+}
+
+.alfawz-nav-icon {
+  font-size: 1.5em;
+}
+
+.alfawz-nav-label {
+  font-size: 0.7em;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* ========================================
+   17. FORM STYLES
+   ======================================== */
+.alfawz-form-header {
+  text-align: center;
+  margin-bottom: var(--spacing-lg);
+}
+
+.alfawz-form-header h3 {
+  margin: 0;
+  color: #2d3748;
+  font-size: 1.3em;
+  font-weight: 700;
+}
+
+.alfawz-notice {
+  background: #fef5e7;
+  color: #744210;
+  padding: var(--spacing-lg);
+  border-radius: var(--radius-md);
+  border: 1px solid #f6e05e;
+  text-align: center;
+  font-weight: 600;
+}
+
+/* ========================================
+   18. RESPONSIVE DESIGN
+   ======================================== */
+@media (max-width: 768px) {
+  .alfawz-dashboard,
+  .alfawz-reader,
+  .alfawz-memorizer,
+  .alfawz-leaderboard,
+  .alfawz-profile {
+    padding: var(--spacing-md);
+    margin-bottom: 80px;
+  }
+
+  .alfawz-progress-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .alfawz-memorization-stats {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .alfawz-selection-controls,
+  .alfawz-memo-selection-controls {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-md);
+  }
+
+  .alfawz-surah-dropdown,
+  .alfawz-verse-dropdown {
+    min-width: 100%;
+  }
+
+  .alfawz-reading-options {
+    align-items: start;
+  }
+
+  .alfawz-primary-actions {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-sm);
+  }
+
+  .alfawz-beautiful-btn {
+    min-height: 50px;
+    font-size: 0.85em;
+    padding: var(--spacing-sm) var(--spacing-md);
+  }
+
+  .alfawz-verse-arabic {
+    text-align: center;
+    font-size: 1.5em;
+  }
+
+  .alfawz-verse-arabic-mem {
+    font-size: 1.6em;
+    text-align: center;
+    padding-right: 0;
+  }
+
+  .alfawz-verse-number-mem {
+    position: static;
+    margin: 0 auto var(--spacing-lg) auto;
+  }
+
+  .alfawz-repeat-btn {
+    min-width: 160px;
+    padding: var(--spacing-lg) 25px;
+    font-size: 1em;
+  }
+
+  .alfawz-modal-content {
+    margin: var(--spacing-md);
+    padding: 25px;
+  }
+
+  .alfawz-modal-actions {
+    flex-direction: column;
+  }
+
+  .alfawz-repeat-button-container {
+    display: none;
+  }
+
+  .alfawz-mobile-controls-row {
+    display: grid;
+  }
+
+  .alfawz-stats-overview {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .alfawz-quick-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .alfawz-profile-content-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .alfawz-profile-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .alfawz-achievements-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .alfawz-leaderboard-item {
+    flex-wrap: wrap;
+    gap: var(--spacing-md);
+  }
+
+  .alfawz-user-stats {
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 480px) {
+  .alfawz-progress-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .alfawz-memorization-stats {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .alfawz-beautiful-btn {
+    min-height: 45px;
+    font-size: 0.8em;
+    padding: var(--spacing-sm) var(--spacing-md);
+  }
+
+  .alfawz-repeat-btn {
+    min-width: 160px;
+    padding: var(--spacing-lg) 25px;
+    font-size: 1em;
+  }
+
+  .alfawz-modal-content {
+    margin: var(--spacing-sm);
+    padding: var(--spacing-xl);
+  }
+
+  .alfawz-achievement-display {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .alfawz-achievement-text {
+    text-align: center;
+  }
+
+  .alfawz-stats-overview {
+    grid-template-columns: 1fr;
+  }
+
+  .alfawz-profile-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .alfawz-leaderboard-item {
+    padding: var(--spacing-md);
+  }
+
+  .alfawz-rank {
+    width: 40px;
+    height: 40px;
+    font-size: 1em;
+  }
+
+  .alfawz-user-hasanat {
+    font-size: 1em;
+    min-width: 60px;
+  }
+}
+
+/* ========================================
+   19. ANIMATIONS & TRANSITIONS
+   ======================================== */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.alfawz-fade-in {
+  animation: fadeIn 0.5s ease;
+}
+
+.alfawz-slide-in {
+  animation: slideIn 0.3s ease;
+}
+
+.alfawz-scale-in {
+  animation: scaleIn 0.3s ease;
+}
+
+/* ========================================
+   20. UTILITY CLASSES
+   ======================================== */
+.alfawz-text-center {
+  text-align: center;
+}
+
+.alfawz-text-right {
+  text-align: right;
+}
+
+.alfawz-text-left {
+  text-align: left;
+}
+
+.alfawz-hidden {
+  display: none !important;
+}
+
+.alfawz-visible {
+  display: block !important;
+}
+
+.alfawz-flex {
+  display: flex;
+}
+
+.alfawz-flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.alfawz-flex-between {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.alfawz-mb-0 {
+  margin-bottom: 0 !important;
+}
+
+.alfawz-mt-0 {
+  margin-top: 0 !important;
+}
+
+.alfawz-p-0 {
+  padding: 0 !important;
+}
+
+.alfawz-w-full {
+  width: 100%;
+}
+
+.alfawz-h-full {
+  height: 100%;
+}
+
+/* ========================================
+   END OF STYLES
+   ======================================== */
