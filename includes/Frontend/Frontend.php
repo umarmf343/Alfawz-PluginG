@@ -19,6 +19,7 @@ class Frontend {
         add_shortcode('alfawz_leaderboard', [$this, 'leaderboard_shortcode']);
         add_shortcode('alfawz_profile', [$this, 'profile_shortcode']);
         add_shortcode('alfawz_settings', [$this, 'settings_shortcode']);
+        add_shortcode('alfawz_games', [$this, 'games_shortcode']);
     }
     
     public function enqueue_assets() {
@@ -76,7 +77,8 @@ class Frontend {
             'alfawz_memorizer',
             'alfawz_leaderboard',
             'alfawz_profile',
-            'alfawz_settings'
+            'alfawz_settings',
+            'alfawz_games'
         ];
         
         foreach ($alfawz_shortcodes as $shortcode) {
@@ -138,9 +140,19 @@ class Frontend {
         if (!is_user_logged_in()) {
             return $this->login_required_message();
         }
-        
+
         ob_start();
         include ALFAWZQURAN_PLUGIN_PATH . 'public/partials/settings.php';
+        return ob_get_clean();
+    }
+
+    public function games_shortcode($atts) {
+        if (!is_user_logged_in()) {
+            return $this->login_required_message();
+        }
+
+        ob_start();
+        include ALFAWZQURAN_PLUGIN_PATH . 'public/partials/games.php';
         return ob_get_clean();
     }
     

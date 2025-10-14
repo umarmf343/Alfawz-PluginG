@@ -28,6 +28,61 @@
   let currentSurahData = null
   let currentVerseAudioUrl = null
 
+  const AYAH_PUZZLE_STORAGE_KEYS = {
+    completed: "alfawzAyahPuzzleCompleted",
+    bestTime: "alfawzAyahPuzzleBestTime",
+    streak: "alfawzAyahPuzzleStreak",
+    lastCompleted: "alfawzAyahPuzzleLastCompleted",
+  }
+
+  const AYAH_PUZZLE_THEMES = [
+    {
+      title: "Serenity Sunday",
+      copy: "Piece together verses of mercy to begin your week with calm intention.",
+    },
+    {
+      title: "Momentum Monday",
+      copy: "Verses on perseverance keep your memorisation goals on track.",
+    },
+    {
+      title: "Tafsir Tuesday",
+      copy: "Explore layered meanings by rebuilding ayat rich with imagery.",
+    },
+    {
+      title: "Wisdom Wednesday",
+      copy: "Spot guidance themed pieces to sharpen your reflection midweek.",
+    },
+    {
+      title: "Thankful Thursday",
+      copy: "Gather ayat of gratitude to close the work week with praise.",
+    },
+    {
+      title: "Focus Friday",
+      copy: "Celebrate Jumu'ah with puzzles centred on remembrance and reward.",
+    },
+    {
+      title: "Summit Saturday",
+      copy: "Unlock challenge verses to protect your streak heading into a new week.",
+    },
+  ]
+
+  const ayahPuzzleState = {
+    correctOrder: [],
+    pieces: [],
+    currentSurah: null,
+    currentAyah: null,
+    startTime: null,
+    timerInterval: null,
+    completedCount: 0,
+    bestTime: null,
+    streak: 0,
+    lastCompletedDay: null,
+    todayKey: null,
+    isSolved: false,
+  }
+
+  let cachedSurahList = null
+
   // Initialize when document is ready
   $(document).ready(() => {
     initializeDashboard()
@@ -35,6 +90,7 @@
     initializeMemorizer()
     initializeLeaderboard()
     initializeSettings()
+    initializeGames()
     initializeBottomNavigation()
     loadUserStats()
     startReadingTimer()
@@ -1593,6 +1649,587 @@
         $("#profile-plans-list").html('<div class="alfawz-error-message">Failed to load your memorization plans.</div>')
       },
     })
+  }
+
+  // ========================================
+  // AYAH PUZZLE BUILDER GAME
+  // ========================================
+  function initializeGames() {
+    if (!$('.alfawz-games').length) {
+      return
+    }
+
+    hydratePuzzleState()
+    updateHabitMessaging()
+    bindGameControlButtons()
+
+    const resetButton = $('#alfawz-reset-puzzle')
+    if (resetButton.length && !resetButton.data('default-label')) {
+      resetButton.data('default-label', resetButton.text())
+    }
+
+    loadAyahPuzzle()
+  }
+
+  function hydratePuzzleState() {
+    ayahPuzzleState.completedCount = parseInt(
+      getPuzzleStorage(AYAH_PUZZLE_STORAGE_KEYS.completed) || '0',
+      10
+    )
+    const storedBest = parseInt(
+      getPuzzleStorage(AYAH_PUZZLE_STORAGE_KEYS.bestTime) || '0',
+      10
+    )
+    ayahPuzzleState.bestTime = storedBest > 0 ? storedBest : null
+    ayahPuzzleState.streak = parseInt(
+      getPuzzleStorage(AYAH_PUZZLE_STORAGE_KEYS.streak) || '0',
+      10
+    )
+    ayahPuzzleState.lastCompletedDay =
+      getPuzzleStorage(AYAH_PUZZLE_STORAGE_KEYS.lastCompleted) || null
+    ayahPuzzleState.todayKey = new Date().toISOString().slice(0, 10)
+    updatePuzzleStatsUI()
+  }
+
+  function updatePuzzleStatsUI() {
+    $('#alfawz-completed-count').text(ayahPuzzleState.completedCount)
+    $('#alfawz-streak-count').text(ayahPuzzleState.streak)
+    $('#alfawz-best-time').text(
+      ayahPuzzleState.bestTime ? formatTimeFromMs(ayahPuzzleState.bestTime) : '--:--'
+    )
+  }
+
+  function updateHabitMessaging() {
+    const today = new Date()
+    const theme = AYAH_PUZZLE_THEMES[today.getDay()] || AYAH_PUZZLE_THEMES[0]
+    const chipText = $('#alfawz-theme-chip .alfawz-theme-text')
+    if (chipText.length) {
+      chipText.text(theme.title)
+    }
+    $('#alfawz-habit-copy').text(theme.copy)
+    ayahPuzzleState.todayKey = today.toISOString().slice(0, 10)
+    updateUnlockStatusMessage()
+  }
+
+  function updateUnlockStatusMessage() {
+    const unlockEl = $('#alfawz-unlock-status')
+    if (!unlockEl.length) {
+      return
+    }
+
+    const completed = ayahPuzzleState.completedCount
+    let message = 'Solve 3 puzzles to unlock the Midweek Mosaic challenge.'
+    if (completed >= 7) {
+      message =
+        'All weekly challenges unlocked! Keep your streak alive to reveal master puzzles.'
+    } else if (completed >= 3) {
+      message =
+        'Midweek Mosaic unlocked! Solve 7 puzzles to reveal the Deep Dive weekender.'
+    }
+
+    if (ayahPuzzleState.streak >= 3) {
+      message += ` You are on a ${ayahPuzzleState.streak}-day streak—bonus tiles await!`
+    }
+
+    unlockEl.text(message)
+  }
+
+  function bindGameControlButtons() {
+    $('#alfawz-shuffle-puzzle')
+      .off('click')
+      .on('click', shufflePuzzlePieces)
+
+    $('#alfawz-reset-puzzle')
+      .off('click')
+      .on('click', function() {
+        const mode = $(this).data('mode') || 'reset'
+        const defaultLabel = $(this).data('default-label') || 'Reset Board'
+        if (mode === 'next') {
+          $(this).data('mode', 'reset').text(defaultLabel)
+          loadAyahPuzzle()
+        } else {
+          resetPuzzleBoard()
+        }
+      })
+
+    $('#alfawz-check-puzzle')
+      .off('click')
+      .on('click', checkPuzzleOrder)
+
+    $('#alfawz-puzzle-bank')
+      .off('dragover drop')
+      .on('dragover', handleBankDragOver)
+      .on('drop', handleBankDrop)
+
+    $('#alfawz-puzzle-board')
+      .off('dblclick', '.alfawz-puzzle-piece')
+      .on('dblclick', '.alfawz-puzzle-piece', function() {
+        $('#alfawz-puzzle-bank').append(
+          $(this).removeClass('in-slot is-correct is-wrong')
+        )
+        updatePlacementProgress()
+        setPuzzleStatus('Tile returned to the bank.', 'info')
+      })
+  }
+
+  function fetchSurahMetadata() {
+    if (cachedSurahList) {
+      return Promise.resolve(cachedSurahList)
+    }
+
+    return fetch(`${ALQURAN_API_BASE}surah`)
+      .then(response => response.json())
+      .then(data => {
+        if (data.status === 'OK' && Array.isArray(data.data)) {
+          cachedSurahList = data.data
+          return cachedSurahList
+        }
+        throw new Error('Unable to load surah list')
+      })
+  }
+
+  function loadAyahPuzzle() {
+    if (!$('.alfawz-games').length) {
+      return
+    }
+
+    disablePuzzleButtons(true)
+    stopPuzzleTimer()
+    ayahPuzzleState.isSolved = false
+    const resetButton = $('#alfawz-reset-puzzle')
+    if (resetButton.length) {
+      const defaultLabel = resetButton.data('default-label') || 'Reset Board'
+      resetButton.data('mode', 'reset').text(defaultLabel)
+    }
+    $('#alfawz-puzzle-reference').text('Gathering a new ayah…')
+    $('#alfawz-puzzle-translation').text('')
+    $('#alfawz-puzzle-bank').empty()
+    $('#alfawz-puzzle-board').empty()
+    updatePlacementProgress()
+    setPuzzleStatus('Loading a fresh puzzle…', 'info')
+
+    fetchSurahMetadata()
+      .then(surahs => {
+        const curated = surahs.filter(surah => surah.numberOfAyahs <= 40)
+        const pool = curated.length ? curated : surahs
+        const chosenSurah = pool[Math.floor(Math.random() * pool.length)]
+        const verseNumber =
+          Math.floor(Math.random() * chosenSurah.numberOfAyahs) + 1
+
+        ayahPuzzleState.currentSurah = chosenSurah
+        ayahPuzzleState.currentAyah = verseNumber
+
+        return Promise.all([
+          fetch(
+            `${ALQURAN_API_BASE}ayah/${chosenSurah.number}:${verseNumber}/${ARABIC_EDITION}`
+          ).then(res => res.json()),
+          fetch(
+            `${ALQURAN_API_BASE}ayah/${chosenSurah.number}:${verseNumber}/${ENGLISH_EDITION}`
+          ).then(res => res.json()),
+        ])
+      })
+      .then(([arabicData, translationData]) => {
+        if (!arabicData || arabicData.status !== 'OK') {
+          throw new Error('Invalid ayah response')
+        }
+
+        const verseText = cleanAyahText(arabicData.data && arabicData.data.text)
+        const translationText =
+          translationData && translationData.status === 'OK'
+            ? translationData.data && translationData.data.text
+            : ''
+
+        if (!verseText) {
+          throw new Error('Missing verse text')
+        }
+
+        buildPuzzlePieces(verseText)
+
+        $('#alfawz-puzzle-reference').text(
+          `Surah ${ayahPuzzleState.currentSurah.englishName} (${ayahPuzzleState.currentSurah.number}), Ayah ${ayahPuzzleState.currentAyah}`
+        )
+
+        if (translationText) {
+          $('#alfawz-puzzle-translation').text(translationText)
+        } else {
+          $('#alfawz-puzzle-translation').text(
+            'Translation unavailable at the moment.'
+          )
+        }
+
+        beginPuzzleTimer()
+        setPuzzleStatus('Arrange the tiles so the ayah reads in order.', 'info')
+        disablePuzzleButtons(false)
+      })
+      .catch(error => {
+        console.error('Error loading ayah puzzle:', error)
+        setPuzzleStatus('We could not load a puzzle. Please try again.', 'error')
+        disablePuzzleButtons(false)
+      })
+  }
+
+  function buildPuzzlePieces(verseText) {
+    const words = verseText.split(' ').filter(Boolean)
+    if (!words.length) {
+      setPuzzleStatus('Unable to build puzzle pieces for this ayah.', 'error')
+      disablePuzzleButtons(false)
+      return
+    }
+
+    const segments = []
+    let index = 0
+    while (index < words.length) {
+      const remaining = words.length - index
+      let chunkSize = remaining <= 3 ? remaining : Math.floor(Math.random() * 3) + 1
+      if (remaining - chunkSize === 1) {
+        chunkSize += 1
+      }
+      const segment = words.slice(index, index + chunkSize).join(' ')
+      segments.push(segment)
+      index += chunkSize
+    }
+
+    if (segments.length < 3 && words.length >= 3) {
+      segments.length = 0
+      words.forEach(word => segments.push(word))
+    }
+
+    ayahPuzzleState.correctOrder = segments
+    ayahPuzzleState.pieces = segments.map((text, idx) => ({
+      id: `piece-${Date.now()}-${idx}`,
+      text,
+      correctIndex: idx,
+    }))
+
+    const shuffledPieces = shuffleArray(ayahPuzzleState.pieces)
+    const bank = $('#alfawz-puzzle-bank').empty()
+    shuffledPieces.forEach(piece => {
+      const element = $('<div class="alfawz-puzzle-piece" draggable="true"></div>')
+        .attr('data-piece-id', piece.id)
+        .attr('data-correct-index', piece.correctIndex)
+        .text(piece.text)
+      bank.append(element)
+    })
+
+    buildPuzzleSlots(segments.length)
+    registerPuzzleInteractions()
+    updatePlacementProgress()
+  }
+
+  function buildPuzzleSlots(count) {
+    const board = $('#alfawz-puzzle-board').empty()
+    for (let i = 0; i < count; i += 1) {
+      const slot = $(
+        `<div class="alfawz-puzzle-slot" data-slot="${i}">
+          <span class="alfawz-slot-index">${i + 1}</span>
+          <div class="alfawz-slot-dropzone" data-slot="${i}"></div>
+        </div>`
+      )
+      board.append(slot)
+    }
+  }
+
+  function registerPuzzleInteractions() {
+    $('.alfawz-puzzle-piece')
+      .off('dragstart dragend')
+      .on('dragstart', handlePieceDragStart)
+      .on('dragend', handlePieceDragEnd)
+
+    $('.alfawz-slot-dropzone')
+      .off('dragover dragleave drop')
+      .on('dragover', handleSlotDragOver)
+      .on('dragleave', handleSlotDragLeave)
+      .on('drop', handleSlotDrop)
+  }
+
+  function handlePieceDragStart(event) {
+    const piece = $(this)
+    piece.addClass('dragging')
+    event.originalEvent.dataTransfer.setData(
+      'text/plain',
+      piece.data('piece-id')
+    )
+  }
+
+  function handlePieceDragEnd() {
+    $(this).removeClass('dragging')
+  }
+
+  function handleSlotDragOver(event) {
+    event.preventDefault()
+    $(this).addClass('is-hovered')
+  }
+
+  function handleSlotDragLeave() {
+    $(this).removeClass('is-hovered')
+  }
+
+  function handleSlotDrop(event) {
+    event.preventDefault()
+    const slot = $(this)
+    slot.removeClass('is-hovered')
+    const pieceId = event.originalEvent.dataTransfer.getData('text/plain')
+    const piece = $(`.alfawz-puzzle-piece[data-piece-id='${pieceId}']`)
+    if (!piece.length) {
+      return
+    }
+
+    const displaced = slot.children('.alfawz-puzzle-piece')
+    if (displaced.length) {
+      $('#alfawz-puzzle-bank').append(
+        displaced.removeClass('in-slot is-correct is-wrong')
+      )
+    }
+
+    slot.append(piece.removeClass('is-correct is-wrong').addClass('in-slot'))
+    updatePlacementProgress()
+  }
+
+  function handleBankDragOver(event) {
+    event.preventDefault()
+  }
+
+  function handleBankDrop(event) {
+    event.preventDefault()
+    const pieceId = event.originalEvent.dataTransfer.getData('text/plain')
+    const piece = $(`.alfawz-puzzle-piece[data-piece-id='${pieceId}']`)
+    if (!piece.length) {
+      return
+    }
+
+    $('#alfawz-puzzle-bank').append(
+      piece.removeClass('in-slot is-correct is-wrong')
+    )
+    updatePlacementProgress()
+  }
+
+  function updatePlacementProgress() {
+    const total = ayahPuzzleState.correctOrder.length
+    const placed = $('#alfawz-puzzle-board .alfawz-slot-dropzone .alfawz-puzzle-piece').length
+    const percentage = total === 0 ? 0 : Math.min((placed / total) * 100, 100)
+    $('#alfawz-placement-progress').css('width', `${percentage}%`)
+  }
+
+  function shufflePuzzlePieces() {
+    const bank = $('#alfawz-puzzle-bank')
+    const pieces = bank.children('.alfawz-puzzle-piece').toArray()
+    if (!pieces.length) {
+      setPuzzleStatus('Move tiles back to the bank before shuffling.', 'info')
+      return
+    }
+
+    const shuffled = shuffleArray(pieces)
+    bank.empty()
+    shuffled.forEach(piece => bank.append(piece))
+    setPuzzleStatus('Tiles shuffled—trust your intuition.', 'info')
+  }
+
+  function resetPuzzleBoard() {
+    const bank = $('#alfawz-puzzle-bank')
+    $('#alfawz-puzzle-board .alfawz-slot-dropzone .alfawz-puzzle-piece').each(function() {
+      bank.append($(this).removeClass('in-slot is-correct is-wrong'))
+    })
+    updatePlacementProgress()
+    setPuzzleStatus('Board cleared. Try a new arrangement.', 'info')
+  }
+
+  function checkPuzzleOrder() {
+    if (!ayahPuzzleState.correctOrder.length) {
+      return
+    }
+
+    const dropzones = $('#alfawz-puzzle-board .alfawz-slot-dropzone')
+    const total = ayahPuzzleState.correctOrder.length
+    const filled = dropzones.filter(function() {
+      return $(this).children('.alfawz-puzzle-piece').length > 0
+    }).length
+
+    if (filled < total) {
+      setPuzzleStatus('Place all tiles on the board before checking.', 'error')
+      return
+    }
+
+    let isCorrect = true
+    dropzones.each(function(index) {
+      const piece = $(this).children('.alfawz-puzzle-piece').first()
+      const correctIndex = parseInt(piece.data('correct-index'), 10)
+      if (correctIndex === index) {
+        piece.removeClass('is-wrong').addClass('is-correct')
+      } else {
+        piece.removeClass('is-correct').addClass('is-wrong')
+        isCorrect = false
+      }
+    })
+
+    if (isCorrect) {
+      handlePuzzleSolved(Date.now() - ayahPuzzleState.startTime)
+    } else {
+      setPuzzleStatus('Keep tuning the flow—highlighted tiles are out of place.', 'error')
+    }
+  }
+
+  function handlePuzzleSolved(elapsedMs) {
+    if (ayahPuzzleState.isSolved) {
+      return
+    }
+
+    ayahPuzzleState.isSolved = true
+    stopPuzzleTimer()
+    setPuzzleStatus(
+      `Beautiful! You rebuilt the ayah in ${formatTimeFromMs(elapsedMs)}.`,
+      'success'
+    )
+
+    ayahPuzzleState.completedCount += 1
+    setPuzzleStorage(
+      AYAH_PUZZLE_STORAGE_KEYS.completed,
+      ayahPuzzleState.completedCount
+    )
+
+    if (!ayahPuzzleState.bestTime || elapsedMs < ayahPuzzleState.bestTime) {
+      ayahPuzzleState.bestTime = elapsedMs
+      setPuzzleStorage(AYAH_PUZZLE_STORAGE_KEYS.bestTime, elapsedMs)
+    }
+
+    updatePuzzleStreak()
+    updatePuzzleStatsUI()
+    updateUnlockStatusMessage()
+
+    disablePuzzleButtons(true)
+    $('#alfawz-reset-puzzle')
+      .prop('disabled', false)
+      .data('mode', 'next')
+      .text('Next Puzzle')
+  }
+
+  function updatePuzzleStreak() {
+    const today = ayahPuzzleState.todayKey
+    const last = ayahPuzzleState.lastCompletedDay
+
+    if (!last) {
+      ayahPuzzleState.streak = Math.max(1, ayahPuzzleState.streak || 0)
+    } else if (last === today) {
+      // Already counted for today
+    } else {
+      const diff = calculateDayDifference(last, today)
+      if (diff === 1) {
+        ayahPuzzleState.streak += 1
+      } else if (diff > 1) {
+        ayahPuzzleState.streak = 1
+      } else {
+        ayahPuzzleState.streak = Math.max(1, ayahPuzzleState.streak || 0)
+      }
+    }
+
+    ayahPuzzleState.lastCompletedDay = today
+    setPuzzleStorage(AYAH_PUZZLE_STORAGE_KEYS.streak, ayahPuzzleState.streak)
+    setPuzzleStorage(AYAH_PUZZLE_STORAGE_KEYS.lastCompleted, today)
+  }
+
+  function beginPuzzleTimer() {
+    if (ayahPuzzleState.timerInterval) {
+      clearInterval(ayahPuzzleState.timerInterval)
+    }
+
+    ayahPuzzleState.startTime = Date.now()
+    $('#alfawz-puzzle-timer').text('00:00')
+
+    ayahPuzzleState.timerInterval = setInterval(() => {
+      const elapsed = Date.now() - ayahPuzzleState.startTime
+      $('#alfawz-puzzle-timer').text(formatTimeFromMs(elapsed))
+    }, 1000)
+  }
+
+  function stopPuzzleTimer() {
+    if (ayahPuzzleState.timerInterval) {
+      clearInterval(ayahPuzzleState.timerInterval)
+      ayahPuzzleState.timerInterval = null
+    }
+  }
+
+  function setPuzzleStatus(message, tone = 'info') {
+    const status = $('#alfawz-puzzle-status')
+    if (!status.length) {
+      return
+    }
+
+    status.removeClass('is-success is-error is-info')
+    if (tone === 'success') {
+      status.addClass('is-success')
+    } else if (tone === 'error') {
+      status.addClass('is-error')
+    } else {
+      status.addClass('is-info')
+    }
+
+    status.text(message)
+  }
+
+  function formatTimeFromMs(ms) {
+    if (!ms || ms < 0) {
+      return '00:00'
+    }
+    const totalSeconds = Math.floor(ms / 1000)
+    const minutes = Math.floor(totalSeconds / 60)
+    const seconds = totalSeconds % 60
+    return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
+  }
+
+  function shuffleArray(items) {
+    const array = [...items]
+    for (let i = array.length - 1; i > 0; i -= 1) {
+      const j = Math.floor(Math.random() * (i + 1))
+      const temp = array[i]
+      array[i] = array[j]
+      array[j] = temp
+    }
+    return array
+  }
+
+  function calculateDayDifference(previous, current) {
+    const previousDate = new Date(`${previous}T00:00:00`)
+    const currentDate = new Date(`${current}T00:00:00`)
+    const diffMs = currentDate.getTime() - previousDate.getTime()
+    return Math.round(diffMs / (1000 * 60 * 60 * 24))
+  }
+
+  function disablePuzzleButtons(isDisabled) {
+    $('#alfawz-shuffle-puzzle, #alfawz-check-puzzle, #alfawz-reset-puzzle').prop(
+      'disabled',
+      isDisabled
+    )
+  }
+
+  function getPuzzleStorage(key) {
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        return localStorage.getItem(key)
+      }
+    } catch (error) {
+      console.warn('Ayah puzzle storage unavailable:', error)
+    }
+    return null
+  }
+
+  function setPuzzleStorage(key, value) {
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        localStorage.setItem(key, value)
+      }
+    } catch (error) {
+      console.warn('Unable to persist ayah puzzle storage:', error)
+    }
+  }
+
+  function cleanAyahText(text) {
+    if (!text) {
+      return ''
+    }
+    return text
+      .replace(/[\u06d6-\u06ed]/g, '')
+      .replace(/[ۖۗۚۛۙۘۚۛۜ۝﴾﴿]/g, '')
+      .replace(/\s+/g, ' ')
+      .trim()
   }
 
   // ========================================

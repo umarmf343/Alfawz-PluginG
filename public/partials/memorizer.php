@@ -232,6 +232,10 @@
             <span class="alfawz-nav-icon">🏆</span>
             <span class="alfawz-nav-label"><?php _e('Leaderboard', 'alfawzquran'); ?></span>
         </a>
+        <a href="<?php echo esc_url(ALFAWZQURAN_PLUGIN_URL . 'games/'); ?>" class="alfawz-nav-item">
+            <span class="alfawz-nav-icon">🎮</span>
+            <span class="alfawz-nav-label"><?php _e('Games', 'alfawzquran'); ?></span>
+        </a>
         <a href="<?php echo esc_url(ALFAWZQURAN_PLUGIN_URL . 'profile/'); ?>" class="alfawz-nav-item">
             <span class="alfawz-nav-icon">👤</span>
             <span class="alfawz-nav-label"><?php _e('Profile', 'alfawzquran'); ?></span>

@@ -143,6 +143,11 @@ class Activator {
                 'title'     => __( 'Alfawz Settings', 'alfawzquran' ),
                 'shortcode' => '[alfawz_settings]',
             ],
+            [
+                'slug'      => 'alfawz-games',
+                'title'     => __( 'Alfawz Games', 'alfawzquran' ),
+                'shortcode' => '[alfawz_games]',
+            ],
         ];
 
         $stored_page_ids = get_option( 'alfawz_created_pages', [] );

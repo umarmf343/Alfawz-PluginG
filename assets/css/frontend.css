@@ -47,7 +47,8 @@
 .alfawz-memorizer,
 .alfawz-leaderboard,
 .alfawz-profile,
-.alfawz-settings { /* Added .alfawz-settings */
+.alfawz-settings,
+.alfawz-games {
   max-width: 1000px;
   margin: 0 auto;
   padding: var(--spacing-lg);
@@ -73,7 +74,8 @@
 .alfawz-dashboard-header,
 .alfawz-leaderboard-header,
 .alfawz-profile-header,
-.alfawz-settings-header { /* Added .alfawz-settings-header */
+.alfawz-settings-header,
+.alfawz-games-header {
   background: var(--primary-gradient);
   color: white;
   padding: var(--spacing-xl) var(--spacing-2xl);
@@ -89,7 +91,8 @@
 .alfawz-dashboard-header::before,
 .alfawz-leaderboard-header::before,
 .alfawz-profile-header::before,
-.alfawz-settings-header::before { /* Added .alfawz-settings-header */
+.alfawz-settings-header::before,
+.alfawz-games-header::before {
   content: "";
   position: absolute;
   top: -50%;
@@ -197,6 +200,311 @@
   gap: var(--spacing-md);
   max-width: 600px;
   margin: 0 auto;
+}
+
+/* ========================================
+   5. AYAH PUZZLE BUILDER GAME
+   ======================================== */
+.alfawz-game-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(260px, 1fr);
+  gap: var(--spacing-xl);
+}
+
+@media (max-width: 900px) {
+  .alfawz-game-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.alfawz-game-main-card {
+  background: #fff9f4;
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-xl);
+  box-shadow: var(--shadow-lg);
+  border: 1px solid rgba(111, 29, 27, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+.alfawz-card-headline h3 {
+  margin: 0 0 var(--spacing-sm);
+  font-size: 1.3em;
+  color: #5c1a17;
+}
+
+.alfawz-card-headline p {
+  margin: 0;
+  color: #7a3b34;
+}
+
+.alfawz-theme-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 999px;
+  padding: 6px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  margin-top: var(--spacing-md);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.alfawz-games-header .alfawz-theme-chip {
+  background: rgba(248, 241, 230, 0.25);
+  color: #fff;
+}
+
+.alfawz-puzzle-meta {
+  background: rgba(248, 241, 230, 0.6);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-md) var(--spacing-lg);
+  border: 1px solid rgba(111, 29, 27, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.alfawz-puzzle-reference {
+  font-weight: 600;
+  color: #511313;
+}
+
+.alfawz-puzzle-translation {
+  margin: 0;
+  color: #6f4039;
+  font-size: 0.95em;
+}
+
+.alfawz-puzzle-play-area {
+  display: grid;
+  gap: var(--spacing-lg);
+}
+
+.alfawz-puzzle-bank,
+.alfawz-puzzle-board {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-md);
+  min-height: 120px;
+  background: rgba(248, 241, 230, 0.7);
+  border: 1px dashed rgba(111, 29, 27, 0.35);
+}
+
+.alfawz-puzzle-board {
+  position: relative;
+  background: rgba(255, 255, 255, 0.85);
+  border-style: solid;
+}
+
+.alfawz-puzzle-piece {
+  background: linear-gradient(135deg, #f8e7d8, #f3d3c3);
+  color: #5c1a17;
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  font-size: 1.05em;
+  line-height: 1.4;
+  font-family: var(--font-arabic);
+  direction: rtl;
+  text-align: right;
+  cursor: grab;
+  box-shadow: 0 6px 18px rgba(92, 26, 23, 0.12);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+  user-select: none;
+}
+
+.alfawz-puzzle-piece:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px rgba(92, 26, 23, 0.18);
+}
+
+.alfawz-puzzle-piece.dragging {
+  opacity: 0.7;
+  box-shadow: 0 10px 24px rgba(31, 10, 9, 0.25);
+}
+
+.alfawz-puzzle-piece.in-slot {
+  cursor: grabbing;
+}
+
+.alfawz-puzzle-piece.is-correct {
+  background: var(--success-gradient);
+  color: #fff;
+  box-shadow: 0 12px 28px rgba(158, 100, 64, 0.35);
+}
+
+.alfawz-puzzle-piece.is-wrong {
+  background: var(--danger-gradient);
+  color: #fff;
+}
+
+.alfawz-puzzle-slot {
+  flex: 1 0 100%;
+  min-height: 60px;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: var(--radius-md);
+  border: 1px dashed rgba(111, 29, 27, 0.4);
+  display: flex;
+  align-items: stretch;
+  position: relative;
+}
+
+.alfawz-slot-index {
+  position: absolute;
+  top: 6px;
+  left: 10px;
+  font-size: 0.75em;
+  color: rgba(92, 26, 23, 0.55);
+  font-weight: 600;
+}
+
+.alfawz-slot-dropzone {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-sm);
+  min-height: 58px;
+}
+
+.alfawz-slot-dropzone.is-hovered {
+  background: rgba(248, 241, 230, 0.8);
+  border-radius: var(--radius-md);
+  box-shadow: inset 0 0 0 2px rgba(111, 29, 27, 0.2);
+}
+
+.alfawz-puzzle-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+  justify-content: flex-end;
+}
+
+.alfawz-puzzle-actions .alfawz-btn {
+  min-width: 140px;
+}
+
+.alfawz-puzzle-footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-lg);
+  align-items: center;
+  justify-content: space-between;
+}
+
+.alfawz-puzzle-status {
+  font-size: 0.95em;
+  color: #6f1d1b;
+  font-weight: 500;
+}
+
+.alfawz-puzzle-status.is-success {
+  color: #1d6f3c;
+}
+
+.alfawz-puzzle-status.is-error {
+  color: #8c1f24;
+}
+
+.alfawz-puzzle-status.is-info {
+  color: #6f1d1b;
+}
+
+.alfawz-puzzle-progress {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.alfawz-progress-bar.small {
+  height: 8px;
+  width: 160px;
+  background: rgba(111, 29, 27, 0.18);
+}
+
+.alfawz-progress-bar.small .alfawz-progress-fill {
+  height: 100%;
+  background: var(--primary-gradient);
+}
+
+.alfawz-game-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+.alfawz-stats-card,
+.alfawz-timer-card,
+.alfawz-habit-card {
+  background: rgba(255, 255, 255, 0.85);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+  border: 1px solid rgba(111, 29, 27, 0.1);
+  box-shadow: var(--shadow-md);
+}
+
+.alfawz-stats-card h3,
+.alfawz-habit-card h3 {
+  margin-top: 0;
+  color: #5c1a17;
+}
+
+.alfawz-stat-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 0;
+  border-bottom: 1px dashed rgba(111, 29, 27, 0.15);
+}
+
+.alfawz-stat-line:last-child {
+  border-bottom: none;
+}
+
+.alfawz-timer-card {
+  text-align: center;
+  background: linear-gradient(135deg, rgba(111, 29, 27, 0.92), rgba(163, 63, 68, 0.88));
+  color: #fff7ed;
+}
+
+.alfawz-timer-value {
+  font-size: 2.4em;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  margin-bottom: var(--spacing-sm);
+}
+
+.alfawz-habit-card p {
+  margin: 0 0 var(--spacing-sm);
+  color: #6f4039;
+}
+
+.alfawz-unlock-status {
+  background: rgba(248, 241, 230, 0.6);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 1px dashed rgba(111, 29, 27, 0.25);
+  color: #5c1a17;
+  font-size: 0.9em;
+}
+
+@media (max-width: 600px) {
+  .alfawz-puzzle-actions {
+    justify-content: center;
+  }
+
+  .alfawz-puzzle-footer {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .alfawz-progress-bar.small {
+    width: 100%;
+  }
 }
 
 .alfawz-progress-card {

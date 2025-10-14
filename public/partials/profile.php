@@ -100,6 +100,9 @@
     </div>
 
     <div class="alfawz-profile-actions">
+        <a href="<?php echo esc_url(ALFAWZQURAN_PLUGIN_URL . 'games/'); ?>" class="alfawz-btn alfawz-btn-primary alfawz-btn-large">
+            <?php _e('Play Game', 'alfawzquran'); ?>
+        </a>
         <a href="<?php echo esc_url(wp_logout_url(home_url())); ?>" class="alfawz-btn alfawz-btn-secondary alfawz-btn-large">
             <?php _e('Logout', 'alfawzquran'); ?>
         </a>
@@ -126,6 +129,10 @@
         <a href="<?php echo esc_url(ALFAWZQURAN_PLUGIN_URL . 'leaderboard/'); ?>" class="alfawz-nav-item">
             <span class="alfawz-nav-icon">🏆</span>
             <span class="alfawz-nav-label"><?php _e('Leaderboard', 'alfawzquran'); ?></span>
+        </a>
+        <a href="<?php echo esc_url(ALFAWZQURAN_PLUGIN_URL . 'games/'); ?>" class="alfawz-nav-item">
+            <span class="alfawz-nav-icon">🎮</span>
+            <span class="alfawz-nav-label"><?php _e('Games', 'alfawzquran'); ?></span>
         </a>
         <a href="<?php echo esc_url(ALFAWZQURAN_PLUGIN_URL . 'profile/'); ?>" class="alfawz-nav-item active">
             <span class="alfawz-nav-icon">👤</span>
