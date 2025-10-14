@@ -2,6 +2,9 @@ import type { Metadata } from 'next'
 import { GeistSans } from 'geist/font/sans'
 import { GeistMono } from 'geist/font/mono'
 import { Analytics } from '@vercel/analytics/next'
+
+import { BottomNav } from '@/components/bottom-nav'
+
 import './globals.css'
 
 export const metadata: Metadata = {
@@ -27,8 +30,9 @@ html {
 }
         `}</style>
       </head>
-      <body className="min-h-screen bg-background text-foreground antialiased">
+      <body className="min-h-screen bg-background text-foreground antialiased pb-24">
         {children}
+        <BottomNav />
         <Analytics />
       </body>
     </html>
