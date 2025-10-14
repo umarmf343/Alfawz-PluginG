@@ -246,7 +246,7 @@ const faqs: Faq[] = [
 
 export default function SyntheticV0PageForDeployment() {
   return (
-    <main className="min-h-screen bg-gradient-to-br from-[#2a0b11] via-[#5c1520] to-[#f8f1e6] text-[#2f1b1a]">
+    <main className="min-h-screen bg-gradient-to-br from-[#2a0b11] via-[#5c1520] to-[#f8f1e6] pb-32 text-[#2f1b1a]">
       <div className="relative overflow-hidden">
         <div
           className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(248,241,230,0.28),_transparent_65%)]"
