@@ -2301,12 +2301,76 @@
   // BOTTOM NAVIGATION
   // ========================================
   function initializeBottomNavigation() {
-    const currentPath = window.location.pathname
-    $(".alfawz-nav-item").each(function() {
-      const href = $(this).attr("href")
-      if (currentPath.includes(href.replace(alfawzData.pluginUrl, ""))) {
+    const $navigation = $(".alfawz-bottom-navigation")
+    if (!$navigation.length) {
+      return
+    }
+
+    const navElement = $navigation.get(0)
+    const currentPath = window.location.pathname.replace(/\/$/, "")
+    const basePluginPath = (alfawzData.pluginUrl || "").replace(window.location.origin, "")
+
+    $navigation.find(".alfawz-nav-item").each(function() {
+      const href = $(this).attr("href") || ""
+      const normalizedHref = href.replace(alfawzData.pluginUrl || "", "").replace(/\/$/, "")
+      if (normalizedHref && currentPath.includes(normalizedHref)) {
+        $(this).addClass("active")
+      }
+      if (!normalizedHref && basePluginPath && currentPath.startsWith(basePluginPath.replace(/\/$/, ""))) {
         $(this).addClass("active")
       }
     })
+
+    const updateNavHeight = () => {
+      const navHeight = navElement.offsetHeight
+      if (navHeight) {
+        const paddingBuffer = 24
+        document.documentElement.style.setProperty(
+          "--alfawz-bottom-nav-height",
+          `${Math.ceil(navHeight + paddingBuffer)}px`
+        )
+      }
+    }
+
+    updateNavHeight()
+
+    let lastScrollY = window.scrollY
+    let ticking = false
+
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY
+      const scrollingDown = currentScrollY > lastScrollY + 6
+      const scrollingUp = currentScrollY < lastScrollY - 6
+      const threshold = navElement.offsetHeight * 1.5
+
+      if (scrollingDown && currentScrollY > threshold) {
+        navElement.classList.add("is-hidden")
+      } else if (scrollingUp || currentScrollY <= threshold) {
+        navElement.classList.remove("is-hidden")
+      }
+
+      lastScrollY = currentScrollY
+      ticking = false
+    }
+
+    const requestScrollTick = () => {
+      if (!ticking) {
+        ticking = true
+        window.requestAnimationFrame(handleScroll)
+      }
+    }
+
+    window.addEventListener("scroll", requestScrollTick, { passive: true })
+    window.addEventListener("touchmove", requestScrollTick, { passive: true })
+    window.addEventListener("resize", () => {
+      updateNavHeight()
+      requestScrollTick()
+    })
+
+    document.addEventListener("focusin", () => {
+      navElement.classList.remove("is-hidden")
+    })
+
+    handleScroll()
   }
 })(jQuery)
