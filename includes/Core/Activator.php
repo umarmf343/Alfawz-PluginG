@@ -104,6 +104,9 @@ class Activator {
 
         self::create_pages();
 
+        require_once ALFAWZQURAN_PLUGIN_PATH . 'includes/Core/Environment.php';
+        Environment::verify( true );
+
         // Log activation
         error_log('AlfawzQuran Plugin activated successfully');
     }

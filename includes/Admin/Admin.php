@@ -1,6 +1,8 @@
 <?php
 namespace AlfawzQuran\Admin;
 
+use AlfawzQuran\Core\Environment;
+
 /**
  * Admin-specific functionality
  */
@@ -14,16 +16,28 @@ class Admin {
      * Display admin notices that inform the site owner about connectivity issues.
      */
     public function display_api_connection_notice() {
-        $message = get_transient( 'alfawz_quran_api_notice' );
+        $messages = [];
 
-        if ( empty( $message ) ) {
+        $api_notice = get_transient( 'alfawz_quran_api_notice' );
+        if ( ! empty( $api_notice ) ) {
+            $messages[] = $api_notice;
+        }
+
+        $environment_warnings = Environment::get_warnings();
+        if ( ! empty( $environment_warnings ) ) {
+            $messages = array_merge( $messages, $environment_warnings );
+        }
+
+        if ( empty( $messages ) ) {
             return;
         }
 
-        printf(
-            '<div class="notice notice-error"><p>%s</p></div>',
-            esc_html( $message )
-        );
+        foreach ( $messages as $message ) {
+            printf(
+                '<div class="notice notice-error"><p>%s</p></div>',
+                wp_kses_post( $message )
+            );
+        }
     }
 
     /**
@@ -89,5 +103,12 @@ class Admin {
                 'nonce' => wp_create_nonce('wp_rest'),
             ]);
         }
+    }
+
+    /**
+     * Periodically check whether the environment can perform required HTTPS requests.
+     */
+    public function maybe_recheck_environment() {
+        Environment::maybe_recheck();
     }
 }

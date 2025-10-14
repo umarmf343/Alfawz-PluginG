@@ -47,9 +47,9 @@ register_activation_hook( __FILE__, 'activate_alfawz_quran' );
 register_deactivation_hook( __FILE__, 'deactivate_alfawz_quran' );
 
 /**
- * The core plugin class that is used to define internationalization,
- * admin-specific hooks, and public-facing hooks.
+ * Core dependencies.
  */
+require ALFAWZQURAN_PLUGIN_PATH . 'includes/Core/Environment.php';
 require ALFAWZQURAN_PLUGIN_PATH . 'includes/Core/Loader.php';
 
 /**
@@ -69,6 +69,7 @@ function run_alfawz_quran() {
     $admin = new AlfawzQuran\Admin\Admin();
     $loader->add_action( 'admin_menu', $admin, 'add_admin_menu' );
     $loader->add_action( 'admin_enqueue_scripts', $admin, 'enqueue_admin_assets' );
+    $loader->add_action( 'admin_init', $admin, 'maybe_recheck_environment' );
     $loader->add_action( 'admin_notices', $admin, 'display_api_connection_notice' );
 
     // Load public-facing functionality
