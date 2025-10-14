@@ -2287,8 +2287,11 @@
     grid-template-columns: repeat(2, 1fr);
   }
 
-  .alfawz-memorization-stats {
-    grid-template-columns: repeat(3, 1fr);
+  .alfawz-memorizer .alfawz-memorization-stats {
+    grid-template-columns: repeat(2, 1fr);
+    max-width: 520px;
+    margin-left: auto;
+    margin-right: auto;
   }
 
   .alfawz-selection-controls,
@@ -2400,8 +2403,10 @@
     grid-template-columns: 1fr;
   }
 
-  .alfawz-memorization-stats {
-    grid-template-columns: 1fr 1fr;
+  .alfawz-memorizer .alfawz-memorization-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin-left: auto;
+    margin-right: auto;
   }
 
   .alfawz-beautiful-btn {
