@@ -11,6 +11,22 @@ class Admin {
     }
 
     /**
+     * Display admin notices that inform the site owner about connectivity issues.
+     */
+    public function display_api_connection_notice() {
+        $message = get_transient( 'alfawz_quran_api_notice' );
+
+        if ( empty( $message ) ) {
+            return;
+        }
+
+        printf(
+            '<div class="notice notice-error"><p>%s</p></div>',
+            esc_html( $message )
+        );
+    }
+
+    /**
      * Add admin menu pages.
      */
     public function add_admin_menu() {
