@@ -643,6 +643,9 @@
   let currentMemorizationVerse = null
   let repetitionCount = 0
   const REPETITION_TARGET = 20 // Default repetition target
+  const REVIEW_STORAGE_KEY = "alfawzMemorizationReviews"
+  const REVIEW_INTERVALS = [1, 3, 7, 30]
+  let memorizationReviewQueue = loadReviewQueueFromStorage()
 
   function initializeMemorizer() {
     if ($(".alfawz-memorizer").length) {
@@ -656,6 +659,9 @@
       $("#memo-mark-memorized").on("click", markVerseAsMemorized)
       $("#memo-select-another").on("click", resetMemorizationSession)
       $("#continue-memorization").on("click", resetMemorizationSession)
+      $("#celebration-continue-btn").on("click", () => hideRepetitionCelebration())
+
+      initializeMemorizationReviewSystem()
 
       // Memorization Plan Revision
       loadMemorizationPlans()
@@ -719,7 +725,9 @@
     // Reset session for new verse
     repetitionCount = 0
     updateRepetitionDisplay()
+    hideRepetitionCelebration(true)
     $("#repeat-verse-btn").removeClass("alfawz-repeat-completed").prop("disabled", false)
+    $("#repeat-verse-btn-mobile").removeClass("alfawz-repeat-completed").prop("disabled", false)
     $("#memo-mark-memorized").prop("disabled", false)
 
     $("#memo-quran-text").html('<div class="alfawz-loading-verse">Loading Arabic text...</div>')
@@ -839,7 +847,7 @@
     if (repetitionCount >= REPETITION_TARGET) {
       $("#repeat-verse-btn").addClass("alfawz-repeat-completed").prop("disabled", true)
       $("#repeat-verse-btn-mobile").addClass("alfawz-repeat-completed").prop("disabled", true)
-      showNotification("Repetition target reached! You can now mark as memorized.", "success")
+      showRepetitionCelebration()
     }
   }
 
@@ -851,8 +859,14 @@
     const percentage = (repetitionCount / REPETITION_TARGET) * 100
     $("#repetition-progress-bar").css("width", `${percentage}%`)
 
+    const reputationText = $(`#reputation-progress-text`)
+    if (reputationText.length) {
+      const rounded = Math.min(100, Math.round(percentage))
+      reputationText.text(`20x Reputation progress at ${rounded}%.`)
+    }
+
     // Update progress markers
-    const markersContainer = $(".alfawz-progress-markers")
+    const markersContainer = $("#repetition-progress-markers")
     markersContainer.empty()
     for (let i = 1; i <= REPETITION_TARGET; i++) {
       const markerClass = i <= repetitionCount ? "alfawz-marker-completed" : ""
@@ -912,6 +926,7 @@
       },
       success: (response) => {
         if (response.success) {
+          scheduleInitialReview(currentMemorizationVerse)
           showCongratulationsModal(currentMemorizationVerse.hasanat)
           loadUserStats() // Update overall stats
           // Update plan progress if a plan is active
@@ -948,7 +963,233 @@
     repetitionCount = 0
     updateRepetitionDisplay()
     $("#repeat-verse-btn").removeClass("alfawz-repeat-completed").prop("disabled", false)
+    $("#repeat-verse-btn-mobile").removeClass("alfawz-repeat-completed").prop("disabled", false)
     $("#memo-mark-memorized").prop("disabled", false)
+    hideRepetitionCelebration(true)
+  }
+
+  function showRepetitionCelebration() {
+    const celebration = $("#repetition-celebration")
+    if (!celebration.length) return
+    celebration.removeClass("alfawz-hidden")
+    const splash = celebration.find(".alfawz-poof-splash")
+    splash.removeClass("alfawz-poof-animate")
+    if (splash.length) {
+      // restart animation
+      const _ = splash[0].offsetWidth
+      void _
+      splash.addClass("alfawz-poof-animate")
+    }
+  }
+
+  function hideRepetitionCelebration(force = false) {
+    const celebration = $("#repetition-celebration")
+    if (!celebration.length) return
+    celebration.addClass("alfawz-hidden")
+    celebration.find(".alfawz-poof-splash").removeClass("alfawz-poof-animate")
+    if (!force) {
+      showNotification("Repetition target reached! You can now mark as memorized.", "success")
+    }
+  }
+
+  function initializeMemorizationReviewSystem() {
+    const reviewList = $("#memorization-review-list")
+    if (!reviewList.length) return
+    memorizationReviewQueue = loadReviewQueueFromStorage()
+    renderReviewQueue()
+    reviewList.off("click", ".alfawz-review-complete-btn")
+    reviewList.off("click", ".alfawz-review-skip-btn")
+    reviewList.on("click", ".alfawz-review-complete-btn", handleReviewComplete)
+    reviewList.on("click", ".alfawz-review-skip-btn", handleReviewSkip)
+  }
+
+  function loadReviewQueueFromStorage() {
+    if (typeof window === "undefined" || !window.localStorage) {
+      return []
+    }
+    try {
+      const stored = window.localStorage.getItem(REVIEW_STORAGE_KEY)
+      if (!stored) return []
+      const parsed = JSON.parse(stored)
+      if (!Array.isArray(parsed)) return []
+      return parsed
+        .filter(item => item && item.key && item.dueDate)
+        .map(item => {
+          const [surahId, verseId] = String(item.key).split(":")
+          return {
+            key: item.key,
+            surahId: item.surahId || surahId || "",
+            verseId: item.verseId || verseId || "",
+            stage: typeof item.stage === "number" ? item.stage : 0,
+            dueDate: item.dueDate,
+            lastReviewed: item.lastReviewed || null,
+            preview: item.preview || "",
+          }
+        })
+    } catch (error) {
+      console.warn("Failed to parse memorization review queue", error)
+      return []
+    }
+  }
+
+  function saveReviewQueue() {
+    if (typeof window === "undefined" || !window.localStorage) {
+      return
+    }
+    try {
+      window.localStorage.setItem(REVIEW_STORAGE_KEY, JSON.stringify(memorizationReviewQueue))
+    } catch (error) {
+      console.warn("Failed to persist memorization review queue", error)
+    }
+  }
+
+  function renderReviewQueue() {
+    const reviewList = $("#memorization-review-list")
+    if (!reviewList.length) return
+    const emptyState = $("#review-empty-state")
+    const dueCountEl = $("#review-due-count")
+    const upcomingCountEl = $("#review-upcoming-count")
+
+    reviewList.empty()
+
+    const now = new Date()
+    const sorted = [...memorizationReviewQueue].sort(
+      (a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime()
+    )
+
+    let dueCount = 0
+    let upcomingCount = 0
+
+    sorted.forEach(entry => {
+      const dueDate = new Date(entry.dueDate)
+      const isDue = dueDate.getTime() <= now.getTime()
+      if (isDue) {
+        dueCount++
+      } else {
+        upcomingCount++
+      }
+
+      const listItem = $(`
+        <li class="alfawz-review-item ${isDue ? 'is-due' : ''}" data-review-key="${entry.key}">
+          <div class="alfawz-review-item-info">
+            <div class="alfawz-review-item-title">Surah ${entry.surahId} • Ayah ${entry.verseId}</div>
+            <div class="alfawz-review-item-meta">${formatReviewMeta(entry, dueDate, now)}</div>
+            ${entry.preview ? `<div class="alfawz-review-item-preview">${entry.preview}</div>` : ""}
+          </div>
+          <div class="alfawz-review-actions"></div>
+        </li>
+      `)
+
+      const actions = listItem.find(".alfawz-review-actions")
+      if (isDue) {
+        actions.append('<button type="button" class="alfawz-review-complete-btn">Review done</button>')
+      }
+      actions.append('<button type="button" class="alfawz-review-skip-btn">Snooze 1 day</button>')
+
+      reviewList.append(listItem)
+    })
+
+    dueCountEl.text(dueCount)
+    upcomingCountEl.text(upcomingCount)
+
+    if (sorted.length === 0) {
+      emptyState.show()
+    } else {
+      emptyState.hide()
+    }
+  }
+
+  function formatReviewMeta(entry, dueDate, now) {
+    const diffMs = dueDate.getTime() - now.getTime()
+    const dayMs = 1000 * 60 * 60 * 24
+    let dueLabel = ""
+    if (diffMs <= 0) {
+      dueLabel = "Due now"
+    } else if (diffMs < dayMs) {
+      dueLabel = "Due later today"
+    } else {
+      const days = Math.round(diffMs / dayMs)
+      dueLabel = `Due in ${days} day${days === 1 ? "" : "s"}`
+    }
+
+    return `Stage ${entry.stage + 1}/${REVIEW_INTERVALS.length} • ${dueLabel}`
+  }
+
+  function handleReviewComplete(event) {
+    event.preventDefault()
+    const key = $(event.currentTarget).closest(".alfawz-review-item").data("reviewKey")
+    const entryIndex = memorizationReviewQueue.findIndex(item => item.key === key)
+    if (entryIndex === -1) return
+
+    const entry = memorizationReviewQueue[entryIndex]
+    entry.stage += 1
+
+    if (entry.stage >= REVIEW_INTERVALS.length) {
+      memorizationReviewQueue.splice(entryIndex, 1)
+      showNotification("Review cycle complete!", "success")
+    } else {
+      const nextDue = new Date()
+      nextDue.setDate(nextDue.getDate() + REVIEW_INTERVALS[entry.stage])
+      entry.dueDate = nextDue.toISOString()
+      entry.lastReviewed = new Date().toISOString()
+      showNotification("Next review scheduled.", "success")
+    }
+
+    saveReviewQueue()
+    renderReviewQueue()
+  }
+
+  function handleReviewSkip(event) {
+    event.preventDefault()
+    const key = $(event.currentTarget).closest(".alfawz-review-item").data("reviewKey")
+    const entry = memorizationReviewQueue.find(item => item.key === key)
+    if (!entry) return
+
+    const dueDate = new Date(entry.dueDate)
+    dueDate.setDate(dueDate.getDate() + 1)
+    entry.dueDate = dueDate.toISOString()
+    saveReviewQueue()
+    renderReviewQueue()
+    showNotification("Review snoozed for one day.", "info")
+  }
+
+  function scheduleInitialReview(verse) {
+    if (!verse || !verse.surah_id || !verse.verse_id) return
+    const reviewList = $("#memorization-review-list")
+    if (!reviewList.length) return
+
+    const key = `${verse.surah_id}:${verse.verse_id}`
+    const previewText = verse.text
+      ? `${verse.text.replace(/\s+/g, " ").trim().substring(0, 80)}${verse.text.length > 80 ? "…" : ""}`
+      : ""
+
+    const now = new Date()
+    const initialDue = new Date()
+    initialDue.setDate(initialDue.getDate() + REVIEW_INTERVALS[0])
+
+    const existingIndex = memorizationReviewQueue.findIndex(item => item.key === key)
+    if (existingIndex > -1) {
+      memorizationReviewQueue[existingIndex] = {
+        ...memorizationReviewQueue[existingIndex],
+        stage: 0,
+        dueDate: initialDue.toISOString(),
+        lastReviewed: now.toISOString(),
+        preview: previewText,
+      }
+    } else {
+      memorizationReviewQueue.push({
+        key,
+        surahId: verse.surah_id,
+        verseId: verse.verse_id,
+        stage: 0,
+        dueDate: initialDue.toISOString(),
+        lastReviewed: now.toISOString(),
+        preview: previewText,
+      })
+    }
+
+    saveReviewQueue()
+    renderReviewQueue()
   }
 
   // Memorization Plan Revision Functions

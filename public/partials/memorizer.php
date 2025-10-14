@@ -147,9 +147,10 @@
                 <div class="alfawz-repetition-progress">
                     <div class="alfawz-progress-track">
                         <div class="alfawz-progress-fill" style="width: 0%" id="repetition-progress-bar"></div>
-                        <div class="alfawz-progress-markers"></div>
+                        <div class="alfawz-progress-markers" id="repetition-progress-markers"></div>
                     </div>
                     <p class="alfawz-text-center alfawz-mb-0" id="session-progress-text"><?php _e('Repetitions: 0 / 20', 'alfawzquran'); ?></p>
+                    <p class="alfawz-text-center alfawz-reputation-progress" id="reputation-progress-text"><?php _e('20x Reputation progress at 0%.', 'alfawzquran'); ?></p>
                 </div>
                 <div class="alfawz-repeat-button-container">
                     <button id="repeat-verse-btn" class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md alfawz-btn alfawz-repeat-btn">
@@ -160,6 +161,25 @@
                         </div>
                     </button>
                 </div>
+            </div>
+
+            <div class="alfawz-memorization-review" id="memorization-review">
+                <div class="alfawz-review-header">
+                    <h4><?php _e('Memorisation Review', 'alfawzquran'); ?></h4>
+                    <div class="alfawz-review-stats" role="status">
+                        <div class="alfawz-review-stat">
+                            <span class="alfawz-review-stat-label"><?php _e('Due today', 'alfawzquran'); ?></span>
+                            <span class="alfawz-review-stat-value" id="review-due-count">0</span>
+                        </div>
+                        <div class="alfawz-review-stat">
+                            <span class="alfawz-review-stat-label"><?php _e('Upcoming', 'alfawzquran'); ?></span>
+                            <span class="alfawz-review-stat-value" id="review-upcoming-count">0</span>
+                        </div>
+                    </div>
+                </div>
+                <p class="alfawz-review-subtitle"><?php _e('Keep retention high by revisiting verses when they are due. Reviews are saved locally for your device.', 'alfawzquran'); ?></p>
+                <ul class="alfawz-review-list" id="memorization-review-list" aria-live="polite"></ul>
+                <div class="alfawz-review-empty" id="review-empty-state"><?php _e('No reviews pending right now. Complete a verse to schedule your first review.', 'alfawzquran'); ?></div>
             </div>
 
             <div class="alfawz-session-actions">
@@ -218,6 +238,18 @@
                 <?php _e('View Profile', 'alfawzquran'); ?>
             </a>
         </div>
+    </div>
+</div>
+
+<div id="repetition-celebration" class="alfawz-repetition-celebration alfawz-hidden" role="dialog" aria-modal="true" aria-labelledby="repetition-celebration-title">
+    <div class="alfawz-celebration-overlay" aria-hidden="true"></div>
+    <div class="alfawz-celebration-content">
+        <div class="alfawz-poof-splash" aria-hidden="true"></div>
+        <h3 id="repetition-celebration-title"><?php _e('Barakallahu Feek!', 'alfawzquran'); ?></h3>
+        <p class="alfawz-celebration-copy"><?php _e('20 mindful repetitions complete. Take a breath—your next verse will be ready when you are.', 'alfawzquran'); ?></p>
+        <button id="celebration-continue-btn" class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md alfawz-btn alfawz-btn-primary">
+            <?php _e('Continue to the next verse', 'alfawzquran'); ?>
+        </button>
     </div>
 </div>
 
