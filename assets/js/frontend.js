@@ -83,6 +83,50 @@
 
   let cachedSurahList = null
 
+  const QAIDAH_STORAGE_KEY = "alfawzQaidahProgress"
+
+  const qaidahDeck = [
+    { symbol: "بَ", transliteration: "ba", tip: "Keep the mouth open for a light fat-ha sound.", families: ["short-vowels", "ba"] },
+    { symbol: "بِ", transliteration: "bi", tip: "Smile gently to land the kasra under the letter.", families: ["short-vowels", "ba"] },
+    { symbol: "بُ", transliteration: "bu", tip: "Round the lips for a quick dammah.", families: ["short-vowels", "ba"] },
+    { symbol: "تَ", transliteration: "ta", tip: "Tap the tip of the tongue to the teeth for a crisp release.", families: ["short-vowels", "ta"] },
+    { symbol: "تِ", transliteration: "ti", tip: "Keep the sound thin and smile to guide the kasra.", families: ["short-vowels", "ta"] },
+    { symbol: "تُ", transliteration: "tu", tip: "Push a rounded puff of air as you form the dammah.", families: ["short-vowels", "ta"] },
+    { symbol: "بٌ", transliteration: "bun", tip: "Let the tanween dammah finish with a soft noon hum.", families: ["tanween", "ba"] },
+    { symbol: "بٍ", transliteration: "bin", tip: "Ease into the tanween kasra by smiling then relaxing into noon.", families: ["tanween", "ba"] },
+    { symbol: "بً", transliteration: "ban", tip: "Drop the chin slightly to release the tanween fat-ha.", families: ["tanween", "ba"] },
+    { symbol: "مَا", transliteration: "maa", tip: "Hold the madd alif for two steady beats.", families: ["madd", "madd-alif"] },
+    { symbol: "سُو", transliteration: "soo", tip: "Glide into the madd wow while keeping lips gently rounded.", families: ["madd", "madd-wow"] },
+    { symbol: "لِي", transliteration: "lee", tip: "Stretch the madd yaa with a relaxed smile.", families: ["madd", "madd-yaa"] },
+  ]
+
+  const qaidahLessons = [
+    {
+      id: "all",
+      title: "Complete Deck",
+      focus: "Cycle through every syllable planned for today.",
+      families: [],
+    },
+    {
+      id: "short-vowels",
+      title: "Short Vowels",
+      focus: "Master fat-ha, kasra, and dammah on Ba & Ta.",
+      families: ["short-vowels"],
+    },
+    {
+      id: "tanween",
+      title: "Tanween Flow",
+      focus: "Add the soft noon sound to polish your endings.",
+      families: ["tanween"],
+    },
+    {
+      id: "madd",
+      title: "Madd Extensions",
+      focus: "Stretch vowel length for two confident counts.",
+      families: ["madd"],
+    },
+  ]
+
   // Initialize when document is ready
   $(document).ready(() => {
     initializeDashboard()
@@ -91,6 +135,7 @@
     initializeLeaderboard()
     initializeSettings()
     initializeGames()
+    initializeQaidah()
     initializeBottomNavigation()
     initializeSwitches()
     loadUserStats()
@@ -2296,6 +2341,242 @@
 
     $("#prev-verse-btn").prop("disabled", surahId === 1 && verseId === 1)
     $("#next-verse-btn").prop("disabled", surahId === 114 && verseId === totalAyahs)
+  }
+
+  // ========================================
+  // QA'IDAH PRACTICE EXPERIENCE
+  // ========================================
+  function initializeQaidah() {
+    const $page = $(".alfawz-qaidah")
+
+    if (!$page.length) {
+      return
+    }
+
+    const $cardSymbol = $("#qaidah-card-symbol")
+    const $cardTransliteration = $("#qaidah-card-transliteration")
+    const $cardTip = $("#qaidah-card-tip")
+    const $progressFill = $("#qaidah-progress-fill")
+    const $progressCount = $("#qaidah-progress-count")
+    const $progressTotal = $("#qaidah-total-count")
+    const $progressBar = $("#qaidah-progress-bar")
+    const $focusLesson = $("#qaidah-focus-lesson")
+    const $masteredList = $("#qaidah-mastered-list")
+    const $lessonGrid = $("#qaidah-lesson-grid")
+    const $prevBtn = $("#qaidah-prev-card")
+    const $nextBtn = $("#qaidah-next-card")
+    const $markBtn = $("#qaidah-mark-mastered")
+    const $shuffleBtn = $("#qaidah-shuffle-deck")
+    const $resetBtn = $("#qaidah-reset-progress")
+
+    const emptyMasteredTemplate = $masteredList.html()
+
+    let filteredDeck = [...qaidahDeck]
+    let currentLesson = qaidahLessons[0] || null
+    let currentIndex = 0
+    let masteredSet = new Set(loadMastered())
+
+    $progressTotal.text(qaidahDeck.length)
+
+    function loadMastered() {
+      try {
+        const stored = window.localStorage.getItem(QAIDAH_STORAGE_KEY)
+        if (!stored) {
+          return []
+        }
+
+        const parsed = JSON.parse(stored)
+        if (Array.isArray(parsed)) {
+          return parsed
+        }
+      } catch (error) {
+        console.warn("Unable to load Qa'idah progress", error)
+      }
+
+      return []
+    }
+
+    function saveMastered() {
+      try {
+        window.localStorage.setItem(QAIDAH_STORAGE_KEY, JSON.stringify(Array.from(masteredSet)))
+      } catch (error) {
+        console.warn("Unable to save Qa'idah progress", error)
+      }
+    }
+
+    function renderProgress() {
+      const masteredCount = masteredSet.size
+      const total = qaidahDeck.length || 1
+      const percent = Math.round((masteredCount / total) * 100)
+
+      $progressCount.text(masteredCount)
+      $progressTotal.text(total)
+      $progressFill.css("width", `${percent}%`)
+      $progressBar.attr("aria-valuenow", percent)
+    }
+
+    function renderMasteredList() {
+      if (!masteredSet.size) {
+        $masteredList.html(emptyMasteredTemplate)
+        return
+      }
+
+      const chips = Array.from(masteredSet)
+        .map(symbol => `<span class="alfawz-qaidah-mastered-pill" data-symbol="${symbol}">${symbol}</span>`)
+        .join("")
+
+      $masteredList.html(chips)
+    }
+
+    function renderCard() {
+      if (!filteredDeck.length) {
+        $cardSymbol.text("—")
+        $cardTransliteration.text("…")
+        $cardTip.text("Add another lesson focus to unlock cards.")
+        $prevBtn.prop("disabled", true)
+        $nextBtn.prop("disabled", true)
+        $markBtn.prop("disabled", true).attr("aria-pressed", false).removeClass("is-active")
+        return
+      }
+
+      if (currentIndex >= filteredDeck.length) {
+        currentIndex = 0
+      }
+
+      const card = filteredDeck[currentIndex]
+      const isMastered = masteredSet.has(card.symbol)
+
+      $cardSymbol.text(card.symbol)
+      $cardTransliteration.text(card.transliteration)
+      $cardTip.text(isMastered ? `${card.tip} ✅` : card.tip)
+
+      const hasMultipleCards = filteredDeck.length > 1
+      $prevBtn.prop("disabled", !hasMultipleCards)
+      $nextBtn.prop("disabled", !hasMultipleCards)
+      $markBtn.prop("disabled", false).attr("aria-pressed", isMastered)
+      $markBtn.toggleClass("is-active", isMastered)
+    }
+
+    function setFocusLesson(lesson, deckSize) {
+      if (!lesson) {
+        $focusLesson.text(`${deckSize} cards`)
+        return
+      }
+
+      $focusLesson.text(`${lesson.title} · ${deckSize} cards`)
+    }
+
+    function selectLesson(lesson, $button) {
+      const families = (lesson && lesson.families) || []
+
+      filteredDeck = families.length
+        ? qaidahDeck.filter(card => card.families.some(family => families.includes(family)))
+        : [...qaidahDeck]
+
+      if (!filteredDeck.length) {
+        filteredDeck = [...qaidahDeck]
+      }
+
+      currentLesson = lesson
+      currentIndex = 0
+
+      $lessonGrid.find(".alfawz-qaidah-lesson").removeClass("is-active")
+      if ($button && $button.length) {
+        $button.addClass("is-active")
+      }
+
+      setFocusLesson(lesson, filteredDeck.length)
+      renderCard()
+    }
+
+    function buildLessonGrid() {
+      $lessonGrid.empty()
+
+      qaidahLessons.forEach(lesson => {
+        const $button = $("<button>", {
+          class: "alfawz-qaidah-lesson",
+          type: "button",
+          "data-lesson": lesson.id,
+        })
+
+        $("<span>", { class: "alfawz-qaidah-lesson-title", text: lesson.title }).appendTo($button)
+        $("<span>", { class: "alfawz-qaidah-lesson-focus", text: lesson.focus }).appendTo($button)
+
+        $button.on("click", () => {
+          selectLesson(lesson, $button)
+        })
+
+        $lessonGrid.append($button)
+      })
+    }
+
+    $prevBtn.on("click", () => {
+      if (!filteredDeck.length) {
+        return
+      }
+
+      currentIndex = (currentIndex - 1 + filteredDeck.length) % filteredDeck.length
+      renderCard()
+    })
+
+    $nextBtn.on("click", () => {
+      if (!filteredDeck.length) {
+        return
+      }
+
+      currentIndex = (currentIndex + 1) % filteredDeck.length
+      renderCard()
+    })
+
+    $markBtn.on("click", () => {
+      if (!filteredDeck.length) {
+        return
+      }
+
+      const card = filteredDeck[currentIndex]
+
+      if (masteredSet.has(card.symbol)) {
+        masteredSet.delete(card.symbol)
+      } else {
+        masteredSet.add(card.symbol)
+      }
+
+      saveMastered()
+      renderProgress()
+      renderMasteredList()
+      renderCard()
+    })
+
+    $shuffleBtn.on("click", () => {
+      if (!filteredDeck.length) {
+        return
+      }
+
+      filteredDeck = [...filteredDeck].sort(() => Math.random() - 0.5)
+      currentIndex = 0
+      renderCard()
+    })
+
+    $resetBtn.on("click", () => {
+      masteredSet = new Set()
+      saveMastered()
+      renderProgress()
+      renderMasteredList()
+      renderCard()
+    })
+
+    buildLessonGrid()
+
+    if (qaidahLessons.length) {
+      const $firstButton = $lessonGrid.find(".alfawz-qaidah-lesson").first()
+      selectLesson(qaidahLessons[0], $firstButton)
+    } else {
+      setFocusLesson(null, filteredDeck.length)
+      renderCard()
+    }
+
+    renderProgress()
+    renderMasteredList()
   }
 
   // ========================================

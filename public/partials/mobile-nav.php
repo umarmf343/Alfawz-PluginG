@@ -8,7 +8,7 @@ if ( ! function_exists( 'alfawz_get_mobile_nav_items' ) ) {
         return [
             [
                 'slug'  => 'dashboard',
-                'icon'  => '🏠',
+                'icon'  => '📊',
                 'label' => __( 'Dashboard', 'alfawzquran' ),
             ],
             [
@@ -19,7 +19,12 @@ if ( ! function_exists( 'alfawz_get_mobile_nav_items' ) ) {
             [
                 'slug'  => 'memorizer',
                 'icon'  => '🧠',
-                'label' => __( 'Memorizer', 'alfawzquran' ),
+                'label' => __( 'Memorization', 'alfawzquran' ),
+            ],
+            [
+                'slug'  => 'qaidah',
+                'icon'  => '📚',
+                'label' => __( "Qa'idah", 'alfawzquran' ),
             ],
             [
                 'slug'  => 'leaderboard',
