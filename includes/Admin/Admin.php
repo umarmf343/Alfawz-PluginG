@@ -1,6 +1,8 @@
 <?php
 namespace AlfawzQuran\Admin;
 
+use AlfawzQuran\Models\UserProgress;
+
 /**
  * Admin-specific functionality
  */
@@ -77,6 +79,15 @@ class Admin {
             [ $this, 'display_admin_settings' ]
         );
 
+        add_submenu_page(
+            'alfawz-quran',
+            __( 'Insights', 'alfawzquran' ),
+            __( 'Insights', 'alfawzquran' ),
+            'manage_options',
+            'alfawz-quran-stats',
+            [ $this, 'display_admin_stats' ]
+        );
+
         if ( $this->user_can_manage_boards() ) {
             add_submenu_page(
                 'alfawz-quran',
@@ -108,6 +119,43 @@ class Admin {
      */
     public function display_qaidah_boards() {
         include ALFAWZQURAN_PLUGIN_PATH . 'admin/partials/qaidah-boards.php';
+    }
+
+    /**
+     * Display the admin statistics and leaderboard page.
+     */
+    public function display_admin_stats() {
+        $overall_stats = [
+            'total_users'      => 0,
+            'total_hasanat'    => 0,
+            'verses_read'      => 0,
+            'verses_memorized' => 0,
+        ];
+
+        $user_stats = [];
+
+        if ( class_exists( UserProgress::class ) ) {
+            $progress      = new UserProgress();
+            $overall_stats = $progress->get_overall_stats();
+            $leaderboard   = $progress->get_leaderboard( 'all_time', 25 );
+
+            foreach ( $leaderboard as $entry ) {
+                $user = get_userdata( $entry['user_id'] );
+
+                $user_stats[] = [
+                    'user_id'         => (int) $entry['user_id'],
+                    'display_name'    => $entry['display_name'] ?? ( $user ? $user->display_name : __( 'Unknown User', 'alfawzquran' ) ),
+                    'user_email'      => $user ? $user->user_email : '',
+                    'total_hasanat'   => isset( $entry['total_hasanat'] ) ? (int) $entry['total_hasanat'] : 0,
+                    'verses_read'     => isset( $entry['verses_read'] ) ? (int) $entry['verses_read'] : 0,
+                    'verses_memorized'=> isset( $entry['verses_memorized'] ) ? (int) $entry['verses_memorized'] : 0,
+                    'current_streak'  => isset( $entry['current_streak'] ) ? (int) $entry['current_streak'] : 0,
+                    'last_activity'   => get_user_meta( $entry['user_id'], 'alfawz_quran_last_activity_date', true ),
+                ];
+            }
+        }
+
+        include ALFAWZQURAN_PLUGIN_PATH . 'admin/partials/stats.php';
     }
 
     /**
