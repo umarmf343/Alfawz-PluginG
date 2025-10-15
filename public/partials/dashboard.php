@@ -3,41 +3,64 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 ?>
-<div id="alfawz-dashboard" class="alfawz-dashboard-shell">
+<div
+    id="alfawz-dashboard"
+    class="alfawz-dashboard-shell relative mx-auto max-w-6xl overflow-hidden rounded-3xl bg-gradient-to-br from-rose-900 via-rose-800 to-amber-100 p-6 text-rose-50 shadow-2xl sm:p-10"
+>
     <div class="alfawz-dashboard-aurora" aria-hidden="true"></div>
     <div class="alfawz-dashboard-aurora alfawz-dashboard-aurora--accent" aria-hidden="true"></div>
 
-    <header class="alfawz-dashboard-hero" aria-labelledby="alfawz-dashboard-heading">
-        <div class="alfawz-dashboard-hero-copy">
-            <p class="alfawz-dashboard-eyebrow" id="alfawz-dashboard-greeting"><?php esc_html_e( 'Assalamu alaikum, dear reciter!', 'alfawzquran' ); ?></p>
-            <h2 class="alfawz-dashboard-title" id="alfawz-dashboard-heading"><?php esc_html_e( 'Your Quran journey today', 'alfawzquran' ); ?></h2>
-            <p class="alfawz-dashboard-subtitle"><?php esc_html_e( 'Track your daily verses, celebrate new memorisation, and pick up right where you left off.', 'alfawzquran' ); ?></p>
-            <div class="alfawz-dashboard-quick-actions" role="list">
-                <a role="listitem" class="alfawz-dashboard-action" href="<?php echo esc_url( apply_filters( 'alfawz_mobile_nav_url', '', 'reader' ) ); ?>">
+    <header class="alfawz-dashboard-hero" aria-labelledby="alfawz-dashboard-heading" data-animate>
+        <div class="alfawz-dashboard-hero-copy space-y-4">
+            <p class="alfawz-dashboard-eyebrow text-xs font-semibold uppercase tracking-widest" id="alfawz-dashboard-greeting">
+                <?php esc_html_e( 'Assalamu alaikum, dear reciter!', 'alfawzquran' ); ?>
+            </p>
+            <h2 class="alfawz-dashboard-title text-3xl font-semibold leading-tight sm:text-4xl" id="alfawz-dashboard-heading">
+                <?php esc_html_e( 'Your Quran journey today', 'alfawzquran' ); ?>
+            </h2>
+            <p class="alfawz-dashboard-subtitle text-base text-rose-100 sm:text-lg">
+                <?php esc_html_e( 'Track your daily verses, celebrate new memorisation, and pick up right where you left off.', 'alfawzquran' ); ?>
+            </p>
+            <div class="alfawz-dashboard-quick-actions flex flex-wrap gap-3 pt-1" role="list" data-animate data-animate-delay="160">
+                <a
+                    role="listitem"
+                    class="alfawz-dashboard-action inline-flex items-center gap-2 rounded-full border border-rose-100 border-opacity-30 bg-white bg-opacity-10 px-4 py-2 text-sm font-semibold text-rose-50 transition duration-200 ease-out hover:-translate-y-1 hover:border-opacity-60 hover:bg-opacity-20 focus:outline-none focus:ring-2 focus:ring-amber-200 focus:ring-offset-2 focus:ring-offset-rose-900"
+                    href="<?php echo esc_url( apply_filters( 'alfawz_mobile_nav_url', '', 'reader' ) ); ?>"
+                >
                     <span aria-hidden="true">📖</span>
                     <span><?php esc_html_e( 'Continue reciting', 'alfawzquran' ); ?></span>
                 </a>
-                <a role="listitem" class="alfawz-dashboard-action" href="<?php echo esc_url( apply_filters( 'alfawz_mobile_nav_url', '', 'memorizer' ) ); ?>">
+                <a
+                    role="listitem"
+                    class="alfawz-dashboard-action inline-flex items-center gap-2 rounded-full border border-rose-100 border-opacity-30 bg-white bg-opacity-10 px-4 py-2 text-sm font-semibold text-rose-50 transition duration-200 ease-out hover:-translate-y-1 hover:border-opacity-60 hover:bg-opacity-20 focus:outline-none focus:ring-2 focus:ring-amber-200 focus:ring-offset-2 focus:ring-offset-rose-900"
+                    href="<?php echo esc_url( apply_filters( 'alfawz_mobile_nav_url', '', 'memorizer' ) ); ?>"
+                >
                     <span aria-hidden="true">🧠</span>
                     <span><?php esc_html_e( 'Open memoriser', 'alfawzquran' ); ?></span>
                 </a>
-                <a role="listitem" class="alfawz-dashboard-action" href="<?php echo esc_url( apply_filters( 'alfawz_mobile_nav_url', '', 'games' ) ); ?>">
+                <a
+                    role="listitem"
+                    class="alfawz-dashboard-action inline-flex items-center gap-2 rounded-full border border-rose-100 border-opacity-30 bg-white bg-opacity-10 px-4 py-2 text-sm font-semibold text-rose-50 transition duration-200 ease-out hover:-translate-y-1 hover:border-opacity-60 hover:bg-opacity-20 focus:outline-none focus:ring-2 focus:ring-amber-200 focus:ring-offset-2 focus:ring-offset-rose-900"
+                    href="<?php echo esc_url( apply_filters( 'alfawz_mobile_nav_url', '', 'games' ) ); ?>"
+                >
                     <span aria-hidden="true">🎮</span>
                     <span><?php esc_html_e( 'Boost with a game', 'alfawzquran' ); ?></span>
                 </a>
             </div>
         </div>
-        <aside class="alfawz-dashboard-hero-card" aria-live="polite">
+        <aside class="alfawz-dashboard-hero-card" aria-live="polite" data-dashboard-glow data-animate data-animate-delay="280">
             <div class="alfawz-dashboard-hero-ring" role="presentation">
-                <span class="alfawz-dashboard-ring-label"><?php esc_html_e( 'Active streak', 'alfawzquran' ); ?></span>
-                <span class="alfawz-dashboard-ring-value" id="alfawz-dashboard-streak-highlight">0</span>
-                <span class="alfawz-dashboard-ring-suffix"><?php esc_html_e( 'days', 'alfawzquran' ); ?></span>
+                <span class="alfawz-dashboard-ring-label text-xs uppercase tracking-widest"><?php esc_html_e( 'Active streak', 'alfawzquran' ); ?></span>
+                <span class="alfawz-dashboard-ring-value text-5xl font-bold" id="alfawz-dashboard-streak-highlight">0</span>
+                <span class="alfawz-dashboard-ring-suffix text-sm font-semibold"><?php esc_html_e( 'days', 'alfawzquran' ); ?></span>
             </div>
-            <p class="alfawz-dashboard-ring-note"><?php esc_html_e( 'Keep your consistency glowing to unlock egg rewards.', 'alfawzquran' ); ?></p>
+            <p class="alfawz-dashboard-ring-note text-sm text-rose-100">
+                <?php esc_html_e( 'Keep your consistency glowing to unlock egg rewards.', 'alfawzquran' ); ?>
+            </p>
         </aside>
     </header>
 
-    <section class="alfawz-dashboard-stat-grid" aria-labelledby="alfawz-dashboard-statistics">
+    <section class="alfawz-dashboard-stat-grid" aria-labelledby="alfawz-dashboard-statistics" data-animate data-animate-delay="360">
         <h3 id="alfawz-dashboard-statistics" class="screen-reader-text"><?php esc_html_e( 'Key progress statistics', 'alfawzquran' ); ?></h3>
         <article class="alfawz-dashboard-stat" data-stat="verses-read">
             <span class="alfawz-dashboard-stat-icon" aria-hidden="true">📚</span>
@@ -73,7 +96,15 @@ if ( ! defined( 'ABSPATH' ) ) {
         </article>
     </section>
 
-    <section id="alfawz-routine-section" class="alfawz-dashboard-routine hidden" aria-labelledby="alfawz-routine-heading" aria-live="polite" aria-hidden="true">
+    <section
+        id="alfawz-routine-section"
+        class="alfawz-dashboard-routine hidden"
+        aria-labelledby="alfawz-routine-heading"
+        aria-live="polite"
+        aria-hidden="true"
+        data-animate
+        data-animate-delay="480"
+    >
         <div class="alfawz-dashboard-section-header">
             <div>
                 <h2 id="alfawz-routine-heading"><?php esc_html_e( 'Your daily Quranic routine', 'alfawzquran' ); ?></h2>
@@ -84,7 +115,7 @@ if ( ! defined( 'ABSPATH' ) ) {
         <div data-routine-cards class="alfawz-dashboard-routine-list" role="list"></div>
     </section>
 
-    <section class="alfawz-dashboard-columns" aria-labelledby="alfawz-continue">
+    <section class="alfawz-dashboard-columns" aria-labelledby="alfawz-continue" data-animate data-animate-delay="560">
         <h3 id="alfawz-continue" class="screen-reader-text"><?php esc_html_e( 'Continue where you left off', 'alfawzquran' ); ?></h3>
         <article class="alfawz-dashboard-panel" id="alfawz-last-verse-card">
             <div class="alfawz-dashboard-panel-header">
@@ -96,7 +127,11 @@ if ( ! defined( 'ABSPATH' ) ) {
             </div>
             <p class="alfawz-dashboard-panel-body" id="alfawz-last-verse-preview"></p>
             <div class="alfawz-dashboard-panel-actions">
-                <button type="button" class="alfawz-button" data-action="continue-reading">
+                <button
+                    type="button"
+                    class="alfawz-button inline-flex items-center gap-2 rounded-full bg-rose-600 px-5 py-2 text-sm font-semibold text-rose-50 transition hover:bg-rose-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-rose-900"
+                    data-action="continue-reading"
+                >
                     <span aria-hidden="true">📖</span>
                     <span><?php esc_html_e( 'Open reader', 'alfawzquran' ); ?></span>
                 </button>
@@ -119,7 +154,11 @@ if ( ! defined( 'ABSPATH' ) ) {
                 <p id="alfawz-plan-meta" class="alfawz-dashboard-progress-meta"></p>
             </div>
             <div class="alfawz-dashboard-panel-actions">
-                <button type="button" class="alfawz-button" data-action="open-memoriser">
+                <button
+                    type="button"
+                    class="alfawz-button inline-flex items-center gap-2 rounded-full bg-amber-200 px-5 py-2 text-sm font-semibold text-rose-900 transition hover:bg-amber-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-rose-900"
+                    data-action="open-memoriser"
+                >
                     <span aria-hidden="true">🧠</span>
                     <span><?php esc_html_e( 'Go to memoriser', 'alfawzquran' ); ?></span>
                 </button>
@@ -130,7 +169,7 @@ if ( ! defined( 'ABSPATH' ) ) {
         </article>
     </section>
 
-    <section class="alfawz-dashboard-columns" aria-labelledby="alfawz-community">
+    <section class="alfawz-dashboard-columns" aria-labelledby="alfawz-community" data-animate data-animate-delay="640">
         <div class="alfawz-dashboard-panel alfawz-dashboard-panel--accent">
             <div class="alfawz-dashboard-section-header">
                 <h3 id="alfawz-community"><?php esc_html_e( 'Community leaderboard', 'alfawzquran' ); ?></h3>
