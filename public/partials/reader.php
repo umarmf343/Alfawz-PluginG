@@ -54,10 +54,32 @@
             </div>
 
             <div class="alfawz-verse-card alfawz-hidden" id="reader-verse-card" role="group" aria-live="polite">
-                <div class="alfawz-focus-card alfawz-verse-focus-card" tabindex="0">
+                <button
+                    id="prev-verse-btn"
+                    type="button"
+                    class="alfawz-verse-nav-button alfawz-verse-nav-button--prev"
+                    aria-label="<?php esc_attr_e('Previous verse', 'alfawzquran'); ?>"
+                    disabled
+                >
+                    <span class="alfawz-verse-nav-icon" aria-hidden="true">◀️</span>
+                    <span class="alfawz-sr-only"><?php _e('Previous verse', 'alfawzquran'); ?></span>
+                </button>
+
+                <div class="alfawz-focus-card alfawz-verse-focus-card alfawz-reader-verse-content" tabindex="0">
                     <div class="alfawz-verse-arabic" id="reader-quran-text" dir="rtl" lang="ar"></div>
                     <div class="alfawz-verse-translation" id="reader-quran-translation"></div>
                 </div>
+
+                <button
+                    id="next-verse-btn"
+                    type="button"
+                    class="alfawz-verse-nav-button alfawz-verse-nav-button--next"
+                    aria-label="<?php esc_attr_e('Next verse', 'alfawzquran'); ?>"
+                    disabled
+                >
+                    <span class="alfawz-verse-nav-icon" aria-hidden="true">▶️</span>
+                    <span class="alfawz-sr-only"><?php _e('Next verse', 'alfawzquran'); ?></span>
+                </button>
             </div>
         </div>
 
@@ -87,14 +109,6 @@
             </div>
             <span class="alfawz-hasanat-sparkle"></span>
             <span class="alfawz-hasanat-glow"></span>
-        </div>
-        <div class="alfawz-mobile-controls-row">
-            <button id="prev-verse-btn" class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md alfawz-btn alfawz-mobile-nav-btn" disabled>
-                <span class="alfawz-btn-icon">◀️</span> <?php _e('Previous', 'alfawzquran'); ?>
-            </button>
-            <button id="next-verse-btn" class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md alfawz-btn alfawz-mobile-nav-btn" disabled>
-                <?php _e('Next', 'alfawzquran'); ?> <span class="alfawz-btn-icon">▶️</span>
-            </button>
         </div>
         </div>
 

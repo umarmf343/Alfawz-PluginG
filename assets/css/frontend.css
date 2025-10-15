@@ -45,6 +45,18 @@
   --font-arabic: "Amiri", "Times New Roman", serif;
 }
 
+.alfawz-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 /* ========================================
    2. LAYOUT & CONTAINERS
    ======================================== */
@@ -1186,6 +1198,10 @@
   transition: box-shadow 0.25s ease, transform 0.2s ease, outline-color 0.2s ease;
 }
 
+.alfawz-reader-verse-content {
+  padding: var(--spacing-xl) calc(var(--spacing-xl) + 52px);
+}
+
 .alfawz-verse-focus-card:focus,
 .alfawz-verse-focus-card:focus-visible {
   outline-color: rgba(111, 29, 27, 0.35);
@@ -1237,6 +1253,74 @@
   background: #fdf7ef;
   border-radius: var(--radius-md);
   border-left: 3px solid #b3724d;
+}
+
+.alfawz-verse-nav-button {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 52px;
+  height: 52px;
+  border-radius: var(--radius-full);
+  background: rgba(45, 55, 72, 0.12);
+  border: none;
+  color: #2d3748;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease, opacity 0.2s ease;
+  box-shadow: var(--shadow-sm);
+  touch-action: manipulation;
+  z-index: 2;
+  opacity: 0.9;
+}
+
+.alfawz-verse-nav-button:hover {
+  background: rgba(111, 29, 27, 0.18);
+  opacity: 1;
+}
+
+.alfawz-verse-nav-button:focus-visible {
+  outline: 3px solid rgba(111, 29, 27, 0.4);
+  outline-offset: 2px;
+  background: rgba(111, 29, 27, 0.2);
+  opacity: 1;
+}
+
+.alfawz-verse-nav-button:active {
+  transform: translateY(-50%) scale(0.95);
+}
+
+.alfawz-verse-nav-button:disabled {
+  opacity: 0.35;
+  box-shadow: none;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.alfawz-verse-nav-button--prev {
+  left: var(--spacing-lg);
+}
+
+.alfawz-verse-nav-button--next {
+  right: var(--spacing-lg);
+}
+
+.alfawz-verse-nav-icon {
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+@media (max-width: 640px) {
+  .alfawz-reader-verse-content {
+    padding: var(--spacing-lg) calc(var(--spacing-lg) + 44px);
+  }
+
+  .alfawz-verse-nav-button {
+    width: 46px;
+    height: 46px;
+  }
 }
 
 .alfawz-loading-message {
