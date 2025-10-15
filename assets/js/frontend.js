@@ -105,7 +105,7 @@
       return;
     }
 
-    const initialWidth = Number(element.dataset.progressValue ?? parseFloat(element.style.width) || 0);
+    const initialWidth = Number((element.dataset.progressValue ?? parseFloat(element.style.width)) || 0);
     if (Math.abs(finalWidth - initialWidth) < 0.5) {
       element.style.width = `${finalWidth}%`;
       element.dataset.progressValue = finalWidth;
