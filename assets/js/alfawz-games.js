@@ -111,7 +111,7 @@
     if (!host) {
       return;
     }
-    const colors = ['#34d399', '#f97316', '#60a5fa', '#f59e0b', '#8b5cf6'];
+    const colors = ['#8b1e3f', '#f59bb4', '#f4d6c7', '#ffd166', '#b4637a'];
     const container = document.createElement('div');
     container.className = 'alfawz-confetti-container';
     host.appendChild(container);
@@ -153,10 +153,10 @@
 
   const buildProgressBar = (progress, target) => {
     const wrapper = document.createElement('div');
-    wrapper.className = 'mt-3 h-2 w-full overflow-hidden rounded-full bg-slate-100';
+    wrapper.className = 'mt-4 h-2.5 w-full overflow-hidden rounded-full bg-[#f3d9d2]/80';
 
     const bar = document.createElement('div');
-    bar.className = 'h-2 rounded-full bg-emerald-400 transition-all duration-500';
+    bar.className = 'h-full rounded-full bg-gradient-to-r from-[#8b1e3f] via-[#d05672] to-[#f9a8b5] transition-all duration-500';
     const percentage = target > 0 ? clampPercent((progress / target) * 100) : 0;
     bar.style.width = `${percentage}%`;
     wrapper.appendChild(bar);
@@ -189,8 +189,10 @@
     achievements.forEach((achievement, index) => {
       const unlocked = Boolean(achievement.unlocked);
       const card = document.createElement('div');
-      card.className = `relative flex flex-col items-center rounded-xl border-2 p-4 text-center shadow-sm transition-transform duration-300 ${
-        unlocked ? 'border-emerald-300 bg-emerald-50 text-emerald-900' : 'border-slate-200 bg-white text-slate-700'
+      card.className = `relative flex flex-col items-center overflow-hidden rounded-3xl border border-[#8b1e3f]/20 p-6 text-center shadow-xl transition-transform duration-300 ${
+        unlocked
+          ? 'bg-gradient-to-br from-[#fbe6dd]/90 via-[#fde9e5]/90 to-white/95 text-[#4d081d] shadow-[#4d081d]/15'
+          : 'bg-white/95 text-[#5f0d26] shadow-[#2e0715]/10'
       }`;
       card.dataset.status = unlocked ? 'unlocked' : 'locked';
       card.style.setProperty('--alfawz-delay', `${index * 100}ms`);
@@ -199,7 +201,7 @@
       });
 
       const icon = document.createElement('div');
-      icon.className = 'text-4xl';
+      icon.className = 'text-4xl drop-shadow-sm';
       icon.setAttribute('aria-hidden', 'true');
       icon.textContent = achievement.icon || (unlocked ? '✨' : '🔒');
       card.appendChild(icon);
@@ -211,25 +213,25 @@
 
       if (achievement.description) {
         const description = document.createElement('p');
-        description.className = 'mt-1 text-base text-emerald-800/80';
+        description.className = 'mt-2 text-base font-medium text-[#7a0f32]/80';
         description.textContent = achievement.description;
         card.appendChild(description);
       }
 
       if (Number.isFinite(achievement.reward)) {
         const reward = document.createElement('p');
-        reward.className = 'mt-3 inline-flex items-center rounded-full bg-white/70 px-3 py-1 text-sm font-semibold text-emerald-700 shadow-sm';
+        reward.className = 'mt-4 inline-flex items-center rounded-full bg-white/70 px-3 py-1 text-sm font-semibold text-[#8b1e3f] shadow-sm';
         reward.textContent = `+${formatNumber(achievement.reward)} Hasanat`;
         card.appendChild(reward);
       }
 
       if (achievement.target) {
         const { wrapper, percentage } = buildProgressBar(achievement.progress || 0, achievement.target);
-        wrapper.classList.add('mt-4');
+        wrapper.classList.add('mt-5');
         card.appendChild(wrapper);
 
         const caption = document.createElement('p');
-        caption.className = 'mt-2 text-sm font-medium';
+        caption.className = 'mt-3 text-sm font-semibold text-[#7a0f32]';
         const progressValue = `${formatNumber(Math.min(achievement.progress || 0, achievement.target))} / ${formatNumber(
           achievement.target
         )}`;
@@ -275,7 +277,7 @@
 
   const renderQuest = (quest) => {
     const item = document.createElement('div');
-    item.className = 'alfawz-quest-item relative overflow-hidden rounded-xl border border-purple-100 bg-white p-4 shadow-sm';
+    item.className = 'alfawz-quest-item relative overflow-hidden rounded-3xl border border-[#8b1e3f]/15 bg-white/95 p-5 shadow-xl shadow-[#2e0715]/10 transition-transform duration-300 hover:-translate-y-1 hover:shadow-2xl';
     item.dataset.questId = quest.id || '';
 
     const status = quest.status || 'in_progress';
@@ -286,8 +288,8 @@
     item.appendChild(header);
 
     const badge = document.createElement('div');
-    badge.className = `mr-3 flex h-12 w-12 flex-none items-center justify-center rounded-full text-2xl ${
-      isCompleted ? 'bg-purple-500 text-white' : 'bg-purple-100 text-purple-600'
+    badge.className = `mr-4 flex h-12 w-12 flex-none items-center justify-center rounded-2xl text-2xl ${
+      isCompleted ? 'bg-[#8b1e3f] text-white shadow-lg shadow-[#4d081d]/25' : 'bg-[#fbe0e8] text-[#8b1e3f] shadow-inner'
     }`;
     badge.textContent = isCompleted ? '✓' : quest.icon || '☆';
     header.appendChild(badge);
@@ -297,19 +299,19 @@
     header.appendChild(info);
 
     const title = document.createElement('p');
-    title.className = 'text-lg font-semibold text-slate-900';
+    title.className = 'text-lg font-bold text-[#4d081d]';
     title.textContent = quest.title || '';
     info.appendChild(title);
 
     if (quest.description) {
       const description = document.createElement('p');
-      description.className = 'text-base text-purple-600';
+      description.className = 'mt-1 text-base text-[#b4637a]';
       description.textContent = quest.description;
       info.appendChild(description);
     }
 
     const reward = document.createElement('div');
-    reward.className = 'mt-3 inline-flex items-center rounded-full bg-purple-50 px-3 py-1 text-sm font-semibold text-purple-700';
+    reward.className = 'mt-3 inline-flex items-center rounded-full bg-[#fde8ef] px-3 py-1 text-sm font-semibold text-[#8b1e3f] shadow-sm';
     if (Number.isFinite(quest.reward)) {
       reward.textContent = `+${formatNumber(quest.reward)} Hasanat`;
     } else {
@@ -323,7 +325,7 @@
       item.appendChild(wrapper);
 
       const caption = document.createElement('p');
-      caption.className = 'mt-2 text-sm font-medium text-slate-700';
+      caption.className = 'mt-2 text-sm font-semibold text-[#7a0f32]';
       const value = `${formatNumber(Math.min(quest.progress || 0, quest.target))} / ${formatNumber(quest.target)}`;
       caption.textContent = isCompleted ? `${strings.completed} • ${value}` : `${value} • ${percentage.toFixed(0)}%`;
       item.appendChild(caption);
