@@ -1017,11 +1017,283 @@
     }
   };
 
+  const initSettings = async () => {
+    const root = qs('#alfawz-settings');
+    if (!root || !wpData.isLoggedIn) {
+      return;
+    }
+
+    const form = qs('#alfawz-settings-form', root);
+    const reciterSelect = qs('#alfawz-settings-reciter', form);
+    const translationSelect = qs('#alfawz-settings-translation', form);
+    const transliterationSelect = qs('#alfawz-settings-transliteration', form);
+    const hasanatField = qs('#alfawz-settings-hasanat', form);
+    const dailySlider = qs('#alfawz-settings-daily', form);
+    const dailyLabel = qs('#alfawz-settings-daily-label', root);
+    const dailyNote = qs('#alfawz-settings-daily-note', root);
+    const leaderboardToggle = qs('#alfawz-settings-leaderboard', form);
+    const toggleCopy = qs('[data-toggle-copy]', form);
+    const resetBtn = qs('#alfawz-settings-reset', root);
+    const saveBtn = qs('#alfawz-settings-save', root);
+    const feedback = qs('#alfawz-settings-feedback', root);
+    const plansMetric = qs('#alfawz-settings-metric-plans', root);
+    const versesMetric = qs('#alfawz-settings-metric-verses', root);
+    const streakMetric = qs('#alfawz-settings-metric-streak', root);
+    const highlightTitle = qs('#alfawz-settings-highlight-title', root);
+    const highlightNote = qs('#alfawz-settings-highlight-note', root);
+    const planList = qs('#alfawz-settings-plan-list', root);
+    const planEmpty = qs('#alfawz-settings-plan-empty', root);
+    const tipParagraph = qs('#alfawz-settings-quote p', root);
+    const tipSource = qs('#alfawz-settings-quote-source', root);
+    const refreshTip = qs('#alfawz-settings-refresh-tip', root);
+
+    const fallbackPreferences = {
+      default_reciter: wpData.defaultReciter || 'ar.alafasy',
+      default_translation: wpData.defaultTranslation || 'en.sahih',
+      default_transliteration: wpData.defaultTransliteration ?? 'en.transliteration',
+      hasanat_per_letter: Number(wpData.hasanatPerLetter || 10),
+      daily_verse_target: Number(wpData.dailyTarget || 10),
+      enable_leaderboard: wpData.userPreferences?.enable_leaderboard ?? true,
+    };
+
+    const statePrefs = { ...fallbackPreferences, ...(wpData.userPreferences || {}) };
+
+    const tips = [
+      {
+        text: '“The most beloved deed to Allah is the most regular and constant even if it were little.”',
+        source: 'Prophet Muhammad ﷺ – Sahih al-Bukhari',
+      },
+      {
+        text: '“Your heart finds rest when the Quran is recited, so keep it luminous with daily verses.”',
+        source: 'Al-Ghazali – Ihya Ulum ad-Din',
+      },
+      {
+        text: '“Tie your memorisation with review, for knowledge leaves when neglected.”',
+        source: 'Imam Shafi’i – Adab al-Shafi’i',
+      },
+      {
+        text: '“Let each verse you recite be a conversation with your Lord that softens the heart.”',
+        source: 'Ibn al-Qayyim – Al-Fawaid',
+      },
+    ];
+
+    const setFeedback = (message, status = '') => {
+      if (!feedback) {
+        return;
+      }
+      feedback.textContent = message || '';
+      if (status) {
+        feedback.dataset.status = status;
+      } else {
+        delete feedback.dataset.status;
+      }
+    };
+
+    const updateDailySliderCopy = (value) => {
+      if (dailyLabel) {
+        dailyLabel.textContent = `${value}`;
+      }
+      if (dailyNote) {
+        if (value < 10) {
+          dailyNote.textContent = 'Gentle steps build unshakeable habits—keep it steady.';
+        } else if (value < 20) {
+          dailyNote.textContent = 'A balanced challenge that keeps recitation flowing every day.';
+        } else {
+          dailyNote.textContent = 'Aim high and remember to review—consistency crowns the journey.';
+        }
+      }
+    };
+
+    const applyPreferences = (preferences = {}) => {
+      const merged = { ...fallbackPreferences, ...preferences };
+      statePrefs.default_reciter = merged.default_reciter;
+      statePrefs.default_translation = merged.default_translation;
+      statePrefs.default_transliteration = merged.default_transliteration;
+      statePrefs.hasanat_per_letter = Number(merged.hasanat_per_letter || fallbackPreferences.hasanat_per_letter);
+      statePrefs.daily_verse_target = Number(merged.daily_verse_target || fallbackPreferences.daily_verse_target);
+      statePrefs.enable_leaderboard = Boolean(
+        merged.enable_leaderboard ?? fallbackPreferences.enable_leaderboard
+      );
+
+      if (reciterSelect) {
+        reciterSelect.value = statePrefs.default_reciter;
+      }
+      if (translationSelect) {
+        translationSelect.value = statePrefs.default_translation;
+      }
+      if (transliterationSelect) {
+        transliterationSelect.value = statePrefs.default_transliteration ?? '';
+      }
+      if (hasanatField) {
+        hasanatField.value = statePrefs.hasanat_per_letter;
+      }
+      if (dailySlider) {
+        dailySlider.value = statePrefs.daily_verse_target;
+        updateDailySliderCopy(statePrefs.daily_verse_target);
+      }
+      if (leaderboardToggle) {
+        leaderboardToggle.checked = Boolean(statePrefs.enable_leaderboard);
+      }
+      if (toggleCopy) {
+        toggleCopy.textContent = leaderboardToggle?.checked
+          ? 'Show me on the community leaderboard'
+          : 'Keep my progress private';
+      }
+    };
+
+    const loadPreferences = async () => {
+      try {
+        const response = await apiRequest('user-preferences');
+        if (response && typeof response === 'object') {
+          applyPreferences(response);
+        } else {
+          applyPreferences(statePrefs);
+        }
+      } catch (error) {
+        console.warn('[AlfawzQuran] Unable to load user preferences', error);
+        applyPreferences(statePrefs);
+      }
+    };
+
+    const loadMetrics = async () => {
+      try {
+        const stats = state.dashboardStats || await apiRequest('user-stats');
+        if (plansMetric) {
+          plansMetric.textContent = formatNumber(stats?.active_plans || 0);
+        }
+        if (versesMetric) {
+          versesMetric.textContent = formatNumber(stats?.verses_memorized || 0);
+        }
+        if (streakMetric) {
+          streakMetric.textContent = formatNumber(stats?.current_streak || 0);
+        }
+        if (highlightTitle) {
+          if ((stats?.current_streak || 0) > 0) {
+            highlightTitle.textContent = `Keep nurturing your ${formatNumber(stats.current_streak)} day streak!`;
+            highlightNote.textContent = 'Log a quick recitation session today to protect the momentum.';
+          } else {
+            highlightTitle.textContent = 'Begin a new streak today';
+            highlightNote.textContent = 'Even one ayah brings you closer—set a gentle target and press play.';
+          }
+        }
+      } catch (error) {
+        console.warn('[AlfawzQuran] Unable to load settings metrics', error);
+      }
+    };
+
+    const renderPlans = async () => {
+      if (!planList) {
+        return;
+      }
+      planList.innerHTML = '';
+      planList.setAttribute('aria-busy', 'true');
+      try {
+        const plans = await apiRequest('memorization-plans');
+        planList.innerHTML = '';
+        const collection = Array.isArray(plans) ? plans : [];
+        if (!collection.length) {
+          planList.setAttribute('aria-busy', 'false');
+          planEmpty?.classList.remove('hidden');
+          return;
+        }
+        planEmpty?.classList.add('hidden');
+        collection.slice(0, 4).forEach((plan) => {
+          const li = document.createElement('li');
+          li.className = 'alfawz-settings-plan-item';
+          const completion = Number(plan.completion_percentage || 0);
+          li.innerHTML = `
+            <div class="flex items-center justify-between gap-3">
+              <p class="text-sm font-semibold text-slate-900">${plan.plan_name || 'Memorisation plan'}</p>
+              <span class="text-xs font-semibold text-emerald-600">${formatPercent(completion)}</span>
+            </div>
+            <div class="alfawz-settings-plan-item__meta">
+              <span>Surah ${plan.surah_id}</span>
+              <span>Ayah ${plan.start_verse} – ${plan.end_verse}</span>
+            </div>
+            <div class="alfawz-settings-plan-item__progress"><span style="width:${Math.min(100, completion)}%"></span></div>
+          `;
+          planList.appendChild(li);
+        });
+        planList.setAttribute('aria-busy', 'false');
+      } catch (error) {
+        console.warn('[AlfawzQuran] Unable to load memorisation plans', error);
+        planList.innerHTML = '<li class="text-sm text-slate-500">Unable to load plans right now.</li>';
+        planList.setAttribute('aria-busy', 'false');
+      }
+    };
+
+    const rotateTip = () => {
+      const choice = tips[Math.floor(Math.random() * tips.length)];
+      if (tipParagraph) {
+        tipParagraph.textContent = choice.text;
+      }
+      if (tipSource) {
+        tipSource.textContent = choice.source;
+      }
+    };
+
+    form?.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      if (!saveBtn) {
+        return;
+      }
+      saveBtn.disabled = true;
+      saveBtn.classList.add('is-loading');
+      setFeedback('Saving preferences…');
+      const payload = {
+        default_reciter: reciterSelect?.value || fallbackPreferences.default_reciter,
+        default_translation: translationSelect?.value || fallbackPreferences.default_translation,
+        default_transliteration: transliterationSelect?.value || '',
+        hasanat_per_letter: Number(hasanatField?.value || fallbackPreferences.hasanat_per_letter),
+        daily_verse_target: Number(dailySlider?.value || fallbackPreferences.daily_verse_target),
+        enable_leaderboard: leaderboardToggle?.checked ? 1 : 0,
+      };
+      try {
+        const response = await apiRequest('user-preferences', {
+          method: 'POST',
+          body: payload,
+        });
+        applyPreferences(response || payload);
+        setFeedback(wpData.strings?.settingsSaved || 'Preferences updated!', 'success');
+      } catch (error) {
+        console.warn('[AlfawzQuran] Unable to save user preferences', error);
+        setFeedback(wpData.strings?.settingsError || 'Unable to save preferences. Please try again.', 'error');
+      } finally {
+        saveBtn.disabled = false;
+        saveBtn.classList.remove('is-loading');
+      }
+    });
+
+    dailySlider?.addEventListener('input', (event) => {
+      const value = Number(event.target.value || fallbackPreferences.daily_verse_target);
+      updateDailySliderCopy(value);
+    });
+
+    leaderboardToggle?.addEventListener('change', () => {
+      if (toggleCopy) {
+        toggleCopy.textContent = leaderboardToggle.checked
+          ? 'Show me on the community leaderboard'
+          : 'Keep my progress private';
+      }
+    });
+
+    resetBtn?.addEventListener('click', () => {
+      applyPreferences(fallbackPreferences);
+      setFeedback('Preferences reset to site defaults.', 'success');
+    });
+
+    refreshTip?.addEventListener('click', rotateTip);
+
+    rotateTip();
+    await Promise.all([loadPreferences(), loadMetrics(), renderPlans()]);
+  };
+
   document.addEventListener('DOMContentLoaded', () => {
     initDashboard();
     initReader();
     initMemorizer();
     initLeaderboard();
     initProfile();
+    initSettings();
   });
 })();

@@ -81,7 +81,13 @@ class Frontend {
                 'dailyTarget' => get_option('alfawz_daily_verse_target', 10),
                 'defaultReciter' => get_option('alfawz_default_reciter', 'ar.alafasy'),
                 'defaultTranslation' => get_option('alfawz_default_translation', 'en.sahih'),
-                'defaultTransliteration' => get_option('alfawz_default_transliteration', 'en.transliteration')
+                'defaultTransliteration' => get_option('alfawz_default_transliteration', 'en.transliteration'),
+                'enableLeaderboard' => (bool) get_option('alfawz_enable_leaderboard', 1),
+                'userPreferences' => $this->get_user_preferences_for_script(),
+                'strings' => [
+                    'settingsSaved' => __('Preferences updated!', 'alfawzquran'),
+                    'settingsError' => __('Unable to save preferences. Please try again.', 'alfawzquran'),
+                ],
             ]);
 
             wp_localize_script('alfawz-memorization', 'alfawzMemoData', [
@@ -148,6 +154,16 @@ class Frontend {
                     'button' => __('Use this image', 'alfawzquran'),
                 ],
             ]);
+        }
+
+        if ($this->current_page_uses_shortcode('alfawz_games')) {
+            wp_enqueue_script(
+                'alfawz-games',
+                ALFAWZQURAN_PLUGIN_URL . 'assets/js/alfawz-games.js',
+                [ 'alfawz-frontend' ],
+                ALFAWZQURAN_VERSION,
+                true
+            );
         }
 
         if ($this->current_page_uses_shortcode('alfawz_teacher_dashboard')) {
@@ -404,6 +420,52 @@ class Frontend {
         }
 
         return 'student';
+    }
+
+    private function get_user_preferences_for_script() {
+        if (!is_user_logged_in()) {
+            return [];
+        }
+
+        $defaults = [
+            'default_reciter'         => get_option('alfawz_default_reciter', 'ar.alafasy'),
+            'default_translation'     => get_option('alfawz_default_translation', 'en.sahih'),
+            'default_transliteration' => get_option('alfawz_default_transliteration', 'en.transliteration'),
+            'hasanat_per_letter'      => (int) get_option('alfawz_hasanat_per_letter', 10),
+            'daily_verse_target'      => (int) get_option('alfawz_daily_verse_target', 10),
+            'enable_leaderboard'      => (bool) get_option('alfawz_enable_leaderboard', 1),
+        ];
+
+        $user_id = get_current_user_id();
+        $meta_map = [
+            'default_reciter'         => 'alfawz_pref_default_reciter',
+            'default_translation'     => 'alfawz_pref_default_translation',
+            'default_transliteration' => 'alfawz_pref_default_transliteration',
+            'hasanat_per_letter'      => 'alfawz_pref_hasanat_per_letter',
+            'daily_verse_target'      => 'alfawz_pref_daily_target',
+            'enable_leaderboard'      => 'alfawz_pref_enable_leaderboard',
+        ];
+
+        $preferences = [];
+
+        foreach ($meta_map as $key => $meta_key) {
+            $value = get_user_meta($user_id, $meta_key, true);
+
+            if ('' === $value || null === $value) {
+                $preferences[$key] = $defaults[$key];
+                continue;
+            }
+
+            if ('enable_leaderboard' === $key) {
+                $preferences[$key] = (bool) $value;
+            } elseif (in_array($key, ['hasanat_per_letter', 'daily_verse_target'], true)) {
+                $preferences[$key] = (int) $value;
+            } else {
+                $preferences[$key] = $value;
+            }
+        }
+
+        return $preferences;
     }
 
     private function current_user_is_teacher() {
