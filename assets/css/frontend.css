@@ -4272,3 +4272,210 @@ body.alfawz-qaidah-modal-open {
     padding: 1.5rem;
   }
 }
+
+/* Teacher dashboard embellishments */
+.alfawz-teacher-orb {
+  position: absolute;
+  top: -18rem;
+  left: 50%;
+  width: 32rem;
+  height: 32rem;
+  transform: translateX(-50%);
+  background: radial-gradient(circle at 35% 35%, rgba(255, 231, 214, 0.85), transparent 70%);
+  filter: blur(8px);
+  opacity: 0.68;
+  animation: alfawzTeacherFloat 18s ease-in-out infinite;
+}
+
+.alfawz-teacher-orb--secondary {
+  top: auto;
+  bottom: -14rem;
+  left: auto;
+  right: -10rem;
+  width: 24rem;
+  height: 24rem;
+  background: radial-gradient(circle at 60% 40%, rgba(90, 15, 39, 0.65), transparent 75%);
+  opacity: 0.52;
+  animation-duration: 22s;
+  animation-direction: alternate;
+}
+
+.alfawz-teacher-trail {
+  position: absolute;
+  inset: auto auto -8rem -12rem;
+  width: 38rem;
+  height: 38rem;
+  background: radial-gradient(circle at 20% 20%, rgba(255, 244, 230, 0.4), transparent 70%);
+  filter: blur(80px);
+  opacity: 0.7;
+  animation: alfawzTeacherPulse 16s ease-in-out infinite;
+}
+
+#alfawz-teacher-dashboard {
+  position: relative;
+  isolation: isolate;
+}
+
+#alfawz-teacher-dashboard .alfawz-teacher-card {
+  position: relative;
+  overflow: hidden;
+}
+
+#alfawz-teacher-dashboard .alfawz-teacher-card::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  background: linear-gradient(135deg, rgba(255, 244, 230, 0.65), rgba(255, 231, 214, 0.35));
+  border: 1px solid rgba(168, 50, 84, 0.16);
+  opacity: 0;
+  transition: opacity 0.6s ease;
+  pointer-events: none;
+}
+
+#alfawz-teacher-dashboard .alfawz-teacher-card:hover::before,
+#alfawz-teacher-dashboard .alfawz-teacher-card:focus-within::before,
+#alfawz-teacher-dashboard .alfawz-teacher-card.is-visible::before {
+  opacity: 1;
+}
+
+[data-alfawz-animate] {
+  --alfawz-animate-delay: 0s;
+  --alfawz-animate-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  opacity: 0;
+  transform: translate3d(0, 32px, 0) scale(0.97);
+  transition: transform 0.68s var(--alfawz-animate-ease) var(--alfawz-animate-delay),
+    opacity 0.68s ease var(--alfawz-animate-delay);
+  will-change: transform, opacity;
+}
+
+[data-alfawz-animate].is-visible {
+  opacity: 1;
+  transform: translate3d(0, 0, 0) scale(1);
+}
+
+[data-alfawz-animate='scale'] {
+  transform: translate3d(0, 18px, 0) scale(0.92);
+}
+
+[data-alfawz-animate='scale'].is-visible {
+  transform: translate3d(0, 0, 0) scale(1);
+}
+
+.alfawz-teacher-stat {
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 10px 28px rgba(47, 8, 17, 0.12);
+}
+
+.alfawz-teacher-stat::after {
+  content: '';
+  position: absolute;
+  inset: -40%;
+  background: conic-gradient(from 180deg at 50% 50%, rgba(247, 231, 214, 0), rgba(247, 231, 214, 0.6), rgba(247, 231, 214, 0));
+  opacity: 0;
+  transform: rotate(0deg);
+  transition: opacity 0.6s ease;
+  pointer-events: none;
+}
+
+[data-alfawz-animate].is-visible.alfawz-teacher-stat::after {
+  opacity: 1;
+  animation: alfawzTeacherShimmer 8s linear infinite;
+}
+
+#alfawz-teacher-dashboard [data-alfawz-teacher-refresh].is-busy {
+  opacity: 0.75;
+  pointer-events: none;
+}
+
+#alfawz-teacher-dashboard [data-alfawz-teacher-refresh].is-busy span[aria-hidden='true'] {
+  animation: alfawzTeacherSpin 0.9s linear infinite;
+  display: inline-flex;
+}
+
+#alfawz-teacher-dashboard table tbody tr[data-alfawz-animate] {
+  transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.6s ease;
+}
+
+#alfawz-teacher-dashboard table tbody tr[data-alfawz-animate]:not(.is-visible) {
+  transform: translateY(24px);
+  opacity: 0;
+}
+
+#alfawz-teacher-dashboard table tbody tr[data-alfawz-animate].is-visible {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+#alfawz-teacher-dashboard .alfawz-teacher-mini {
+  transition: transform 0.4s ease, box-shadow 0.4s ease;
+}
+
+#alfawz-teacher-dashboard .alfawz-teacher-mini:hover,
+#alfawz-teacher-dashboard .alfawz-teacher-mini:focus-within {
+  transform: translateY(-4px);
+  box-shadow: 0 24px 48px rgba(47, 8, 17, 0.16);
+}
+
+@keyframes alfawzTeacherFloat {
+  0% {
+    transform: translate(-50%, -6%) scale(1);
+  }
+  50% {
+    transform: translate(-48%, 6%) scale(1.04);
+  }
+  100% {
+    transform: translate(-52%, -2%) scale(0.98);
+  }
+}
+
+@keyframes alfawzTeacherPulse {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: scale(0.9) translate3d(0, 0, 0);
+  }
+  50% {
+    opacity: 0.85;
+    transform: scale(1.05) translate3d(12px, -10px, 0);
+  }
+}
+
+@keyframes alfawzTeacherShimmer {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes alfawzTeacherSpin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .alfawz-teacher-orb,
+  .alfawz-teacher-orb--secondary,
+  .alfawz-teacher-trail {
+    animation: none;
+  }
+
+  [data-alfawz-animate] {
+    transition: none;
+    opacity: 1;
+    transform: none;
+  }
+
+  #alfawz-teacher-dashboard table tbody tr[data-alfawz-animate] {
+    transition: none;
+    transform: none;
+    opacity: 1;
+  }
+}

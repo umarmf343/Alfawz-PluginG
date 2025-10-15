@@ -21,6 +21,12 @@
     memorization: [],
   };
 
+  const reduceMotionQuery =
+    typeof window.matchMedia === 'function' ? window.matchMedia('(prefers-reduced-motion: reduce)') : null;
+  let prefersReducedMotion = reduceMotionQuery ? reduceMotionQuery.matches : false;
+  let animateObserver = null;
+  const animationFrameIds = new WeakMap();
+
   const assignmentTable = document.getElementById('alfawz-teacher-assignment-rows');
   const classCards = document.getElementById('alfawz-teacher-class-cards');
   const memoList = document.getElementById('alfawz-teacher-memo-list');
@@ -34,24 +40,185 @@
     memorization: Array.from(document.querySelectorAll('[data-alfawz-metric="memorization"]')),
   };
 
-  const updateMetricGroup = (key, value, fallbackLabel) => {
-    const targets = metricTargets[key] || [];
-    targets.forEach((element) => updateLabelledValue(element, value, fallbackLabel));
+  const setElementDelay = (element, delayOverride) => {
+    if (!element) {
+      return;
+    }
+
+    if (typeof delayOverride === 'number' && Number.isFinite(delayOverride)) {
+      element.setAttribute('data-alfawz-delay', delayOverride.toFixed(2));
+    } else if (typeof delayOverride === 'string') {
+      element.setAttribute('data-alfawz-delay', delayOverride);
+    }
+
+    const delayAttr = element.getAttribute('data-alfawz-delay');
+    if (delayAttr !== null) {
+      const delay = Number(delayAttr);
+      if (Number.isFinite(delay)) {
+        element.style.setProperty('--alfawz-animate-delay', `${delay}s`);
+      }
+    }
+  };
+
+  const initAnimatedElements = () => {
+    const animated = Array.from(root.querySelectorAll('[data-alfawz-animate]'));
+
+    if (!animated.length) {
+      return;
+    }
+
+    if (animateObserver) {
+      animateObserver.disconnect();
+    }
+
+    if (prefersReducedMotion || !('IntersectionObserver' in window)) {
+      animateObserver = null;
+      animated.forEach((element) => {
+        setElementDelay(element);
+        element.classList.add('is-visible');
+      });
+      return;
+    }
+
+    animateObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const target = entry.target;
+            setElementDelay(target);
+            target.classList.add('is-visible');
+            animateObserver.unobserve(target);
+          }
+        });
+      },
+      { threshold: 0.18, rootMargin: '0px 0px -10% 0px' }
+    );
+
+    animated.forEach((element) => {
+      element.classList.remove('is-visible');
+      setElementDelay(element);
+      animateObserver.observe(element);
+    });
+  };
+
+  const registerAnimatedElement = (element, delay = null) => {
+    if (!element) {
+      return;
+    }
+
+    setElementDelay(element, delay);
+
+    if (prefersReducedMotion || !animateObserver) {
+      element.classList.add('is-visible');
+      return;
+    }
+
+    element.classList.remove('is-visible');
+    animateObserver.observe(element);
+  };
+
+  const handleReduceMotionChange = (event) => {
+    prefersReducedMotion = !!(event && event.matches);
+    initAnimatedElements();
+  };
+
+  if (reduceMotionQuery) {
+    if (typeof reduceMotionQuery.addEventListener === 'function') {
+      reduceMotionQuery.addEventListener('change', handleReduceMotionChange);
+    } else if (typeof reduceMotionQuery.addListener === 'function') {
+      reduceMotionQuery.addListener(handleReduceMotionChange);
+    }
+  }
+
+  const stopAnimation = (element) => {
+    if (!element) {
+      return;
+    }
+    const frameId = animationFrameIds.get(element);
+    if (frameId) {
+      cancelAnimationFrame(frameId);
+      animationFrameIds.delete(element);
+    }
+  };
+
+  const formatNumber = (value) => {
+    const number = Number(value || 0);
+    return Number.isFinite(number) ? new Intl.NumberFormat().format(number) : '0';
+  };
+
+  const formatMetricText = (value, label) => {
+    const formatted = formatNumber(Math.max(0, Math.round(value)));
+    return label ? `${formatted} ${label}`.trim() : formatted;
+  };
+
+  const animateNumberTo = (element, targetValue, label) => {
+    if (!element) {
+      return;
+    }
+
+    stopAnimation(element);
+
+    const storedValue = Number(element.dataset.alfawzCurrentValue);
+    const parsedCurrent = Number.isFinite(storedValue)
+      ? storedValue
+      : Number(String(element.textContent || '').replace(/[^0-9.-]/g, ''));
+    const startValue = Number.isFinite(parsedCurrent) ? parsedCurrent : 0;
+
+    if (prefersReducedMotion || Math.abs(targetValue - startValue) < 1) {
+      const finalValue = Math.max(0, Math.round(targetValue));
+      element.dataset.alfawzCurrentValue = finalValue;
+      element.textContent = formatMetricText(finalValue, label);
+      return;
+    }
+
+    const duration = 900;
+    const startTime = performance.now();
+
+    const step = (now) => {
+      const progress = Math.min((now - startTime) / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      const currentValue = startValue + (targetValue - startValue) * eased;
+      const rounded = Math.max(0, Math.round(currentValue));
+      element.dataset.alfawzCurrentValue = currentValue;
+      element.textContent = formatMetricText(rounded, label);
+
+      if (progress < 1) {
+        const frameId = requestAnimationFrame(step);
+        animationFrameIds.set(element, frameId);
+      } else {
+        const finalValue = Math.max(0, Math.round(targetValue));
+        element.dataset.alfawzCurrentValue = finalValue;
+        element.textContent = formatMetricText(finalValue, label);
+        animationFrameIds.delete(element);
+      }
+    };
+
+    const frameId = requestAnimationFrame(step);
+    animationFrameIds.set(element, frameId);
   };
 
   const updateLabelledValue = (element, value, fallbackLabel = '') => {
     if (!element) {
       return;
     }
+
     const label = element.getAttribute('data-label') || fallbackLabel || '';
+    const numericValue = typeof value === 'number' ? value : Number(value);
+
+    if (Number.isFinite(numericValue)) {
+      animateNumberTo(element, numericValue, label);
+      return;
+    }
+
+    stopAnimation(element);
     const text = String(value ?? '').trim();
     const suffix = label ? ` ${label}` : '';
-    element.textContent = `${text}${suffix}`.trim();
+    element.textContent = text ? `${text}${suffix}`.trim() : label;
   };
 
-  const formatNumber = (value) => {
-    const number = Number(value || 0);
-    return Number.isFinite(number) ? new Intl.NumberFormat().format(number) : '0';
+  const updateMetricGroup = (key, value, fallbackLabel) => {
+    const targets = metricTargets[key] || [];
+    targets.forEach((element) => updateLabelledValue(element, value, fallbackLabel));
   };
 
   const formatDate = (value) => {
@@ -228,18 +395,21 @@
 
     if (!state.assignments.length) {
       const row = document.createElement('tr');
+      row.setAttribute('data-alfawz-animate', 'scale');
       const cell = document.createElement('td');
       cell.colSpan = 5;
       cell.className = 'px-4 py-6 text-center text-base text-[#7b1e3c]/70';
       cell.textContent = strings.noAssignments || '—';
       row.appendChild(cell);
       assignmentTable.appendChild(row);
+      registerAnimatedElement(row, 0.05);
       return;
     }
 
-    state.assignments.forEach((assignment) => {
+    state.assignments.forEach((assignment, index) => {
       const row = document.createElement('tr');
       row.className = 'border-b border-[#f1d9c9]/60 last:border-0';
+      row.setAttribute('data-alfawz-animate', 'scale');
 
       const titleCell = document.createElement('td');
       titleCell.className = 'px-4 py-4 text-base font-semibold text-[#3d0b1e]';
@@ -281,6 +451,7 @@
       row.append(titleCell, classCell, updatedCell, statusCell, actionCell);
 
       assignmentTable.appendChild(row);
+      registerAnimatedElement(row, 0.05 * index);
     });
   };
 
@@ -294,15 +465,18 @@
     if (!state.memorization.length) {
       const empty = document.createElement('div');
       empty.className = 'rounded-2xl border border-[#f1d9c9] bg-[#fdf5ea] px-6 py-6 text-center text-base text-[#7b1e3c]/80';
+      empty.setAttribute('data-alfawz-animate', 'scale');
       empty.textContent = strings.noPlans || '—';
       memoList.appendChild(empty);
+      registerAnimatedElement(empty, 0.05);
       return;
     }
 
-    state.memorization.forEach((entry) => {
+    state.memorization.forEach((entry, index) => {
       const card = document.createElement('article');
       card.className = 'rounded-2xl border border-[#f1d9c9] bg-white/90 p-6 shadow-md shadow-[#2b0618]/5 transition hover:-translate-y-0.5 hover:shadow-xl';
       card.id = `memo-${entry.student.id}`;
+      card.setAttribute('data-alfawz-animate', 'scale');
 
       const header = document.createElement('div');
       header.className = 'flex flex-wrap items-center justify-between gap-4';
@@ -376,6 +550,7 @@
       }
 
       memoList.appendChild(card);
+      registerAnimatedElement(card, 0.05 * index);
     });
   };
 
@@ -394,10 +569,12 @@
     classCards.setAttribute('aria-busy', 'false');
 
     if (!state.classes.length) {
-    const empty = document.createElement('div');
-    empty.className = 'rounded-2xl bg-[#fdf5ea] px-4 py-4 text-center text-base text-[#7b1e3c]/80';
-    empty.textContent = strings.noClasses || '—';
+      const empty = document.createElement('div');
+      empty.className = 'rounded-2xl bg-[#fdf5ea] px-4 py-4 text-center text-base text-[#7b1e3c]/80';
+      empty.setAttribute('data-alfawz-animate', 'scale');
+      empty.textContent = strings.noClasses || '—';
       classCards.appendChild(empty);
+      registerAnimatedElement(empty, 0.05);
       return;
     }
 
@@ -405,6 +582,7 @@
       const variant = classCardVariants[index % classCardVariants.length];
       const wrapper = document.createElement('div');
       wrapper.className = `flex flex-col gap-3 rounded-2xl px-5 py-5 shadow-md shadow-[#2b0618]/5 transition hover:-translate-y-0.5 hover:shadow-xl ${variant.background}`;
+      wrapper.setAttribute('data-alfawz-animate', 'scale');
 
       const info = document.createElement('div');
       info.innerHTML = `<div class="text-lg font-bold text-[#3d0b1e]">${classItem.label || ''}</div><div class="text-sm text-[#502032]">${formatNumber(classItem.student_count || 0)} ${strings.studentsUnit || strings.studentsLabel || 'students'}</div>`;
@@ -415,6 +593,7 @@
 
       wrapper.append(info, status);
       classCards.appendChild(wrapper);
+      registerAnimatedElement(wrapper, 0.05 * index);
     });
   };
 
@@ -497,14 +676,17 @@
     if (!sorted.length) {
       const empty = document.createElement('li');
       empty.className = 'rounded-2xl bg-[#fdf5ea] px-4 py-4 text-base text-[#7b1e3c]/80';
+      empty.setAttribute('data-alfawz-animate', 'scale');
       empty.textContent = strings.recentActivityEmpty || 'No recent activity yet.';
       activityList.appendChild(empty);
+      registerAnimatedElement(empty, 0.05);
       return;
     }
 
-    sorted.forEach((item) => {
+    sorted.forEach((item, index) => {
       const li = document.createElement('li');
       li.className = 'flex items-start gap-3 rounded-2xl bg-[#fdf5ea] px-4 py-4 text-base text-[#502032] shadow-sm shadow-[#2b0618]/5';
+      li.setAttribute('data-alfawz-animate', 'scale');
       const icon = document.createElement('span');
       icon.className = 'text-2xl leading-none';
       icon.textContent = item.icon || '•';
@@ -514,6 +696,7 @@
       text.textContent = item.description;
       li.append(icon, text);
       activityList.appendChild(li);
+      registerAnimatedElement(li, 0.05 * index);
     });
   };
 
@@ -523,11 +706,11 @@
     const totalAssignments = state.assignments.length;
     const totalMemorization = state.memorization.length;
 
-    updateMetricGroup('classes', formatNumber(totalClasses), strings.classesLabel || 'classes');
-    updateMetricGroup('students', formatNumber(totalStudents), strings.studentsUnit || strings.studentsLabel || 'students');
-    updateMetricGroup('assignments', formatNumber(totalAssignments), strings.assignmentCountLabel || 'assignments sent');
-    updateMetricGroup('memorization', formatNumber(totalMemorization), strings.memoCountLabel || 'students tracked');
-    updateLabelledValue(memoPill, formatNumber(totalMemorization), strings.memoCountLabel || 'students tracked');
+    updateMetricGroup('classes', totalClasses, strings.classesLabel || 'classes');
+    updateMetricGroup('students', totalStudents, strings.studentsUnit || strings.studentsLabel || 'students');
+    updateMetricGroup('assignments', totalAssignments, strings.assignmentCountLabel || 'assignments sent');
+    updateMetricGroup('memorization', totalMemorization, strings.memoCountLabel || 'students tracked');
+    updateLabelledValue(memoPill, totalMemorization, strings.memoCountLabel || 'students tracked');
 
     renderActivity();
   };
@@ -593,10 +776,28 @@
   };
 
   createAssignmentButton?.addEventListener('click', openBuilderForCreate);
+
+  const setRefreshBusyState = (isBusy) => {
+    refreshButtons.forEach((button) => {
+      button.classList.toggle('is-busy', isBusy);
+      if (isBusy) {
+        button.setAttribute('aria-busy', 'true');
+        button.setAttribute('disabled', 'disabled');
+      } else {
+        button.removeAttribute('aria-busy');
+        button.removeAttribute('disabled');
+      }
+    });
+  };
+
   refreshButtons.forEach((button) => {
     button.addEventListener('click', (event) => {
       event.preventDefault();
-      loadAll();
+      if (button.classList.contains('is-busy')) {
+        return;
+      }
+      setRefreshBusyState(true);
+      Promise.resolve(loadAll()).finally(() => setRefreshBusyState(false));
     });
   });
 
@@ -612,5 +813,6 @@
     loadClasses();
   });
 
+  initAnimatedElements();
   loadAll();
 })();
