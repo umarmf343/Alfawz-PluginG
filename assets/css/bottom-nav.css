@@ -10,3 +10,13 @@
 #alfawz-bottom-nav {
   padding-bottom: env(safe-area-inset-bottom);
 }
+
+#alfawz-bottom-nav [data-nav-scroll] {
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+}
+
+#alfawz-bottom-nav .alfawz-bottom-nav__tab {
+  flex: 1 0 calc(25% - 0.25rem);
+  min-width: calc(25% - 0.25rem);
+}
