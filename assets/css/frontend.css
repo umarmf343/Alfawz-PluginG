@@ -4,6 +4,56 @@
  * defines shared component primitives used across shortcodes.
  */
 
+@import url('https://fonts.googleapis.com/css2?family=Scheherazade+New:wght@400;700&display=swap');
+
+.font-arabic {
+  font-family: 'KFGQPC Uthmanic Script HAFS', 'Scheherazade New', 'Amiri', serif;
+  font-feature-settings: 'liga' 1, 'calt' 1;
+}
+
+.animate-fade-in {
+  animation: alfawz-fade-in 420ms ease-out both;
+}
+
+.alfawz-fade-in,
+.alfawz-fade-out {
+  transition: opacity 280ms ease, transform 280ms ease;
+}
+
+.alfawz-fade-in {
+  opacity: 1 !important;
+  transform: translateY(0) !important;
+}
+
+.alfawz-fade-out {
+  opacity: 0 !important;
+  transform: translateY(6px) !important;
+}
+
+.alfawz-press {
+  transform: translateY(-50%) scale(0.96) !important;
+}
+
+.alfawz-glass {
+  backdrop-filter: blur(14px);
+}
+
+.alfawz-tracking-wide {
+  letter-spacing: 0.4em;
+}
+
+.alfawz-verse-panel {
+  background: rgba(236, 253, 245, 0.82);
+}
+
+.alfawz-no-scrollbar {
+  scrollbar-width: none;
+}
+
+.alfawz-no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
 :root {
   --alfawz-surface: rgba(255, 255, 255, 0.92);
   --alfawz-border: rgba(15, 118, 110, 0.08);
@@ -52,8 +102,10 @@ body .alfawz-surface {
 }
 
 .alfawz-reader-shell {
-  padding-top: 1.5rem;
-  padding-bottom: calc(1.75rem + env(safe-area-inset-bottom, 0px));
+  min-height: 100vh;
+  padding-top: 2rem;
+  padding-bottom: calc(4.5rem + env(safe-area-inset-bottom, 0px));
+  background: #fffbeb;
 }
 
 .alfawz-reader-surface {
@@ -148,18 +200,19 @@ body .alfawz-surface {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  width: 3.1rem;
-  height: 3.1rem;
+  width: 3rem;
+  height: 3rem;
   border-radius: 999px;
   border: none;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.35rem;
+  font-size: 1.5rem;
   font-weight: 600;
-  background: rgba(16, 185, 129, 0.16);
-  color: var(--alfawz-text);
-  transition: transform 180ms ease, box-shadow 180ms ease, background 180ms ease;
+  background: rgba(17, 24, 39, 0.08);
+  color: #047857;
+  transition: transform 180ms ease, box-shadow 180ms ease, background 180ms ease, color 180ms ease;
+  touch-action: manipulation;
 }
 
 #alfawz-prev-verse {
@@ -174,13 +227,19 @@ body .alfawz-surface {
   opacity: 0.45;
   cursor: not-allowed;
   box-shadow: none;
+  background: rgba(17, 24, 39, 0.05);
 }
 
 .alfawz-verse-nav:not(:disabled):hover,
 .alfawz-verse-nav:not(:disabled):focus {
-  transform: translateY(-50%) scale(1.05);
-  background: rgba(16, 185, 129, 0.25);
-  box-shadow: 0 16px 35px rgba(16, 185, 129, 0.25);
+  transform: translateY(-50%) scale(1.08);
+  background: rgba(5, 150, 105, 0.18);
+  box-shadow: 0 16px 32px rgba(5, 150, 105, 0.28);
+  color: #065f46;
+}
+
+.alfawz-verse-nav:not(:disabled):active {
+  transform: translateY(-50%) scale(0.96);
 }
 
 .alfawz-verse-header {
@@ -294,6 +353,8 @@ body .alfawz-surface {
   inset: 0;
   background: rgba(15, 23, 42, 0.45);
   backdrop-filter: blur(6px);
+  opacity: 0;
+  transition: opacity 320ms ease;
 }
 
 .alfawz-daily-modal__card {
@@ -307,6 +368,18 @@ body .alfawz-surface {
   text-align: center;
   box-shadow: 0 32px 55px rgba(16, 185, 129, 0.28);
   overflow: hidden;
+  opacity: 0;
+  transform: translateY(18px);
+  transition: transform 320ms ease, opacity 320ms ease;
+}
+
+.alfawz-daily-modal:not(.hidden) .alfawz-daily-modal__card {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.alfawz-daily-modal:not(.hidden) .alfawz-daily-modal__backdrop {
+  opacity: 1;
 }
 
 .alfawz-daily-modal__title {
@@ -345,6 +418,17 @@ body .alfawz-surface {
   animation: alfawz-pop 600ms ease-out;
 }
 
+@keyframes alfawz-fade-in {
+  0% {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 @keyframes alfawz-confetti {
   0% {
     transform: translate(-50%, -10%) rotate(0deg);
@@ -378,8 +462,25 @@ body .alfawz-surface {
   .alfawz-egg-celebrate {
     animation: none;
   }
+  .animate-fade-in,
+  .alfawz-fade-in,
+  .alfawz-fade-out {
+    animation: none !important;
+    transition: none !important;
+  }
+  #alfawz-egg-progress-bar,
+  #alfawz-daily-progress-bar,
   .alfawz-progress-fill {
-    transition: none;
+    transition: none !important;
+  }
+  .alfawz-daily-modal__card,
+  .alfawz-daily-modal__backdrop,
+  .alfawz-verse-nav,
+  .alfawz-press {
+    transition: none !important;
+  }
+  .alfawz-press {
+    transform: translateY(-50%) !important;
   }
 }
 
