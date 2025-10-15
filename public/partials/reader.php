@@ -3,8 +3,8 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 ?>
-<div id="alfawz-reader" class="alfawz-reader-shell alfawz-no-scrollbar px-4 pt-8 sm:px-6">
-    <div class="alfawz-reader-surface mx-auto max-w-3xl px-5 py-10 sm:px-8" aria-live="polite" aria-busy="true">
+<div id="alfawz-reader" class="alfawz-reader-shell alfawz-typography-scale alfawz-no-scrollbar px-4 pt-8 sm:px-6">
+    <div class="alfawz-reader-surface alfawz-layout-shell mx-auto max-w-3xl px-5 py-10 sm:px-8" aria-live="polite" aria-busy="true">
         <div id="alfawz-confetti-host" class="alfawz-confetti-host" aria-hidden="true"></div>
         <div id="alfawz-verse-loader" class="alfawz-verse-loader">
             <?php esc_html_e( 'Select a surah and verse to begin your recitation.', 'alfawzquran' ); ?>
@@ -73,7 +73,7 @@ if ( ! defined( 'ABSPATH' ) ) {
         </article>
     </div>
 
-    <div class="alfawz-reader-controls mx-auto mt-10 max-w-3xl" aria-labelledby="alfawz-reader-label">
+    <div class="alfawz-reader-controls alfawz-layout-shell mx-auto mt-10 max-w-3xl" aria-labelledby="alfawz-reader-label">
         <h2 id="alfawz-reader-label" class="alfawz-controls-heading">
             <?php esc_html_e( 'Select a surah and ayah', 'alfawzquran' ); ?>
         </h2>
@@ -93,7 +93,7 @@ if ( ! defined( 'ABSPATH' ) ) {
         </div>
     </div>
 
-    <div id="alfawz-audio-panel" class="alfawz-audio-panel mx-auto mt-12 max-w-3xl" aria-live="polite">
+    <div id="alfawz-audio-panel" class="alfawz-audio-panel alfawz-layout-shell mx-auto mt-12 max-w-3xl" aria-live="polite">
         <span class="alfawz-audio-rainbow" aria-hidden="true"></span>
         <div class="alfawz-audio-inner">
             <div class="alfawz-audio-top">

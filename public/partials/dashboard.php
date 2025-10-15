@@ -5,7 +5,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 ?>
 <div
     id="alfawz-dashboard"
-    class="alfawz-dashboard-shell relative mx-auto max-w-6xl overflow-hidden rounded-3xl bg-gradient-to-br from-rose-900 via-rose-800 to-amber-100 p-6 text-rose-50 shadow-2xl sm:p-10"
+    class="alfawz-dashboard-shell alfawz-layout-shell alfawz-typography-scale relative mx-auto max-w-6xl overflow-hidden rounded-3xl bg-gradient-to-br from-rose-900 via-rose-800 to-amber-100 p-6 text-rose-50 shadow-2xl sm:p-10"
 >
     <div class="alfawz-dashboard-aurora" aria-hidden="true"></div>
     <div class="alfawz-dashboard-aurora alfawz-dashboard-aurora--accent" aria-hidden="true"></div>

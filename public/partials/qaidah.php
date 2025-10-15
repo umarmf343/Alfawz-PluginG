@@ -7,7 +7,7 @@ $qaidah_role = isset( $qaidah_role ) ? $qaidah_role : 'student';
 ?>
 <div
     id="alfawz-qaidah"
-    class="alfawz-qaidah-shell relative mx-auto max-w-6xl overflow-hidden rounded-[34px] bg-gradient-to-br from-[#571222] via-[#7a1a31] to-[#f4e6d8] p-[1px] shadow-2xl"
+    class="alfawz-qaidah-shell alfawz-layout-shell alfawz-typography-scale relative mx-auto max-w-6xl overflow-hidden rounded-[34px] bg-gradient-to-br from-[#571222] via-[#7a1a31] to-[#f4e6d8] p-[1px] shadow-2xl"
     data-role="<?php echo esc_attr( $qaidah_role ); ?>"
 >
     <div class="alfawz-qaidah-surface relative z-10 space-y-10 rounded-[30px] bg-white/90 p-6 backdrop-blur md:p-10">

@@ -3,7 +3,7 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 ?>
-<div id="alfawz-leaderboard" class="relative mx-auto max-w-6xl overflow-hidden rounded-[2.75rem] border border-[#f4d3c4]/70 bg-gradient-to-br from-[#fff4e6]/95 via-white/94 to-[#ffe7d6]/92 p-1 shadow-[0_40px_80px_rgba(47,8,17,0.18)]">
+<div id="alfawz-leaderboard" class="alfawz-layout-shell alfawz-typography-scale relative mx-auto max-w-6xl overflow-hidden rounded-[2.75rem] border border-[#f4d3c4]/70 bg-gradient-to-br from-[#fff4e6]/95 via-white/94 to-[#ffe7d6]/92 p-1 shadow-[0_40px_80px_rgba(47,8,17,0.18)]">
     <div class="absolute -left-32 top-10 h-64 w-64 rounded-full bg-[#741f31]/10 blur-3xl"></div>
     <div class="absolute -right-16 -bottom-24 h-72 w-72 rounded-full bg-[#f59f82]/20 blur-3xl"></div>
     <div class="relative space-y-12 rounded-[2.65rem] bg-white/70 p-6 sm:p-10 lg:p-12">

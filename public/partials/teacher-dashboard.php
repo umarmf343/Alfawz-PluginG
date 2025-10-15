@@ -16,7 +16,7 @@ $qaidah_markup = ob_get_clean();
     <div class="pointer-events-none absolute bottom-10 left-10 hidden h-52 w-52 rounded-full bg-[#fdf5ea]/80 blur-3xl sm:block"></div>
     <div class="pointer-events-none absolute -bottom-20 right-0 h-96 w-80 rounded-full bg-[#3e0b23]/60 blur-3xl"></div>
 
-    <div id="alfawz-teacher-dashboard" class="relative z-10 mx-auto max-w-6xl space-y-12 px-4 font-sans sm:px-6 lg:px-0">
+    <div id="alfawz-teacher-dashboard" class="alfawz-layout-shell alfawz-typography-scale relative z-10 mx-auto max-w-6xl space-y-12 px-4 font-sans sm:px-6 lg:px-0">
         <section class="grid gap-10 rounded-3xl bg-white/80 p-8 shadow-2xl shadow-[#2b0618]/10 backdrop-blur">
             <div class="flex flex-col items-start justify-between gap-6 lg:flex-row lg:items-center">
                 <div class="space-y-4">

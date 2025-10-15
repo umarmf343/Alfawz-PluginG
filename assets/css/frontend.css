@@ -77,6 +77,68 @@
   --alfawz-muted: #6b4a4f;
 }
 
+.alfawz-layout-shell {
+  max-width: min(1280px, 96vw);
+  margin-inline: auto;
+  padding-inline: clamp(1.25rem, 3vw, 3rem);
+}
+
+@media (max-width: 640px) {
+  .alfawz-layout-shell {
+    padding-inline: clamp(1rem, 6vw, 1.5rem);
+  }
+}
+
+.alfawz-typography-scale {
+  font-size: clamp(1rem, 0.98rem + 0.2vw, 1.08rem);
+  line-height: 1.65;
+}
+
+.alfawz-typography-scale p,
+.alfawz-typography-scale li {
+  line-height: 1.7;
+}
+
+.alfawz-typography-scale .text-xs {
+  font-size: 0.8rem;
+}
+
+.alfawz-typography-scale .text-sm {
+  font-size: 0.95rem;
+}
+
+.alfawz-typography-scale .text-base {
+  font-size: 1.05rem;
+}
+
+.alfawz-typography-scale .text-lg {
+  font-size: 1.2rem;
+}
+
+.alfawz-typography-scale .text-xl {
+  font-size: 1.35rem;
+}
+
+.alfawz-typography-scale .text-2xl {
+  font-size: 1.55rem;
+}
+
+.alfawz-typography-scale .text-3xl {
+  font-size: 1.9rem;
+}
+
+.alfawz-typography-scale .text-4xl {
+  font-size: 2.2rem;
+}
+
+.alfawz-typography-scale .text-5xl {
+  font-size: 2.7rem;
+}
+
+.alfawz-typography-scale .text-6xl {
+  font-size: 3.1rem;
+}
+
 .alfawz-surface {
   background: var(--alfawz-surface);
   border-radius: var(--alfawz-radius-lg);

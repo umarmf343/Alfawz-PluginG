@@ -71,7 +71,7 @@ if ( ! $is_logged_in ) {
     );
 }
 ?>
-<div id="alfawz-account" class="alfawz-account-shell mx-auto max-w-5xl px-4 py-12 text-slate-900 sm:px-8 lg:px-0">
+<div id="alfawz-account" class="alfawz-account-shell alfawz-layout-shell alfawz-typography-scale mx-auto max-w-5xl px-4 py-12 text-slate-900 sm:px-8 lg:px-0">
     <div class="pointer-events-none absolute inset-x-6 -top-10 bottom-0 -z-10 rounded-[3rem] bg-gradient-to-br from-[#f8efe5]/70 via-[#fff4e6]/95 to-white/40 blur-3xl"></div>
 
     <section class="alfawz-account-hero" data-animate="fade">

@@ -10,7 +10,7 @@ $memorizer_link   = esc_url( home_url( '/alfawz-memorizer/' ) );
 $password_link    = esc_url( wp_lostpassword_url() );
 ?>
 <section id="alfawz-settings" class="bg-stone-50 py-10 sm:py-14">
-    <div class="mx-auto w-full max-w-4xl px-4 sm:px-6 lg:px-8">
+    <div class="alfawz-layout-shell alfawz-typography-scale mx-auto w-full max-w-4xl px-4 sm:px-6 lg:px-8">
         <header class="text-center mb-8">
             <div class="text-4xl mb-3" aria-hidden="true">⚙️</div>
             <h1 class="text-2xl font-bold text-gray-800"><?php esc_html_e( 'Your Settings', 'alfawzquran' ); ?></h1>

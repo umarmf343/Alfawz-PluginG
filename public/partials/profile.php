@@ -9,7 +9,7 @@ $avatar_default = get_avatar( get_current_user_id(), 96, '', esc_attr__( 'Profil
     'class' => 'h-full w-full object-cover',
 ] );
 ?>
-<div id="alfawz-profile" class="alfawz-profile-shell relative mx-auto max-w-5xl space-y-12 px-4 py-10 text-slate-900 sm:px-8 lg:px-0">
+<div id="alfawz-profile" class="alfawz-profile-shell alfawz-layout-shell alfawz-typography-scale relative mx-auto max-w-5xl space-y-12 px-4 py-10 text-slate-900 sm:px-8 lg:px-0">
     <div class="pointer-events-none absolute inset-x-6 -top-8 bottom-0 -z-10 rounded-[3rem] bg-gradient-to-br from-[#f8efe5]/70 via-[#fff4e6]/95 to-white/40 blur-3xl"></div>
 
     <section

@@ -3,12 +3,12 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 ?>
-<div id="alfawz-memorization" class="relative overflow-hidden bg-gradient-to-br from-[#520819] via-[#7b1c3a] to-[#f9f4ed] pb-[140px] text-[#f9f4ed]">
+<div id="alfawz-memorization" class="alfawz-typography-scale relative overflow-hidden bg-gradient-to-br from-[#520819] via-[#7b1c3a] to-[#f9f4ed] pb-[140px] text-[#f9f4ed]">
     <div class="pointer-events-none absolute inset-0 opacity-30 mix-blend-screen" aria-hidden="true">
         <div class="absolute -top-40 right-10 h-80 w-80 rounded-full bg-white/20 blur-3xl"></div>
         <div class="absolute bottom-10 left-10 h-60 w-60 rounded-full bg-[#ffe9d6]/40 blur-3xl"></div>
     </div>
-    <div class="relative mx-auto max-w-6xl space-y-12 px-4 py-12 sm:px-6 lg:px-8">
+    <div class="alfawz-layout-shell relative mx-auto max-w-6xl space-y-12 px-4 py-12 sm:px-6 lg:px-8">
         <section aria-labelledby="alfawz-memorization-start-title" class="space-y-8 text-center">
             <header class="mx-auto max-w-4xl space-y-3">
                 <p class="text-sm font-semibold uppercase tracking-[0.45em] text-[#ffe9d6]/90"><?php esc_html_e( 'Sacred Repetition Practice', 'alfawzquran' ); ?></p>
