@@ -544,12 +544,29 @@
     const dailyModalConfetti = dailyModal ? qs('.alfawz-daily-modal__confetti', dailyModal) : null;
     const confettiHost = qs('#alfawz-confetti-host', root);
     const eggWidget = qs('#alfawz-egg-widget', root);
+    const audioPanel = qs('#alfawz-audio-panel', root);
+    const audioStatus = audioPanel ? qs('#alfawz-audio-status', audioPanel) : null;
+    const audioLabel = audioPanel ? qs('#alfawz-audio-label', audioPanel) : null;
+    const audioToggle = audioPanel ? qs('#alfawz-audio-toggle', audioPanel) : null;
+    const audioToggleLabel = audioPanel ? qs('#alfawz-audio-toggle-label', audioPanel) : null;
+    const audioProgressBar = audioPanel ? qs('#alfawz-audio-progress', audioPanel) : null;
+    const audioVisualizer = audioPanel ? qs('#alfawz-audio-visualizer', audioPanel) : null;
+    const audioSeek = audioPanel ? qs('#alfawz-audio-seek', audioPanel) : null;
+    const audioCurrentTime = audioPanel ? qs('#alfawz-audio-current', audioPanel) : null;
+    const audioDurationTime = audioPanel ? qs('#alfawz-audio-duration', audioPanel) : null;
+    const audioSourceBadge = audioPanel ? qs('#alfawz-audio-source', audioPanel) : null;
 
     let currentSurahId = null;
     let currentSurah = null;
     let currentVerseId = null;
     let isLoading = false;
     let lastEggCelebratedTarget = null;
+    let audioElement = null;
+    let audioReady = false;
+    let audioIsPlaying = false;
+    let audioLoadToken = 0;
+    let audioWasForcedPause = false;
+    let isSeekingAudio = false;
 
     const defaultDailyTarget = Number(wpData.dailyTarget || 10);
 
@@ -558,6 +575,405 @@
         element.textContent = value || '';
       }
     };
+
+    const formatTime = (seconds) => {
+      if (!Number.isFinite(seconds) || seconds < 0) {
+        return '0:00';
+      }
+      const total = Math.floor(seconds);
+      const minutes = Math.floor(total / 60);
+      const remaining = total % 60;
+      return `${minutes}:${String(remaining).padStart(2, '0')}`;
+    };
+
+    const setAudioStatus = (message) => {
+      if (audioStatus) {
+        audioStatus.textContent = message;
+      }
+    };
+
+    const setAudioLabel = (label) => {
+      if (audioLabel) {
+        audioLabel.textContent = label;
+      }
+    };
+
+    const setAudioSourceBadge = (text, theme = 'emerald') => {
+      if (!audioSourceBadge) {
+        return;
+      }
+      const base = 'rounded-full px-3 py-1 text-[0.7rem] font-semibold uppercase tracking-widest';
+      let themeClasses = 'bg-emerald-100 text-emerald-700';
+      if (theme === 'rose') {
+        themeClasses = 'bg-rose-100 text-rose-700';
+      } else if (theme === 'amber') {
+        themeClasses = 'bg-amber-100 text-amber-700';
+      }
+      audioSourceBadge.className = `${base} ${themeClasses}`;
+      audioSourceBadge.textContent = text;
+    };
+
+    const setAudioProgress = (percentage) => {
+      const clamped = Math.min(100, Math.max(0, percentage || 0));
+      if (audioProgressBar) {
+        audioProgressBar.style.width = `${clamped}%`;
+      }
+      if (audioSeek && !isSeekingAudio) {
+        audioSeek.value = String(clamped);
+      }
+    };
+
+    const updateAudioTimes = (current, duration) => {
+      if (audioCurrentTime) {
+        audioCurrentTime.textContent = formatTime(current);
+      }
+      if (audioDurationTime) {
+        audioDurationTime.textContent = formatTime(duration);
+      }
+    };
+
+    const updateAudioToggle = () => {
+      if (!audioToggle || !audioToggleLabel) {
+        return;
+      }
+      if (!audioReady) {
+        audioToggle.disabled = true;
+        audioToggleLabel.textContent = wpData.strings?.loading || 'Loading…';
+        audioToggle.setAttribute('aria-pressed', 'false');
+        return;
+      }
+      audioToggle.disabled = false;
+      if (audioIsPlaying) {
+        audioToggleLabel.textContent = wpData.strings?.pause || 'Pause';
+        audioToggle.setAttribute('aria-pressed', 'true');
+      } else {
+        audioToggleLabel.textContent = wpData.strings?.play || 'Play';
+        audioToggle.setAttribute('aria-pressed', 'false');
+      }
+    };
+
+    const updateAudioPanelState = () => {
+      if (!audioPanel) {
+        return;
+      }
+      audioPanel.classList.toggle('is-playing', audioReady && audioIsPlaying);
+      if (audioVisualizer) {
+        audioVisualizer.style.opacity = audioReady && audioIsPlaying ? '0.72' : '0.25';
+      }
+    };
+
+    const ensureAudioElement = () => {
+      if (!audioPanel) {
+        return null;
+      }
+      if (audioElement) {
+        return audioElement;
+      }
+      const element = new Audio();
+      element.preload = 'auto';
+      element.crossOrigin = 'anonymous';
+      element.addEventListener('timeupdate', () => {
+        if (!audioReady) {
+          return;
+        }
+        updateAudioTimes(element.currentTime, element.duration);
+        if (!isSeekingAudio) {
+          const percentage = element.duration ? (element.currentTime / element.duration) * 100 : 0;
+          setAudioProgress(percentage);
+        }
+      });
+      element.addEventListener('loadedmetadata', () => {
+        if (!audioReady) {
+          return;
+        }
+        updateAudioTimes(element.currentTime, element.duration);
+      });
+      element.addEventListener('play', () => {
+        audioIsPlaying = true;
+        updateAudioToggle();
+        updateAudioPanelState();
+        if (audioReady) {
+          setAudioStatus('Now playing recitation.');
+        }
+      });
+      element.addEventListener('pause', () => {
+        audioIsPlaying = false;
+        updateAudioToggle();
+        updateAudioPanelState();
+        if (audioReady && !audioWasForcedPause) {
+          setAudioStatus('Recitation paused.');
+        }
+        audioWasForcedPause = false;
+      });
+      element.addEventListener('ended', () => {
+        audioIsPlaying = false;
+        updateAudioToggle();
+        updateAudioPanelState();
+        if (audioReady) {
+          setAudioStatus('Recitation finished. Replay to listen again.');
+          setAudioProgress(100);
+        }
+      });
+      element.addEventListener('waiting', () => {
+        if (audioReady) {
+          setAudioStatus('Buffering recitation…');
+        }
+      });
+      audioElement = element;
+      return audioElement;
+    };
+
+    const resetAudio = (message, { keepSource = false } = {}) => {
+      audioLoadToken += 1;
+      const audio = ensureAudioElement();
+      audioReady = false;
+      audioIsPlaying = false;
+      if (audio) {
+        audio.pause();
+        audioWasForcedPause = true;
+        audio.removeAttribute('src');
+        audio.load();
+      }
+      if (audioSeek) {
+        audioSeek.value = '0';
+        audioSeek.disabled = true;
+      }
+      setAudioProgress(0);
+      updateAudioTimes(0, 0);
+      if (!keepSource) {
+        setAudioSourceBadge('Archive · waiting', 'emerald');
+      }
+      setAudioStatus(message || 'Select a verse to load the recitation.');
+      updateAudioToggle();
+      updateAudioPanelState();
+    };
+
+    const attemptLoadCandidate = (url, label, theme = 'emerald') =>
+      new Promise((resolve, reject) => {
+        if (!url) {
+          reject(new Error('Empty audio URL'));
+          return;
+        }
+        const audio = ensureAudioElement();
+        if (!audio) {
+          reject(new Error('Audio element unavailable'));
+          return;
+        }
+        let settled = false;
+        const cleanup = () => {
+          audio.removeEventListener('canplaythrough', onReady);
+          audio.removeEventListener('loadeddata', onReady);
+          audio.removeEventListener('error', onError);
+          window.clearTimeout(timeoutId);
+        };
+        const onReady = () => {
+          if (settled) {
+            return;
+          }
+          settled = true;
+          cleanup();
+          resolve({ url, label, theme });
+        };
+        const onError = () => {
+          if (settled) {
+            return;
+          }
+          settled = true;
+          cleanup();
+          audio.removeAttribute('src');
+          audio.load();
+          reject(new Error('Audio error'));
+        };
+        const timeoutId = window.setTimeout(() => {
+          if (settled) {
+            return;
+          }
+          settled = true;
+          cleanup();
+          audio.removeAttribute('src');
+          audio.load();
+          reject(new Error('Audio timeout'));
+        }, 8000);
+        audio.addEventListener('canplaythrough', onReady, { once: true });
+        audio.addEventListener('loadeddata', onReady, { once: true });
+        audio.addEventListener('error', onError, { once: true });
+        audio.src = url;
+        audio.load();
+      });
+
+    const buildArchiveVerseUrl = (surahId, verseId) => {
+      if (!surahId || !verseId) {
+        return '';
+      }
+      const surahPart = String(surahId).padStart(3, '0');
+      const versePart = String(verseId).padStart(3, '0');
+      return `https://archive.org/download/MoshafGwaniDahir/${surahPart}${versePart}.mp3`;
+    };
+
+    const buildArchiveSurahUrl = (surahId) => {
+      if (!surahId) {
+        return '';
+      }
+      const surahPart = String(surahId).padStart(3, '0');
+      return `https://archive.org/download/MoshafGwaniDahir/${surahPart}.mp3`;
+    };
+
+    const prepareAudio = async (surahId, verseId, verse) => {
+      if (!audioPanel || !surahId || !verseId) {
+        return;
+      }
+      const token = ++audioLoadToken;
+      const audio = ensureAudioElement();
+      if (!audio) {
+        return;
+      }
+      audio.pause();
+      audioWasForcedPause = true;
+      audio.currentTime = 0;
+      isSeekingAudio = false;
+      if (audioSeek) {
+        audioSeek.value = '0';
+        audioSeek.disabled = true;
+      }
+      audioReady = false;
+      setAudioProgress(0);
+      updateAudioTimes(0, 0);
+      const surahName = verse?.surahName || currentSurah?.englishName || `Surah ${surahId}`;
+      setAudioLabel(`${surahName} • Ayah ${verseId}`);
+      setAudioStatus('Loading recitation…');
+      setAudioSourceBadge('Archive · resolving', 'emerald');
+      updateAudioToggle();
+      updateAudioPanelState();
+
+      const verseUrl = buildArchiveVerseUrl(surahId, verseId);
+      const surahUrl = buildArchiveSurahUrl(surahId);
+
+      const candidates = [
+        { loader: () => attemptLoadCandidate(verseUrl, 'Archive · ayah', 'emerald') },
+        { loader: () => attemptLoadCandidate(surahUrl, 'Archive · surah', 'amber') },
+        {
+          loader: async () => {
+            const fallbackUrl = await loadAudio(surahId, verseId);
+            if (!fallbackUrl) {
+              throw new Error('Fallback unavailable');
+            }
+            return attemptLoadCandidate(fallbackUrl, 'Backup · CDN', 'rose');
+          },
+        },
+      ];
+
+      let resolved = null;
+      for (const candidate of candidates) {
+        try {
+          // eslint-disable-next-line no-await-in-loop
+          resolved = await candidate.loader();
+          if (resolved) {
+            break;
+          }
+        } catch (error) {
+          // continue to next candidate
+        }
+      }
+
+      if (token !== audioLoadToken) {
+        return;
+      }
+
+      if (!resolved) {
+        audioReady = false;
+        setAudioStatus('Audio not available for this verse yet.');
+        setAudioSourceBadge('Archive · unavailable', 'rose');
+        updateAudioToggle();
+        updateAudioPanelState();
+        return;
+      }
+
+      setAudioSourceBadge(resolved.label, resolved.theme);
+      if (audioSeek) {
+        audioSeek.disabled = false;
+        audioSeek.value = '0';
+      }
+      audio.currentTime = 0;
+      audioReady = true;
+      audioIsPlaying = false;
+      updateAudioToggle();
+      updateAudioPanelState();
+      setAudioStatus('Recitation ready. Press play to listen.');
+      updateAudioTimes(0, audio.duration);
+    };
+
+    if (audioPanel) {
+      resetAudio('Select a surah and verse to load the recitation.');
+      if (audioToggle) {
+        audioToggle.addEventListener('click', async () => {
+          if (!audioReady) {
+            return;
+          }
+          const audio = ensureAudioElement();
+          if (!audio) {
+            return;
+          }
+          audioWasForcedPause = false;
+          if (audio.paused) {
+            try {
+              await audio.play();
+            } catch (error) {
+              setAudioStatus('Unable to start playback. Please try again.');
+            }
+          } else {
+            audio.pause();
+          }
+        });
+      }
+      if (audioSeek) {
+        ['mousedown', 'touchstart'].forEach((eventName) => {
+          audioSeek.addEventListener(eventName, () => {
+            if (audioReady) {
+              isSeekingAudio = true;
+            }
+          });
+        });
+        ['mouseup', 'touchend', 'touchcancel', 'mouseleave'].forEach((eventName) => {
+          audioSeek.addEventListener(eventName, () => {
+            if (!audioReady) {
+              return;
+            }
+            if (isSeekingAudio) {
+              isSeekingAudio = false;
+              const audio = ensureAudioElement();
+              if (audio && audio.duration) {
+                const percentage = Number(audioSeek.value || 0) / 100;
+                audio.currentTime = audio.duration * percentage;
+              }
+            }
+          });
+        });
+        audioSeek.addEventListener('input', () => {
+          if (!audioReady) {
+            return;
+          }
+          const audio = ensureAudioElement();
+          if (!audio || !audio.duration) {
+            return;
+          }
+          const percentage = Number(audioSeek.value || 0) / 100;
+          const preview = audio.duration * percentage;
+          setAudioProgress(percentage * 100);
+          updateAudioTimes(preview, audio.duration);
+        });
+        audioSeek.addEventListener('change', () => {
+          if (!audioReady) {
+            return;
+          }
+          const audio = ensureAudioElement();
+          if (!audio || !audio.duration) {
+            return;
+          }
+          const percentage = Number(audioSeek.value || 0) / 100;
+          audio.currentTime = audio.duration * percentage;
+        });
+      }
+    }
 
     const animateBar = (bar, percentage) => {
       if (!bar) {
@@ -769,11 +1185,19 @@
         }
         updateNavigationButtons();
         finishVerseTransition();
+        try {
+          await prepareAudio(surahId, verseId, verse);
+        } catch (error) {
+          console.warn('[AlfawzQuran] Unable to prepare audio', error);
+        }
         return verse;
       } catch (error) {
         isLoading = false;
         console.warn('[AlfawzQuran] Unable to load verse', error);
         setLoadingState(true, 'Unable to load verse. Please try again.');
+        if (audioPanel) {
+          resetAudio('Unable to load recitation. Please try another verse.');
+        }
         finishVerseTransition();
         return null;
       }
@@ -817,12 +1241,18 @@
         verseSelect.dispatchEvent(new CustomEvent('alfawz:ready'));
         verseSelect.disabled = false;
         setLoadingState(true, 'Select a verse to begin reading.');
+        if (audioPanel) {
+          resetAudio('Select a verse to hear the recitation.', { keepSource: false });
+        }
       } else {
         if (verseSelect) {
           verseSelect.innerHTML = '<option value="">Select a surah first</option>';
           verseSelect.disabled = true;
         }
         setLoadingState(true, 'Select a surah and verse to begin your recitation.');
+        if (audioPanel) {
+          resetAudio('Select a surah and verse to load the recitation.', { keepSource: false });
+        }
       }
       updateNavigationButtons();
     };
