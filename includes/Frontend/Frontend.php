@@ -87,6 +87,7 @@ class Frontend {
                 'pluginUrl' => ALFAWZQURAN_PLUGIN_URL,
                 'memorizerUrl' => home_url('/alfawz-memorizer/'),
                 'hasanatPerLetter' => get_option('alfawz_hasanat_per_letter', 10),
+                'totalHasanat' => $is_logged_in ? (int) get_user_meta($current_user_id, 'total_hasanat', true) : 0,
                 'dailyTarget' => get_option('alfawz_daily_verse_target', 10),
                 'defaultReciter' => get_option('alfawz_default_reciter', 'ar.alafasy'),
                 'defaultTranslation' => get_option('alfawz_default_translation', 'en.sahih'),

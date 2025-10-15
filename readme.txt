@@ -79,6 +79,10 @@ For support, please visit [Your Support URL] or contact us at [Your Email].
 
 == Changelog ==
 
+= 1.1.0 - 2025-10-15 =
+*   Added dynamic Hasanat awards that calculate rewards per Arabic letter and sync totals across the reader, memorizer, dashboard, and leaderboard interfaces.
+*   Introduced uplifting floating Hasanat animations and a REST endpoint that securely records each verse progression.
+
 = 1.0.0 - 2025-08-08 =
 *   Initial Release.
 *   Core Quran Reader and Memorizer functionality.

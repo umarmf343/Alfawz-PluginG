@@ -53,8 +53,103 @@
     planDetail: null,
     repetitionCount: 0,
     currentVerse: null,
+    currentVerseData: null,
+    awardedCurrentVerse: false,
+    awardingInFlight: false,
     translationVisible: true,
     modalOpen: false,
+  };
+
+  const hasanatApi = window.AlfawzHasanat || {};
+
+  const countArabicLetters = (arabicText) => {
+    if (typeof hasanatApi.countLetters === 'function') {
+      return hasanatApi.countLetters(arabicText);
+    }
+    if (!arabicText) {
+      return 0;
+    }
+    return arabicText.replace(/[\u064B-\u065F\u0670]/g, '').replace(/[^\u0621-\u064A\u066E-\u06D3]/g, '').length;
+  };
+
+  const computeHasanat = (arabicText) => {
+    if (typeof hasanatApi.compute === 'function') {
+      return hasanatApi.compute(arabicText);
+    }
+    const rate = Number((window.alfawzData && window.alfawzData.hasanatPerLetter) || wpData.hasanatPerLetter || 10);
+    return countArabicLetters(arabicText) * rate;
+  };
+
+  const requestHasanatAward = async ({ surahId, verseId, arabicText, amount, type = 'memorized', anchor, repetitionCount = 0 }) => {
+    if (typeof hasanatApi.award === 'function') {
+      return hasanatApi.award({ surahId, verseId, arabicText, amount, type, anchor, repetitionCount });
+    }
+    if (!wpData.isLoggedIn) {
+      return null;
+    }
+    const resolvedAmount = Number(amount ?? computeHasanat(arabicText));
+    if (!surahId || !verseId || !resolvedAmount) {
+      return null;
+    }
+    try {
+      const response = await apiRequest('hasanat', {
+        method: 'POST',
+        body: {
+          surah_id: surahId,
+          verse_id: verseId,
+          amount: Math.round(resolvedAmount),
+          progress_type: type,
+          repetition_count: repetitionCount,
+        },
+      });
+      if (typeof hasanatApi.showSplash === 'function' && resolvedAmount > 0 && anchor) {
+        hasanatApi.showSplash(resolvedAmount, anchor);
+      }
+      const total = response && response.total !== undefined ? Number(response.total) : undefined;
+      if (typeof hasanatApi.setTotal === 'function' && total !== undefined) {
+        hasanatApi.setTotal(total);
+      }
+      document.dispatchEvent(
+        new CustomEvent('alfawz:hasanat-updated', {
+          detail: {
+            total,
+            delta: resolvedAmount,
+            progressType: type,
+            surahId,
+            verseId,
+          },
+        })
+      );
+      return response;
+    } catch (error) {
+      console.warn('[Alfawz Memorization] Unable to award hasanat', error);
+      return null;
+    }
+  };
+
+  const awardMemorizationHasanat = async () => {
+    if (!state.planDetail || !state.currentVerse || !state.currentVerseData) {
+      return;
+    }
+    if (state.awardedCurrentVerse || state.awardingInFlight) {
+      return;
+    }
+    state.awardingInFlight = true;
+    try {
+      const result = await requestHasanatAward({
+        surahId: Number(state.planDetail.surah_id),
+        verseId: Number(state.currentVerse),
+        arabicText: state.currentVerseData?.arabic || '',
+        type: 'memorized',
+        anchor: el.repeatButton || el.continueButton || root,
+        repetitionCount: state.repetitionCount,
+      });
+      if (result) {
+        state.awardedCurrentVerse = true;
+      }
+    } finally {
+      state.awardingInFlight = false;
+    }
   };
 
   const softChimeSrc =
@@ -315,6 +410,9 @@
           ? wpData.progressIntro || 'Tap repeat to begin your twenty-fold focus session.'
           : `${remaining} ${wpData.remainingLabel || 'repetitions remaining.'}`;
     }
+    if (count >= 20) {
+      awardMemorizationHasanat();
+    }
     if (count >= 20 && !state.modalOpen) {
       openModal();
     }
@@ -363,6 +461,9 @@
       if (!verse) {
         throw new Error('Empty verse payload');
       }
+      state.currentVerseData = verse;
+      state.awardedCurrentVerse = false;
+      state.awardingInFlight = false;
       el.verseArabic.textContent = verse.arabic;
       el.verseTranslation.textContent = verse.translation;
       el.verseTranslation.classList.toggle('hidden', !state.translationVisible);
@@ -389,6 +490,9 @@
     if (!state.planSummary) {
       state.planDetail = null;
       state.currentVerse = null;
+      state.currentVerseData = null;
+      state.awardedCurrentVerse = false;
+      state.awardingInFlight = false;
       setActiveState(false);
       setStatus(wpData.noPlanMessage || 'Create your first plan to begin memorizing.', 'muted');
       setRepeatButtonState();
@@ -422,6 +526,9 @@
       if (el.progressNote) {
         el.progressNote.textContent = wpData.planCompleteMessage || 'All verses in this plan are memorized. Create a new plan to continue.';
       }
+      state.currentVerseData = null;
+      state.awardedCurrentVerse = false;
+      state.awardingInFlight = false;
       setRepeatButtonState();
       return;
     }

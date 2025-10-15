@@ -5,6 +5,8 @@ namespace AlfawzQuran\Models;
  * Handles all database interactions for user progress, bookmarks, and memorization plans.
  */
 class UserProgress {
+    const HASANAT_META_KEY = 'total_hasanat';
+
     private $wpdb;
     private $table_progress;
     private $table_bookmarks;
@@ -45,6 +47,8 @@ class UserProgress {
             )
         );
 
+        $hasanat = (int) $hasanat;
+
         if ( $existing_progress ) {
             // Update existing progress (e.g., add more hasanat, update repetition count)
             $updated = $this->wpdb->update(
@@ -58,7 +62,12 @@ class UserProgress {
                 [ '%d', '%d', '%s' ],
                 [ '%d' ]
             );
-            return $updated !== false;
+            if ( false !== $updated ) {
+                $this->adjust_user_hasanat_total( $user_id, $hasanat );
+                return true;
+            }
+
+            return false;
         } else {
             // Insert new progress
             $inserted = $this->wpdb->insert(
@@ -74,7 +83,12 @@ class UserProgress {
                 ],
                 [ '%d', '%d', '%d', '%s', '%d', '%d', '%s' ]
             );
-            return $inserted !== false;
+            if ( false !== $inserted ) {
+                $this->adjust_user_hasanat_total( $user_id, $hasanat );
+                return true;
+            }
+
+            return false;
         }
     }
 
@@ -85,9 +99,7 @@ class UserProgress {
      * @return array
      */
     public function get_user_stats( $user_id ) {
-        $total_hasanat = $this->wpdb->get_var(
-            $this->wpdb->prepare( "SELECT SUM(hasanat) FROM {$this->table_progress} WHERE user_id = %d", $user_id )
-        );
+        $total_hasanat = $this->get_user_hasanat_total( $user_id );
 
         $verses_read = $this->wpdb->get_var(
             $this->wpdb->prepare( "SELECT COUNT(DISTINCT CONCAT(surah_id, '-', verse_id)) FROM {$this->table_progress} WHERE user_id = %d AND progress_type = 'read'", $user_id )
@@ -108,6 +120,43 @@ class UserProgress {
             'current_streak'     => intval( $current_streak ),
             'longest_streak'     => intval( $longest_streak ),
         ];
+    }
+
+    /**
+     * Retrieve the cached hasanat total for a user, rebuilding if necessary.
+     */
+    public function get_user_hasanat_total( $user_id ) {
+        $meta_key     = self::HASANAT_META_KEY;
+        $stored_total = get_user_meta( $user_id, $meta_key, true );
+
+        if ( '' !== $stored_total && null !== $stored_total && is_numeric( $stored_total ) ) {
+            return (int) $stored_total;
+        }
+
+        $total = (int) $this->wpdb->get_var(
+            $this->wpdb->prepare( "SELECT SUM(hasanat) FROM {$this->table_progress} WHERE user_id = %d", $user_id )
+        );
+
+        update_user_meta( $user_id, $meta_key, $total );
+
+        return $total;
+    }
+
+    /**
+     * Increment the stored hasanat total for a user.
+     */
+    private function adjust_user_hasanat_total( $user_id, $delta ) {
+        $delta = (int) $delta;
+
+        if ( 0 === $delta ) {
+            return;
+        }
+
+        $meta_key      = self::HASANAT_META_KEY;
+        $current_total = (int) get_user_meta( $user_id, $meta_key, true );
+        $new_total     = max( 0, $current_total + $delta );
+
+        update_user_meta( $user_id, $meta_key, $new_total );
     }
 
     /**

@@ -27,7 +27,7 @@ $avatar_default = get_avatar( get_current_user_id(), 96, '', esc_attr__( 'Profil
                 <div class="alfawz-profile-label"><?php esc_html_e( 'Days Streak', 'alfawzquran' ); ?></div>
             </div>
             <div class="text-center">
-                <div class="text-4xl font-bold text-amber-600" id="alfawz-profile-hasanat-total">0</div>
+                <div class="text-4xl font-bold text-amber-600" id="alfawz-profile-hasanat-total" data-hasanat-total>0</div>
                 <div class="alfawz-profile-label"><?php esc_html_e( 'Hasanat Earned', 'alfawzquran' ); ?></div>
             </div>
         </div>

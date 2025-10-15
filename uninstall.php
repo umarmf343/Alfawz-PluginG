@@ -49,6 +49,7 @@ foreach ( $users as $user_id ) {
     delete_user_meta( $user_id, 'alfawz_pref_hasanat_per_letter' );
     delete_user_meta( $user_id, 'alfawz_pref_daily_target' );
     delete_user_meta( $user_id, 'alfawz_pref_enable_leaderboard' );
+    delete_user_meta( $user_id, 'total_hasanat' );
 }
 
 // Clear any scheduled cron jobs

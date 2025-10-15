@@ -274,6 +274,49 @@ class Routes {
 
         register_rest_route(
             $namespace,
+            '/hasanat',
+            [
+                'methods'             => WP_REST_Server::CREATABLE,
+                'callback'            => [ $this, 'award_hasanat' ],
+                'permission_callback' => [ $this, 'check_permission' ],
+                'args'                => [
+                    'surah_id'         => [
+                        'required'          => true,
+                        'validate_callback' => function( $param ) {
+                            return is_numeric( $param ) && (int) $param > 0;
+                        },
+                    ],
+                    'verse_id'         => [
+                        'required'          => true,
+                        'validate_callback' => function( $param ) {
+                            return is_numeric( $param ) && (int) $param > 0;
+                        },
+                    ],
+                    'amount'           => [
+                        'required'          => true,
+                        'validate_callback' => function( $param ) {
+                            return is_numeric( $param ) && (int) $param > 0;
+                        },
+                    ],
+                    'progress_type'    => [
+                        'required'          => false,
+                        'sanitize_callback' => function( $param ) {
+                            $value = is_string( $param ) ? strtolower( trim( $param ) ) : 'read';
+                            return in_array( $value, [ 'read', 'memorized' ], true ) ? $value : 'read';
+                        },
+                    ],
+                    'repetition_count' => [
+                        'required'          => false,
+                        'validate_callback' => function( $param ) {
+                            return null === $param || '' === $param || is_numeric( $param );
+                        },
+                    ],
+                ],
+            ]
+        );
+
+        register_rest_route(
+            $namespace,
             '/egg-challenge',
             [
                 [
@@ -2169,6 +2212,54 @@ class Routes {
                 'success' => true,
                 'daily'   => $daily_state,
                 'egg'     => $egg_state,
+            ],
+            200
+        );
+    }
+
+    /**
+     * Award hasanat for a specific verse interaction.
+     */
+    public function award_hasanat( WP_REST_Request $request ) {
+        $user_id = get_current_user_id();
+
+        if ( ! $user_id ) {
+            return new WP_REST_Response( [ 'success' => false, 'message' => __( 'User not logged in.', 'alfawzquran' ) ], 401 );
+        }
+
+        $surah_id         = (int) $request->get_param( 'surah_id' );
+        $verse_id         = (int) $request->get_param( 'verse_id' );
+        $amount           = (int) $request->get_param( 'amount' );
+        $progress_type    = $request->get_param( 'progress_type' ) ?: 'read';
+        $repetition_count = $request->get_param( 'repetition_count' );
+
+        if ( $surah_id <= 0 || $verse_id <= 0 || $amount <= 0 ) {
+            return new WP_REST_Response( [ 'success' => false, 'message' => __( 'Missing or invalid parameters.', 'alfawzquran' ) ], 400 );
+        }
+
+        $progress_type = is_string( $progress_type ) ? strtolower( trim( $progress_type ) ) : 'read';
+        if ( ! in_array( $progress_type, [ 'read', 'memorized' ], true ) ) {
+            $progress_type = 'read';
+        }
+
+        $repetition_count = is_numeric( $repetition_count ) ? (int) $repetition_count : 0;
+
+        $progress_model = new UserProgress();
+        $recorded       = $progress_model->add_progress( $user_id, $surah_id, $verse_id, $progress_type, $amount, $repetition_count );
+
+        if ( ! $recorded ) {
+            return new WP_REST_Response( [ 'success' => false, 'message' => __( 'Unable to record hasanat.', 'alfawzquran' ) ], 500 );
+        }
+
+        $total_hasanat = $progress_model->get_user_hasanat_total( $user_id );
+
+        return new WP_REST_Response(
+            [
+                'success'        => true,
+                'awarded'        => (int) $amount,
+                'total'          => (int) $total_hasanat,
+                'progress_type'  => $progress_type,
+                'repetition_log' => $repetition_count,
             ],
             200
         );

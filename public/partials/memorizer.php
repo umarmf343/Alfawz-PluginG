@@ -14,6 +14,12 @@ if ( ! defined( 'ABSPATH' ) ) {
                 <p class="text-sm text-slate-600 sm:text-base">
                     <?php esc_html_e( 'Select your surah and ayah range to begin a focused loop of remembrance.', 'alfawzquran' ); ?>
                 </p>
+                <div class="flex justify-center pt-2" aria-live="polite">
+                    <div class="inline-flex items-end gap-2 rounded-full bg-white/70 px-4 py-2 text-emerald-700 shadow-sm ring-1 ring-emerald-100">
+                        <span class="text-[10px] font-semibold uppercase tracking-[0.35em] text-emerald-500"><?php esc_html_e( 'Hasanat', 'alfawzquran' ); ?></span>
+                        <span class="text-2xl font-bold" data-hasanat-total>0</span>
+                    </div>
+                </div>
             </header>
 
             <form id="alfawz-memorization-form" class="mx-auto flex w-full max-w-3xl flex-col gap-4 rounded-2xl bg-white/90 p-6 text-left shadow-xl shadow-emerald-100/50">

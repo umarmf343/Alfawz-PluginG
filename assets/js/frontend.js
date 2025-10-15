@@ -18,7 +18,12 @@
     verseCache: new Map(),
     audioCache: new Map(),
     dashboardStats: null,
+    leaderboardPreview: null,
+    totalHasanat: Number(wpData.totalHasanat || 0),
+    lastVerse: null,
   };
+
+  let leaderboardEventBound = false;
 
   const qs = (selector, scope = document) => scope.querySelector(selector);
   const formatNumber = (value) => new Intl.NumberFormat().format(Number(value || 0));
@@ -83,7 +88,9 @@
   const loadVerse = async (surahId, verseId) => {
     const cacheKey = `${surahId}:${verseId}:${TRANSLATION_EDITION}:${TRANSLITERATION_EDITION}`;
     if (state.verseCache.has(cacheKey)) {
-      return state.verseCache.get(cacheKey);
+      const cached = state.verseCache.get(cacheKey);
+      state.lastVerse = cached;
+      return cached;
     }
 
     const params = new URLSearchParams();
@@ -112,6 +119,7 @@
     };
 
     state.verseCache.set(cacheKey, verse);
+    state.lastVerse = verse;
     return verse;
   };
 
@@ -182,12 +190,128 @@
     return span;
   };
 
-  const computeHasanat = (arabicText) => {
+  const countArabicLetters = (arabicText) => {
     if (!arabicText) {
       return 0;
     }
-    const letters = arabicText.replace(/[^\u0600-\u06FF]/g, '').length;
+    const cleaned = arabicText
+      .replace(/[\u064B-\u065F\u0670]/g, '')
+      .replace(/[^\u0621-\u064A\u066E-\u06D3]/g, '');
+    return cleaned.length;
+  };
+
+  const updateHasanatDisplays = () => {
+    const formatted = formatNumber(state.totalHasanat || 0);
+    const targets = document.querySelectorAll('[data-hasanat-total]');
+    targets.forEach((node) => {
+      if (node) {
+        node.textContent = formatted;
+      }
+    });
+  };
+
+  const setHasanatTotal = (value) => {
+    if (value === undefined || value === null || Number.isNaN(Number(value))) {
+      updateHasanatDisplays();
+      return;
+    }
+    const resolved = Math.max(0, Number(value));
+    state.totalHasanat = resolved;
+    wpData.totalHasanat = resolved;
+    updateHasanatDisplays();
+  };
+
+  const showHasanatSplash = (amount, anchor) => {
+    const reward = Number(amount || 0);
+    if (!reward || !Number.isFinite(reward)) {
+      return;
+    }
+
+    const host = document.body;
+    if (!host) {
+      return;
+    }
+
+    const splash = document.createElement('div');
+    splash.className = 'alfawz-hasanat-splash';
+    splash.textContent = `+${formatNumber(reward)} Hasanat!`;
+    host.appendChild(splash);
+
+    let x = window.innerWidth / 2;
+    let y = window.innerHeight / 2;
+
+    if (anchor && typeof anchor.getBoundingClientRect === 'function') {
+      const rect = anchor.getBoundingClientRect();
+      x = rect.left + rect.width / 2;
+      y = rect.top + window.scrollY - 12;
+    }
+
+    splash.style.left = `${x}px`;
+    splash.style.top = `${y}px`;
+
+    requestAnimationFrame(() => {
+      splash.classList.add('is-visible');
+    });
+
+    window.setTimeout(() => {
+      splash.remove();
+    }, 1400);
+  };
+
+  const computeHasanat = (arabicText) => {
+    const letters = countArabicLetters(arabicText);
     return letters * HASANAT_PER_LETTER;
+  };
+
+  const awardHasanat = async ({ surahId, verseId, amount, arabicText, type = 'read', anchor, repetitionCount = 0 }) => {
+    if (!wpData.isLoggedIn) {
+      return null;
+    }
+
+    const computedAmount = Number(
+      amount !== undefined && amount !== null ? amount : computeHasanat(arabicText)
+    );
+
+    if (!surahId || !verseId || !computedAmount || !Number.isFinite(computedAmount) || computedAmount <= 0) {
+      return null;
+    }
+
+    try {
+      const response = await apiRequest('hasanat', {
+        method: 'POST',
+        body: {
+          surah_id: surahId,
+          verse_id: verseId,
+          amount: Math.round(computedAmount),
+          progress_type: type,
+          repetition_count: repetitionCount,
+        },
+      });
+
+      const total = Number(response?.total ?? state.totalHasanat + computedAmount);
+      setHasanatTotal(total);
+      if (state.dashboardStats) {
+        state.dashboardStats.total_hasanat = total;
+      }
+      showHasanatSplash(computedAmount, anchor);
+
+      document.dispatchEvent(
+        new CustomEvent('alfawz:hasanat-updated', {
+          detail: {
+            total,
+            delta: computedAmount,
+            progressType: type,
+            surahId,
+            verseId,
+          },
+        })
+      );
+
+      return { total, amount: computedAmount };
+    } catch (error) {
+      console.warn('[AlfawzQuran] Unable to award hasanat', error);
+      return null;
+    }
   };
 
   const buildVerseKey = (surahId, verseId) => `${surahId}:${verseId}`;
@@ -199,6 +323,54 @@
       return;
     }
 
+    const leaderboardPreviewEl = qs('#alfawz-leaderboard-preview', root);
+
+    const renderLeaderboardPreview = (items) => {
+      if (!leaderboardPreviewEl) {
+        return;
+      }
+      const list = Array.isArray(items) ? items.slice(0, 5) : [];
+      renderList(leaderboardPreviewEl, list, (item, index) => {
+        const li = createListItem('flex items-center justify-between rounded-2xl border border-slate-100 bg-white/70 px-4 py-3 shadow-sm');
+        li.innerHTML = `
+          <div class="flex items-center gap-3">
+            <span class="text-lg font-semibold text-emerald-600">${index + 1}</span>
+            <div>
+              <p class="font-semibold text-slate-900">${item.display_name || '—'}</p>
+              <p class="text-xs text-slate-500">${formatNumber(item.verses_read || 0)} verses</p>
+            </div>
+          </div>
+          <span class="text-sm font-semibold text-emerald-600">⭐ ${formatNumber(item.total_hasanat || 0)}</span>
+        `;
+        return li;
+      });
+    };
+
+    const refreshLeaderboardPreview = async () => {
+      if (!leaderboardPreviewEl) {
+        return;
+      }
+      try {
+        const fresh = await apiRequest('leaderboard');
+        state.leaderboardPreview = fresh;
+        renderLeaderboardPreview(fresh);
+      } catch (error) {
+        console.warn('[AlfawzQuran] Unable to refresh leaderboard preview', error);
+      }
+    };
+
+    const handleHasanatUpdate = (event) => {
+      const detail = event.detail || {};
+      if (detail.total !== undefined) {
+        setHasanatTotal(detail.total);
+      }
+      if (detail.delta && wpData.enableLeaderboard) {
+        refreshLeaderboardPreview();
+      }
+    };
+
+    document.addEventListener('alfawz:hasanat-updated', handleHasanatUpdate);
+
     try {
       const [stats, goal, egg, leaderboard] = await Promise.all([
         apiRequest('user-stats'),
@@ -209,6 +381,10 @@
 
       state.dashboardStats = stats;
 
+      if (stats && stats.total_hasanat !== undefined && stats.total_hasanat !== null) {
+        setHasanatTotal(stats.total_hasanat);
+      }
+
       setText(qs('#alfawz-verses-today', root), formatNumber(goal?.count || stats?.verses_read || 0));
       const goalLabel = qs('#alfawz-daily-goal-text', root);
       if (goalLabel) {
@@ -216,7 +392,6 @@
       }
       setText(qs('#alfawz-memorised-today', root), formatNumber(stats?.verses_memorized || 0));
       setText(qs('#alfawz-current-streak', root), formatNumber(stats?.current_streak || 0));
-      setText(qs('#alfawz-hasanat-total', root), formatNumber(stats?.total_hasanat || 0));
 
       const dailyProgressBar = qs('#alfawz-daily-progress-bar', root);
       const dailyProgressLabel = qs('#alfawz-daily-progress-label', root);
@@ -239,22 +414,9 @@
         eggProgress.style.width = `${egg.percentage || 0}%`;
       }
 
-      const leaderboardPreview = qs('#alfawz-leaderboard-preview', root);
-      if (leaderboardPreview && Array.isArray(leaderboard)) {
-        renderList(leaderboardPreview, leaderboard.slice(0, 5), (item, index) => {
-          const li = createListItem('flex items-center justify-between rounded-2xl border border-slate-100 bg-white/70 px-4 py-3 shadow-sm');
-          li.innerHTML = `
-            <div class="flex items-center gap-3">
-              <span class="text-lg font-semibold text-emerald-600">${index + 1}</span>
-              <div>
-                <p class="font-semibold text-slate-900">${item.display_name || '—'}</p>
-                <p class="text-xs text-slate-500">${formatNumber(item.verses_read || 0)} verses</p>
-              </div>
-            </div>
-            <span class="text-sm font-semibold text-emerald-600">⭐ ${formatNumber(item.total_hasanat || 0)}</span>
-          `;
-          return li;
-        });
+      if (Array.isArray(leaderboard)) {
+        state.leaderboardPreview = leaderboard;
+        renderLeaderboardPreview(leaderboard);
       }
 
       const planList = await apiRequest('memorization-plans');
@@ -599,11 +761,13 @@
         }
         updateNavigationButtons();
         finishVerseTransition();
+        return verse;
       } catch (error) {
         isLoading = false;
         console.warn('[AlfawzQuran] Unable to load verse', error);
         setLoadingState(true, 'Unable to load verse. Please try again.');
         finishVerseTransition();
+        return null;
       }
     };
 
@@ -686,7 +850,16 @@
       if (verseSelect) {
         verseSelect.value = String(nextVerse);
       }
-      await renderVerse(currentSurahId, nextVerse);
+      const verse = await renderVerse(currentSurahId, nextVerse);
+      if (verse) {
+        await awardHasanat({
+          surahId: currentSurahId,
+          verseId: nextVerse,
+          arabicText: verse.arabic,
+          type: 'read',
+          anchor: nextBtn,
+        });
+      }
       await logVerseProgress(currentSurahId, nextVerse);
     };
 
@@ -726,6 +899,12 @@
           apiRequest(`user-stats?timezone_offset=${timezoneOffset()}`),
           apiRequest('egg-challenge'),
         ]);
+        if (stats) {
+          state.dashboardStats = stats;
+          if (stats.total_hasanat !== undefined && stats.total_hasanat !== null) {
+            setHasanatTotal(stats.total_hasanat);
+          }
+        }
         if (stats?.daily_goal) {
           updateDailyWidget(stats.daily_goal);
         } else {
@@ -952,17 +1131,17 @@
       }
       try {
         const verse = await loadVerse(currentSurahId, currentVerseId);
-        const hasanat = computeHasanat(verse.arabic);
-        await apiRequest('progress', {
-          method: 'POST',
-          body: {
-            surah_id: currentSurahId,
-            verse_id: currentVerseId,
-            progress_type: 'memorized',
-            hasanat,
-            repetition_count: repetitionCount,
-          },
+        const awarded = await awardHasanat({
+          surahId: currentSurahId,
+          verseId: currentVerseId,
+          arabicText: verse.arabic,
+          type: 'memorized',
+          anchor: completeBtn,
+          repetitionCount,
         });
+        if (!awarded) {
+          throw new Error('Unable to record hasanat');
+        }
         completeBtn.dataset.status = 'saved';
         setText(
           progressNote,
@@ -1013,36 +1192,48 @@
     if (!root) {
       return;
     }
-    try {
-      const leaderboard = await apiRequest('leaderboard');
-      const tbody = qs('#alfawz-leaderboard-body', root);
-      const updated = qs('#alfawz-leaderboard-updated', root);
-      if (!tbody) {
-        return;
-      }
-      tbody.innerHTML = '';
-      (leaderboard || []).forEach((entry, index) => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td class="px-4 py-3 text-sm font-semibold text-slate-500">${index + 1}</td>
-          <td class="px-4 py-3">
-            <div class="flex items-center gap-3">
-              <span class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-emerald-100 text-sm font-semibold text-emerald-700">${(entry.display_name || '?').slice(0, 2)}</span>
-              <span class="font-semibold text-slate-900">${entry.display_name || '—'}</span>
-            </div>
-          </td>
-          <td class="px-4 py-3 text-right text-sm font-semibold text-slate-700">${formatNumber(entry.verses_read || 0)}</td>
-          <td class="px-4 py-3 text-right text-sm font-semibold text-emerald-600">${formatNumber(entry.total_hasanat || 0)}</td>
-        `;
-        tbody.appendChild(tr);
-      });
-      if (updated) {
-        updated.textContent = `Updated ${new Date().toLocaleTimeString()}`;
-      }
-      tbody.removeAttribute('aria-busy');
-    } catch (error) {
-      console.warn('[AlfawzQuran] Unable to load leaderboard', error);
+    const tbody = qs('#alfawz-leaderboard-body', root);
+    const updated = qs('#alfawz-leaderboard-updated', root);
+    if (!tbody) {
+      return;
     }
+
+    const renderLeaderboard = async () => {
+      try {
+        const leaderboard = await apiRequest('leaderboard');
+        tbody.innerHTML = '';
+        (leaderboard || []).forEach((entry, index) => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td class="px-4 py-3 text-sm font-semibold text-slate-500">${index + 1}</td>
+            <td class="px-4 py-3">
+              <div class="flex items-center gap-3">
+                <span class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-emerald-100 text-sm font-semibold text-emerald-700">${(entry.display_name || '?').slice(0, 2)}</span>
+                <span class="font-semibold text-slate-900">${entry.display_name || '—'}</span>
+              </div>
+            </td>
+            <td class="px-4 py-3 text-right text-sm font-semibold text-slate-700">${formatNumber(entry.verses_read || 0)}</td>
+            <td class="px-4 py-3 text-right text-sm font-semibold text-emerald-600">${formatNumber(entry.total_hasanat || 0)}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+        if (updated) {
+          updated.textContent = `Updated ${new Date().toLocaleTimeString()}`;
+        }
+        tbody.removeAttribute('aria-busy');
+      } catch (error) {
+        console.warn('[AlfawzQuran] Unable to load leaderboard', error);
+      }
+    };
+
+    if (!leaderboardEventBound) {
+      document.addEventListener('alfawz:hasanat-updated', () => {
+        renderLeaderboard();
+      });
+      leaderboardEventBound = true;
+    }
+
+    await renderLeaderboard();
   };
 
   const applyProfileAnimations = (root) => {
@@ -1108,7 +1299,6 @@
     const taglineEl = qs('#alfawz-profile-tagline', root);
     const heroNoteEl = qs('#alfawz-profile-hero-note', root);
     const streakDaysEl = qs('#alfawz-profile-streak-days', root);
-    const hasanatEl = qs('#alfawz-profile-hasanat-total', root);
     const memorizedEl = qs('#alfawz-profile-memorized-count', root);
     const readEl = qs('#alfawz-profile-read-count', root);
     const currentStreakEl = qs('#alfawz-profile-current-streak', root);
@@ -1317,7 +1507,7 @@
         }
 
         setText(streakDaysEl, formatNumber(stats.current_streak || 0));
-        setText(hasanatEl, formatNumber(stats.total_hasanat || 0));
+        setHasanatTotal(stats.total_hasanat);
         setText(memorizedEl, formatNumber(stats.verses_memorized || 0));
         setText(readEl, formatNumber(stats.verses_read || 0));
         setText(currentStreakEl, formatNumber(stats.current_streak || 0));
@@ -1686,6 +1876,18 @@
 
     await Promise.all([loadProfile(), loadPreferences(), renderPlan()]);
   };
+
+  window.AlfawzHasanat = {
+    ...(window.AlfawzHasanat || {}),
+    award: awardHasanat,
+    compute: computeHasanat,
+    countLetters: countArabicLetters,
+    showSplash: showHasanatSplash,
+    setTotal: setHasanatTotal,
+    getTotal: () => state.totalHasanat,
+  };
+
+  setHasanatTotal(state.totalHasanat);
 
   document.addEventListener('DOMContentLoaded', () => {
     initDashboard();

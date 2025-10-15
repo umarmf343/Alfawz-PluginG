@@ -19,6 +19,11 @@ if ( ! defined( 'ABSPATH' ) ) {
                 <p id="alfawz-egg-message" class="mt-1 text-xs text-amber-600 text-center"><?php esc_html_e( 'Keep reading to hatch the surprise.', 'alfawzquran' ); ?></p>
             </div>
 
+            <div class="pointer-events-none absolute right-6 top-6 text-right" aria-live="polite">
+                <span class="block text-[10px] font-semibold uppercase tracking-[0.35em] text-emerald-500"><?php esc_html_e( 'Hasanat', 'alfawzquran' ); ?></span>
+                <span class="text-xl font-bold text-emerald-700" data-hasanat-total>0</span>
+            </div>
+
             <button type="button" id="alfawz-prev-verse" class="alfawz-verse-nav absolute left-4 top-1/2 flex h-12 w-12 -translate-y-1/2 transform items-center justify-center rounded-full bg-black bg-opacity-10 text-2xl text-emerald-700 transition focus:outline-none focus:ring-2 focus:ring-emerald-500 hover:bg-opacity-20" aria-label="<?php esc_attr_e( 'Previous verse', 'alfawzquran' ); ?>" disabled>◁</button>
             <button type="button" id="alfawz-next-verse" class="alfawz-verse-nav absolute right-4 top-1/2 flex h-12 w-12 -translate-y-1/2 transform items-center justify-center rounded-full bg-black bg-opacity-10 text-2xl text-emerald-700 transition focus:outline-none focus:ring-2 focus:ring-emerald-500 hover:bg-opacity-20" aria-label="<?php esc_attr_e( 'Next verse', 'alfawzquran' ); ?>" disabled>▷</button>
 
