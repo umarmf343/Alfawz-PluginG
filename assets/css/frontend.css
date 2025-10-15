@@ -65,6 +65,15 @@
   --alfawz-text: #0f172a;
   --alfawz-muted: #475569;
   --alfawz-emerald: #047857;
+  --alfawz-maroon: #731c2b;
+  --alfawz-maroon-dark: #501119;
+  --alfawz-maroon-soft: rgba(115, 28, 43, 0.16);
+  --alfawz-milk: #f9f3e6;
+  --alfawz-milk-soft: rgba(249, 243, 230, 0.75);
+  --alfawz-gold: #f3c766;
+  --alfawz-gold-soft: rgba(243, 199, 102, 0.25);
+  --alfawz-rose: rgba(255, 221, 214, 0.32);
+  --alfawz-deep-ink: rgba(8, 8, 10, 0.3);
 }
 
 body .alfawz-surface {
@@ -197,6 +206,478 @@ body .alfawz-surface {
 .alfawz-card:focus-within {
   transform: translateY(-2px);
   box-shadow: 0 18px 42px rgba(15, 118, 110, 0.12);
+}
+
+.alfawz-leaderboard-shell {
+  position: relative;
+  background: radial-gradient(circle at top right, rgba(255, 255, 255, 0.18), transparent 52%),
+    linear-gradient(140deg, rgba(80, 17, 25, 0.92), rgba(115, 28, 43, 0.95) 38%, rgba(164, 71, 83, 0.92));
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 45px 90px rgba(80, 17, 25, 0.28);
+  color: var(--alfawz-milk);
+}
+
+.alfawz-leaderboard-shell::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(120deg, rgba(243, 199, 102, 0.2), transparent 45%);
+  pointer-events: none;
+}
+
+.alfawz-leaderboard-orb {
+  position: absolute;
+  width: 420px;
+  height: 420px;
+  top: -160px;
+  right: -160px;
+  background: radial-gradient(circle, rgba(243, 199, 102, 0.55), rgba(243, 199, 102, 0) 65%);
+  filter: blur(4px);
+  animation: alfawz-orb-float 12s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.alfawz-leaderboard-orb--secondary {
+  top: auto;
+  bottom: -180px;
+  left: -120px;
+  width: 360px;
+  height: 360px;
+  background: radial-gradient(circle, rgba(255, 221, 214, 0.55), rgba(255, 221, 214, 0) 70%);
+  animation-delay: -6s;
+}
+
+.alfawz-leaderboard-panel {
+  position: relative;
+  z-index: 1;
+  padding: 3.5rem clamp(2.5rem, 5vw, 4rem);
+  display: flex;
+  flex-direction: column;
+  gap: 3rem;
+}
+
+.alfawz-leaderboard-header {
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+  color: var(--alfawz-milk);
+}
+
+.alfawz-leaderboard-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 1.8rem;
+  border-radius: 999px;
+  background: rgba(249, 243, 230, 0.18);
+  font-size: 0.75rem;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: rgba(249, 243, 230, 0.82);
+  box-shadow: inset 0 0 0 1px rgba(249, 243, 230, 0.3);
+}
+
+.alfawz-leaderboard-chip__dot {
+  display: inline-flex;
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: var(--alfawz-gold);
+  box-shadow: 0 0 0 6px rgba(243, 199, 102, 0.25);
+}
+
+.alfawz-leaderboard-title {
+  font-size: clamp(2.4rem, 4vw, 3.4rem);
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--alfawz-milk);
+}
+
+.alfawz-leaderboard-subtitle {
+  max-width: 48ch;
+  font-size: clamp(1rem, 2vw, 1.2rem);
+  color: rgba(249, 243, 230, 0.75);
+}
+
+.alfawz-leaderboard-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem;
+  color: rgba(249, 243, 230, 0.75);
+}
+
+.alfawz-leaderboard-meta__status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  background: rgba(249, 243, 230, 0.16);
+  box-shadow: inset 0 0 0 1px rgba(249, 243, 230, 0.2);
+  font-size: 0.85rem;
+}
+
+.alfawz-leaderboard-status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: var(--alfawz-gold);
+  box-shadow: 0 0 0 4px rgba(243, 199, 102, 0.22);
+  animation: alfawz-pulse 2.5s infinite ease-in-out;
+}
+
+.alfawz-leaderboard-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.55rem 1.4rem;
+  border-radius: 999px;
+  background: rgba(249, 243, 230, 0.18);
+  color: var(--alfawz-milk);
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  transition: transform 220ms ease, box-shadow 220ms ease, background 220ms ease;
+  box-shadow: inset 0 0 0 1px rgba(249, 243, 230, 0.35), 0 18px 32px rgba(8, 8, 10, 0.18);
+}
+
+.alfawz-leaderboard-button:hover,
+.alfawz-leaderboard-button:focus-visible {
+  transform: translateY(-2px);
+  background: rgba(249, 243, 230, 0.28);
+  box-shadow: inset 0 0 0 1px rgba(249, 243, 230, 0.45), 0 22px 36px rgba(8, 8, 10, 0.22);
+}
+
+.alfawz-leaderboard-button[aria-busy='true'],
+.alfawz-leaderboard-button:disabled {
+  opacity: 0.72;
+  cursor: wait;
+  transform: none;
+  box-shadow: inset 0 0 0 1px rgba(249, 243, 230, 0.3), 0 12px 24px rgba(8, 8, 10, 0.16);
+}
+
+.alfawz-leaderboard-section-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.alfawz-leaderboard-section-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(249, 243, 230, 0.78);
+}
+
+.alfawz-leaderboard-section-copy {
+  font-size: 0.95rem;
+  color: rgba(249, 243, 230, 0.65);
+}
+
+.alfawz-leaderboard-podium {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.alfawz-leaderboard-card {
+  position: relative;
+  padding: 1.8rem 1.5rem;
+  border-radius: 1.5rem;
+  background: rgba(249, 243, 230, 0.1);
+  box-shadow: inset 0 0 0 1px rgba(249, 243, 230, 0.18), 0 22px 36px rgba(8, 8, 10, 0.2);
+  color: var(--alfawz-milk);
+  overflow: hidden;
+  transition: transform 220ms ease, box-shadow 220ms ease;
+}
+
+.alfawz-leaderboard-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(243, 199, 102, 0.18), transparent 56%);
+  opacity: 0;
+  transition: opacity 220ms ease;
+}
+
+.alfawz-leaderboard-card:hover,
+.alfawz-leaderboard-card:focus-within {
+  transform: translateY(-6px);
+  box-shadow: 0 28px 54px rgba(8, 8, 10, 0.26);
+}
+
+.alfawz-leaderboard-card:hover::after,
+.alfawz-leaderboard-card:focus-within::after {
+  opacity: 1;
+}
+
+.alfawz-leaderboard-card__medal {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 999px;
+  font-size: 1.35rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  color: var(--alfawz-maroon);
+  background: linear-gradient(135deg, rgba(249, 243, 230, 1), rgba(243, 199, 102, 0.95));
+  box-shadow: 0 14px 26px rgba(243, 199, 102, 0.32);
+}
+
+.alfawz-leaderboard-card__header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.alfawz-leaderboard-card__avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  background: rgba(249, 243, 230, 0.18);
+  font-weight: 600;
+  font-size: 1.1rem;
+  letter-spacing: 0.08em;
+  box-shadow: inset 0 0 0 1px rgba(249, 243, 230, 0.28);
+}
+
+.alfawz-leaderboard-card__name {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.alfawz-leaderboard-card__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.35rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  background: rgba(243, 199, 102, 0.18);
+  color: rgba(249, 243, 230, 0.82);
+  font-size: 0.75rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.alfawz-leaderboard-card__stat {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.95rem;
+  margin-top: 0.75rem;
+  color: rgba(249, 243, 230, 0.82);
+}
+
+.alfawz-leaderboard-card__stat strong {
+  font-size: 1.1rem;
+  color: var(--alfawz-milk);
+}
+
+.alfawz-leaderboard-card--rank-1 {
+  background: linear-gradient(180deg, rgba(249, 243, 230, 0.24), rgba(249, 243, 230, 0.08));
+  box-shadow: 0 30px 60px rgba(243, 199, 102, 0.24);
+}
+
+.alfawz-leaderboard-card--rank-2 {
+  background: linear-gradient(180deg, rgba(255, 221, 214, 0.22), rgba(249, 243, 230, 0.08));
+}
+
+.alfawz-leaderboard-card--rank-3 {
+  background: linear-gradient(180deg, rgba(243, 199, 102, 0.12), rgba(249, 243, 230, 0.04));
+}
+
+.alfawz-leaderboard-cell-rank {
+  font-weight: 600;
+  color: rgba(249, 243, 230, 0.7);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.alfawz-leaderboard-row__meta {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.alfawz-leaderboard-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  background: rgba(249, 243, 230, 0.16);
+  font-weight: 600;
+  font-size: 1rem;
+  letter-spacing: 0.1em;
+  box-shadow: inset 0 0 0 1px rgba(249, 243, 230, 0.24);
+}
+
+.alfawz-leaderboard-name {
+  font-weight: 600;
+  color: rgba(249, 243, 230, 0.92);
+}
+
+.alfawz-leaderboard-empty--podium {
+  max-width: 36ch;
+  color: rgba(249, 243, 230, 0.76);
+}
+
+.alfawz-leaderboard-table-wrapper {
+  position: relative;
+  border-radius: 1.75rem;
+  overflow: hidden;
+  background: rgba(249, 243, 230, 0.12);
+  box-shadow: inset 0 0 0 1px rgba(249, 243, 230, 0.16), 0 26px 46px rgba(8, 8, 10, 0.25);
+}
+
+.alfawz-leaderboard-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+  color: rgba(249, 243, 230, 0.82);
+}
+
+.alfawz-leaderboard-table thead {
+  background: rgba(249, 243, 230, 0.16);
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  font-size: 0.75rem;
+}
+
+.alfawz-leaderboard-table th,
+.alfawz-leaderboard-table td {
+  padding: 1.1rem 1.5rem;
+  text-align: left;
+}
+
+.alfawz-leaderboard-table tbody tr {
+  transition: background 220ms ease, transform 220ms ease, box-shadow 220ms ease;
+  position: relative;
+}
+
+.alfawz-leaderboard-table tbody tr.alfawz-leaderboard-row--highlight {
+  background: rgba(243, 199, 102, 0.1);
+  color: rgba(249, 243, 230, 0.88);
+  font-weight: 600;
+}
+
+.alfawz-leaderboard-table tbody tr::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 1.2rem;
+  transform: scale(0.98);
+  opacity: 0;
+  transition: opacity 220ms ease, transform 220ms ease;
+  background: linear-gradient(120deg, rgba(243, 199, 102, 0.18), transparent 65%);
+  pointer-events: none;
+}
+
+.alfawz-leaderboard-table tbody tr:hover::after,
+.alfawz-leaderboard-table tbody tr:focus-within::after {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.alfawz-leaderboard-table tbody tr:hover,
+.alfawz-leaderboard-table tbody tr:focus-within {
+  transform: translateY(-2px);
+  box-shadow: 0 18px 36px rgba(8, 8, 10, 0.22);
+}
+
+.alfawz-leaderboard-empty {
+  padding: 1.5rem;
+  text-align: center;
+  color: rgba(249, 243, 230, 0.72);
+  font-size: 0.95rem;
+}
+
+.alfawz-leaderboard-footer {
+  display: grid;
+  gap: 2.5rem;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  background: rgba(249, 243, 230, 0.9);
+  padding: 2.5rem;
+  border-radius: 2rem;
+  box-shadow: inset 0 0 0 1px rgba(115, 28, 43, 0.12);
+  color: var(--alfawz-maroon);
+}
+
+.alfawz-leaderboard-footer-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.alfawz-leaderboard-footer-list {
+  margin: 0;
+  padding-left: 1.25rem;
+  list-style: disc;
+  display: grid;
+  gap: 0.65rem;
+  font-size: 1rem;
+  color: rgba(80, 17, 25, 0.78);
+}
+
+.alfawz-leaderboard-tip {
+  background: linear-gradient(160deg, rgba(243, 199, 102, 0.28), rgba(255, 221, 214, 0.35));
+  border-radius: 1.5rem;
+  padding: 1.75rem;
+  box-shadow: inset 0 0 0 1px rgba(115, 28, 43, 0.18), 0 16px 32px rgba(115, 28, 43, 0.15);
+}
+
+.alfawz-leaderboard-tip-title {
+  font-size: 0.85rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: rgba(80, 17, 25, 0.76);
+  margin-bottom: 0.75rem;
+}
+
+.alfawz-leaderboard-tip-copy {
+  font-size: 0.95rem;
+  color: rgba(80, 17, 25, 0.76);
+}
+
+@media (max-width: 960px) {
+  .alfawz-leaderboard-panel {
+    padding: 3rem 2.25rem;
+  }
+
+  .alfawz-leaderboard-footer {
+    grid-template-columns: 1fr;
+  }
+}
+
+@keyframes alfawz-orb-float {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(0, -18px, 0) scale(1.05);
+  }
+}
+
+@keyframes alfawz-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 4px rgba(243, 199, 102, 0.22);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(243, 199, 102, 0.08);
+  }
 }
 
 .animate-soft-fade {

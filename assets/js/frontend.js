@@ -1233,44 +1233,169 @@
       state.refreshLeaderboard = null;
       return;
     }
+
     const tbody = qs('#alfawz-leaderboard-body', root);
     const updated = qs('#alfawz-leaderboard-updated', root);
+    const podium = qs('#alfawz-leaderboard-podium', root);
+    const refreshButton = qs('#alfawz-leaderboard-refresh', root);
+    const emptyState = qs('#alfawz-leaderboard-empty', root);
+    const table = root.querySelector('.alfawz-leaderboard-table');
+
     if (!tbody) {
       state.refreshLeaderboard = null;
       return;
     }
 
-    const loadLeaderboard = async () => {
-      if (state.leaderboardLoading) {
-        return state.leaderboardLoading;
+    const versesLabel = root.dataset.versesLabel || 'Verses';
+    const hasanatLabel = root.dataset.hasanatLabel || 'Hasanat';
+    const rankLabel = root.dataset.rankLabel || 'Rank';
+    const podiumEmptyLabel = root.dataset.podiumEmptyLabel || 'No recitations yet.';
+    const tableEmptyLabel = root.dataset.tableEmptyLabel || 'No recitations yet.';
+
+    const escapeHtml = (value) =>
+      String(value || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+
+    const getInitials = (value) => {
+      if (!value) {
+        return '?';
       }
-      tbody.setAttribute('aria-busy', 'true');
+      const words = String(value)
+        .trim()
+        .split(/\s+/)
+        .filter(Boolean);
+      if (!words.length) {
+        return value.slice(0, 2).toUpperCase();
+      }
+      const [first, second] = words;
+      return (first.charAt(0) + (second ? second.charAt(0) : first.charAt(1) || '')).toUpperCase();
+    };
+
+    const setLoadingState = (loading) => {
+      tbody.setAttribute('aria-busy', loading ? 'true' : 'false');
+      podium?.setAttribute('aria-busy', loading ? 'true' : 'false');
+      if (refreshButton) {
+        refreshButton.setAttribute('aria-busy', loading ? 'true' : 'false');
+        refreshButton.disabled = loading;
+      }
+    };
+
+    const renderPodium = (entries) => {
+      if (!podium) {
+        return;
+      }
+      podium.innerHTML = '';
+      const list = Array.isArray(entries) ? entries : [];
+      if (!list.length) {
+        const empty = document.createElement('p');
+        empty.className = 'alfawz-leaderboard-empty alfawz-leaderboard-empty--podium';
+        empty.textContent = podiumEmptyLabel;
+        podium.appendChild(empty);
+        podium.setAttribute('aria-busy', 'false');
+        return;
+      }
+
+      const medals = ['🥇', '🥈', '🥉'];
+      list.forEach((entry, index) => {
+        const card = document.createElement('article');
+        card.className = `alfawz-leaderboard-card alfawz-leaderboard-card--rank-${index + 1}`;
+        card.innerHTML = `
+          <span class="alfawz-leaderboard-card__medal">${medals[index] || '⭐'}</span>
+          <div class="alfawz-leaderboard-card__header">
+            <span class="alfawz-leaderboard-card__avatar">${getInitials(entry.display_name || '')}</span>
+            <div>
+              <p class="alfawz-leaderboard-card__name">${escapeHtml(entry.display_name || '—')}</p>
+              <span class="alfawz-leaderboard-card__badge">${escapeHtml(rankLabel)} ${index + 1}</span>
+            </div>
+          </div>
+          <div class="alfawz-leaderboard-card__stat">
+            <span>${escapeHtml(versesLabel)}</span>
+            <strong>${formatNumber(entry.verses_read || 0)}</strong>
+          </div>
+          <div class="alfawz-leaderboard-card__stat">
+            <span>${escapeHtml(hasanatLabel)}</span>
+            <strong>${formatNumber(entry.total_hasanat || 0)}</strong>
+          </div>
+        `;
+        podium.appendChild(card);
+      });
+      podium.setAttribute('aria-busy', 'false');
+    };
+
+    const renderTable = (entries) => {
+      tbody.innerHTML = '';
+      const list = Array.isArray(entries) ? entries : [];
+      if (!list.length) {
+        table?.setAttribute('data-empty', 'true');
+        if (emptyState) {
+          emptyState.hidden = false;
+          const note = emptyState.querySelector('p');
+          if (note) {
+            note.textContent = tableEmptyLabel;
+          }
+        }
+        return;
+      }
+
+      table?.setAttribute('data-empty', 'false');
+      if (emptyState) {
+        emptyState.hidden = true;
+      }
+
+      list.forEach((entry, index) => {
+        const tr = document.createElement('tr');
+        if (index < 3) {
+          tr.classList.add('alfawz-leaderboard-row--highlight');
+        }
+        tr.innerHTML = `
+          <td class="alfawz-leaderboard-cell-rank">${index + 1}</td>
+          <td>
+            <div class="alfawz-leaderboard-row__meta">
+              <span class="alfawz-leaderboard-avatar">${getInitials(entry.display_name || '')}</span>
+              <span class="alfawz-leaderboard-name">${escapeHtml(entry.display_name || '—')}</span>
+            </div>
+          </td>
+          <td class="text-right">${formatNumber(entry.verses_read || 0)}</td>
+          <td class="text-right">${formatNumber(entry.total_hasanat || 0)}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    };
+
+    const loadLeaderboard = async (force = false) => {
+      if (state.leaderboardLoading) {
+        if (!force) {
+          return state.leaderboardLoading;
+        }
+        try {
+          await state.leaderboardLoading;
+        } catch (error) {
+          // Ignore previous error, we'll attempt to load again.
+        }
+      }
+
+      setLoadingState(true);
+
       const request = (async () => {
         try {
           const leaderboard = await apiRequest('leaderboard');
-          tbody.innerHTML = '';
-          (leaderboard || []).forEach((entry, index) => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-              <td class="px-4 py-3 text-sm font-semibold text-slate-500">${index + 1}</td>
-              <td class="px-4 py-3">
-                <div class="flex items-center gap-3">
-                  <span class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-emerald-100 text-sm font-semibold text-emerald-700">${(entry.display_name || '?').slice(0, 2)}</span>
-                  <span class="font-semibold text-slate-900">${entry.display_name || '—'}</span>
-                </div>
-              </td>
-              <td class="px-4 py-3 text-right text-sm font-semibold text-slate-700">${formatNumber(entry.verses_read || 0)}</td>
-              <td class="px-4 py-3 text-right text-sm font-semibold text-emerald-600">${formatNumber(entry.total_hasanat || 0)}</td>
-            `;
-            tbody.appendChild(tr);
-          });
+          renderPodium((leaderboard || []).slice(0, 3));
+          renderTable(leaderboard || []);
           if (updated) {
-            updated.textContent = `Updated ${new Date().toLocaleTimeString()}`;
+            const timestamp = new Date();
+            updated.textContent = `Updated ${timestamp.toLocaleTimeString([], {
+              hour: '2-digit',
+              minute: '2-digit',
+            })}`;
           }
         } catch (error) {
           console.warn('[AlfawzQuran] Unable to load leaderboard', error);
         } finally {
-          tbody.removeAttribute('aria-busy');
+          setLoadingState(false);
           state.leaderboardLoading = null;
         }
       })();
@@ -1279,8 +1404,15 @@
       return request;
     };
 
+    if (refreshButton) {
+      refreshButton.addEventListener('click', () => {
+        loadLeaderboard(true);
+      });
+    }
+
     state.refreshLeaderboard = loadLeaderboard;
     loadLeaderboard();
+    applyProfileAnimations(root);
   };
 
   const applyProfileAnimations = (root) => {
