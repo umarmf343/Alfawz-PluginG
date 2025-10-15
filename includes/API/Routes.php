@@ -229,6 +229,12 @@ class Routes {
             'permission_callback' => [ $this, 'teacher_permission_callback' ],
         ] );
 
+        register_rest_route( $namespace, '/teacher/classes', [
+            'methods'             => 'GET',
+            'callback'            => [ $this, 'get_teacher_classes' ],
+            'permission_callback' => [ $this, 'teacher_permission_callback' ],
+        ] );
+
         register_rest_route( $namespace, '/qaidah/students', [
             'methods'             => 'GET',
             'callback'            => [ $this, 'get_qaidah_students' ],
@@ -390,6 +396,99 @@ class Routes {
         }, $class_ids );
 
         return new WP_REST_Response( $classes, 200 );
+    }
+
+    /**
+     * Provide a richer class summary for the teacher dashboard.
+     */
+    public function get_teacher_classes( WP_REST_Request $request ) {
+        $user_id = get_current_user_id();
+
+        if ( ! $user_id ) {
+            return new WP_REST_Response( [], 200 );
+        }
+
+        $class_ids = $this->get_classes_for_user( $user_id );
+
+        if ( empty( $class_ids ) ) {
+            return new WP_REST_Response( [], 200 );
+        }
+
+        $board_model = new QaidahBoard();
+        $boards      = $board_model->get_boards_for_teacher( $user_id );
+
+        $assignment_map = [];
+
+        foreach ( $boards as $board ) {
+            $class = isset( $board['class']['id'] ) ? $board['class']['id'] : '';
+
+            if ( empty( $class ) ) {
+                continue;
+            }
+
+            if ( ! isset( $assignment_map[ $class ] ) ) {
+                $assignment_map[ $class ] = [
+                    'count'       => 0,
+                    'latest_time' => 0,
+                    'latest_title'=> '',
+                    'latest_url'  => '',
+                ];
+            }
+
+            $assignment_map[ $class ]['count']++;
+
+            if ( ! empty( $board['updated'] ) ) {
+                $updated = strtotime( $board['updated'] );
+
+                if ( $updated && $updated > $assignment_map[ $class ]['latest_time'] ) {
+                    $assignment_map[ $class ]['latest_time']  = $updated;
+                    $assignment_map[ $class ]['latest_title'] = $board['title'];
+                    $assignment_map[ $class ]['latest_url']   = isset( $board['permalink'] ) ? $board['permalink'] : '';
+                }
+            }
+        }
+
+        $roles      = apply_filters( 'alfawz_qaidah_student_roles', [ 'student', 'subscriber' ] );
+        $collection = [];
+
+        foreach ( $class_ids as $class_id ) {
+            $students = get_users(
+                [
+                    'role__in'   => $roles,
+                    'fields'     => 'ID',
+                    'number'     => -1,
+                    'meta_query' => [
+                        [
+                            'key'     => 'alfawz_class_id',
+                            'value'   => $class_id,
+                            'compare' => '=',
+                        ],
+                    ],
+                ]
+            );
+
+            $assignment_details = $assignment_map[ $class_id ] ?? [
+                'count'        => 0,
+                'latest_time'  => 0,
+                'latest_title' => '',
+                'latest_url'   => '',
+            ];
+
+            $collection[] = [
+                'id'               => $class_id,
+                'label'            => $this->resolve_class_label( $class_id ),
+                'student_count'    => is_array( $students ) ? count( $students ) : 0,
+                'assignment_count' => (int) $assignment_details['count'],
+                'latest_assignment'=> [
+                    'title'   => $assignment_details['latest_title'],
+                    'updated' => $assignment_details['latest_time'] ? gmdate( 'c', $assignment_details['latest_time'] ) : '',
+                    'url'     => $assignment_details['latest_url'],
+                ],
+                'link'             => $this->get_class_activity_link( $class_id ),
+            ];
+        }
+
+        return new WP_REST_Response( $collection, 200 );
     }
 
     /**
@@ -796,6 +895,114 @@ class Routes {
     }
 
     /**
+     * Retrieve student users that belong to specific classes.
+     *
+     * @param array $class_ids Class identifiers.
+     * @return array
+     */
+    private function get_students_for_classes( array $class_ids ) {
+        if ( empty( $class_ids ) ) {
+            return [];
+        }
+
+        $roles = apply_filters( 'alfawz_qaidah_student_roles', [ 'student', 'subscriber' ] );
+
+        return get_users(
+            [
+                'role__in'   => $roles,
+                'number'     => -1,
+                'meta_query' => [
+                    [
+                        'key'     => 'alfawz_class_id',
+                        'value'   => $class_ids,
+                        'compare' => 'IN',
+                        'type'    => 'CHAR',
+                    ],
+                ],
+            ]
+        );
+    }
+
+    /**
+     * Prepare memorisation plan insight data for the teacher dashboard.
+     *
+     * @param array        $students        Collection of WP_User objects.
+     * @param UserProgress $progress_model  Progress data model.
+     * @return array
+     */
+    private function prepare_memorization_overview( array $students, UserProgress $progress_model ) {
+        $overview = [];
+
+        foreach ( $students as $student ) {
+            if ( ! $student instanceof \WP_User ) {
+                continue;
+            }
+
+            $plans = $progress_model->get_memorization_plans( $student->ID );
+            $stats = $progress_model->get_user_stats( $student->ID );
+            $class_id = $this->normalize_class_id( get_user_meta( $student->ID, 'alfawz_class_id', true ) );
+
+            $overview[] = [
+                'student' => [
+                    'id'    => (int) $student->ID,
+                    'name'  => $student->display_name,
+                    'email' => $student->user_email,
+                    'avatar'=> get_avatar_url( $student->ID ),
+                    'class' => [
+                        'id'    => $class_id,
+                        'label' => $this->resolve_class_label( $class_id ),
+                    ],
+                ],
+                'plans' => array_map(
+                    function( $plan ) {
+                        return [
+                            'id'                   => isset( $plan['id'] ) ? (int) $plan['id'] : 0,
+                            'plan_name'            => $plan['plan_name'] ?? '',
+                            'status'               => $plan['status'] ?? '',
+                            'completion_percentage'=> isset( $plan['completion_percentage'] ) ? (int) $plan['completion_percentage'] : 0,
+                            'total_verses'         => isset( $plan['total_verses'] ) ? (int) $plan['total_verses'] : 0,
+                            'completed_verses'     => isset( $plan['completed_verses'] ) ? (int) $plan['completed_verses'] : 0,
+                        ];
+                    },
+                    is_array( $plans ) ? $plans : []
+                ),
+                'active_plan_count' => count( array_filter( (array) $plans, function( $plan ) {
+                    return ( $plan['status'] ?? '' ) !== 'completed';
+                } ) ),
+                'verses_memorized'  => isset( $stats['verses_memorized'] ) ? (int) $stats['verses_memorized'] : 0,
+                'streak'            => [
+                    'current' => isset( $stats['current_streak'] ) ? (int) $stats['current_streak'] : 0,
+                    'longest' => isset( $stats['longest_streak'] ) ? (int) $stats['longest_streak'] : 0,
+                ],
+            ];
+        }
+
+        return $overview;
+    }
+
+    /**
+     * Resolve a link where the teacher can view class-specific activity.
+     *
+     * @param string $class_id Class identifier.
+     * @return string
+     */
+    private function get_class_activity_link( $class_id ) {
+        $link = apply_filters( 'alfawz_teacher_class_url', '', $class_id );
+
+        if ( ! empty( $link ) ) {
+            return $link;
+        }
+
+        $builder_url = apply_filters( 'alfawz_mobile_nav_url', '', 'qaidah-teacher' );
+
+        if ( empty( $builder_url ) ) {
+            return '';
+        }
+
+        return add_query_arg( 'class', $class_id, $builder_url );
+    }
+
+    /**
      * Check if the current user can edit a specific board.
      */
     private function can_manage_board( $post ) {
@@ -899,6 +1106,41 @@ class Routes {
      * @return \WP_REST_Response
      */
     public function get_memorization_plans( \WP_REST_Request $request ) {
+        $teacher_id = (int) $request->get_param( 'teacher_id' );
+
+        if ( $teacher_id ) {
+            $current_id = get_current_user_id();
+
+            if ( ! $current_id ) {
+                return new \WP_REST_Response( [], 403 );
+            }
+
+            if ( $teacher_id !== $current_id && ! current_user_can( 'manage_options' ) ) {
+                return new \WP_REST_Response( [], 403 );
+            }
+
+            if ( ! $this->current_user_is_teacher() && ! current_user_can( 'manage_options' ) ) {
+                return new \WP_REST_Response( [], 403 );
+            }
+
+            $class_ids = $this->get_classes_for_user( $teacher_id );
+
+            if ( empty( $class_ids ) ) {
+                return new \WP_REST_Response( [], 200 );
+            }
+
+            $students = $this->get_students_for_classes( $class_ids );
+
+            if ( empty( $students ) ) {
+                return new \WP_REST_Response( [], 200 );
+            }
+
+            $progress_model = new UserProgress();
+            $overview       = $this->prepare_memorization_overview( $students, $progress_model );
+
+            return new \WP_REST_Response( $overview, 200 );
+        }
+
         $user_id = get_current_user_id();
         if ( empty( $user_id ) ) {
             return new \WP_REST_Response( [ 'success' => false, 'message' => 'User not logged in.' ], 401 );

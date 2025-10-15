@@ -32,6 +32,7 @@ class Frontend {
         add_shortcode('alfawz_games', [$this, 'games_shortcode']);
         add_shortcode('alfawz_qaidah_teacher', [$this, 'qaidah_teacher_shortcode']);
         add_shortcode('alfawz_qaidah_student', [$this, 'qaidah_student_shortcode']);
+        add_shortcode('alfawz_teacher_dashboard', [$this, 'teacher_dashboard_shortcode']);
     }
     
     public function enqueue_assets() {
@@ -71,6 +72,25 @@ class Frontend {
                 'defaultReciter' => get_option('alfawz_default_reciter', 'ar.alafasy'),
                 'defaultTranslation' => get_option('alfawz_default_translation', 'en.sahih')
             ]);
+
+            if ($this->page_has_shortcode('alfawz_teacher_dashboard')) {
+                wp_enqueue_script(
+                    'alfawz-teacher',
+                    ALFAWZQURAN_PLUGIN_URL . 'assets/js/alfawz-teacher.js',
+                    ['alfawz-frontend'],
+                    ALFAWZQURAN_VERSION,
+                    true
+                );
+
+                wp_localize_script(
+                    'alfawz-teacher',
+                    'alfawzTeacherData',
+                    [
+                        'builderUrl' => apply_filters('alfawz_mobile_nav_url', '', 'qaidah-teacher'),
+                        'teacherId'  => get_current_user_id(),
+                    ]
+                );
+            }
         }
     }
     
@@ -97,7 +117,8 @@ class Frontend {
             'alfawz_settings',
             'alfawz_games',
             'alfawz_qaidah_teacher',
-            'alfawz_qaidah_student'
+            'alfawz_qaidah_student',
+            'alfawz_teacher_dashboard'
         ];
 
         foreach ($alfawz_shortcodes as $shortcode) {
@@ -212,6 +233,45 @@ class Frontend {
         $qaidah_role = 'student';
         include ALFAWZQURAN_PLUGIN_PATH . 'public/partials/qaidah.php';
         return ob_get_clean();
+    }
+
+    public function teacher_dashboard_shortcode($atts) {
+        if (!is_user_logged_in()) {
+            return $this->login_required_message();
+        }
+
+        if (! $this->user_can_view_teacher_dashboard()) {
+            return '<div class="alfawz-notice alfawz-notice-error">' . esc_html__( 'Access denied.', 'alfawzquran' ) . '</div>';
+        }
+
+        $this->active_view = 'teacher-dashboard';
+
+        $teacher_id  = get_current_user_id();
+        $builder_url = apply_filters( 'alfawz_mobile_nav_url', '', 'qaidah-teacher' );
+
+        ob_start();
+        include ALFAWZQURAN_PLUGIN_PATH . 'public/partials/teacher-dashboard.php';
+        return ob_get_clean();
+    }
+
+    private function user_can_view_teacher_dashboard() {
+        $capability = apply_filters( 'alfawz_teacher_capability', 'alfawz_teacher' );
+
+        if ( current_user_can( $capability ) ) {
+            return true;
+        }
+
+        return (bool) apply_filters( 'alfawz_teacher_dashboard_fallback', current_user_can( 'manage_options' ) );
+    }
+
+    private function page_has_shortcode( $shortcode ) {
+        global $post;
+
+        if ( ! $post instanceof \WP_Post ) {
+            return false;
+        }
+
+        return has_shortcode( $post->post_content, $shortcode );
     }
     
     private function login_required_message() {

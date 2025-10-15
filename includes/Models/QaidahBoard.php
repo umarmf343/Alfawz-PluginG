@@ -217,6 +217,9 @@ class QaidahBoard {
                 'name' => \get_the_author_meta( 'display_name', $post->post_author ),
             ],
             'updated'     => \get_post_modified_time( 'c', false, $post ),
+            'created'     => \get_post_time( 'c', false, $post ),
+            'status'      => \get_post_status( $post ),
+            'permalink'   => \get_permalink( $post ),
         ];
 
         if ( 'manage' === $context ) {
