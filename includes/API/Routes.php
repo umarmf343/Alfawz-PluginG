@@ -303,6 +303,14 @@ class Routes {
                 'permission_callback' => [ $this, 'teacher_permission_callback' ],
             ],
         ] );
+
+        register_rest_route( $namespace, '/teacher/classes', [
+            [
+                'methods'             => 'GET',
+                'callback'            => [ $this, 'get_teacher_classes_overview' ],
+                'permission_callback' => [ $this, 'teacher_permission_callback' ],
+            ],
+        ] );
     }
 
     /**
@@ -1453,10 +1461,167 @@ class Routes {
             return new \WP_REST_Response( [ 'success' => false, 'message' => 'User not logged in.' ], 401 );
         }
 
+        $teacher_id = absint( $request->get_param( 'teacher_id' ) );
+
+        if ( $teacher_id && $teacher_id === $user_id ) {
+            if ( ! current_user_can( 'alfawz_teacher' ) && ! current_user_can( 'manage_options' ) ) {
+                return new \WP_REST_Response( [ 'success' => false, 'message' => 'Access denied.' ], 403 );
+            }
+
+            return $this->get_memorization_plans_for_teacher( $teacher_id );
+        }
+
         $progress_model = new UserProgress();
         $plans = $progress_model->get_memorization_plans( $user_id );
 
         return new \WP_REST_Response( $plans, 200 );
+    }
+
+    public function get_teacher_classes_overview( WP_REST_Request $request ) {
+        $user_id = get_current_user_id();
+
+        if ( ! $user_id ) {
+            return new WP_REST_Response(
+                [
+                    'classes' => [],
+                    'totals'  => [ 'classes' => 0, 'students' => 0 ],
+                ],
+                200
+            );
+        }
+
+        $class_ids = $this->get_classes_for_user( $user_id );
+        $classes   = [];
+        $total_students = 0;
+        $progress_model = new UserProgress();
+
+        foreach ( $class_ids as $class_id ) {
+            $students = get_users(
+                [
+                    'meta_query' => [
+                        [
+                            'key'   => 'alfawz_class_id',
+                            'value' => $class_id,
+                        ],
+                    ],
+                    'orderby'    => 'display_name',
+                    'order'      => 'ASC',
+                ]
+            );
+
+            $student_entries = [];
+
+            foreach ( $students as $student ) {
+                $stats = $progress_model->get_user_stats( $student->ID );
+                $student_entries[] = [
+                    'id'              => (int) $student->ID,
+                    'name'            => $student->display_name,
+                    'email'           => $student->user_email,
+                    'verses_memorized'=> isset( $stats['verses_memorized'] ) ? (int) $stats['verses_memorized'] : 0,
+                    'current_streak'  => isset( $stats['current_streak'] ) ? (int) $stats['current_streak'] : 0,
+                    'class_id'        => $class_id,
+                    'class_label'     => $this->resolve_class_label( $class_id ),
+                ];
+            }
+
+            $total_students += count( $student_entries );
+
+            $classes[] = [
+                'id'            => $class_id,
+                'label'         => $this->resolve_class_label( $class_id ),
+                'student_count' => count( $student_entries ),
+                'activity_url'  => apply_filters( 'alfawz_class_activity_url', '', $class_id ),
+                'students'      => $student_entries,
+            ];
+        }
+
+        return new WP_REST_Response(
+            [
+                'classes' => $classes,
+                'totals'  => [
+                    'classes'  => count( $classes ),
+                    'students' => $total_students,
+                ],
+            ],
+            200
+        );
+    }
+
+    private function get_memorization_plans_for_teacher( $teacher_id ) {
+        $class_ids = $this->get_classes_for_user( $teacher_id );
+
+        if ( empty( $class_ids ) ) {
+            return new \WP_REST_Response( [ 'students' => [] ], 200 );
+        }
+
+        $progress_model = new UserProgress();
+        $students       = [];
+
+        foreach ( $class_ids as $class_id ) {
+            $users = get_users(
+                [
+                    'meta_query' => [
+                        [
+                            'key'   => 'alfawz_class_id',
+                            'value' => $class_id,
+                        ],
+                    ],
+                    'orderby'    => 'display_name',
+                    'order'      => 'ASC',
+                ]
+            );
+
+            $class_label = $this->resolve_class_label( $class_id );
+
+            foreach ( $users as $user ) {
+                $student_id = (int) $user->ID;
+
+                if ( ! isset( $students[ $student_id ] ) ) {
+                    $plans = $progress_model->get_memorization_plans( $student_id );
+                    $stats = $progress_model->get_user_stats( $student_id );
+
+                    $students[ $student_id ] = [
+                        'student' => [
+                            'id'          => $student_id,
+                            'name'        => $user->display_name,
+                            'class_labels'=> [],
+                        ],
+                        'plans'   => array_map(
+                            static function ( $plan ) {
+                                return [
+                                    'id'                    => isset( $plan['id'] ) ? (int) $plan['id'] : 0,
+                                    'plan_name'             => $plan['plan_name'] ?? '',
+                                    'status'                => $plan['status'] ?? 'active',
+                                    'completion_percentage' => isset( $plan['completion_percentage'] ) ? (int) $plan['completion_percentage'] : 0,
+                                ];
+                            },
+                            is_array( $plans ) ? $plans : []
+                        ),
+                        'metrics' => [
+                            'active_plans'    => is_array( $plans ) ? count( array_filter( $plans, static function ( $plan ) {
+                                return isset( $plan['status'] ) ? 'completed' !== $plan['status'] : true;
+                            } ) ) : 0,
+                            'verses_memorized'=> isset( $stats['verses_memorized'] ) ? (int) $stats['verses_memorized'] : 0,
+                            'streak'          => isset( $stats['current_streak'] ) ? (int) $stats['current_streak'] : 0,
+                        ],
+                    ];
+                }
+
+                $students[ $student_id ]['student']['class_labels'][] = $class_label;
+            }
+        }
+
+        $students = array_map(
+            static function ( $entry ) {
+                $labels = array_unique( array_filter( $entry['student']['class_labels'] ) );
+                $entry['student']['class_label'] = implode( ', ', $labels );
+                unset( $entry['student']['class_labels'] );
+                return $entry;
+            },
+            array_values( $students )
+        );
+
+        return new \WP_REST_Response( [ 'students' => $students ], 200 );
     }
 
     /**

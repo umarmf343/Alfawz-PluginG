@@ -31,6 +31,7 @@ class Frontend {
         add_shortcode('alfawz_settings', [$this, 'settings_shortcode']);
         add_shortcode('alfawz_games', [$this, 'games_shortcode']);
         add_shortcode('alfawz_qaidah', [$this, 'qaidah_shortcode']);
+        add_shortcode('alfawz_teacher_dashboard', [$this, 'teacher_dashboard_shortcode']);
     }
     
     public function enqueue_assets() {
@@ -109,7 +110,7 @@ class Frontend {
             ]);
         }
 
-        if ($this->current_page_uses_shortcode('alfawz_qaidah')) {
+        if ($this->current_page_uses_shortcode('alfawz_qaidah') || $this->current_page_uses_shortcode('alfawz_teacher_dashboard')) {
             wp_enqueue_media();
 
             wp_enqueue_script(
@@ -125,6 +126,7 @@ class Frontend {
                 'nonce'          => wp_create_nonce('wp_rest'),
                 'userId'         => get_current_user_id(),
                 'isTeacher'      => $this->current_user_is_teacher(),
+                'assignmentId'   => isset($_GET['assignment_id']) ? absint($_GET['assignment_id']) : 0,
                 'strings'        => [
                     'loading'        => __('Loading…', 'alfawzquran'),
                     'uploadError'    => __('Upload failed. Please try again.', 'alfawzquran'),
@@ -138,10 +140,57 @@ class Frontend {
                     'firstHotspot'   => __('Click the image to add your first hotspot.', 'alfawzquran'),
                     'hotspotRequired'=> __('Add at least one hotspot before sending.', 'alfawzquran'),
                     'playbackError'  => __('Unable to play this audio clip.', 'alfawzquran'),
+                    'updated'        => __('Assignment updated successfully.', 'alfawzquran'),
+                    'loadingAssignment' => __('Loading assignment…', 'alfawzquran'),
+                    'loadAssignmentError' => __('Unable to load assignment details.', 'alfawzquran'),
+                    'editingLabel'   => __('Editing assignment:', 'alfawzquran'),
                 ],
                 'mediaSettings' => [
                     'title'  => __('Select Qa’idah Image', 'alfawzquran'),
                     'button' => __('Use this image', 'alfawzquran'),
+                ],
+            ]);
+        }
+
+        if ($this->current_page_uses_shortcode('alfawz_teacher_dashboard')) {
+            $rest_nonce = wp_create_nonce('wp_rest');
+            $teacher_id = get_current_user_id();
+
+            wp_enqueue_script(
+                'alfawz-teacher-dashboard',
+                ALFAWZQURAN_PLUGIN_URL . 'assets/js/alfawz-teacher.js',
+                [ 'alfawz-qaidah' ],
+                ALFAWZQURAN_VERSION,
+                true
+            );
+
+            $qaidah_page_url = apply_filters('alfawz_mobile_nav_url', '', 'qaidah-teacher');
+            if (empty($qaidah_page_url)) {
+                $qaidah_page = get_page_by_path('alfawz-qaidah');
+                if ($qaidah_page) {
+                    $qaidah_page_url = get_permalink($qaidah_page);
+                }
+            }
+
+            wp_localize_script('alfawz-teacher-dashboard', 'alfawzTeacherData', [
+                'apiUrl'        => rest_url('alfawzquran/v1/'),
+                'nonce'         => $rest_nonce,
+                'teacherId'     => $teacher_id,
+                'builderUrl'    => $qaidah_page_url,
+                'strings'       => [
+                    'statusSent'   => __('Sent', 'alfawzquran'),
+                    'statusDraft'  => __('Draft', 'alfawzquran'),
+                    'noAssignments'=> __('No assignments yet.', 'alfawzquran'),
+                    'view'         => __('View', 'alfawzquran'),
+                    'edit'         => __('Edit', 'alfawzquran'),
+                    'openBuilder'  => __('Open builder', 'alfawzquran'),
+                    'studentsLabel'=> __('students', 'alfawzquran'),
+                    'plansLabel'   => __('plans', 'alfawzquran'),
+                    'streakLabel'  => __('day streak', 'alfawzquran'),
+                    'loading'      => __('Loading…', 'alfawzquran'),
+                    'classActivity'=> __('View class activity', 'alfawzquran'),
+                    'previewTitle' => __('Assignment preview', 'alfawzquran'),
+                    'noPreview'    => __('Preview unavailable for this assignment.', 'alfawzquran'),
                 ],
             ]);
         }
@@ -169,7 +218,8 @@ class Frontend {
             'alfawz_profile',
             'alfawz_settings',
             'alfawz_games',
-            'alfawz_qaidah'
+            'alfawz_qaidah',
+            'alfawz_teacher_dashboard'
         ];
 
         foreach ($alfawz_shortcodes as $shortcode) {
@@ -270,6 +320,22 @@ class Frontend {
         return ob_get_clean();
     }
 
+    public function teacher_dashboard_shortcode($atts) {
+        if (!is_user_logged_in()) {
+            return $this->login_required_message();
+        }
+
+        if (! $this->current_user_has_teacher_capability()) {
+            return '<div class="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">' . esc_html__( 'Access denied. This area is reserved for teachers.', 'alfawzquran' ) . '</div>';
+        }
+
+        $this->active_view = 'teacher-dashboard';
+
+        ob_start();
+        include ALFAWZQURAN_PLUGIN_PATH . 'public/partials/teacher-dashboard.php';
+        return ob_get_clean();
+    }
+
     public function qaidah_shortcode($atts) {
         if (!is_user_logged_in()) {
             return $this->login_required_message();
@@ -296,6 +362,10 @@ class Frontend {
             return false;
         }
 
+        if ($this->current_user_has_teacher_capability()) {
+            return true;
+        }
+
         if (current_user_can('manage_options')) {
             return true;
         }
@@ -307,6 +377,14 @@ class Frontend {
         }
 
         return current_user_can('edit_posts');
+    }
+
+    private function current_user_has_teacher_capability() {
+        if (!is_user_logged_in()) {
+            return false;
+        }
+
+        return current_user_can('alfawz_teacher');
     }
     
     private function login_required_message() {

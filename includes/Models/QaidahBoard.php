@@ -216,6 +216,8 @@ class QaidahBoard {
                 'id'   => (int) $post->post_author,
                 'name' => \get_the_author_meta( 'display_name', $post->post_author ),
             ],
+            'status'      => \get_post_status( $post ),
+            'created'     => \get_post_time( 'c', false, $post ),
             'updated'     => \get_post_modified_time( 'c', false, $post ),
         ];
 

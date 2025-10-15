@@ -43,8 +43,9 @@ if ( ! function_exists( 'alfawz_get_mobile_nav_items' ) ) {
             $teacher_roles = apply_filters( 'alfawz_teacher_roles', [ 'teacher', 'editor', 'administrator' ] );
             $user          = wp_get_current_user();
             $is_teacher    = false;
+            $has_teacher_cap = current_user_can( 'alfawz_teacher' );
 
-            if ( current_user_can( 'manage_options' ) || current_user_can( 'edit_posts' ) ) {
+            if ( $has_teacher_cap || current_user_can( 'manage_options' ) || current_user_can( 'edit_posts' ) ) {
                 $is_teacher = true;
             }
 
@@ -55,6 +56,26 @@ if ( ! function_exists( 'alfawz_get_mobile_nav_items' ) ) {
             $items[ $qaidah_index ]['url'] = $is_teacher
                 ? apply_filters( 'alfawz_mobile_nav_url', '', 'qaidah-teacher' )
                 : apply_filters( 'alfawz_mobile_nav_url', '', 'qaidah-student' );
+
+            if ( $has_teacher_cap ) {
+                $items = array_filter(
+                    $items,
+                    static function ( $item ) {
+                        return ! in_array( $item['slug'], [ 'leaderboard' ], true );
+                    }
+                );
+
+                array_unshift(
+                    $items,
+                    [
+                        'slug'  => 'teacher-dashboard',
+                        'icon'  => '🎓',
+                        'label' => __( 'Teacher', 'alfawzquran' ),
+                        'url'   => apply_filters( 'alfawz_mobile_nav_url', '', 'teacher-dashboard' ),
+                    ]
+                );
+                $items = array_values( $items );
+            }
         }
 
         return $items;

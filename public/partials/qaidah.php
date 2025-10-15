@@ -4,11 +4,21 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 $qaidah_role = isset( $qaidah_role ) ? $qaidah_role : 'student';
+$qaidah_assignment_id = 0;
+
+if ( isset( $_GET['assignment_id'] ) ) {
+    $qaidah_assignment_id = absint( $_GET['assignment_id'] );
+}
+
+if ( isset( $assignment_id ) ) {
+    $qaidah_assignment_id = absint( $assignment_id );
+}
 ?>
 <div
     id="alfawz-qaidah"
     class="alfawz-qaidah-surface mx-auto max-w-5xl space-y-8 rounded-3xl bg-white/95 p-6 shadow-xl shadow-emerald-200/70 backdrop-blur"
     data-role="<?php echo esc_attr( $qaidah_role ); ?>"
+    data-assignment-id="<?php echo esc_attr( $qaidah_assignment_id ); ?>"
 >
     <header class="space-y-1 text-slate-900">
         <h2 class="text-2xl font-semibold leading-tight">
@@ -21,6 +31,15 @@ $qaidah_role = isset( $qaidah_role ) ? $qaidah_role : 'student';
 
     <?php if ( 'teacher' === $qaidah_role ) : ?>
         <section class="space-y-6" aria-labelledby="alfawz-qaidah-builder">
+            <div id="alfawz-qaidah-editing-banner" class="hidden items-center justify-between rounded-2xl border border-amber-200 bg-amber-50/80 p-3 text-sm text-amber-800">
+                <div class="flex flex-wrap items-center gap-2">
+                    <span class="font-semibold" id="alfawz-qaidah-editing-label"></span>
+                    <span id="alfawz-qaidah-editing-title" class="font-medium"></span>
+                </div>
+                <button type="button" id="alfawz-qaidah-cancel-edit" class="alfawz-link text-xs font-semibold text-amber-700">
+                    <?php esc_html_e( 'Cancel edit', 'alfawzquran' ); ?>
+                </button>
+            </div>
             <div class="space-y-2">
                 <h3 id="alfawz-qaidah-builder" class="text-xl font-semibold text-slate-900">
                     <?php esc_html_e( 'Create Qa’idah Assignment', 'alfawzquran' ); ?>

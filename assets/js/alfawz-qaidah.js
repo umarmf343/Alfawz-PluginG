@@ -21,11 +21,15 @@
     saving: 'Saving assignment…',
     saved: 'Assignment sent successfully.',
     saveError: 'Assignment could not be saved. Please review the form and try again.',
+    updated: 'Assignment updated successfully.',
     noAssignments: 'No assignments yet.',
     noStudents: 'No students available for this class.',
     firstHotspot: 'Click the image to add your first hotspot.',
     hotspotRequired: 'Add at least one hotspot before sending.',
     playbackError: 'Unable to play this audio clip.',
+    loadingAssignment: 'Loading assignment…',
+    loadAssignmentError: 'Unable to load assignment details.',
+    editingLabel: 'Editing assignment:',
     ...(settings.strings || {}),
   };
 
@@ -90,6 +94,10 @@
     mediaChunks: [],
     recordControls: null,
     assignmentSaving: false,
+    editingAssignmentId: null,
+    pendingClassId: '',
+    pendingStudentSelection: [],
+    loadingAssignment: false,
   };
 
   const studentState = {
@@ -154,7 +162,7 @@
     }
   };
 
-  const initTeacherView = () => {
+  const initTeacherView = async () => {
     const form = document.getElementById('alfawz-qaidah-assignment-form');
     const titleInput = document.getElementById('alfawz-qaidah-title');
     const descriptionInput = document.getElementById('alfawz-qaidah-description');
@@ -168,6 +176,10 @@
     const hotspotLayer = document.getElementById('alfawz-qaidah-hotspot-layer');
     const hotspotList = document.getElementById('alfawz-qaidah-hotspot-list');
     const resetButton = document.getElementById('alfawz-qaidah-reset');
+    const editingBanner = document.getElementById('alfawz-qaidah-editing-banner');
+    const editingLabel = document.getElementById('alfawz-qaidah-editing-label');
+    const editingTitle = document.getElementById('alfawz-qaidah-editing-title');
+    const cancelEditButton = document.getElementById('alfawz-qaidah-cancel-edit');
 
     const setStatus = (message, tone = 'info') => {
       if (!statusEl) {
@@ -233,6 +245,10 @@
           checkbox.id = id;
           checkbox.value = student.id;
           checkbox.className = 'alfawz-qaidah-student__checkbox';
+          if (teacherState.pendingStudentSelection.includes(student.id)) {
+            checkbox.checked = true;
+            checkbox.setAttribute('checked', 'checked');
+          }
 
           const avatar = document.createElement('span');
           avatar.className = 'alfawz-qaidah-student__avatar';
@@ -251,6 +267,17 @@
           wrapper.appendChild(info);
           studentFilter.appendChild(wrapper);
         });
+
+        if (teacherState.pendingStudentSelection.length) {
+          teacherState.pendingStudentSelection.forEach((id) => {
+            const input = studentFilter.querySelector(`input[type="checkbox"][value="${id}"]`);
+            if (input) {
+              input.checked = true;
+              input.setAttribute('checked', 'checked');
+            }
+          });
+          teacherState.pendingStudentSelection = [];
+        }
       });
     };
 
@@ -260,10 +287,12 @@
         const students = await apiRequest(`qaidah/students${params}`);
         teacherState.students = Array.isArray(students) ? students : [];
         renderStudentFilter();
+        return teacherState.students;
       } catch (error) {
         console.error('[AlfawzQuran] Failed to load students', error);
         teacherState.students = [];
         renderStudentFilter();
+        return teacherState.students;
       }
     };
 
@@ -272,22 +301,53 @@
       renderHotspots();
     };
 
+    const hideEditingBanner = () => {
+      if (editingBanner) {
+        editingBanner.classList.add('hidden');
+      }
+      if (editingTitle) {
+        editingTitle.textContent = '';
+      }
+    };
+
+    const showEditingBanner = (assignment) => {
+      if (!editingBanner) {
+        return;
+      }
+      if (editingLabel) {
+        editingLabel.textContent = strings.editingLabel || 'Editing assignment:';
+      }
+      if (editingTitle) {
+        editingTitle.textContent = assignment?.title || '';
+      }
+      editingBanner.classList.remove('hidden');
+    };
+
     const resetBuilder = (clearStatus = true) => {
       cleanupRecording();
       teacherState.image = null;
+      teacherState.editingAssignmentId = null;
+      teacherState.pendingClassId = '';
+      teacherState.pendingStudentSelection = [];
+      teacherState.loadingAssignment = false;
       if (form) {
         form.reset();
+      }
+      if (classSelect) {
+        classSelect.value = '';
       }
       if (imagePreview) {
         imagePreview.classList.add('hidden');
       }
       if (imageElement) {
         imageElement.src = '';
+        imageElement.onload = null;
       }
       if (imageIdInput) {
         imageIdInput.value = '';
       }
       resetHotspots();
+      hideEditingBanner();
       if (clearStatus) {
         setStatus('');
       }
@@ -340,6 +400,113 @@
         mediaFrame = ensureMediaFrame();
       }
       mediaFrame?.open();
+    };
+
+    const toPercentNumber = (value) => {
+      if (typeof value === 'number' && Number.isFinite(value)) {
+        return Math.min(100, Math.max(0, value));
+      }
+      if (typeof value === 'string') {
+        const parsed = parseFloat(value.replace('%', ''));
+        if (Number.isFinite(parsed)) {
+          return Math.min(100, Math.max(0, parsed));
+        }
+      }
+      return 0;
+    };
+
+    const normaliseAssignmentHotspots = (hotspots) => {
+      if (!Array.isArray(hotspots)) {
+        return [];
+      }
+      return hotspots.map((hotspot) => ({
+        id: hotspot.id || `hotspot-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+        label: hotspot.label || '',
+        x: toPercentNumber(hotspot.x),
+        y: toPercentNumber(hotspot.y),
+        audioId: hotspot.audio_id || 0,
+        audioUrl: hotspot.audio_url || '',
+      }));
+    };
+
+    const populateAssignmentForm = async (assignment) => {
+      if (!assignment) {
+        return;
+      }
+      teacherState.editingAssignmentId = assignment.id || null;
+      if (titleInput) {
+        titleInput.value = assignment.title || '';
+      }
+      if (descriptionInput) {
+        descriptionInput.value = assignment.description || '';
+      }
+
+      const classId = assignment.class?.id ? String(assignment.class.id) : '';
+      teacherState.pendingClassId = classId;
+      teacherState.pendingStudentSelection = Array.isArray(assignment.students)
+        ? assignment.students.map((value) => Number(value)).filter((value) => Number.isFinite(value))
+        : [];
+
+      if (classSelect) {
+        classSelect.value = classId;
+      }
+
+      await loadStudents(classId);
+
+      const image = assignment.image;
+      if (image && image.url) {
+        teacherState.image = {
+          id: image.id || 0,
+          url: image.url,
+          width: image.width || null,
+          height: image.height || null,
+        };
+        if (imageElement) {
+          imageElement.src = image.url;
+          imageElement.onload = () => renderHotspots();
+        }
+        if (imagePreview) {
+          imagePreview.classList.remove('hidden');
+        }
+        if (imageIdInput) {
+          imageIdInput.value = image.id || '';
+        }
+      } else {
+        teacherState.image = null;
+        if (imageElement) {
+          imageElement.src = '';
+        }
+        if (imagePreview) {
+          imagePreview.classList.add('hidden');
+        }
+        if (imageIdInput) {
+          imageIdInput.value = '';
+        }
+      }
+
+      teacherState.hotspots = normaliseAssignmentHotspots(assignment.hotspots);
+      renderHotspots();
+      showEditingBanner(assignment);
+    };
+
+    const loadAssignment = async (assignmentId) => {
+      if (!assignmentId) {
+        resetBuilder();
+        return;
+      }
+      try {
+        teacherState.loadingAssignment = true;
+        setStatus(strings.loadingAssignment || strings.loading, 'info');
+        const assignment = await apiRequest(`qaidah/assignments/${assignmentId}`);
+        resetBuilder(false);
+        await populateAssignmentForm(assignment);
+        setStatus('');
+      } catch (error) {
+        console.error('[AlfawzQuran] Failed to load assignment', error);
+        setStatus(strings.loadAssignmentError || strings.saveError, 'error');
+      } finally {
+        teacherState.loadingAssignment = false;
+      }
     };
 
     const renderHotspots = () => {
@@ -667,9 +834,21 @@
       try {
         teacherState.assignmentSaving = true;
         setStatus(strings.saving, 'info');
-        await apiRequest('qaidah/assignments', { method: 'POST', body: payload });
+        const editingId = teacherState.editingAssignmentId;
+        const endpoint = editingId ? `qaidah/assignments/${editingId}` : 'qaidah/assignments';
+        const method = editingId ? 'PUT' : 'POST';
+        const response = await apiRequest(endpoint, { method, body: payload });
         resetBuilder(false);
-        setStatus(strings.saved, 'success');
+        setStatus(editingId ? strings.updated : strings.saved, 'success');
+        const assignmentId = response?.id || editingId || null;
+        document.dispatchEvent(
+          new CustomEvent('alfawz:qaidah-updated', {
+            detail: {
+              assignmentId,
+              mode: editingId ? 'updated' : 'created',
+            },
+          }),
+        );
       } catch (error) {
         console.error('[AlfawzQuran] Failed to save assignment', error);
         setStatus(strings.saveError, 'error');
@@ -680,6 +859,7 @@
 
     classSelect?.addEventListener('change', (event) => {
       const classId = event.target.value;
+      teacherState.pendingStudentSelection = [];
       loadStudents(classId);
     });
 
@@ -691,10 +871,44 @@
       resetBuilder();
     });
 
+    cancelEditButton?.addEventListener('click', (event) => {
+      event.preventDefault();
+      resetBuilder();
+    });
+
     window.addEventListener('beforeunload', cleanupRecording);
 
-    populateClasses();
-    loadStudents('');
+    document.addEventListener('alfawz:qaidah-edit', (event) => {
+      const assignmentId = Number(event.detail?.assignmentId);
+      if (Number.isFinite(assignmentId) && assignmentId > 0) {
+        loadAssignment(assignmentId);
+      } else {
+        resetBuilder();
+      }
+    });
+
+    await populateClasses();
+    await loadStudents('');
+
+    const initialAssignmentId = Number(root.dataset.assignmentId || settings.assignmentId || 0);
+    if (Number.isFinite(initialAssignmentId) && initialAssignmentId > 0) {
+      await loadAssignment(initialAssignmentId);
+    }
+
+    window.AlfawzQaidahBuilder = {
+      reset: () => resetBuilder(),
+      edit: (assignmentId) => {
+        const id = Number(assignmentId);
+        if (Number.isFinite(id) && id > 0) {
+          return loadAssignment(id);
+        }
+        resetBuilder();
+        return Promise.resolve();
+      },
+      getEditingId: () => teacherState.editingAssignmentId,
+    };
+
+    document.dispatchEvent(new CustomEvent('alfawz:qaidah-ready', { detail: { role: 'teacher' } }));
   };
 
   const closeModal = (modal) => {
