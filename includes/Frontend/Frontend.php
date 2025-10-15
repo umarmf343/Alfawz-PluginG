@@ -32,6 +32,7 @@ class Frontend {
         add_shortcode('alfawz_games', [$this, 'games_shortcode']);
         add_shortcode('alfawz_qaidah', [$this, 'qaidah_shortcode']);
         add_shortcode('alfawz_teacher_dashboard', [$this, 'teacher_dashboard_shortcode']);
+        add_shortcode('alfawz_account', [$this, 'account_shortcode']);
     }
 
     public function enqueue_assets() {
@@ -341,7 +342,8 @@ class Frontend {
             'alfawz_game',
             'alfawz_games',
             'alfawz_qaidah',
-            'alfawz_teacher_dashboard'
+            'alfawz_teacher_dashboard',
+            'alfawz_account'
         ];
 
         foreach ($alfawz_shortcodes as $shortcode) {
@@ -452,6 +454,14 @@ class Frontend {
         ob_start();
         $qaidah_role = $this->determine_qaidah_role();
         include ALFAWZQURAN_PLUGIN_PATH . 'public/partials/qaidah.php';
+        return ob_get_clean();
+    }
+
+    public function account_shortcode($atts) {
+        $this->active_view = 'account';
+
+        ob_start();
+        include ALFAWZQURAN_PLUGIN_PATH . 'public/partials/account.php';
         return ob_get_clean();
     }
 
