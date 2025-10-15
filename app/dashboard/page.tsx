@@ -12,8 +12,11 @@ import {
   Activity,
   Bell,
   BookOpen,
+  Bookmark,
+  BookmarkCheck,
   CalendarCheck,
   CheckCircle,
+  Flame,
   Heart,
   LayoutDashboard,
   Moon,
@@ -40,11 +43,34 @@ type Notification = {
   metadata?: string
 }
 
+type DailyProgressSnapshot = {
+  count: number
+  target: number
+  percentage: number
+  remaining: number
+  last_reset: string
+}
+
+type EggStudentProgress = {
+  id: number
+  name: string
+  email: string
+  egg_count: number
+  egg_target: number
+  egg_percentage: number
+  last_completion: number | null
+  daily_goal_count: number
+  daily_goal_target: number
+}
+
 export default function DashboardPage() {
   const [currentDate, setCurrentDate] = useState(() => new Date())
   const [ramadanPreview, setRamadanPreview] = useState(false)
   const [completedSurahs, setCompletedSurahs] = useState<Record<string, boolean>>({})
   const [bookmarks, setBookmarks] = useState<Record<string, boolean>>({})
+  const [dailyGoal, setDailyGoal] = useState<DailyProgressSnapshot | null>(null)
+  const [eggStudentProgress, setEggStudentProgress] = useState<EggStudentProgress[]>([])
+  const [showTeacherOverview, setShowTeacherOverview] = useState(false)
 
   useEffect(() => {
     const interval = window.setInterval(() => setCurrentDate(new Date()), 60_000)
@@ -53,6 +79,8 @@ export default function DashboardPage() {
 
   const hours = currentDate.getHours()
   const day = currentDate.getDay()
+
+  const timezoneOffset = useMemo(() => -new Date().getTimezoneOffset(), [])
 
   const isFriday = day === 5
   const isMorning = hours >= 5 && hours < 12
@@ -210,6 +238,91 @@ export default function DashboardPage() {
     setBookmarks((prev) => ({ ...prev, [surah]: !prev[surah] }))
   }
 
+  useEffect(() => {
+    async function loadDailyGoal() {
+      try {
+        const response = await fetch(`/wp-json/alfawzquran/v1/recitation-goal?timezone_offset=${timezoneOffset}`, {
+          credentials: "include",
+        })
+
+        if (!response.ok) {
+          return
+        }
+
+        const payload: DailyProgressSnapshot = await response.json()
+        setDailyGoal(payload)
+      } catch (error) {
+        console.error(error)
+      }
+    }
+
+    loadDailyGoal()
+  }, [timezoneOffset])
+
+  useEffect(() => {
+    const handler = (event: Event) => {
+      const detail = (event as CustomEvent<DailyProgressSnapshot>).detail
+      if (detail) {
+        setDailyGoal(detail)
+      }
+    }
+
+    window.addEventListener("alfawz:daily-progress", handler as EventListener)
+    return () => window.removeEventListener("alfawz:daily-progress", handler as EventListener)
+  }, [])
+
+  useEffect(() => {
+    async function loadTeacherOverview() {
+      try {
+        const response = await fetch("/wp-json/alfawzquran/v1/egg-challenge/progress", { credentials: "include" })
+
+        if (!response.ok) {
+          return
+        }
+
+        const payload = (await response.json()) as { students?: EggStudentProgress[] }
+        if (Array.isArray(payload.students) && payload.students.length > 0) {
+          setEggStudentProgress(payload.students)
+          setShowTeacherOverview(true)
+        }
+      } catch (error) {
+        console.error(error)
+      }
+    }
+
+    loadTeacherOverview()
+  }, [])
+
+  const dailyGoalLabel = useMemo(() => {
+    if (!dailyGoal) {
+      return "Loading progress..."
+    }
+    return `${dailyGoal.count} / ${dailyGoal.target} verses`
+  }, [dailyGoal])
+
+  const dailyGoalPercent = useMemo(() => {
+    if (!dailyGoal) {
+      return 0
+    }
+
+    return Math.min(100, Math.round(dailyGoal.percentage))
+  }, [dailyGoal])
+
+  const dailyGoalResetLabel = useMemo(() => {
+    if (!dailyGoal?.last_reset) {
+      return "Resets at local midnight"
+    }
+
+    const parsed = new Date(`${dailyGoal.last_reset}T00:00:00`)
+    if (Number.isNaN(parsed.valueOf())) {
+      return "Resets at local midnight"
+    }
+
+    return `Reset ${parsed.toLocaleDateString(undefined, { month: "short", day: "numeric" })}`
+  }, [dailyGoal])
+
+  const topEggStudents = useMemo(() => eggStudentProgress.slice(0, 3), [eggStudentProgress])
+
   return (
     <main className="min-h-screen bg-gradient-to-br from-[#2a0b11] via-[#5c1520] to-[#f8f1e6] pb-32 text-[#f8f1e6]">
       <div className="relative overflow-hidden">
@@ -231,6 +344,36 @@ export default function DashboardPage() {
             </p>
           </header>
           <section className="grid gap-6 md:grid-cols-2">
+            <Card className="border-[#f8f1e6]/40 bg-[#401016]/70 text-[#fceee0] backdrop-blur">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-[#fceee0]">
+                  <Flame className="h-5 w-5" aria-hidden />
+                  Today’s Recitation Goal
+                </CardTitle>
+                <CardDescription className="text-[#f1dfd5]">
+                  Live syncs with the reader — when a student advances a verse, this card updates instantly.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between text-sm text-[#f1dfd5]">
+                  <span>{dailyGoalLabel}</span>
+                  <span>{dailyGoal ? `${dailyGoalPercent}%` : ""}</span>
+                </div>
+                <div className="h-2 w-full overflow-hidden rounded-full bg-[#f8f1e6]/20">
+                  <div
+                    className="h-full rounded-full bg-[#f8f1e6] transition-[width] duration-500 ease-out"
+                    style={{ width: `${dailyGoalPercent}%` }}
+                  />
+                </div>
+                <div className="flex items-center justify-between text-xs text-[#f1dfd5]/80">
+                  <span>{dailyGoal ? dailyGoalResetLabel : "Resets at local midnight"}</span>
+                  <span>{dailyGoal ? `${dailyGoal.remaining} verses remaining` : ""}</span>
+                </div>
+                <p className="text-xs text-[#f1dfd5]/70">
+                  Encourage learners to keep the reader tab open — every “Next verse” action pings this dashboard via AJAX.
+                </p>
+              </CardContent>
+            </Card>
             <Card className="border-[#f8f1e6]/40 bg-[#401016]/70 text-[#fceee0] backdrop-blur">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-[#fceee0]">
@@ -356,81 +499,122 @@ export default function DashboardPage() {
                 </p>
               </CardContent>
             </Card>
-            <Card
-              className={`border-[#f8f1e6]/40 text-[#fceee0] backdrop-blur ${
-                todaysSpecial.key === "surah-al-kahf"
-                  ? "bg-gradient-to-br from-[#3d0b12]/90 via-[#401016]/80 to-[#a23c36]/70"
-                  : todaysSpecial.key === "night-protection"
-                    ? "bg-gradient-to-br from-[#1d0a19]/90 via-[#2d0d11]/80 to-[#401016]/70"
-                    : todaysSpecial.key === "morning-light"
-                      ? "bg-gradient-to-br from-[#4d1a12]/90 via-[#401016]/80 to-[#f8f1e6]/20"
-                      : "bg-[#401016]/80"
-              } ${isRamadanSeason ? "ring-2 ring-[#f7d8a6]/60" : ""}`}
-            >
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-[#fdfaf5]">
-                  {todaysSpecial.icon}
-                  Today’s Special Surah
-                </CardTitle>
-                <CardDescription className="text-[#f1dfd5]">
-                  {todaysSpecial.subtitle} · {currentDate.toLocaleDateString(undefined, { weekday: "long", month: "short", day: "numeric" })}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="space-y-2">
-                  <p className="text-2xl font-semibold text-[#fdfaf5]">{todaysSpecial.surah}</p>
-                  <p className="text-sm leading-relaxed text-[#f1dfd5]">{todaysSpecial.description}</p>
-                </div>
-                <div className="flex flex-wrap gap-3">
-                  <Button
-                    variant="secondary"
-                    className="bg-[#f8f1e6] text-[#2a0b11] hover:bg-[#f1dfd5]"
-                    onClick={() => console.info(`Play audio for ${todaysSpecial.surah}`)}
-                  >
-                    <Play className="h-4 w-4" aria-hidden /> Play audio
-                  </Button>
-                  <Button
-                    variant={completedSurahs[todaysSpecial.surah] ? "secondary" : "ghost"}
-                    className={
-                      completedSurahs[todaysSpecial.surah]
-                        ? "bg-[#f1dfd5] text-[#2a0b11] hover:bg-[#f8f1e6]"
-                        : "text-[#fceee0] hover:bg-[#401016]"
-                    }
-                    onClick={() => toggleCompletion(todaysSpecial.surah)}
-                  >
-                    <CheckCircle className="h-4 w-4" aria-hidden />
-                    {completedSurahs[todaysSpecial.surah] ? "Marked as read" : "Mark as read"}
-                  </Button>
-                  <Button
-                    variant={bookmarks[todaysSpecial.surah] ? "secondary" : "ghost"}
-                    className={
-                      bookmarks[todaysSpecial.surah]
-                        ? "bg-[#f1dfd5] text-[#2a0b11] hover:bg-[#f8f1e6]"
-                        : "text-[#fceee0] hover:bg-[#401016]"
-                    }
-                    onClick={() => toggleBookmark(todaysSpecial.surah)}
-                  >
-                    <Heart className="h-4 w-4" aria-hidden />
-                    {bookmarks[todaysSpecial.surah] ? "Added to habit" : "Bookmark / Add to habit"}
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    className="text-[#fceee0] hover:bg-[#401016]"
-                    onClick={() => console.info(`Open tafsir for ${todaysSpecial.surah}`)}
-                  >
-                    <BookOpen className="h-4 w-4" aria-hidden /> View tafsir & hadith
-                  </Button>
-                </div>
-                {isRamadanSeason && (
-                  <div className="rounded-lg border border-[#f7d8a6]/40 bg-[#2d0d11]/60 p-4 text-sm text-[#f7d8a6]">
-                    <p className="font-medium">Ramadan ambience active</p>
-                    <p className="mt-1 text-[#fbeacc]">
-                      Lantern glow, dua overlays, and sadaqah reminders are highlighted for students throughout the month.
-                    </p>
+            <div className="flex flex-col gap-6">
+              <Card
+                className={`border-[#f8f1e6]/40 text-[#fceee0] backdrop-blur ${
+                  todaysSpecial.key === "surah-al-kahf"
+                    ? "bg-gradient-to-br from-[#3d0b12]/90 via-[#401016]/80 to-[#a23c36]/70"
+                    : todaysSpecial.key === "night-protection"
+                      ? "bg-gradient-to-br from-[#1d0a19]/90 via-[#2d0d11]/80 to-[#401016]/70"
+                      : todaysSpecial.key === "morning-light"
+                        ? "bg-gradient-to-br from-[#4d1a12]/90 via-[#401016]/80 to-[#f8f1e6]/20"
+                        : "bg-[#401016]/80"
+                } ${isRamadanSeason ? "ring-2 ring-[#f7d8a6]/60" : ""}`}
+              >
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-[#fdfaf5]">
+                    {todaysSpecial.icon}
+                    Today’s Special Surah
+                  </CardTitle>
+                  <CardDescription className="text-[#f1dfd5]">
+                    {todaysSpecial.subtitle} · {currentDate.toLocaleDateString(undefined, { weekday: "long", month: "short", day: "numeric" })}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="space-y-2">
+                    <p className="text-2xl font-semibold text-[#fdfaf5]">{todaysSpecial.surah}</p>
+                    <p className="text-sm leading-relaxed text-[#f1dfd5]">{todaysSpecial.description}</p>
                   </div>
-                )}
-              </CardContent>
-            </Card>
+                  <div className="flex flex-wrap gap-3">
+                    <Button
+                      variant="secondary"
+                      className="bg-[#f8f1e6] text-[#2a0b11] hover:bg-[#f1dfd5]"
+                      onClick={() => console.info(`Play audio for ${todaysSpecial.surah}`)}
+                    >
+                      <Play className="h-4 w-4" aria-hidden /> Play audio
+                    </Button>
+                    <Button
+                      variant={completedSurahs[todaysSpecial.surah] ? "secondary" : "ghost"}
+                      className={
+                        completedSurahs[todaysSpecial.surah]
+                          ? "bg-[#f1dfd5] text-[#2a0b11] hover:bg-[#f8f1e6]"
+                          : "text-[#fceee0] hover:bg-[#401016]"
+                      }
+                      onClick={() => toggleCompletion(todaysSpecial.surah)}
+                    >
+                      <BookmarkCheck className="h-4 w-4" aria-hidden />
+                      {completedSurahs[todaysSpecial.surah] ? "Marked" : "Mark complete"}
+                    </Button>
+                    <Button
+                      variant={bookmarks[todaysSpecial.surah] ? "secondary" : "ghost"}
+                      className={
+                        bookmarks[todaysSpecial.surah]
+                          ? "bg-[#f1dfd5] text-[#2a0b11] hover:bg-[#f8f1e6]"
+                          : "text-[#fceee0] hover:bg-[#401016]"
+                      }
+                      onClick={() => toggleBookmark(todaysSpecial.surah)}
+                    >
+                      <Bookmark className="h-4 w-4" aria-hidden />
+                      {bookmarks[todaysSpecial.surah] ? "Saved" : "Save for later"}
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+              {showTeacherOverview ? (
+                <Card className="border-[#f8f1e6]/40 bg-[#401016]/70 text-[#fceee0] backdrop-blur">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-[#fdfaf5]">
+                      <Heart className="h-5 w-5" aria-hidden /> Egg Challenge Watchlist
+                    </CardTitle>
+                    <CardDescription className="text-[#f1dfd5]">
+                      See who is closest to hatching their next challenge so you can cheer them on.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4 text-sm">
+                    {topEggStudents.map((student) => {
+                      const percentage = Math.min(100, Math.round(student.egg_percentage))
+                      return (
+                        <div
+                          key={student.id}
+                          className="rounded-xl border border-[#f8f1e6]/20 bg-[#2d0d11]/70 p-4"
+                        >
+                          <div className="flex items-center justify-between gap-3">
+                            <div>
+                              <p className="text-sm font-semibold text-[#fdfaf5]">{student.name}</p>
+                              <p className="text-xs text-[#f1dfd5]/70">{student.email}</p>
+                            </div>
+                            <div className="text-right text-sm text-[#f1dfd5]">
+                              <span className="font-medium text-[#f8f1e6]">
+                                {student.egg_count} / {student.egg_target}
+                              </span>
+                              <div className="mt-2 h-2 w-24 overflow-hidden rounded-full bg-white/10">
+                                <div
+                                  className="h-full rounded-full bg-[#f7d8a6] transition-[width] duration-500 ease-out"
+                                  style={{ width: `${percentage}%` }}
+                                />
+                              </div>
+                            </div>
+                          </div>
+                          <div className="mt-3 flex items-center justify-between text-xs text-[#f1dfd5]/70">
+                            <span>
+                              Daily goal {student.daily_goal_count}/{student.daily_goal_target}
+                            </span>
+                            <span>{percentage}% cracked</span>
+                          </div>
+                        </div>
+                      )
+                    })}
+                    {eggStudentProgress.length > topEggStudents.length ? (
+                      <p className="text-xs text-[#f1dfd5]/70">
+                        {eggStudentProgress.length - topEggStudents.length} more learners are tracked inside the teacher hub.
+                      </p>
+                    ) : (
+                      <p className="text-xs text-[#f1dfd5]/70">Celebrations trigger instantly after each student hits their target.</p>
+                    )}
+                  </CardContent>
+                </Card>
+              ) : null}
+            </div>
           </section>
           <section className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
             <Card className="border-[#f8f1e6]/40 bg-[#401016]/70 text-[#fceee0] backdrop-blur">

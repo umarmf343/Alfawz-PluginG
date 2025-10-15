@@ -17,6 +17,26 @@ class Routes {
      */
     const API_BASE = 'https://api.alquran.cloud/v1';
 
+    /**
+     * Default number of verses for the daily goal.
+     */
+    const DAILY_GOAL_TARGET = 10;
+
+    /**
+     * User meta keys for the daily recitation goal.
+     */
+    const DAILY_GOAL_META_COUNT          = 'daily_recited_verses';
+    const DAILY_GOAL_META_LOG            = 'alfawz_daily_recited_verses_log';
+    const DAILY_GOAL_META_LAST_RESET     = 'alfawz_daily_goal_last_reset';
+    const DAILY_GOAL_META_LAST_COMPLETION = 'alfawz_daily_goal_last_completion';
+
+    /**
+     * User meta keys for the egg challenge.
+     */
+    const EGG_CHALLENGE_COUNT_META      = 'egg_challenge_current_count';
+    const EGG_CHALLENGE_TARGET_META     = 'egg_challenge_target';
+    const EGG_CHALLENGE_LAST_TARGET_META = 'alfawz_egg_last_completion_target';
+
     public function __construct() {
         add_action( 'rest_api_init', [ $this, 'register_routes' ] );
         add_action( 'alfawz_quran_daily_cron', [ $this, 'calculate_daily_streaks' ] );
@@ -127,6 +147,73 @@ class Routes {
             'callback'            => [ $this, 'restart_memorization_plan' ],
             'permission_callback' => [ $this, 'check_permission' ],
         ]);
+
+        register_rest_route(
+            $namespace,
+            '/recitation-goal',
+            [
+                'methods'             => 'GET',
+                'callback'            => [ $this, 'get_daily_recitation_goal' ],
+                'permission_callback' => [ $this, 'check_permission' ],
+                'args'                => [
+                    'timezone_offset' => [
+                        'validate_callback' => function( $param ) {
+                            return is_numeric( $param ) || '' === $param || null === $param;
+                        },
+                    ],
+                ],
+            ]
+        );
+
+        register_rest_route(
+            $namespace,
+            '/verse-progress',
+            [
+                'methods'             => 'POST',
+                'callback'            => [ $this, 'track_verse_progress' ],
+                'permission_callback' => [ $this, 'check_permission' ],
+                'args'                => [
+                    'verse_key'       => [
+                        'required'          => true,
+                        'validate_callback' => function( $param ) {
+                            return is_string( $param ) && '' !== trim( $param );
+                        },
+                    ],
+                    'timezone_offset' => [
+                        'validate_callback' => function( $param ) {
+                            return is_numeric( $param ) || '' === $param || null === $param;
+                        },
+                    ],
+                ],
+            ]
+        );
+
+        register_rest_route(
+            $namespace,
+            '/egg-challenge',
+            [
+                [
+                    'methods'             => 'GET',
+                    'callback'            => [ $this, 'get_egg_challenge_state' ],
+                    'permission_callback' => [ $this, 'check_permission' ],
+                ],
+                [
+                    'methods'             => 'POST',
+                    'callback'            => [ $this, 'increment_egg_challenge_endpoint' ],
+                    'permission_callback' => [ $this, 'check_permission' ],
+                ],
+            ]
+        );
+
+        register_rest_route(
+            $namespace,
+            '/egg-challenge/progress',
+            [
+                'methods'             => 'GET',
+                'callback'            => [ $this, 'get_egg_challenge_overview' ],
+                'permission_callback' => [ $this, 'teacher_permission_callback' ],
+            ]
+        );
 
         register_rest_route( 'alfawzquran/v1', '/stats', [
             'methods'             => 'GET',
@@ -954,13 +1041,322 @@ class Routes {
     }
 
     /**
+     * Return the current daily recitation goal state for the authenticated user.
+     */
+    public function get_daily_recitation_goal( \WP_REST_Request $request ) {
+        $user_id = get_current_user_id();
+
+        if ( ! $user_id ) {
+            return new \WP_REST_Response( [ 'success' => false, 'message' => 'User not logged in.' ], 401 );
+        }
+
+        $timezone_offset = $request->get_param( 'timezone_offset' );
+        $state           = $this->prepare_daily_goal_state( $user_id, $timezone_offset );
+
+        return new \WP_REST_Response( $state, 200 );
+    }
+
+    /**
+     * Handle the verse progression event coming from the reader UI.
+     */
+    public function track_verse_progress( \WP_REST_Request $request ) {
+        $user_id = get_current_user_id();
+
+        if ( ! $user_id ) {
+            return new \WP_REST_Response( [ 'success' => false, 'message' => 'User not logged in.' ], 401 );
+        }
+
+        $verse_key       = sanitize_text_field( (string) $request->get_param( 'verse_key' ) );
+        $timezone_offset = $request->get_param( 'timezone_offset' );
+
+        if ( '' === $verse_key ) {
+            return new \WP_REST_Response( [ 'success' => false, 'message' => 'Verse identifier is required.' ], 400 );
+        }
+
+        $daily_state = $this->increment_daily_goal_progress( $user_id, $verse_key, $timezone_offset );
+        $egg_state   = $this->increment_egg_challenge( $user_id );
+
+        return new \WP_REST_Response(
+            [
+                'success' => true,
+                'daily'   => $daily_state,
+                'egg'     => $egg_state,
+            ],
+            200
+        );
+    }
+
+    /**
+     * Return the egg challenge state for the authenticated user.
+     */
+    public function get_egg_challenge_state( \WP_REST_Request $request ) {
+        $user_id = get_current_user_id();
+
+        if ( ! $user_id ) {
+            return new \WP_REST_Response( [ 'success' => false, 'message' => 'User not logged in.' ], 401 );
+        }
+
+        $state = $this->prepare_egg_challenge_state( $user_id );
+
+        return new \WP_REST_Response( $state, 200 );
+    }
+
+    /**
+     * Increment the egg challenge without touching the daily goal.
+     */
+    public function increment_egg_challenge_endpoint( \WP_REST_Request $request ) {
+        $user_id = get_current_user_id();
+
+        if ( ! $user_id ) {
+            return new \WP_REST_Response( [ 'success' => false, 'message' => 'User not logged in.' ], 401 );
+        }
+
+        $state = $this->increment_egg_challenge( $user_id );
+
+        return new \WP_REST_Response( $state, 200 );
+    }
+
+    /**
+     * Provide teachers with a high-level overview of student egg challenge progress.
+     */
+    public function get_egg_challenge_overview( WP_REST_Request $request ) {
+        $class_id = $this->normalize_class_id( $request->get_param( 'class_id' ) );
+        $roles    = apply_filters( 'alfawz_qaidah_student_roles', [ 'student', 'subscriber' ] );
+
+        $args = [
+            'role__in' => $roles,
+            'orderby'  => 'display_name',
+            'order'    => 'ASC',
+            'fields'   => [ 'ID', 'display_name', 'user_email' ],
+        ];
+
+        if ( $class_id ) {
+            $args['meta_query'] = [
+                [
+                    'key'     => 'alfawz_class_id',
+                    'value'   => $class_id,
+                    'compare' => '=',
+                ],
+            ];
+        }
+
+        $users = get_users( $args );
+
+        $students = array_map(
+            function ( $user ) {
+                $progress = $this->prepare_egg_challenge_state( $user->ID );
+
+                $daily_count = (int) get_user_meta( $user->ID, self::DAILY_GOAL_META_COUNT, true );
+
+                return [
+                    'id'                => (int) $user->ID,
+                    'name'              => $user->display_name,
+                    'email'             => $user->user_email,
+                    'egg_count'         => $progress['count'],
+                    'egg_target'        => $progress['target'],
+                    'egg_percentage'    => $progress['percentage'],
+                    'last_completion'   => $progress['previous_target'],
+                    'daily_goal_count'  => $daily_count,
+                    'daily_goal_target' => self::DAILY_GOAL_TARGET,
+                ];
+            },
+            $users
+        );
+
+        return new WP_REST_Response(
+            [
+                'students' => $students,
+                'count'    => count( $students ),
+            ],
+            200
+        );
+    }
+
+    /**
      * Calculate and update daily streaks for all users.
      * This function is called by a daily cron job.
      */
     public function calculate_daily_streaks() {
         $progress_model = new UserProgress();
         $progress_model->update_all_user_streaks();
+        $this->reset_daily_recitations_for_all_users();
         error_log('AlfawzQuran Daily Cron: Streaks updated.');
+    }
+
+    /**
+     * Build the current daily goal state for a user, resetting when necessary.
+     */
+    private function prepare_daily_goal_state( $user_id, $timezone_offset = null ) {
+        $this->maybe_reset_daily_goal( $user_id, $timezone_offset );
+
+        $count      = (int) get_user_meta( $user_id, self::DAILY_GOAL_META_COUNT, true );
+        $target     = self::DAILY_GOAL_TARGET;
+        $percentage = $target > 0 ? round( ( $count / $target ) * 100, 2 ) : 0;
+        $remaining  = max( 0, $target - $count );
+        $last_reset = get_user_meta( $user_id, self::DAILY_GOAL_META_LAST_RESET, true );
+
+        if ( '' === $last_reset ) {
+            $last_reset = $this->get_local_date_string( $timezone_offset );
+            update_user_meta( $user_id, self::DAILY_GOAL_META_LAST_RESET, $last_reset );
+        }
+
+        return [
+            'count'      => $count,
+            'target'     => $target,
+            'percentage' => min( 100, $percentage ),
+            'remaining'  => $remaining,
+            'last_reset' => $last_reset,
+        ];
+    }
+
+    /**
+     * Increment the daily goal while respecting unique verses per day.
+     */
+    private function increment_daily_goal_progress( $user_id, $verse_key, $timezone_offset = null ) {
+        $state          = $this->prepare_daily_goal_state( $user_id, $timezone_offset );
+        $previous_count = (int) $state['count'];
+
+        $log = get_user_meta( $user_id, self::DAILY_GOAL_META_LOG, true );
+        if ( ! is_array( $log ) ) {
+            $log = [];
+        }
+
+        $already_counted = in_array( $verse_key, $log, true );
+
+        if ( ! $already_counted ) {
+            $log[] = $verse_key;
+        }
+
+        $log = array_values( array_unique( array_map( 'strval', $log ) ) );
+        $count = count( $log );
+
+        update_user_meta( $user_id, self::DAILY_GOAL_META_LOG, $log );
+        update_user_meta( $user_id, self::DAILY_GOAL_META_COUNT, $count );
+
+        $just_completed = ( $previous_count < self::DAILY_GOAL_TARGET ) && ( $count >= self::DAILY_GOAL_TARGET ) && ! $already_counted;
+
+        if ( $just_completed ) {
+            update_user_meta( $user_id, self::DAILY_GOAL_META_LAST_COMPLETION, current_time( 'mysql' ) );
+        }
+
+        return [
+            'count'           => $count,
+            'target'          => self::DAILY_GOAL_TARGET,
+            'remaining'       => max( 0, self::DAILY_GOAL_TARGET - $count ),
+            'percentage'      => min( 100, self::DAILY_GOAL_TARGET > 0 ? round( ( $count / self::DAILY_GOAL_TARGET ) * 100, 2 ) : 0 ),
+            'just_completed'  => $just_completed,
+            'already_counted' => $already_counted,
+            'last_reset'      => $state['last_reset'],
+        ];
+    }
+
+    /**
+     * Ensure the daily goal counter is reset when a new day starts.
+     */
+    private function maybe_reset_daily_goal( $user_id, $timezone_offset = null ) {
+        $current_date = $this->get_local_date_string( $timezone_offset );
+        $last_reset   = get_user_meta( $user_id, self::DAILY_GOAL_META_LAST_RESET, true );
+
+        if ( $current_date === $last_reset ) {
+            return;
+        }
+
+        update_user_meta( $user_id, self::DAILY_GOAL_META_COUNT, 0 );
+        update_user_meta( $user_id, self::DAILY_GOAL_META_LOG, [] );
+        update_user_meta( $user_id, self::DAILY_GOAL_META_LAST_RESET, $current_date );
+        delete_user_meta( $user_id, self::DAILY_GOAL_META_LAST_COMPLETION );
+    }
+
+    /**
+     * Compute a Y-m-d date string for the provided timezone offset.
+     */
+    private function get_local_date_string( $timezone_offset = null ) {
+        $timestamp = current_time( 'timestamp', true );
+
+        if ( null !== $timezone_offset && '' !== $timezone_offset && is_numeric( $timezone_offset ) ) {
+            $timestamp += (int) $timezone_offset * MINUTE_IN_SECONDS;
+        } else {
+            $timestamp = current_time( 'timestamp' );
+        }
+
+        return gmdate( 'Y-m-d', $timestamp );
+    }
+
+    /**
+     * Retrieve the egg challenge state for the given user.
+     */
+    private function prepare_egg_challenge_state( $user_id ) {
+        $count  = (int) get_user_meta( $user_id, self::EGG_CHALLENGE_COUNT_META, true );
+        $target = (int) get_user_meta( $user_id, self::EGG_CHALLENGE_TARGET_META, true );
+
+        if ( $target <= 0 ) {
+            $target = 20;
+            update_user_meta( $user_id, self::EGG_CHALLENGE_TARGET_META, $target );
+        }
+
+        if ( $count < 0 ) {
+            $count = 0;
+            update_user_meta( $user_id, self::EGG_CHALLENGE_COUNT_META, 0 );
+        }
+
+        $percentage      = $target > 0 ? round( ( $count / $target ) * 100, 2 ) : 0;
+        $previous_target = get_user_meta( $user_id, self::EGG_CHALLENGE_LAST_TARGET_META, true );
+
+        return [
+            'count'            => $count,
+            'target'           => $target,
+            'percentage'       => min( 100, $percentage ),
+            'previous_target'  => '' !== $previous_target ? (int) $previous_target : null,
+        ];
+    }
+
+    /**
+     * Increment the egg challenge counters.
+     */
+    private function increment_egg_challenge( $user_id ) {
+        $state   = $this->prepare_egg_challenge_state( $user_id );
+        $count   = (int) $state['count'] + 1;
+        $target  = (int) $state['target'];
+        $completed = false;
+        $previous_target = null;
+
+        if ( $count >= $target ) {
+            $completed       = true;
+            $previous_target = $target;
+            $target         += 5;
+            $count           = 0;
+
+            update_user_meta( $user_id, self::EGG_CHALLENGE_TARGET_META, $target );
+            update_user_meta( $user_id, self::EGG_CHALLENGE_COUNT_META, $count );
+            update_user_meta( $user_id, self::EGG_CHALLENGE_LAST_TARGET_META, $previous_target );
+        } else {
+            update_user_meta( $user_id, self::EGG_CHALLENGE_COUNT_META, $count );
+        }
+
+        $percentage = $target > 0 ? round( ( $count / $target ) * 100, 2 ) : 0;
+
+        return [
+            'count'           => $count,
+            'target'          => $target,
+            'percentage'      => min( 100, $percentage ),
+            'completed'       => $completed,
+            'previous_target' => $previous_target,
+        ];
+    }
+
+    /**
+     * Reset the daily recitation counters for every user as part of the cron job.
+     */
+    private function reset_daily_recitations_for_all_users() {
+        $users = get_users( [ 'fields' => 'ID' ] );
+        $date  = gmdate( 'Y-m-d', current_time( 'timestamp', true ) );
+
+        foreach ( $users as $user_id ) {
+            update_user_meta( $user_id, self::DAILY_GOAL_META_COUNT, 0 );
+            update_user_meta( $user_id, self::DAILY_GOAL_META_LOG, [] );
+            update_user_meta( $user_id, self::DAILY_GOAL_META_LAST_RESET, $date );
+            delete_user_meta( $user_id, self::DAILY_GOAL_META_LAST_COMPLETION );
+        }
     }
 
     /**

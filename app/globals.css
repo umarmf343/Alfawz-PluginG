@@ -110,3 +110,78 @@
     @apply bg-background text-foreground;
   }
 }
+
+.confetti-piece {
+  position: absolute;
+  top: -10%;
+  width: 0.5rem;
+  height: 1.25rem;
+  border-radius: 9999px;
+  opacity: 0;
+  animation-name: confetti-fall;
+  animation-timing-function: ease-in-out;
+  animation-fill-mode: forwards;
+}
+
+@keyframes confetti-fall {
+  0% {
+    transform: translate3d(0, -120%, 0) rotate(0deg);
+    opacity: 0.4;
+  }
+  25% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate3d(0, 120vh, 0) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+.egg-animate-pulse {
+  animation: eggPulse 2.4s ease-in-out infinite;
+}
+
+@keyframes eggPulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.04);
+  }
+}
+
+.egg-crack {
+  animation: eggCrack 0.9s ease forwards;
+}
+
+@keyframes eggCrack {
+  0% {
+    transform: scale(1) rotate(0deg);
+  }
+  60% {
+    transform: scale(1.08) rotate(-3deg);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+.chick-pop {
+  animation: chickPop 0.9s ease forwards;
+}
+
+@keyframes chickPop {
+  0% {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+  70% {
+    transform: scale(1.1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
