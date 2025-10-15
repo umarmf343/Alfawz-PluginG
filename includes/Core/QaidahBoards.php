@@ -8,7 +8,7 @@ class QaidahBoards {
     /**
      * Post type slug for Qa'idah boards.
      */
-    const POST_TYPE = 'alfawz_qaidah_board';
+    const POST_TYPE = 'qaidah_assignment';
 
     /**
      * Register the custom post type.
@@ -19,18 +19,18 @@ class QaidahBoards {
         }
 
         $labels = [
-            'name'               => \__( "Qa'idah Boards", 'alfawzquran' ),
-            'singular_name'      => \__( "Qa'idah Board", 'alfawzquran' ),
+            'name'               => \__( "Qa'idah Assignments", 'alfawzquran' ),
+            'singular_name'      => \__( "Qa'idah Assignment", 'alfawzquran' ),
             'add_new'            => \__( 'Add New', 'alfawzquran' ),
-            'add_new_item'       => \__( "Add New Qa'idah Board", 'alfawzquran' ),
-            'edit_item'          => \__( 'Edit Qa\'idah Board', 'alfawzquran' ),
-            'new_item'           => \__( 'New Qa\'idah Board', 'alfawzquran' ),
-            'all_items'          => \__( "Qa'idah Boards", 'alfawzquran' ),
-            'view_item'          => \__( 'View Qa\'idah Board', 'alfawzquran' ),
-            'search_items'       => \__( "Search Qa'idah Boards", 'alfawzquran' ),
-            'not_found'          => \__( 'No Qa\'idah boards found', 'alfawzquran' ),
-            'not_found_in_trash' => \__( 'No Qa\'idah boards found in Trash', 'alfawzquran' ),
-            'menu_name'          => \__( "Qa'idah Boards", 'alfawzquran' ),
+            'add_new_item'       => \__( "Add New Qa'idah Assignment", 'alfawzquran' ),
+            'edit_item'          => \__( "Edit Qa'idah Assignment", 'alfawzquran' ),
+            'new_item'           => \__( "New Qa'idah Assignment", 'alfawzquran' ),
+            'all_items'          => \__( "Qa'idah Assignments", 'alfawzquran' ),
+            'view_item'          => \__( "View Qa'idah Assignment", 'alfawzquran' ),
+            'search_items'       => \__( "Search Qa'idah Assignments", 'alfawzquran' ),
+            'not_found'          => \__( "No Qa'idah assignments found", 'alfawzquran' ),
+            'not_found_in_trash' => \__( "No Qa'idah assignments found in Trash", 'alfawzquran' ),
+            'menu_name'          => \__( "Qa'idah Assignments", 'alfawzquran' ),
         ];
 
         $args = [
@@ -85,6 +85,28 @@ class QaidahBoards {
                 'sanitize_callback' => [ $this, 'sanitize_students_meta' ],
             ]
         );
+
+        \register_post_meta(
+            self::POST_TYPE,
+            '_alfawz_qaidah_class_id',
+            [
+                'type'              => 'string',
+                'single'            => true,
+                'show_in_rest'      => false,
+                'sanitize_callback' => [ $this, 'sanitize_class_meta' ],
+            ]
+        );
+
+        \register_post_meta(
+            self::POST_TYPE,
+            '_alfawz_qaidah_description',
+            [
+                'type'              => 'string',
+                'single'            => true,
+                'show_in_rest'      => false,
+                'sanitize_callback' => 'wp_kses_post',
+            ]
+        );
     }
 
     /**
@@ -129,5 +151,27 @@ class QaidahBoards {
         }
 
         return \wp_kses_post( $value );
+    }
+
+    /**
+     * Sanitize the stored class meta value.
+     *
+     * @param mixed $value Raw value passed from WordPress.
+     * @return string Sanitized class identifier.
+     */
+    public function sanitize_class_meta( $value ) {
+        if ( empty( $value ) ) {
+            return '';
+        }
+
+        if ( is_array( $value ) ) {
+            $value = reset( $value );
+        }
+
+        if ( is_numeric( $value ) ) {
+            return (string) absint( $value );
+        }
+
+        return sanitize_text_field( (string) $value );
     }
 }

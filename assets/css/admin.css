@@ -97,6 +97,85 @@
   margin-bottom: 6px;
 }
 
+.alfawz-qaidah-board-form fieldset {
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+
+.alfawz-qaidah-board-form legend {
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.alfawz-checkbox-inline {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 500;
+  margin-bottom: 12px;
+}
+
+.alfawz-checkbox-inline input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+}
+
+.alfawz-student-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 240px;
+  overflow-y: auto;
+  border: 1px solid #dcdcde;
+  border-radius: 6px;
+  padding: 12px;
+  background: #f9fafb;
+  transition: opacity 0.2s ease;
+}
+
+.alfawz-student-list.is-disabled {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.alfawz-student-checkbox {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 8px 10px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.alfawz-student-checkbox:hover {
+  border-color: #2271b1;
+  box-shadow: 0 0 0 1px rgba(34, 113, 177, 0.15);
+}
+
+.alfawz-student-checkbox input {
+  margin-top: 2px;
+}
+
+.alfawz-student-label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.alfawz-student-label strong {
+  font-size: 14px;
+  color: #111827;
+}
+
+.alfawz-student-meta {
+  font-size: 12px;
+  color: #6b7280;
+}
+
 .alfawz-qaidah-board-form .form-field input[type="text"],
 .alfawz-qaidah-board-form .form-field select,
 .alfawz-qaidah-board-form .form-field textarea {
