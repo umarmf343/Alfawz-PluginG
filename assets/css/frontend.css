@@ -261,7 +261,8 @@
 }
 
 /* Reader Progress Grid - 2x2 Layout */
-.alfawz-reader .alfawz-progress-grid {
+.alfawz-reader .alfawz-progress-grid,
+.alfawz-dashboard .alfawz-progress-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: var(--spacing-md);
@@ -643,6 +644,11 @@
 .alfawz-verses-icon {
   background: var(--icon-gradient-ocean);
   box-shadow: 0 12px 28px rgba(79, 172, 254, 0.35);
+}
+
+.alfawz-memorize-icon {
+  background: var(--icon-gradient-violet);
+  box-shadow: 0 12px 28px rgba(161, 140, 209, 0.35);
 }
 
 .alfawz-time-icon {

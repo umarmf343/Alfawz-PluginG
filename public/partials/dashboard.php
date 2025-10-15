@@ -6,22 +6,46 @@
         </div>
     </div>
 
-    <div class="alfawz-stats-overview">
-        <div class="alfawz-stat-card">
-            <div class="alfawz-stat-number" id="profile-total-hasanat">0</div>
-            <div class="alfawz-stat-label"><?php _e('Total Hasanat', 'alfawzquran'); ?></div>
+    <div class="alfawz-stats-overview alfawz-progress-grid">
+        <div class="alfawz-progress-card">
+            <div class="alfawz-card-icon">
+                <div class="alfawz-icon-circle alfawz-hasanat-icon"><span class="alfawz-icon" aria-hidden="true">⭐</span></div>
+            </div>
+            <div class="alfawz-card-content">
+                <div class="alfawz-card-value" id="profile-total-hasanat">0</div>
+                <div class="alfawz-card-label"><?php _e('Total Hasanat', 'alfawzquran'); ?></div>
+            </div>
+            <div class="alfawz-card-decoration" aria-hidden="true"></div>
         </div>
-        <div class="alfawz-stat-card">
-            <div class="alfawz-stat-number" id="profile-verses-read">0</div>
-            <div class="alfawz-stat-label"><?php _e('Verses Read', 'alfawzquran'); ?></div>
+        <div class="alfawz-progress-card">
+            <div class="alfawz-card-icon">
+                <div class="alfawz-icon-circle alfawz-verses-icon"><span class="alfawz-icon" aria-hidden="true">📜</span></div>
+            </div>
+            <div class="alfawz-card-content">
+                <div class="alfawz-card-value" id="profile-verses-read">0</div>
+                <div class="alfawz-card-label"><?php _e('Verses Read', 'alfawzquran'); ?></div>
+            </div>
+            <div class="alfawz-card-decoration" aria-hidden="true"></div>
         </div>
-        <div class="alfawz-stat-card">
-            <div class="alfawz-stat-number" id="profile-verses-memorized">0</div>
-            <div class="alfawz-stat-label"><?php _e('Verses Memorized', 'alfawzquran'); ?></div>
+        <div class="alfawz-progress-card">
+            <div class="alfawz-card-icon">
+                <div class="alfawz-icon-circle alfawz-memorize-icon"><span class="alfawz-icon" aria-hidden="true">🧠</span></div>
+            </div>
+            <div class="alfawz-card-content">
+                <div class="alfawz-card-value" id="profile-verses-memorized">0</div>
+                <div class="alfawz-card-label"><?php _e('Verses Memorized', 'alfawzquran'); ?></div>
+            </div>
+            <div class="alfawz-card-decoration" aria-hidden="true"></div>
         </div>
-        <div class="alfawz-stat-card">
-            <div class="alfawz-stat-number" id="profile-current-streak">0</div>
-            <div class="alfawz-stat-label"><?php _e('Current Streak', 'alfawzquran'); ?></div>
+        <div class="alfawz-progress-card">
+            <div class="alfawz-card-icon">
+                <div class="alfawz-icon-circle alfawz-streak-icon"><span class="alfawz-icon" aria-hidden="true">🔥</span></div>
+            </div>
+            <div class="alfawz-card-content">
+                <div class="alfawz-card-value" id="profile-current-streak">0</div>
+                <div class="alfawz-card-label"><?php _e('Current Streak', 'alfawzquran'); ?></div>
+            </div>
+            <div class="alfawz-card-decoration" aria-hidden="true"></div>
         </div>
     </div>
 
