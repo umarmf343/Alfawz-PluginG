@@ -30,8 +30,9 @@ class Frontend {
         add_shortcode('alfawz_settings', [$this, 'settings_shortcode']);
         add_shortcode('alfawz_games', [$this, 'games_shortcode']);
         add_shortcode('alfawz_qaidah', [$this, 'qaidah_shortcode']);
+        add_shortcode('alfawz_teacher_dashboard', [$this, 'teacher_dashboard_shortcode']);
     }
-    
+
     public function enqueue_assets() {
         if ($this->is_alfawz_page()) {
             $rest_nonce = wp_create_nonce('wp_rest');
@@ -138,10 +139,98 @@ class Frontend {
                     'firstHotspot'   => __('Click the image to add your first hotspot.', 'alfawzquran'),
                     'hotspotRequired'=> __('Add at least one hotspot before sending.', 'alfawzquran'),
                     'playbackError'  => __('Unable to play this audio clip.', 'alfawzquran'),
+                    'editing'        => __('Editing existing assignment.', 'alfawzquran'),
+                    'editError'      => __('Unable to load assignment. Please try again.', 'alfawzquran'),
+                    'updateAssignment' => __('Update assignment', 'alfawzquran'),
                 ],
                 'mediaSettings' => [
                     'title'  => __('Select Qa’idah Image', 'alfawzquran'),
                     'button' => __('Use this image', 'alfawzquran'),
+                ],
+            ]);
+        }
+
+        if ($this->current_page_uses_shortcode('alfawz_teacher_dashboard')) {
+            wp_enqueue_media();
+
+            wp_enqueue_script(
+                'alfawz-qaidah',
+                ALFAWZQURAN_PLUGIN_URL . 'assets/js/alfawz-qaidah.js',
+                [],
+                ALFAWZQURAN_VERSION,
+                true
+            );
+
+            wp_localize_script('alfawz-qaidah', 'alfawzQaidahData', [
+                'apiUrl'         => rest_url('alfawzquran/v1/'),
+                'nonce'          => wp_create_nonce('wp_rest'),
+                'userId'         => get_current_user_id(),
+                'isTeacher'      => $this->current_user_is_teacher(),
+                'strings'        => [
+                    'loading'        => __('Loading…', 'alfawzquran'),
+                    'uploadError'    => __('Upload failed. Please try again.', 'alfawzquran'),
+                    'recordError'    => __('Unable to access microphone. You can upload audio files instead.', 'alfawzquran'),
+                    'recording'      => __('Recording…', 'alfawzquran'),
+                    'saving'         => __('Saving assignment…', 'alfawzquran'),
+                    'saved'          => __('Assignment sent successfully.', 'alfawzquran'),
+                    'saveError'      => __('Assignment could not be saved. Please review the form and try again.', 'alfawzquran'),
+                    'noAssignments'  => __('No assignments yet.', 'alfawzquran'),
+                    'noStudents'     => __('No students available for this class.', 'alfawzquran'),
+                    'firstHotspot'   => __('Click the image to add your first hotspot.', 'alfawzquran'),
+                    'hotspotRequired'=> __('Add at least one hotspot before sending.', 'alfawzquran'),
+                    'playbackError'  => __('Unable to play this audio clip.', 'alfawzquran'),
+                    'editing'        => __('Editing existing assignment.', 'alfawzquran'),
+                    'editError'      => __('Unable to load assignment. Please try again.', 'alfawzquran'),
+                    'updateAssignment' => __('Update assignment', 'alfawzquran'),
+                ],
+                'mediaSettings' => [
+                    'title'  => __('Select Qa’idah Image', 'alfawzquran'),
+                    'button' => __('Use this image', 'alfawzquran'),
+                ],
+            ]);
+
+            $qaidah_url = '';
+            if (function_exists('alfawz_get_bottom_nav_url')) {
+                $qaidah_url = alfawz_get_bottom_nav_url('qaidah');
+            }
+            if (empty($qaidah_url)) {
+                $qaidah_url = home_url(trailingslashit('alfawz-qaidah'));
+            }
+
+            wp_enqueue_script(
+                'alfawz-teacher',
+                ALFAWZQURAN_PLUGIN_URL . 'assets/js/alfawz-teacher.js',
+                [],
+                ALFAWZQURAN_VERSION,
+                true
+            );
+
+            wp_localize_script('alfawz-teacher', 'alfawzTeacherData', [
+                'apiUrl'      => rest_url('alfawzquran/v1/'),
+                'nonce'       => wp_create_nonce('wp_rest'),
+                'teacherId'   => get_current_user_id(),
+                'qaidahUrl'   => $qaidah_url,
+                'strings'     => [
+                    'loading'              => __('Loading…', 'alfawzquran'),
+                    'noAssignments'        => __('No Qa’idah assignments yet.', 'alfawzquran'),
+                    'noClasses'            => __('No classes assigned to you yet.', 'alfawzquran'),
+                    'noPlans'              => __('No memorisation plans found yet.', 'alfawzquran'),
+                    'noStudents'           => __('No students found for this class.', 'alfawzquran'),
+                    'viewAssignment'       => __('View', 'alfawzquran'),
+                    'editAssignment'       => __('Edit', 'alfawzquran'),
+                    'statusSent'           => __('Sent', 'alfawzquran'),
+                    'statusDraft'          => __('Draft', 'alfawzquran'),
+                    'updatedLabel'         => __('Updated', 'alfawzquran'),
+                    'studentsLabel'        => __('Students', 'alfawzquran'),
+                    'activePlansLabel'     => __('Active plans', 'alfawzquran'),
+                    'memorizedVersesLabel' => __('Verses memorized', 'alfawzquran'),
+                    'streakLabel'          => __('Day streak', 'alfawzquran'),
+                    'streakNeedsAttention' => __('Needs encouragement', 'alfawzquran'),
+                    'assignmentLoadError'  => __('Unable to load this assignment. Please try again.', 'alfawzquran'),
+                    'assignmentPreviewError' => __('Preview unavailable for this assignment.', 'alfawzquran'),
+                    'modalTitle'           => __('Assignment preview', 'alfawzquran'),
+                    'builderOpening'       => __('Opening assignment builder…', 'alfawzquran'),
+                    'builderReady'         => __('Assignment builder ready.', 'alfawzquran'),
                 ],
             ]);
         }
@@ -169,7 +258,8 @@ class Frontend {
             'alfawz_profile',
             'alfawz_settings',
             'alfawz_games',
-            'alfawz_qaidah'
+            'alfawz_qaidah',
+            'alfawz_teacher_dashboard'
         ];
 
         foreach ($alfawz_shortcodes as $shortcode) {
@@ -280,6 +370,31 @@ class Frontend {
         ob_start();
         $qaidah_role = $this->determine_qaidah_role();
         include ALFAWZQURAN_PLUGIN_PATH . 'public/partials/qaidah.php';
+        return ob_get_clean();
+    }
+
+    public function teacher_dashboard_shortcode($atts) {
+        if (!is_user_logged_in()) {
+            return $this->login_required_message();
+        }
+
+        if (!current_user_can('manage_options') && !current_user_can('alfawz_teacher')) {
+            return '<div class="alfawz-login-required"><div class="alfawz-login-card"><h3>' . esc_html__('Access denied.', 'alfawzquran') . '</h3><p>' . esc_html__('This dashboard is reserved for Alfawz teachers.', 'alfawzquran') . '</p></div></div>';
+        }
+
+        $this->active_view = 'teacher-dashboard';
+
+        $qaidah_page_link = '';
+        if (function_exists('alfawz_get_bottom_nav_url')) {
+            $qaidah_page_link = alfawz_get_bottom_nav_url('qaidah');
+        }
+
+        if (empty($qaidah_page_link)) {
+            $qaidah_page_link = home_url(trailingslashit('alfawz-qaidah'));
+        }
+
+        ob_start();
+        include ALFAWZQURAN_PLUGIN_PATH . 'public/partials/teacher-dashboard.php';
         return ob_get_clean();
     }
 

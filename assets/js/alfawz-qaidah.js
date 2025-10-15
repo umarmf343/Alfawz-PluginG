@@ -84,6 +84,7 @@
     students: [],
     image: null,
     hotspots: [],
+    currentAssignmentId: null,
     currentRecording: null,
     mediaRecorder: null,
     mediaStream: null,
@@ -168,6 +169,9 @@
     const hotspotLayer = document.getElementById('alfawz-qaidah-hotspot-layer');
     const hotspotList = document.getElementById('alfawz-qaidah-hotspot-list');
     const resetButton = document.getElementById('alfawz-qaidah-reset');
+    const submitButton = document.getElementById('alfawz-qaidah-submit');
+    const submitLabel = submitButton ? submitButton.querySelector('span:last-child') : null;
+    const defaultSubmitLabel = submitLabel ? submitLabel.textContent : '';
 
     const setStatus = (message, tone = 'info') => {
       if (!statusEl) {
@@ -204,8 +208,11 @@
             classSelect.appendChild(option);
           });
         });
+        return teacherState.classes;
       } catch (error) {
         console.error('[AlfawzQuran] Failed to load classes', error);
+        teacherState.classes = [];
+        return teacherState.classes;
       }
     };
 
@@ -254,16 +261,154 @@
       });
     };
 
+    const markSelectedStudents = (selectedIds) => {
+      if (!studentFilter || !Array.isArray(selectedIds) || !selectedIds.length) {
+        return;
+      }
+      const selected = new Set(selectedIds.map((value) => Number(value)));
+      studentFilter.querySelectorAll('input[type="checkbox"]').forEach((input) => {
+        const value = Number(input.value);
+        input.checked = selected.has(value);
+      });
+    };
+
+    const ensureClassesLoaded = async () => {
+      if (!teacherState.classes.length) {
+        await populateClasses();
+      }
+      return teacherState.classes;
+    };
+
+    const parsePercent = (value) => {
+      if (typeof value === 'number' && Number.isFinite(value)) {
+        return value;
+      }
+      if (typeof value === 'string') {
+        const cleaned = value.replace('%', '').trim();
+        const parsed = Number(cleaned);
+        return Number.isFinite(parsed) ? parsed : 0;
+      }
+      return 0;
+    };
+
+    const prefillAssignment = async (assignment, options = {}) => {
+      if (!assignment) {
+        return null;
+      }
+
+      const { keepStatus = false } = options;
+
+      await ensureClassesLoaded();
+
+      teacherState.currentAssignmentId = assignment.id || null;
+
+      if (submitLabel) {
+        submitLabel.textContent = strings.updateAssignment || defaultSubmitLabel || submitLabel.textContent;
+      }
+
+      if (form) {
+        form.reset();
+      }
+
+      if (titleInput) {
+        titleInput.value = assignment.title || '';
+      }
+
+      if (descriptionInput) {
+        descriptionInput.value = assignment.description || '';
+      }
+
+      const classId = assignment.class?.id || '';
+      if (classSelect) {
+        classSelect.value = classId;
+      }
+
+      await loadStudents(classId);
+
+      if (Array.isArray(assignment.students) && assignment.students.length) {
+        requestAnimationFrame(() => markSelectedStudents(assignment.students));
+      }
+
+      if (assignment.image && assignment.image.url) {
+        teacherState.image = {
+          id: assignment.image.id,
+          url: assignment.image.url,
+          width: assignment.image.width,
+          height: assignment.image.height,
+        };
+        if (imageElement) {
+          imageElement.src = teacherState.image.url;
+          imageElement.onload = () => renderHotspots();
+        }
+        if (imagePreview) {
+          imagePreview.classList.remove('hidden');
+        }
+        if (imageIdInput) {
+          imageIdInput.value = assignment.image.id || '';
+        }
+      } else {
+        teacherState.image = null;
+        if (imagePreview) {
+          imagePreview.classList.add('hidden');
+        }
+        if (imageElement) {
+          imageElement.src = '';
+        }
+        if (imageIdInput) {
+          imageIdInput.value = '';
+        }
+      }
+
+      teacherState.hotspots = Array.isArray(assignment.hotspots)
+        ? assignment.hotspots.map((hotspot) => ({
+            id: hotspot.id || `hotspot-${Date.now()}`,
+            label: hotspot.label || '',
+            x: parsePercent(hotspot.x),
+            y: parsePercent(hotspot.y),
+            audioId: hotspot.audio_id || 0,
+            audioUrl: hotspot.audio_url || '',
+          }))
+        : [];
+
+      renderHotspots();
+
+      if (!keepStatus) {
+        setStatus(strings.editing || '', 'info');
+      }
+
+      return assignment;
+    };
+
+    const editAssignment = async (assignmentId) => {
+      if (!assignmentId) {
+        return null;
+      }
+
+      setStatus(strings.loading || 'Loading…', 'info');
+
+      try {
+        const assignment = await apiRequest(`qaidah/assignments/${assignmentId}`);
+        await prefillAssignment(assignment);
+        return assignment;
+      } catch (error) {
+        console.error('[AlfawzQuran] Failed to load assignment', error);
+        setStatus(strings.editError || strings.saveError || '', 'error');
+        throw error;
+      }
+    };
+
     const loadStudents = async (classId = '') => {
       try {
         const params = classId ? `?class_id=${encodeURIComponent(classId)}` : '';
         const students = await apiRequest(`qaidah/students${params}`);
         teacherState.students = Array.isArray(students) ? students : [];
         renderStudentFilter();
+        return teacherState.students;
       } catch (error) {
         console.error('[AlfawzQuran] Failed to load students', error);
         teacherState.students = [];
         renderStudentFilter();
+        return teacherState.students;
       }
     };
 
@@ -275,6 +420,7 @@
     const resetBuilder = (clearStatus = true) => {
       cleanupRecording();
       teacherState.image = null;
+      teacherState.currentAssignmentId = null;
       if (form) {
         form.reset();
       }
@@ -288,6 +434,9 @@
         imageIdInput.value = '';
       }
       resetHotspots();
+      if (submitLabel) {
+        submitLabel.textContent = defaultSubmitLabel;
+      }
       if (clearStatus) {
         setStatus('');
       }
@@ -667,9 +816,27 @@
       try {
         teacherState.assignmentSaving = true;
         setStatus(strings.saving, 'info');
-        await apiRequest('qaidah/assignments', { method: 'POST', body: payload });
-        resetBuilder(false);
-        setStatus(strings.saved, 'success');
+        const editing = Boolean(teacherState.currentAssignmentId);
+        const endpoint = editing ? `qaidah/assignments/${teacherState.currentAssignmentId}` : 'qaidah/assignments';
+        const method = editing ? 'PUT' : 'POST';
+        const board = await apiRequest(endpoint, { method, body: payload });
+
+        if (editing) {
+          teacherState.currentAssignmentId = board?.id || teacherState.currentAssignmentId;
+          if (board) {
+            await prefillAssignment(board, { keepStatus: true });
+          }
+          setStatus(strings.saved, 'success');
+        } else {
+          resetBuilder(false);
+          setStatus(strings.saved, 'success');
+        }
+
+        document.dispatchEvent(
+          new CustomEvent('alfawzQaidahAssignmentSaved', {
+            detail: { assignment: board || null },
+          })
+        );
       } catch (error) {
         console.error('[AlfawzQuran] Failed to save assignment', error);
         setStatus(strings.saveError, 'error');
@@ -693,7 +860,25 @@
 
     window.addEventListener('beforeunload', cleanupRecording);
 
-    populateClasses();
+    window.alfawzQaidahTeacher = Object.assign(window.alfawzQaidahTeacher || {}, {
+      editAssignment,
+      reset: () => {
+        resetBuilder();
+      },
+      focus: () => {
+        if (root) {
+          root.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      },
+    });
+
+    document.dispatchEvent(
+      new CustomEvent('alfawzQaidahReady', {
+        detail: { role: 'teacher' },
+      })
+    );
+
+    ensureClassesLoaded();
     loadStudents('');
   };
 

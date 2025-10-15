@@ -112,6 +112,14 @@ class Activator {
         if ( $admin_role && ! $admin_role->has_cap( 'alfawz_admin' ) ) {
             $admin_role->add_cap( 'alfawz_admin' );
         }
+
+        $teacher_cap_roles = apply_filters( 'alfawz_teacher_capability_roles', [ 'teacher', 'editor' ] );
+        foreach ( $teacher_cap_roles as $role_key ) {
+            $role = get_role( $role_key );
+            if ( $role && ! $role->has_cap( 'alfawz_teacher' ) ) {
+                $role->add_cap( 'alfawz_teacher' );
+            }
+        }
     }
 
     /**
@@ -158,6 +166,11 @@ class Activator {
                 'slug'      => 'alfawz-games',
                 'title'     => __( 'Alfawz Games', 'alfawzquran' ),
                 'shortcode' => '[alfawz_games]',
+            ],
+            [
+                'slug'      => 'alfawz-teacher-dashboard',
+                'title'     => __( 'Alfawz Teacher Dashboard', 'alfawzquran' ),
+                'shortcode' => '[alfawz_teacher_dashboard]',
             ],
         ];
 

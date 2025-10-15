@@ -328,6 +328,12 @@ class Routes {
                 'permission_callback' => [ $this, 'teacher_permission_callback' ],
             ],
         ] );
+
+        register_rest_route( $namespace, '/teacher/classes', [
+            'methods'             => 'GET',
+            'callback'            => [ $this, 'get_teacher_classes_overview' ],
+            'permission_callback' => [ $this, 'teacher_permission_callback' ],
+        ] );
     }
 
     /**
@@ -927,6 +933,66 @@ class Routes {
     }
 
     /**
+     * Provide a high-level overview of classes assigned to the current teacher.
+     */
+    public function get_teacher_classes_overview( WP_REST_Request $request ) {
+        $current_user_id = get_current_user_id();
+
+        if ( ! $current_user_id ) {
+            return new WP_REST_Response( [], 200 );
+        }
+
+        $teacher_id = $current_user_id;
+        $requested_teacher = absint( $request->get_param( 'teacher_id' ) );
+
+        if ( $requested_teacher && $requested_teacher !== $current_user_id && ! current_user_can( 'manage_options' ) ) {
+            return new WP_REST_Response( [ 'message' => __( 'You are not allowed to view these classes.', 'alfawzquran' ) ], 403 );
+        }
+
+        if ( $requested_teacher && current_user_can( 'manage_options' ) ) {
+            $teacher_id = $requested_teacher;
+        }
+
+        $roster = $this->collect_teacher_roster( $teacher_id );
+
+        if ( empty( $roster['classes'] ) ) {
+            return new WP_REST_Response( [], 200 );
+        }
+
+        $response = [];
+
+        foreach ( $roster['classes'] as $class_id => $class_data ) {
+            $student_ids    = isset( $class_data['students'] ) ? (array) $class_data['students'] : [];
+            $student_preview = array_slice( array_map( function( $student_id ) use ( $roster ) {
+                $student = $roster['students'][ $student_id ] ?? null;
+
+                if ( ! $student ) {
+                    return null;
+                }
+
+                return [
+                    'id'     => $student['id'],
+                    'name'   => $student['name'],
+                    'avatar' => $student['avatar'],
+                    'streak' => $student['streak'],
+                ];
+            }, $student_ids ), 0, 3 );
+
+            $student_preview = array_values( array_filter( $student_preview ) );
+
+            $response[] = [
+                'id'            => $class_data['id'],
+                'label'         => $class_data['label'],
+                'student_count' => count( $student_ids ),
+                'students'      => $student_preview,
+                'anchor'        => 'class-' . sanitize_title( $class_data['id'] ),
+            ];
+        }
+
+        return new WP_REST_Response( $response, 200 );
+    }
+
+    /**
      * Retrieve a single Qa'idah board.
      */
     public function get_single_qaidah_board( WP_REST_Request $request ) {
@@ -1243,6 +1309,73 @@ class Routes {
      * @param int $user_id User identifier.
      * @return array
      */
+    private function collect_teacher_roster( $teacher_id ) {
+        $teacher_id = absint( $teacher_id );
+
+        $roster = [
+            'classes'  => [],
+            'students' => [],
+        ];
+
+        if ( ! $teacher_id ) {
+            return $roster;
+        }
+
+        $class_ids = $this->get_classes_for_user( $teacher_id );
+
+        if ( empty( $class_ids ) ) {
+            return $roster;
+        }
+
+        $student_roles = apply_filters( 'alfawz_qaidah_student_roles', [ 'student', 'subscriber' ] );
+
+        foreach ( $class_ids as $class_id ) {
+            $class_label = $this->resolve_class_label( $class_id );
+
+            $roster['classes'][ $class_id ] = [
+                'id'       => $class_id,
+                'label'    => $class_label,
+                'students' => [],
+            ];
+
+            $student_ids = get_users(
+                [
+                    'role__in'  => $student_roles,
+                    'meta_key'  => 'alfawz_class_id',
+                    'meta_value'=> $class_id,
+                    'fields'    => 'ids',
+                ]
+            );
+
+            foreach ( (array) $student_ids as $student_id ) {
+                $student_id = (int) $student_id;
+                $roster['classes'][ $class_id ]['students'][] = $student_id;
+
+                if ( isset( $roster['students'][ $student_id ] ) ) {
+                    continue;
+                }
+
+                $user = get_userdata( $student_id );
+
+                if ( ! $user ) {
+                    continue;
+                }
+
+                $roster['students'][ $student_id ] = [
+                    'id'          => $student_id,
+                    'name'        => $user->display_name,
+                    'email'       => $user->user_email,
+                    'avatar'      => get_avatar_url( $student_id ),
+                    'class_id'    => $class_id,
+                    'class_label' => $class_label,
+                    'streak'      => (int) get_user_meta( $student_id, 'alfawz_quran_current_streak', true ),
+                ];
+            }
+        }
+
+        return $roster;
+    }
+
     private function get_classes_for_user( $user_id ) {
         if ( \current_user_can( 'manage_options' ) ) {
             return $this->discover_all_classes();
@@ -1480,8 +1613,58 @@ class Routes {
             return new \WP_REST_Response( [ 'success' => false, 'message' => 'User not logged in.' ], 401 );
         }
 
+        $teacher_id = absint( $request->get_param( 'teacher_id' ) );
+
+        if ( $teacher_id ) {
+            if ( $teacher_id !== $user_id && ! current_user_can( 'manage_options' ) ) {
+                return new \WP_REST_Response( [ 'message' => __( 'You are not allowed to view these memorisation plans.', 'alfawzquran' ) ], 403 );
+            }
+
+            $roster = $this->collect_teacher_roster( $teacher_id );
+
+            if ( empty( $roster['students'] ) ) {
+                return new \WP_REST_Response( [], 200 );
+            }
+
+            $progress_model = new UserProgress();
+            $response       = [];
+
+            foreach ( $roster['students'] as $student_id => $student_data ) {
+                $plans = $progress_model->get_memorization_plans( $student_id );
+
+                $active_plans = array_filter( $plans, function( $plan ) {
+                    $status = isset( $plan['status'] ) ? strtolower( $plan['status'] ) : 'active';
+                    return ! in_array( $status, [ 'completed', 'archived' ], true );
+                } );
+
+                $memorized_verses = array_sum( array_map( function( $plan ) {
+                    return isset( $plan['completed_verses'] ) ? (int) $plan['completed_verses'] : 0;
+                }, $plans ) );
+
+                $response[] = [
+                    'student' => [
+                        'id'          => $student_data['id'],
+                        'name'        => $student_data['name'],
+                        'email'       => $student_data['email'],
+                        'avatar'      => $student_data['avatar'],
+                        'class_id'    => $student_data['class_id'],
+                        'class_label' => $student_data['class_label'],
+                    ],
+                    'plans'   => $plans,
+                    'metrics' => [
+                        'active_plans'     => count( $active_plans ),
+                        'total_plans'      => count( $plans ),
+                        'memorized_verses' => $memorized_verses,
+                        'streak'           => (int) $student_data['streak'],
+                    ],
+                ];
+            }
+
+            return new \WP_REST_Response( $response, 200 );
+        }
+
         $progress_model = new UserProgress();
-        $plans = $progress_model->get_memorization_plans( $user_id );
+        $plans          = $progress_model->get_memorization_plans( $user_id );
 
         return new \WP_REST_Response( $plans, 200 );
     }
