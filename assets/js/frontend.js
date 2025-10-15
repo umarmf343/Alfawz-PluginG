@@ -1045,59 +1045,291 @@
     }
   };
 
+  const applyProfileAnimations = (root) => {
+    if (!root) {
+      return;
+    }
+    const elements = root.querySelectorAll('[data-animate="fade"]');
+    elements.forEach((element, index) => {
+      element.style.animationDelay = `${index * 110}ms`;
+      element.classList.add('animate-fade-in');
+    });
+  };
+
+  const formatPlanRange = (plan) => {
+    if (!plan) {
+      return '';
+    }
+    const start = Number(plan.start_verse || 0);
+    const end = Number(plan.end_verse || 0);
+    if (start && end && start !== end) {
+      return `Ayah ${start}–${end}`;
+    }
+    if (start) {
+      return `Ayah ${start}`;
+    }
+    return '';
+  };
+
+  const buildPlanTitle = (plan) => {
+    if (!plan) {
+      return '';
+    }
+    if (plan.plan_name) {
+      return plan.plan_name;
+    }
+    if (plan.surah_id) {
+      return `Surah ${plan.surah_id}`;
+    }
+    return 'Memorization Plan';
+  };
+
+  const formatResetTimestamp = (value) => {
+    if (!value) {
+      return '';
+    }
+    const parsed = new Date(value);
+    if (!Number.isNaN(parsed.getTime())) {
+      return parsed.toLocaleDateString(undefined, {
+        month: 'short',
+        day: 'numeric',
+      });
+    }
+    return value;
+  };
+
   const initProfile = async () => {
     const root = qs('#alfawz-profile');
     if (!root || !wpData.isLoggedIn) {
       return;
     }
 
-    try {
-      const stats = state.dashboardStats || await apiRequest('user-stats');
-      setText(qs('#alfawz-profile-verses', root), formatNumber(stats?.verses_read || 0));
-      setText(qs('#alfawz-profile-hasanat', root), formatNumber(stats?.total_hasanat || 0));
-      setText(qs('#alfawz-profile-memorised', root), formatNumber(stats?.verses_memorized || 0));
-      setText(qs('#alfawz-profile-streak', root), formatNumber(stats?.current_streak || 0));
-      setText(qs('#alfawz-profile-since', root), stats?.member_since ? `Member since ${stats.member_since}` : '');
+    const nameEl = qs('#alfawz-profile-name', root);
+    const taglineEl = qs('#alfawz-profile-tagline', root);
+    const heroNoteEl = qs('#alfawz-profile-hero-note', root);
+    const streakDaysEl = qs('#alfawz-profile-streak-days', root);
+    const hasanatEl = qs('#alfawz-profile-hasanat-total', root);
+    const memorizedEl = qs('#alfawz-profile-memorized-count', root);
+    const readEl = qs('#alfawz-profile-read-count', root);
+    const currentStreakEl = qs('#alfawz-profile-current-streak', root);
+    const activePlansEl = qs('#alfawz-profile-active-plans', root);
+    const timelineEl = qs('#alfawz-profile-timeline', root);
+    const goalTextEl = qs('#alfawz-profile-goal-text', root);
+    const goalFillEl = qs('#alfawz-profile-goal-fill', root);
+    const goalNoteEl = qs('#alfawz-profile-daily-note', root);
+    const goalResetEl = qs('#alfawz-profile-daily-reset', root);
 
-      const bookmarks = await apiRequest('bookmarks');
-      renderList(qs('#alfawz-profile-bookmarks-list', root), Array.isArray(bookmarks) ? bookmarks : [], (bookmark) => {
-        const li = createListItem('flex items-center justify-between gap-3 rounded-2xl border border-slate-100 bg-white/80 p-4 shadow-sm');
-        li.innerHTML = `
-          <div>
-            <p class="font-semibold text-slate-900">Surah ${bookmark.surah_id} · Ayah ${bookmark.verse_id}</p>
-            <p class="text-xs text-slate-500">${bookmark.note || ''}</p>
-          </div>
-          <a class="text-sm font-semibold text-emerald-600" href="${wpData.pluginUrl || ''}reader/?surah=${bookmark.surah_id}&verse=${bookmark.verse_id}">Open</a>
-        `;
-        return li;
-      });
-
-      const achievementFeed = qs('#alfawz-profile-achievement-feed', root);
-      if (achievementFeed) {
-        const cards = [];
-        if ((stats?.verses_memorized || 0) > 0) {
-          cards.push({
-            title: 'Memorisation milestone',
-            description: `You have memorised ${formatNumber(stats.verses_memorized)} verse(s).`,
-          });
-        }
-        if ((stats?.current_streak || 0) > 0) {
-          cards.push({
-            title: 'Daily streak',
-            description: `Keep going! You are on day ${formatNumber(stats.current_streak)} of consistent recitation.`,
-          });
-        }
-        if (cards.length === 0) {
-          cards.push({ title: 'Begin your journey', description: 'Log your first recitation to unlock achievements.' });
-        }
-        achievementFeed.innerHTML = '';
-        cards.forEach((card) => {
-          const div = document.createElement('div');
-          div.className = 'rounded-2xl border border-emerald-100 bg-emerald-50/70 p-4 shadow-sm';
-          div.innerHTML = `<h4 class="text-sm font-semibold text-emerald-800">${card.title}</h4><p class="mt-1 text-xs text-emerald-700">${card.description}</p>`;
-          achievementFeed.appendChild(div);
-        });
+    const renderTimeline = (plans) => {
+      if (!timelineEl) {
+        return;
       }
+      timelineEl.innerHTML = '';
+      const list = Array.isArray(plans) ? plans : [];
+
+      const buildTimelineCard = ({ icon, iconClass, title, subtitle, detail, progress, accent }) => {
+        const item = document.createElement('div');
+        item.className = 'alfawz-timeline-item';
+        const iconWrap = document.createElement('div');
+        iconWrap.className = `alfawz-timeline-icon ${iconClass || ''}`.trim();
+        if (icon === '✓') {
+          iconWrap.classList.add('alfawz-check-pop');
+        }
+        iconWrap.textContent = icon || '';
+        item.appendChild(iconWrap);
+
+        const panel = document.createElement('div');
+        panel.className = 'rounded-2xl border border-slate-200 bg-white/90 p-5 shadow-sm';
+
+        const titleEl = document.createElement('p');
+        titleEl.className = 'text-lg font-semibold text-slate-900';
+        titleEl.textContent = title;
+        panel.appendChild(titleEl);
+
+        if (subtitle) {
+          const subtitleEl = document.createElement('p');
+          subtitleEl.className = 'mt-1 text-base font-medium text-emerald-700';
+          subtitleEl.textContent = subtitle;
+          panel.appendChild(subtitleEl);
+        }
+
+        if (detail) {
+          const detailEl = document.createElement('p');
+          detailEl.className = 'mt-2 text-base text-slate-600';
+          detailEl.textContent = detail;
+          panel.appendChild(detailEl);
+        }
+
+        if (progress) {
+          const progressTrack = document.createElement('div');
+          progressTrack.className = 'mt-3 h-2 w-full overflow-hidden rounded-full bg-slate-200';
+          const progressFill = document.createElement('div');
+          progressFill.className = `h-2 rounded-full transition-all duration-700 ease-out ${progress.accentClass || 'bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600'}`;
+          progressFill.style.width = `${Math.max(0, Math.min(100, progress.value || 0))}%`;
+          progressTrack.appendChild(progressFill);
+          panel.appendChild(progressTrack);
+
+          if (progress.label) {
+            const progressLabel = document.createElement('p');
+            progressLabel.className = 'mt-2 text-base font-medium text-slate-600';
+            progressLabel.textContent = progress.label;
+            panel.appendChild(progressLabel);
+          }
+        }
+
+        if (accent) {
+          const accentEl = document.createElement('p');
+          accentEl.className = 'mt-2 text-base font-semibold text-amber-600';
+          accentEl.textContent = accent;
+          panel.appendChild(accentEl);
+        }
+
+        item.appendChild(panel);
+        return item;
+      };
+
+      if (list.length === 0) {
+        const encouragement = document.createElement('div');
+        encouragement.className = 'rounded-2xl border border-emerald-100 bg-emerald-50/80 p-5 text-base font-medium text-emerald-700 shadow-sm';
+        encouragement.textContent = 'Begin your first memorization plan to start recording milestones.';
+        timelineEl.appendChild(encouragement);
+        return;
+      }
+
+      const completedPlan = list.find((plan) => Number(plan?.completion_percentage || 0) >= 100 || String(plan?.status || '').toLowerCase() === 'completed');
+      if (completedPlan) {
+        const totalVerses = Number(completedPlan.total_verses || 0);
+        const completedVerses = Number(completedPlan.completed_verses || totalVerses);
+        const completedTitle = buildPlanTitle(completedPlan);
+        const completedRange = formatPlanRange(completedPlan);
+        const title = completedRange ? `${completedTitle} · ${completedRange}` : completedTitle;
+        const detail = totalVerses
+          ? `Memorized ${formatNumber(completedVerses)} of ${formatNumber(totalVerses)} verses.`
+          : 'Memorized verses recorded in this plan.';
+        const accent = completedPlan.daily_goal
+          ? `Daily rhythm was ${formatNumber(completedPlan.daily_goal)} verses.`
+          : null;
+        timelineEl.appendChild(
+          buildTimelineCard({
+            icon: '✓',
+            title,
+            subtitle: 'Alhamdulillah! Plan completed.',
+            detail,
+            accent,
+          })
+        );
+      } else {
+        const awaiting = document.createElement('div');
+        awaiting.className = 'rounded-2xl border border-emerald-100 bg-emerald-50/70 p-5 text-base font-medium text-emerald-700 shadow-sm';
+        awaiting.textContent = 'Your first completion is on the horizon—stay consistent and it will arrive soon.';
+        timelineEl.appendChild(awaiting);
+      }
+
+      const activePlan = list.find((plan) => Number(plan?.completion_percentage || 0) < 100);
+      if (activePlan) {
+        const totalVerses = Number(activePlan.total_verses || 0);
+        const completedVerses = Number(activePlan.completed_verses || 0);
+        const remainingVerses = Math.max(0, totalVerses - completedVerses);
+        const percentage = totalVerses > 0 ? Math.round((completedVerses / totalVerses) * 100) : Number(activePlan.completion_percentage || 0);
+        const activeTitle = buildPlanTitle(activePlan);
+        const activeRange = formatPlanRange(activePlan);
+        const title = activeRange ? `${activeTitle} · ${activeRange}` : activeTitle;
+        const detailParts = [];
+        detailParts.push(`${formatNumber(completedVerses)} of ${formatNumber(totalVerses)} verses memorized.`);
+        if (activePlan.daily_goal) {
+          detailParts.push(`Goal: ${formatNumber(activePlan.daily_goal)} verses/day.`);
+        }
+        timelineEl.appendChild(
+          buildTimelineCard({
+            icon: '🕗',
+            iconClass: 'alfawz-status-pending',
+            title,
+            subtitle: 'In progress — keep nourishing your heart.',
+            detail: detailParts.join(' '),
+            progress: {
+              value: percentage,
+              label: `${formatNumber(remainingVerses)} verses remain to complete this plan.`,
+              accentClass: 'bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600',
+            },
+          })
+        );
+      } else if (list.length > 0) {
+        const completedAll = document.createElement('div');
+        completedAll.className = 'rounded-2xl border border-emerald-100 bg-white/90 p-5 text-base text-emerald-700 shadow-sm';
+        completedAll.textContent = 'All current memorization plans are complete—consider starting a new challenge!';
+        timelineEl.appendChild(completedAll);
+      }
+    };
+
+    const updateDailyGoal = (goalState) => {
+      const state = goalState && typeof goalState === 'object' ? goalState : {};
+      const count = Number(state.count || 0);
+      const target = Number(state.target || state.daily_goal_target || 0);
+      const percentage = target > 0 ? Math.min(100, Math.round((count / target) * 100)) : 0;
+      if (goalFillEl) {
+        goalFillEl.style.width = `${percentage}%`;
+        goalFillEl.setAttribute('aria-valuenow', String(percentage));
+      }
+      if (goalTextEl) {
+        setText(goalTextEl, `${formatNumber(count)} / ${formatNumber(target)} verses completed`);
+      }
+      if (goalNoteEl) {
+        const remaining = Math.max(0, target - count);
+        const message = percentage >= 100
+          ? 'MashaAllah! Today’s goal is complete—every verse is a jewel.'
+          : `Only ${formatNumber(remaining)} verses to reach today’s goal.`;
+        setText(goalNoteEl, message);
+      }
+      if (goalResetEl) {
+        const resetLabel = state.last_reset ? `Last reset ${formatResetTimestamp(state.last_reset)}` : 'Resets at midnight';
+        setText(goalResetEl, resetLabel);
+      }
+    };
+
+    try {
+      const [stats, plans, dailyGoal] = await Promise.all([
+        state.dashboardStats ? Promise.resolve(state.dashboardStats) : apiRequest(`user-stats?timezone_offset=${timezoneOffset()}`),
+        apiRequest('memorization-plans'),
+        apiRequest(`daily-goal?timezone_offset=${timezoneOffset()}`),
+      ]);
+
+      if (!state.dashboardStats && stats) {
+        state.dashboardStats = stats;
+      }
+
+      if (stats) {
+        setText(nameEl, stats.display_name || nameEl?.textContent || 'Beloved Student');
+        const tagline = stats.member_since
+          ? `Walking with the Qur’an since ${stats.member_since}`
+          : taglineEl?.textContent || 'Walking with the Qur’an each day.';
+        setText(taglineEl, tagline);
+
+        const heroNoteParts = [];
+        if (Number(stats.verses_read || 0) > 0) {
+          heroNoteParts.push(`${formatNumber(stats.verses_read)} verses recited`);
+        }
+        if (Number(stats.longest_streak || 0) > 0) {
+          heroNoteParts.push(`Longest streak ${formatNumber(stats.longest_streak)} days`);
+        }
+        if (heroNoteParts.length > 0) {
+          setText(heroNoteEl, heroNoteParts.join(' • '));
+        } else if (heroNoteEl) {
+          heroNoteEl.textContent = 'Each recitation polishes the heart—keep shining.';
+        }
+
+        setText(streakDaysEl, formatNumber(stats.current_streak || 0));
+        setText(hasanatEl, formatNumber(stats.total_hasanat || 0));
+        setText(memorizedEl, formatNumber(stats.verses_memorized || 0));
+        setText(readEl, formatNumber(stats.verses_read || 0));
+        setText(currentStreakEl, formatNumber(stats.current_streak || 0));
+      }
+
+      const planList = Array.isArray(plans) ? plans : [];
+      const activePlans = planList.filter((plan) => String(plan?.status || '').toLowerCase() !== 'completed');
+      setText(activePlansEl, formatNumber(activePlans.length));
+      renderTimeline(planList);
+
+      updateDailyGoal(dailyGoal || stats?.daily_goal || {});
+      applyProfileAnimations(root);
     } catch (error) {
       console.warn('[AlfawzQuran] Unable to load profile data', error);
     }

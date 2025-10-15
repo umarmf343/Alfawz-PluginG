@@ -213,6 +213,23 @@ class Routes {
 
         register_rest_route(
             $namespace,
+            '/daily-goal',
+            [
+                'methods'             => 'GET',
+                'callback'            => [ $this, 'get_daily_recitation_goal' ],
+                'permission_callback' => [ $this, 'check_permission' ],
+                'args'                => [
+                    'timezone_offset' => [
+                        'validate_callback' => function( $param ) {
+                            return is_numeric( $param ) || '' === $param || null === $param;
+                        },
+                    ],
+                ],
+            ]
+        );
+
+        register_rest_route(
+            $namespace,
             '/verse-progress',
             [
                 'methods'             => 'POST',
