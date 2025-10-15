@@ -1,3 +1,8 @@
+<?php
+if ( ! defined( 'ABSPATH' ) ) {
+    exit;
+}
+?>
 <div class="alfawz-memorizer">
     <div class="alfawz-page-stack">
         <div class="alfawz-memorizer-header">
@@ -314,7 +319,3 @@
     </div>
 </div>
 
-<?php
-$current_page = 'memorizer';
-include ALFAWZQURAN_PLUGIN_PATH . 'public/partials/mobile-nav.php';
-?>

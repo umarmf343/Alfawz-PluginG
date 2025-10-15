@@ -159,8 +159,3 @@
         </div>
     </div>
 </div>
-
-<?php
-$current_page = 'reader';
-include ALFAWZQURAN_PLUGIN_PATH . 'public/partials/mobile-nav.php';
-?>

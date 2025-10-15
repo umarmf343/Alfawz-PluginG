@@ -111,8 +111,3 @@
         </a>
     </div>
 </div>
-
-<?php
-$current_page = 'profile';
-include ALFAWZQURAN_PLUGIN_PATH . 'public/partials/mobile-nav.php';
-?>

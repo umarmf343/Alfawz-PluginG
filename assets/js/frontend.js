@@ -4,12 +4,41 @@
     apiUrl: "/wp-json/alfawzquran/v1/",
     isLoggedIn: false,
     nonce: "12345",
+    pages: {},
+  }
+
+  const getPageUrl = slug => {
+    if (alfawzData.pages && alfawzData.pages[slug]) {
+      return alfawzData.pages[slug]
+    }
+
+    return `/${slug.replace(/[^a-z0-9\-]/gi, '')}/`
+  }
+
+  const navigateToPage = (slug, params = {}) => {
+    const baseUrl = getPageUrl(slug)
+
+    try {
+      const targetUrl = new URL(baseUrl, window.location.origin)
+
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== '') {
+          targetUrl.searchParams.set(key, value)
+        }
+      })
+
+      window.location.href = targetUrl.toString()
+    } catch (error) {
+      const query = new URLSearchParams(params).toString()
+      window.location.href = `${baseUrl}${query ? `?${query}` : ''}`
+    }
   }
 
   // Use only alquran.cloud API
   const ALQURAN_API_BASE = 'https://api.alquran.cloud/v1/'
   const ARABIC_EDITION = alfawzData.defaultReciter || 'ar.alafasy'
   const ENGLISH_EDITION = alfawzData.defaultTranslation || 'en.sahih'
+  const canPreviewQaidahBoards = Boolean(alfawzData.canPreviewQaidahBoards)
 
   // Global state
   let sessionHasanat = 0
@@ -165,7 +194,7 @@
               $("#read-daily-verse").on("click", function() {
                 const surahId = $(this).data("surah-id")
                 const verseId = $(this).data("verse-id")
-                window.location.href = `${alfawzData.pluginUrl}reader/?surah=${surahId}&verse=${verseId}`
+                navigateToPage('reader', { surah: surahId, verse: verseId })
               })
             })
             .catch(error => {
@@ -1685,7 +1714,7 @@
     }
 
     // Redirect to reader page with selected verse
-    window.location.href = `${alfawzData.pluginUrl}reader/?surah=${surahId}&verse=${verseId}`
+    navigateToPage('reader', { surah: surahId, verse: verseId })
   }
 
   function restartMemorizationPlan() {
@@ -1984,7 +2013,7 @@
           })
           $(".alfawz-continue-plan-btn").on("click", function() {
             const planId = $(this).data("plan-id")
-            window.location.href = `${alfawzData.pluginUrl}memorizer/?plan=${planId}`
+            navigateToPage('memorization', { plan: planId })
           })
           $(".alfawz-delete-plan-btn").on("click", deleteMemorizationPlan)
         } else {
@@ -2191,7 +2220,7 @@
           $(".alfawz-view-bookmark-btn").on("click", function() {
             const surahId = $(this).data("surah-id")
             const verseId = $(this).data("verse-id")
-            window.location.href = `${alfawzData.pluginUrl}reader/?surah=${surahId}&verse=${verseId}`
+            navigateToPage('reader', { surah: surahId, verse: verseId })
           })
           $(".alfawz-delete-bookmark-btn").on("click", deleteBookmark)
         } else {
@@ -2285,7 +2314,7 @@
           })
           $(".alfawz-continue-plan-btn").on("click", function() {
             const planId = $(this).data("plan-id")
-            window.location.href = `${alfawzData.pluginUrl}memorizer/?plan=${planId}`
+            navigateToPage('memorization', { plan: planId })
           })
           $(".alfawz-delete-plan-btn").on("click", deleteMemorizationPlan) // Re-use delete function
         } else {
@@ -2950,7 +2979,12 @@
   // ========================================
 
   function initializeQaidah() {
-    const $canvas = $(".alfawz-qaidah-canvas")
+    initializeStudentQaidah()
+    initializeTeacherQaidah()
+  }
+
+  function initializeStudentQaidah() {
+    const $canvas = $('.alfawz-qaidah-canvas[data-qaidah-context="student"]')
 
     if (!$canvas.length) {
       return
@@ -2960,9 +2994,15 @@
     const t = text => translate(text, 'alfawzquran')
     const $list = $('#qaidah-assignment-list')
     const $stage = $('#qaidah-stage')
+    const urlParams = new URLSearchParams(window.location.search)
+    const assignmentParam = parseInt(urlParams.get('assignment'), 10)
+    const requestedAssignmentId = Number.isNaN(assignmentParam) ? null : assignmentParam
+    const previewModeEnabled = urlParams.get('preview') === '1' && canPreviewQaidahBoards
+    const previewBoardId = previewModeEnabled ? requestedAssignmentId : null
     let assignments = []
     let activeAssignmentId = null
     let activeAudio = null
+    let previewBoard = null
 
     fetchAssignments()
 
@@ -2987,14 +3027,30 @@
           renderAssignmentList()
 
           if (assignments.length) {
-            activateAssignment(assignments[0].id)
+            const preferredAssignment = requestedAssignmentId ? assignments.find(item => item.id === requestedAssignmentId) : null
+
+            if (preferredAssignment) {
+              activateAssignment(preferredAssignment.id)
+            } else if (previewModeEnabled && previewBoardId) {
+              previewBoardAsTeacher(previewBoardId)
+            } else {
+              const firstAssignment = assignments[0]
+              activateAssignment(firstAssignment.id)
+            }
+          } else if (previewModeEnabled && previewBoardId) {
+            previewBoardAsTeacher(previewBoardId)
           } else {
             renderStageMessage(t("Your teacher has not shared any Qa'idah assignments yet."))
           }
         })
         .fail(() => {
           renderListMessage(t("We couldn't load your assignments right now."))
-          renderStageMessage(t('Please refresh the page or try again later.'))
+
+          if (previewModeEnabled && previewBoardId) {
+            previewBoardAsTeacher(previewBoardId)
+          } else {
+            renderStageMessage(t('Please refresh the page or try again later.'))
+          }
         })
     }
 
@@ -3058,6 +3114,116 @@
       })
     }
 
+    function renderPreviewBoardList() {
+      if (!previewBoard) {
+        renderListMessage(t('We could not find that board for preview.'))
+        return
+      }
+
+      const board = previewBoard
+      const $card = $('<article>', { class: 'alfawz-qaidah-assignment-card is-active is-preview' })
+
+      $('<span>', {
+        class: 'alfawz-qaidah-badge',
+        text: t('Teacher preview'),
+      }).appendTo($card)
+
+      $('<h4>', {
+        class: 'alfawz-qaidah-assignment-title',
+        text: board.title || t("Qa'idah board"),
+      }).appendTo($card)
+
+      const $meta = $('<div>', { class: 'alfawz-qaidah-assignment-meta' })
+
+      if (board.teacher && board.teacher.name) {
+        $meta.append($('<span>').text(`👩‍🏫 ${board.teacher.name}`))
+      }
+
+      if (board.class && board.class.label) {
+        $meta.append($('<span>').text(`🏷️ ${board.class.label}`))
+      }
+
+      if (board.updated) {
+        $meta.append($('<span>').text(`🕒 ${formatAssignmentDate(board.updated)}`))
+      }
+
+      if ($meta.children().length) {
+        $card.append($meta)
+      }
+
+      $('<p>', {
+        class: 'alfawz-qaidah-preview-helper',
+        text: t('Students will only see this board after you share it with them.'),
+      }).appendTo($card)
+
+      const $actions = $('<div>', { class: 'alfawz-qaidah-preview-actions' })
+
+      $('<button>', {
+        type: 'button',
+        class: 'alfawz-btn alfawz-btn-secondary alfawz-btn-small',
+        text: t('Back to assignments'),
+      })
+        .on('click', exitPreviewMode)
+        .appendTo($actions)
+
+      $card.append($actions)
+
+      $list.empty().append($card)
+    }
+
+    function exitPreviewMode() {
+      try {
+        const targetUrl = new URL(window.location.href)
+        targetUrl.searchParams.delete('preview')
+        targetUrl.searchParams.delete('assignment')
+        window.location.href = targetUrl.toString()
+      } catch (error) {
+        const params = new URLSearchParams(window.location.search)
+        params.delete('preview')
+        params.delete('assignment')
+        const query = params.toString()
+        window.location.href = `${window.location.pathname}${query ? `?${query}` : ''}`
+      }
+    }
+
+    function previewBoardAsTeacher(boardId) {
+      if (!canPreviewQaidahBoards || !boardId) {
+        renderStageMessage(t('Return to the teacher dashboard to select a different board.'))
+        renderListMessage(t('Teacher preview is not available for this board.'))
+        return
+      }
+
+      previewBoard = null
+      renderListMessage(t('Loading teacher preview…'))
+      renderStageMessage(t('Preparing your preview…'))
+
+      $.ajax({
+        url: `${alfawzData.apiUrl}qaidah/boards/${boardId}`,
+        method: 'GET',
+        data: { context: 'manage' },
+        headers: {
+          'X-WP-Nonce': alfawzData.nonce,
+        },
+      })
+        .done(board => {
+          if (!board || !board.id) {
+            renderListMessage(t('We could not find that board for preview.'))
+            renderStageMessage(t('Select a different board from the teacher dashboard.'))
+            return
+          }
+
+          previewBoard = Object.assign({ preview: true }, board)
+          activeAssignmentId = board.id
+          renderPreviewBoardList()
+          renderStage(previewBoard)
+        })
+        .fail(response => {
+          const message = response?.responseJSON?.message || t('We could not open that board for preview.')
+          renderListMessage(message)
+          renderStageMessage(t('Reload this page from the teacher dashboard to try again.'))
+        })
+    }
+
     function activateAssignment(assignmentId) {
       const assignment = assignments.find(item => item.id === assignmentId)
       if (!assignment) {
@@ -3072,6 +3238,8 @@
     function renderStage(assignment) {
       stopHotspotAudio()
 
+      $stage.empty()
+
       const $header = $('<div>', { class: 'alfawz-qaidah-stage-header' })
       $('<h3>', { text: assignment.title || t("Qa'idah assignment") }).appendTo($header)
 
@@ -3079,6 +3247,13 @@
         $('<p>', { class: 'alfawz-qaidah-stage-description', html: assignment.description }).appendTo($header)
       } else {
         $('<p>', { class: 'alfawz-qaidah-stage-description', text: t('Tap a hotspot to hear the model pronunciation.') }).appendTo($header)
+      }
+
+      if (assignment.preview) {
+        $('<div>', {
+          class: 'alfawz-qaidah-preview-notice',
+          text: t("You are previewing this Qa'idah board as a teacher. Students will only see it once it has been shared with them."),
+        }).appendTo($header)
       }
 
       const $meta = $('<div>', { class: 'alfawz-qaidah-stage-meta' })
@@ -3095,7 +3270,7 @@
         $meta.append($('<span>').text(`🕒 ${formatAssignmentDate(assignment.updated)}`))
       }
 
-      const $canvas = $('<div>', { class: 'alfawz-qaidah-stage-canvas' })
+      const $stageCanvas = $('<div>', { class: 'alfawz-qaidah-stage-canvas' })
 
       if (assignment.image && assignment.image.url) {
         const $image = $('<div>', { class: 'alfawz-qaidah-stage-image' })
@@ -3118,9 +3293,9 @@
           )
         }
 
-        $canvas.append($image)
+        $stageCanvas.append($image)
       } else {
-        $canvas.append(
+        $stageCanvas.append(
           $('<div>', {
             class: 'alfawz-qaidah-empty',
             html: `<p>${t('This assignment is missing an image.')}</p>`,
@@ -3128,7 +3303,7 @@
         )
       }
 
-      $stage.empty().append($header, $meta, $canvas)
+      $stage.empty().append($header, $meta, $stageCanvas)
     }
 
     function createHotspotButton(hotspot) {
@@ -3231,6 +3406,344 @@
       }
     }
   }
+
+  function initializeTeacherQaidah() {
+    const $module = $('.alfawz-qaidah-teacher[data-qaidah-context="teacher"]')
+
+    if (!$module.length) {
+      return
+    }
+
+    const translate = window.wp && window.wp.i18n && typeof window.wp.i18n.__ === 'function' ? window.wp.i18n.__ : text => text
+    const t = text => translate(text, 'alfawzquran')
+    const $boardSelect = $('#qaidah-teacher-board-select')
+    const $classInput = $('#qaidah-teacher-class-id')
+    const $studentsInput = $('#qaidah-teacher-students')
+    const $descriptionInput = $('#qaidah-teacher-description')
+    const $feedback = $('#qaidah-teacher-feedback')
+    const $boardsList = $('#qaidah-teacher-boards-list')
+    const $summaryTotal = $('#qaidah-total-boards')
+    const $summaryClasses = $('#qaidah-active-classes')
+    const $summaryStudents = $('#qaidah-student-count')
+    const $refreshButton = $('#qaidah-refresh-boards')
+    const $form = $('#qaidah-teacher-share-form')
+    const adminManageUrl = $module.data('admin-url') || ''
+    let boards = []
+    let selectedBoardId = null
+    let isSavingBoard = false
+
+    if (!alfawzData.isLoggedIn) {
+      showTeacherFeedback(t("Please log in to manage Qa'idah boards."), 'error')
+      disableForm(true)
+      $boardSelect.prop('disabled', true)
+      return
+    }
+
+    $refreshButton.on('click', event => {
+      event.preventDefault()
+      fetchBoards(true)
+    })
+
+    $boardSelect.on('change', handleBoardSelection)
+    $form.on('submit', handleBoardSubmit)
+
+    fetchBoards()
+
+    function fetchBoards(showMessage = false) {
+      showTeacherFeedback(t('Loading boards…'), 'info')
+      disableForm(true)
+      $boardSelect.prop('disabled', true)
+
+      $.ajax({
+        url: `${alfawzData.apiUrl}qaidah/boards`,
+        method: 'GET',
+        data: { context: 'manage' },
+        headers: {
+          'X-WP-Nonce': alfawzData.nonce,
+        },
+      })
+        .done(response => {
+          boards = Array.isArray(response) ? response : []
+
+          if (!boards.length) {
+            selectedBoardId = null
+          } else if (!selectedBoardId || !boards.some(board => board.id === selectedBoardId)) {
+            selectedBoardId = boards[0].id
+          }
+
+          populateBoardSelect()
+          renderBoardSummary()
+          renderTeacherBoards()
+          handleBoardSelection()
+
+          const hasBoards = boards.length > 0
+          disableForm(!hasBoards)
+          $boardSelect.prop('disabled', !hasBoards)
+
+          if (hasBoards) {
+            showTeacherFeedback(showMessage ? t('Boards refreshed.') : '', 'success')
+          } else {
+            showTeacherFeedback(t("You haven't created any Qa'idah boards yet."), 'info')
+          }
+        })
+        .fail(() => {
+          showTeacherFeedback(t("We couldn't load your Qa'idah boards."), 'error')
+          $boardsList.html(`<div class="alfawz-qaidah-empty"><p>${t("We couldn't load your Qa'idah boards.")}</p></div>`)
+          populateBoardSelect(true)
+        })
+    }
+
+    function populateBoardSelect(disableOnly = false) {
+      $boardSelect.empty()
+
+      if (disableOnly || !boards.length) {
+        $boardSelect.append(`<option value="">${t('No boards available')}</option>`)
+        return
+      }
+
+      $boardSelect.append(`<option value="">${t('Select a board')}</option>`)
+      boards.forEach(board => {
+        $boardSelect.append(`<option value="${board.id}">${board.title || t("Untitled Qa'idah board")}</option>`)
+      })
+
+      if (selectedBoardId) {
+        $boardSelect.val(String(selectedBoardId))
+      } else {
+        $boardSelect.val('')
+      }
+    }
+
+    function handleBoardSelection() {
+      const value = parseInt($boardSelect.val(), 10)
+      selectedBoardId = Number.isNaN(value) ? null : value
+
+      if (!selectedBoardId) {
+        resetFormFields()
+        disableForm(boards.length === 0)
+        return
+      }
+
+      const board = boards.find(item => item.id === selectedBoardId)
+      if (!board) {
+        resetFormFields()
+        return
+      }
+
+      const classId = board.class && board.class.id ? board.class.id : ''
+      $classInput.val(classId)
+
+      const studentIds = Array.isArray(board.students) ? board.students.join(', ') : ''
+      $studentsInput.val(studentIds)
+
+      const descriptionText = board.description ? $('<div>').html(board.description).text() : ''
+      $descriptionInput.val(descriptionText)
+
+      disableForm(false)
+    }
+
+    function handleBoardSubmit(event) {
+      event.preventDefault()
+
+      if (isSavingBoard) {
+        return
+      }
+
+      if (!selectedBoardId) {
+        showTeacherFeedback(t('Select a board before saving.'), 'error')
+        return
+      }
+
+      const classId = $classInput.val().trim()
+      const description = $descriptionInput.val().trim()
+      const rawStudents = $studentsInput.val().split(',')
+      const studentIds = rawStudents
+        .map(id => parseInt(id.trim(), 10))
+        .filter(id => !Number.isNaN(id) && id > 0)
+
+      const payload = {
+        class_id: classId,
+        description,
+        student_ids: studentIds,
+      }
+
+      isSavingBoard = true
+      toggleSavingState(true)
+
+      $.ajax({
+        url: `${alfawzData.apiUrl}qaidah/boards/${selectedBoardId}`,
+        method: 'PUT',
+        contentType: 'application/json',
+        data: JSON.stringify(payload),
+        headers: {
+          'X-WP-Nonce': alfawzData.nonce,
+        },
+      })
+        .done(board => {
+          if (board && board.id) {
+            boards = boards.map(item => (item.id === board.id ? board : item))
+            renderBoardSummary()
+            renderTeacherBoards()
+            showTeacherFeedback(t('Sharing settings saved.'), 'success')
+          } else {
+            showTeacherFeedback(t('Board updated, but no data returned.'), 'info')
+          }
+        })
+        .fail(response => {
+          const message = response?.responseJSON?.message || t('Unable to update this board right now.')
+          showTeacherFeedback(message, 'error')
+        })
+        .always(() => {
+          isSavingBoard = false
+          toggleSavingState(false)
+        })
+    }
+
+    function renderBoardSummary() {
+      $summaryTotal.text(boards.length)
+
+      const classSet = new Set()
+      let totalStudents = 0
+
+      boards.forEach(board => {
+        if (board.class && board.class.id) {
+          classSet.add(board.class.id)
+        }
+
+        if (Array.isArray(board.students)) {
+          totalStudents += board.students.length
+        }
+      })
+
+      $summaryClasses.text(classSet.size)
+      $summaryStudents.text(totalStudents)
+    }
+
+    function renderTeacherBoards() {
+      $boardsList.empty()
+
+      if (!boards.length) {
+        $boardsList.html(`<div class="alfawz-qaidah-empty"><p>${t("Create a Qa'idah board in the builder to begin sharing assignments.")}</p></div>`)
+        return
+      }
+
+      boards.forEach(board => {
+        const $card = $('<article>', { class: 'alfawz-qaidah-teacher-card' })
+
+        $('<h4>', {
+          class: 'alfawz-qaidah-teacher-title',
+          text: board.title || t("Untitled Qa'idah board"),
+        }).appendTo($card)
+
+        const $meta = $('<ul>', { class: 'alfawz-qaidah-teacher-meta' })
+        if (board.class && board.class.label) {
+          $('<li>', { text: `🏷️ ${board.class.label}` }).appendTo($meta)
+        }
+        const studentTotal = Array.isArray(board.students) ? board.students.length : 0
+        $('<li>', { text: `🎯 ${studentTotal} ${studentTotal === 1 ? t('student') : t('students')}` }).appendTo($meta)
+
+        if (board.updated) {
+          $('<li>', { text: `🕒 ${formatBoardDate(board.updated)}` }).appendTo($meta)
+        }
+        $card.append($meta)
+
+        if (Array.isArray(board.student_details) && board.student_details.length) {
+          const $chips = $('<div>', { class: 'alfawz-qaidah-student-chips' })
+          board.student_details.slice(0, 6).forEach(student => {
+            $('<span>', { class: 'alfawz-chip', text: student.display || `ID ${student.id}` }).appendTo($chips)
+          })
+
+          if (board.student_details.length > 6) {
+            $('<span>', { class: 'alfawz-chip alfawz-chip-more', text: `+${board.student_details.length - 6}` }).appendTo($chips)
+          }
+
+          $card.append($chips)
+        }
+
+        const $actions = $('<div>', { class: 'alfawz-qaidah-teacher-card-actions' })
+        $('<button>', {
+          type: 'button',
+          class: 'alfawz-btn alfawz-btn-secondary alfawz-btn-small',
+          text: t('Preview as student'),
+        }).on('click', () => {
+          if (!canPreviewQaidahBoards) {
+            showTeacherFeedback(t('You do not have permission to preview Qa\'idah boards.'), 'error')
+            return
+          }
+
+          const params = { assignment: board.id }
+          if (canPreviewQaidahBoards) {
+            params.preview = 1
+          }
+
+          navigateToPage('qaidah-student', params)
+        }).appendTo($actions)
+
+        if (adminManageUrl) {
+          $('<a>', {
+            class: 'alfawz-btn alfawz-btn-link alfawz-btn-small',
+            href: `${adminManageUrl}&board=${board.id}`,
+            text: t('Open in builder'),
+          }).appendTo($actions)
+        }
+
+        $card.append($actions)
+        $boardsList.append($card)
+      })
+    }
+
+    function formatBoardDate(dateString) {
+      try {
+        return new Date(dateString).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
+      } catch (error) {
+        return ''
+      }
+    }
+
+    function showTeacherFeedback(message, type = 'info') {
+      const classes = ['is-info', 'is-success', 'is-error']
+      $feedback.removeClass(classes.join(' '))
+
+      if (!message) {
+        $feedback.text('')
+        return
+      }
+
+      const className = type === 'error' ? 'is-error' : type === 'success' ? 'is-success' : 'is-info'
+      $feedback.addClass(className).text(message)
+    }
+
+    function resetFormFields() {
+      $classInput.val('')
+      $studentsInput.val('')
+      $descriptionInput.val('')
+    }
+
+    function disableForm(state) {
+      $classInput.prop('disabled', state)
+      $studentsInput.prop('disabled', state)
+      $descriptionInput.prop('disabled', state)
+      $form.find('button[type="submit"]').prop('disabled', state)
+    }
+
+    function toggleSavingState(state) {
+      const $submit = $form.find('button[type="submit"]')
+
+      if (state) {
+        if (!$submit.data('original-text')) {
+          $submit.data('original-text', $submit.text())
+        }
+        $submit.prop('disabled', true).text(t('Saving…'))
+      } else {
+        const original = $submit.data('original-text')
+        $submit.prop('disabled', false)
+        if (original) {
+          $submit.text(original)
+        }
+      }
+    }
+  }
+
+
   function initializeBottomNavigation() {
     const $nav = $(".alfawz-bottom-navigation")
 

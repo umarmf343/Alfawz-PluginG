@@ -10,7 +10,7 @@
         <h3><?php _e('Memorization Plan Creation', 'alfawzquran'); ?></h3>
         <div class="alfawz-settings-info-block">
             <p><?php _e('Plan creation now lives directly inside the Memorizer so your intention begins beside the verses you will recite. Visit the Memorizer to start a new journey and craft your daily targets.', 'alfawzquran'); ?></p>
-            <a href="<?php echo esc_url(ALFAWZQURAN_PLUGIN_URL . 'memorizer/'); ?>" class="alfawz-btn alfawz-btn-secondary alfawz-btn-small" role="button">
+            <a href="<?php echo esc_url( home_url( 'alfawz-memorization/' ) ); ?>" class="alfawz-btn alfawz-btn-secondary alfawz-btn-small" role="button">
                 <?php _e('Open Memorizer', 'alfawzquran'); ?>
             </a>
         </div>
@@ -75,11 +75,6 @@
         </form>
     </div>
 </div>
-
-<?php
-$current_page = 'settings';
-include ALFAWZQURAN_PLUGIN_PATH . 'public/partials/mobile-nav.php';
-?>
 
 <style>
 /* Settings specific styles */

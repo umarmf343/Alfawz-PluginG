@@ -31,8 +31,3 @@
         </ul>
     </div>
 </div>
-
-<?php
-$current_page = 'leaderboard';
-include ALFAWZQURAN_PLUGIN_PATH . 'public/partials/mobile-nav.php';
-?>

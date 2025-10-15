@@ -3405,6 +3405,51 @@
   transform: translateY(-1px);
 }
 
+.alfawz-qaidah-assignment-card.is-preview {
+  border-color: rgba(79, 70, 229, 0.45);
+  box-shadow: 0 18px 40px rgba(79, 70, 229, 0.15);
+  cursor: default;
+}
+
+.alfawz-qaidah-badge {
+  align-self: flex-start;
+  background: rgba(79, 70, 229, 0.12);
+  border-radius: 999px;
+  color: #3730a3;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  padding: 4px 10px;
+  text-transform: uppercase;
+}
+
+.alfawz-qaidah-preview-helper {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #4b5563;
+  line-height: 1.5;
+}
+
+.alfawz-qaidah-preview-actions {
+  display: flex;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-sm);
+}
+
+.alfawz-qaidah-preview-actions .alfawz-btn {
+  width: auto;
+}
+
+.alfawz-qaidah-preview-notice {
+  background: rgba(79, 70, 229, 0.12);
+  border-radius: var(--radius-md);
+  color: #312e81;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  margin-top: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
+}
+
 .alfawz-qaidah-assignment-title {
   margin: 0;
   font-size: 1.05rem;
@@ -3570,6 +3615,237 @@
   .alfawz-qaidah-stage-canvas {
     min-height: 260px;
   }
+}
+
+.alfawz-qaidah-teacher {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xl);
+}
+
+.alfawz-qaidah-subtitle {
+  margin: 0;
+  opacity: 0.85;
+  font-size: 0.95rem;
+}
+
+.alfawz-teacher-header-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-sm);
+}
+
+.alfawz-qaidah-teacher-form,
+.alfawz-qaidah-teacher-boards {
+  background: #ffffff;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  padding: var(--spacing-xl);
+}
+
+.alfawz-form-intro {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  margin-bottom: var(--spacing-md);
+}
+
+.alfawz-form-intro h3 {
+  margin: 0;
+  font-size: 1.2rem;
+  color: #3b1f0e;
+}
+
+.alfawz-form-intro p {
+  margin: 0;
+  color: #4b5563;
+}
+
+.alfawz-grid-form {
+  display: grid;
+  gap: var(--spacing-md);
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.alfawz-form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.alfawz-form-field label {
+  font-weight: 600;
+  color: #351c11;
+}
+
+.alfawz-form-field input,
+.alfawz-form-field textarea,
+.alfawz-form-field select {
+  border: 1px solid #e2e8f0;
+  border-radius: var(--radius-md);
+  padding: 10px 12px;
+  font-size: 0.95rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.alfawz-form-field input:focus,
+.alfawz-form-field textarea:focus,
+.alfawz-form-field select:focus {
+  border-color: rgba(111, 29, 27, 0.45);
+  box-shadow: 0 0 0 3px rgba(111, 29, 27, 0.15);
+  outline: none;
+}
+
+.alfawz-field-help {
+  font-size: 0.85rem;
+  color: #6b7280;
+  margin: 0;
+}
+
+.alfawz-form-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  grid-column: 1 / -1;
+  margin-top: var(--spacing-sm);
+}
+
+.alfawz-inline-feedback {
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.alfawz-inline-feedback.is-success {
+  color: #15803d;
+}
+
+.alfawz-inline-feedback.is-error {
+  color: #b91c1c;
+}
+
+.alfawz-inline-feedback.is-info {
+  color: #2563eb;
+}
+
+.alfawz-board-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+}
+
+.alfawz-board-stat {
+  background: rgba(111, 29, 27, 0.06);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-md);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  text-align: center;
+}
+
+.alfawz-board-stat-value {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #421f12;
+}
+
+.alfawz-board-stat-label {
+  font-size: 0.9rem;
+  color: #6b7280;
+}
+
+.alfawz-qaidah-teacher-list {
+  display: grid;
+  gap: var(--spacing-md);
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+
+.alfawz-qaidah-teacher-card {
+  border: 1px solid #ede6dd;
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  background: #ffffff;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.alfawz-qaidah-teacher-card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.alfawz-qaidah-teacher-title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #3b1f0e;
+}
+
+.alfawz-qaidah-teacher-meta {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  color: #6b7280;
+  font-size: 0.85rem;
+}
+
+.alfawz-qaidah-teacher-meta li {
+  background: rgba(111, 29, 27, 0.08);
+  padding: 3px 10px;
+  border-radius: 999px;
+}
+
+.alfawz-qaidah-student-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.alfawz-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #f1f5f9;
+  font-size: 0.8rem;
+  color: #1f2937;
+}
+
+.alfawz-chip-more {
+  background: rgba(37, 99, 235, 0.12);
+  color: #1d4ed8;
+}
+
+.alfawz-qaidah-teacher-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-sm);
+}
+
+.alfawz-btn-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #2563eb;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.alfawz-btn-link:hover {
+  text-decoration: underline;
+}
+
+.alfawz-btn-link:focus {
+  outline: none;
+  text-decoration: underline;
 }
 
 .alfawz-bottom-navigation {

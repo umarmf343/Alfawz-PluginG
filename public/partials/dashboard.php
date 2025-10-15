@@ -69,7 +69,7 @@
             <span class="alfawz-btn-text"><?php _e('Start Reading', 'alfawzquran'); ?></span>
             <span class="alfawz-btn-glow"></span>
         </a>
-        <a href="<?php echo esc_url(ALFAWZQURAN_PLUGIN_URL . 'memorizer/'); ?>" class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md alfawz-btn alfawz-beautiful-btn" role="button">
+        <a href="<?php echo esc_url( home_url( 'alfawz-memorization/' ) ); ?>" class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md alfawz-btn alfawz-beautiful-btn" role="button">
             <span class="alfawz-btn-icon-wrapper"><span class="alfawz-btn-icon">🧠</span></span>
             <span class="alfawz-btn-text"><?php _e('Start Memorizing', 'alfawzquran'); ?></span>
             <span class="alfawz-btn-glow"></span>
@@ -98,11 +98,6 @@
         </div>
     </div>
 </div>
-
-<?php
-$current_page = 'dashboard';
-include ALFAWZQURAN_PLUGIN_PATH . 'public/partials/mobile-nav.php';
-?>
 
 <script>
 jQuery(document).ready(function($) {

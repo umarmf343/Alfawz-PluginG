@@ -124,9 +124,9 @@ class Activator {
                 'shortcode' => '[alfawz_reader]',
             ],
             [
-                'slug'      => 'alfawz-memorizer',
-                'title'     => __( 'Alfawz Memorizer', 'alfawzquran' ),
-                'shortcode' => '[alfawz_memorizer]',
+                'slug'      => 'alfawz-memorization',
+                'title'     => __( 'Alfawz Memorization', 'alfawzquran' ),
+                'shortcode' => '[alfawz_memorization]',
             ],
             [
                 'slug'      => 'alfawz-leaderboard',
@@ -144,9 +144,14 @@ class Activator {
                 'shortcode' => '[alfawz_settings]',
             ],
             [
-                'slug'      => 'alfawz-qaidah',
+                'slug'      => 'alfawz-qaidah-student',
                 'title'     => __( "Alfawz Qa'idah", 'alfawzquran' ),
-                'shortcode' => '[alfawz_qaidah]',
+                'shortcode' => '[alfawz_qaidah_student]',
+            ],
+            [
+                'slug'      => 'alfawz-qaidah-teacher',
+                'title'     => __( "Qa'idah Teacher Studio", 'alfawzquran' ),
+                'shortcode' => '[alfawz_qaidah_teacher]',
             ],
             [
                 'slug'      => 'alfawz-games',

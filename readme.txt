@@ -47,14 +47,16 @@ AlfawzQuran aims to be your companion in your Quranic journey, making it easier 
 3.  **Configure:**
     *   Go to `AlfawzQuran > Settings` in your WordPress admin menu to configure general settings and create memorization plans.
 4.  **Add Shortcodes to Pages:**
-    *   Create new WordPress pages (e.g., "Quran Dashboard", "Quran Reader", "Quran Memorizer", "Leaderboard", "Profile", "Settings").
+    *   Create new WordPress pages (e.g., "Quran Dashboard", "Quran Reader", "Quran Memorization", "Leaderboard", "Profile", "Settings", "Qa'idah Studio").
     *   Add the respective shortcodes to these pages:
         *   `[alfawz_dashboard]` for the main user dashboard.
         *   `[alfawz_reader]` for the Quran reading interface.
-        *   `[alfawz_memorizer]` for the memorization interface.
+        *   `[alfawz_memorization]` for the memorization interface.
         *   `[alfawz_leaderboard]` for the user leaderboard.
         *   `[alfawz_profile]` for the user profile page.
         *   `[alfawz_settings]` for user settings and plan creation.
+        *   `[alfawz_qaidah_student]` for the student Qa'idah canvas.
+        *   `[alfawz_qaidah_teacher]` for the teacher Qa'idah studio.
     *   Ensure these pages are accessible to your users (e.g., via your site's navigation menu).
 
 == Frequently Asked Questions ==

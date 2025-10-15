@@ -3,7 +3,7 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 ?>
-<div class="alfawz-qaidah alfawz-qaidah-canvas">
+<div class="alfawz-qaidah alfawz-qaidah-canvas" data-qaidah-context="student">
     <header class="alfawz-qaidah-header">
         <h2><?php esc_html_e( "Collaborative Qa'idah Canvas", 'alfawzquran' ); ?></h2>
         <p><?php esc_html_e( 'Open your teacher\'s assignments and tap the hotspots to hear precise pronunciation models.', 'alfawzquran' ); ?></p>
@@ -21,7 +21,3 @@ if ( ! defined( 'ABSPATH' ) ) {
         </section>
     </div>
 </div>
-<?php
-$current_page = 'qaidah';
-include ALFAWZQURAN_PLUGIN_PATH . 'public/partials/mobile-nav.php';
-?>
