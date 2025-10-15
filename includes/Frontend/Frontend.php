@@ -63,6 +63,14 @@ class Frontend {
             );
 
             wp_enqueue_script(
+                'alfawz-routine',
+                ALFAWZQURAN_PLUGIN_URL . 'assets/js/alfawz-routine.js',
+                [],
+                ALFAWZQURAN_VERSION,
+                true
+            );
+
+            wp_enqueue_script(
                 'alfawz-memorization',
                 ALFAWZQURAN_PLUGIN_URL . 'assets/js/alfawz-memorization.js',
                 [],
@@ -92,6 +100,21 @@ class Frontend {
                     'profileError' => __('Unable to update profile. Please try again.', 'alfawzquran'),
                     'profileNameMissing' => __('Please add your full name before saving.', 'alfawzquran'),
                 ],
+            ]);
+
+            $timezone_string = function_exists('wp_timezone_string') ? wp_timezone_string() : get_option('timezone_string');
+            if (empty($timezone_string) && function_exists('wp_timezone')) {
+                $timezone = wp_timezone();
+                $timezone_string = $timezone instanceof \DateTimeZone ? $timezone->getName() : '';
+            }
+
+            if (empty($timezone_string)) {
+                $timezone_string = 'UTC';
+            }
+
+            wp_localize_script('alfawz-routine', 'alfawzRoutineData', [
+                'timezone'  => $timezone_string,
+                'gmtOffset' => get_option('gmt_offset', 0),
             ]);
 
             wp_localize_script('alfawz-memorization', 'alfawzMemoData', [
