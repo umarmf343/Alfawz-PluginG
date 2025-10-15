@@ -25,11 +25,19 @@
   const classCards = document.getElementById('alfawz-teacher-class-cards');
   const memoList = document.getElementById('alfawz-teacher-memo-list');
   const activityList = document.getElementById('alfawz-teacher-activity-list');
-  const classTotal = document.getElementById('alfawz-teacher-class-total');
-  const studentTotal = document.getElementById('alfawz-teacher-student-total');
-  const assignmentTotal = document.getElementById('alfawz-teacher-assignment-total');
-  const memorizationCount = document.getElementById('alfawz-teacher-memorization-count');
   const memoPill = document.getElementById('alfawz-teacher-memo-pill');
+
+  const metricTargets = {
+    classes: Array.from(document.querySelectorAll('[data-alfawz-metric="classes"]')),
+    students: Array.from(document.querySelectorAll('[data-alfawz-metric="students"]')),
+    assignments: Array.from(document.querySelectorAll('[data-alfawz-metric="assignments"]')),
+    memorization: Array.from(document.querySelectorAll('[data-alfawz-metric="memorization"]')),
+  };
+
+  const updateMetricGroup = (key, value, fallbackLabel) => {
+    const targets = metricTargets[key] || [];
+    targets.forEach((element) => updateLabelledValue(element, value, fallbackLabel));
+  };
 
   const updateLabelledValue = (element, value, fallbackLabel = '') => {
     if (!element) {
@@ -99,7 +107,7 @@
   };
 
   const createAssignmentButton = document.getElementById('alfawz-teacher-create-assignment');
-  const refreshButton = document.getElementById('alfawz-teacher-refresh');
+  const refreshButtons = Array.from(document.querySelectorAll('[data-alfawz-teacher-refresh]'));
   const builderWrapper = document.getElementById('alfawz-qaidah-wrapper');
   const builderStatus = document.getElementById('alfawz-teacher-qaidah-status');
   const previewModal = document.getElementById('alfawz-teacher-assignment-modal');
@@ -222,7 +230,7 @@
       const row = document.createElement('tr');
       const cell = document.createElement('td');
       cell.colSpan = 5;
-      cell.className = 'px-4 py-6 text-center text-base text-gray-500';
+      cell.className = 'px-4 py-6 text-center text-base text-[#7b1e3c]/70';
       cell.textContent = strings.noAssignments || '—';
       row.appendChild(cell);
       assignmentTable.appendChild(row);
@@ -231,22 +239,22 @@
 
     state.assignments.forEach((assignment) => {
       const row = document.createElement('tr');
-      row.className = 'border-b border-gray-100 last:border-0';
+      row.className = 'border-b border-[#f1d9c9]/60 last:border-0';
 
       const titleCell = document.createElement('td');
-      titleCell.className = 'px-4 py-4 text-base font-semibold text-gray-800';
+      titleCell.className = 'px-4 py-4 text-base font-semibold text-[#3d0b1e]';
       titleCell.textContent = assignment.title || strings.assignmentFallback || 'Qa’idah assignment';
 
       const classCell = document.createElement('td');
-      classCell.className = 'px-4 py-4 text-base text-gray-600';
+      classCell.className = 'px-4 py-4 text-base text-[#502032]';
       classCell.textContent = assignment.class?.label || '—';
 
       const updatedCell = document.createElement('td');
-      updatedCell.className = 'px-4 py-4 text-base text-gray-600';
+      updatedCell.className = 'px-4 py-4 text-base text-[#502032]';
       updatedCell.textContent = formatDate(assignment.updated);
 
       const statusCell = document.createElement('td');
-      statusCell.className = 'px-4 py-4 text-base font-semibold text-emerald-700';
+      statusCell.className = 'px-4 py-4 text-base font-semibold text-[#7b1e3c]';
       statusCell.textContent = strings.statusSent || 'Sent';
 
       const actionCell = document.createElement('td');
@@ -254,17 +262,17 @@
 
       const viewButton = document.createElement('button');
       viewButton.type = 'button';
-      viewButton.className = 'inline-flex items-center text-sm font-semibold text-emerald-700 hover:underline focus:outline-none focus:underline';
+      viewButton.className = 'inline-flex items-center text-sm font-semibold text-[#7b1e3c] hover:underline focus:outline-none focus:underline';
       viewButton.textContent = strings.viewAssignment || 'View';
       viewButton.addEventListener('click', () => openPreview(assignment));
 
       const divider = document.createElement('span');
-      divider.className = 'mx-2 text-gray-300';
+      divider.className = 'mx-2 text-[#d8a28d]';
       divider.textContent = '•';
 
       const editButton = document.createElement('button');
       editButton.type = 'button';
-      editButton.className = 'inline-flex items-center text-sm font-semibold text-emerald-700 hover:underline focus:outline-none focus:underline';
+      editButton.className = 'inline-flex items-center text-sm font-semibold text-[#7b1e3c] hover:underline focus:outline-none focus:underline';
       editButton.textContent = strings.editAssignment || 'Edit';
       editButton.addEventListener('click', () => editAssignmentInBuilder(assignment.id));
 
@@ -285,7 +293,7 @@
 
     if (!state.memorization.length) {
       const empty = document.createElement('div');
-      empty.className = 'rounded-xl border border-gray-200 bg-gray-50 px-6 py-6 text-center text-base text-gray-500';
+      empty.className = 'rounded-2xl border border-[#f1d9c9] bg-[#fdf5ea] px-6 py-6 text-center text-base text-[#7b1e3c]/80';
       empty.textContent = strings.noPlans || '—';
       memoList.appendChild(empty);
       return;
@@ -293,13 +301,13 @@
 
     state.memorization.forEach((entry) => {
       const card = document.createElement('article');
-      card.className = 'rounded-xl border border-gray-200 bg-white p-6 shadow-sm transition hover:shadow-md';
+      card.className = 'rounded-2xl border border-[#f1d9c9] bg-white/90 p-6 shadow-md shadow-[#2b0618]/5 transition hover:-translate-y-0.5 hover:shadow-xl';
       card.id = `memo-${entry.student.id}`;
 
       const header = document.createElement('div');
       header.className = 'flex flex-wrap items-center justify-between gap-4';
       const title = document.createElement('div');
-      title.innerHTML = `<p class="text-lg font-semibold text-gray-800">${entry.student.name || ''}</p><p class="text-sm text-gray-500">${entry.student.class_label || ''}</p>`;
+      title.innerHTML = `<p class="text-lg font-semibold text-[#3d0b1e]">${entry.student.name || ''}</p><p class="text-sm text-[#7b1e3c]/70">${entry.student.class_label || ''}</p>`;
 
       const streak = Number(entry.metrics?.streak || 0);
       const streakTheme = streak > 1 ? 'emerald' : 'amber';
@@ -311,7 +319,7 @@
       header.appendChild(streakBadge);
 
       const metrics = document.createElement('dl');
-      metrics.className = 'mt-4 grid grid-cols-1 gap-4 text-sm text-gray-600 sm:grid-cols-3';
+      metrics.className = 'mt-4 grid grid-cols-1 gap-4 text-sm text-[#502032] sm:grid-cols-3';
 
       const metricItems = [
         {
@@ -330,7 +338,7 @@
 
       metricItems.forEach((metric) => {
         const block = document.createElement('div');
-        block.innerHTML = `<dt class="font-medium text-gray-500">${metric.label}</dt><dd class="text-2xl font-semibold text-gray-900">${metric.value}</dd>`;
+        block.innerHTML = `<dt class="font-medium text-[#7b1e3c]/70">${metric.label}</dt><dd class="text-2xl font-semibold text-[#3d0b1e]">${metric.value}</dd>`;
         metrics.appendChild(block);
       });
 
@@ -341,17 +349,17 @@
         planList.className = 'mt-4 space-y-2';
         entry.plans.slice(0, 3).forEach((plan) => {
           const planRow = document.createElement('div');
-          planRow.className = 'flex flex-wrap items-center justify-between gap-3 rounded-lg bg-gray-50 px-4 py-2';
+          planRow.className = 'flex flex-wrap items-center justify-between gap-3 rounded-xl bg-[#fdf5ea] px-4 py-3';
           const totalVerses = Number(plan.total_verses || 0);
           const completedVerses = Number(plan.completed_verses || 0);
           const progress = totalVerses > 0 ? Math.round((completedVerses / totalVerses) * 100) : 0;
-          planRow.innerHTML = `<p class="text-base font-medium text-gray-700">${plan.plan_name || strings.assignmentFallback || 'Qa’idah assignment'}</p><p class="text-sm text-gray-500">${formatNumber(completedVerses)} / ${formatNumber(totalVerses)} • ${progress}%</p>`;
+          planRow.innerHTML = `<p class="text-base font-medium text-[#3d0b1e]">${plan.plan_name || strings.assignmentFallback || 'Qa’idah assignment'}</p><p class="text-sm text-[#7b1e3c]/70">${formatNumber(completedVerses)} / ${formatNumber(totalVerses)} • ${progress}%</p>`;
           planList.appendChild(planRow);
         });
 
         if (entry.plans.length > 3) {
           const extra = document.createElement('p');
-          extra.className = 'text-sm text-gray-500';
+          extra.className = 'text-sm text-[#7b1e3c]/70';
           const extraCount = entry.plans.length - 3;
           extra.textContent = `+${formatNumber(extraCount)} ${strings.activePlansUnit || strings.activePlansLabel || 'plans'}`;
           planList.appendChild(extra);
@@ -362,7 +370,7 @@
 
       if (streak <= 1 && strings.streakNeedsAttention) {
         const alert = document.createElement('p');
-        alert.className = 'mt-4 text-sm font-medium text-amber-700';
+        alert.className = 'mt-4 text-sm font-semibold text-amber-700';
         alert.textContent = strings.streakNeedsAttention;
         card.appendChild(alert);
       }
@@ -372,10 +380,10 @@
   };
 
   const classCardVariants = [
-    { background: 'bg-emerald-50', badge: 'bg-emerald-100 text-emerald-800' },
-    { background: 'bg-blue-50', badge: 'bg-blue-100 text-blue-800' },
-    { background: 'bg-amber-50', badge: 'bg-amber-100 text-amber-800' },
-    { background: 'bg-indigo-50', badge: 'bg-indigo-100 text-indigo-800' },
+    { background: 'bg-[#fdf5ea]', badge: 'bg-[#f3d9c1] text-[#5a0f27]' },
+    { background: 'bg-[#f3f7ff]', badge: 'bg-[#dbe7ff] text-[#1f2a5b]' },
+    { background: 'bg-[#fbe9f1]', badge: 'bg-[#f6c6dc] text-[#7b1e3c]' },
+    { background: 'bg-[#eefbf4]', badge: 'bg-[#c8f2db] text-[#22593b]' },
   ];
 
   const renderClasses = () => {
@@ -386,9 +394,9 @@
     classCards.setAttribute('aria-busy', 'false');
 
     if (!state.classes.length) {
-      const empty = document.createElement('div');
-      empty.className = 'rounded-lg bg-emerald-50 px-4 py-6 text-center text-base font-medium text-emerald-700';
-      empty.textContent = strings.noClasses || '—';
+    const empty = document.createElement('div');
+    empty.className = 'rounded-2xl bg-[#fdf5ea] px-4 py-4 text-center text-base text-[#7b1e3c]/80';
+    empty.textContent = strings.noClasses || '—';
       classCards.appendChild(empty);
       return;
     }
@@ -396,13 +404,13 @@
     state.classes.forEach((classItem, index) => {
       const variant = classCardVariants[index % classCardVariants.length];
       const wrapper = document.createElement('div');
-      wrapper.className = `flex items-center justify-between rounded-lg px-4 py-4 shadow-sm ${variant.background}`;
+      wrapper.className = `flex flex-col gap-3 rounded-2xl px-5 py-5 shadow-md shadow-[#2b0618]/5 transition hover:-translate-y-0.5 hover:shadow-xl ${variant.background}`;
 
       const info = document.createElement('div');
-      info.innerHTML = `<div class="text-lg font-bold text-gray-800">${classItem.label || ''}</div><div class="text-sm text-gray-600">${formatNumber(classItem.student_count || 0)} ${strings.studentsUnit || strings.studentsLabel || 'students'}</div>`;
+      info.innerHTML = `<div class="text-lg font-bold text-[#3d0b1e]">${classItem.label || ''}</div><div class="text-sm text-[#502032]">${formatNumber(classItem.student_count || 0)} ${strings.studentsUnit || strings.studentsLabel || 'students'}</div>`;
 
       const status = document.createElement('span');
-      status.className = `rounded-full px-3 py-1 text-sm font-semibold ${variant.badge}`;
+      status.className = `self-start rounded-full px-3 py-1 text-sm font-semibold ${variant.badge}`;
       status.textContent = strings.classActiveLabel || 'Active';
 
       wrapper.append(info, status);
@@ -488,7 +496,7 @@
 
     if (!sorted.length) {
       const empty = document.createElement('li');
-      empty.className = 'rounded-lg bg-gray-50 px-4 py-4 text-base text-gray-600';
+      empty.className = 'rounded-2xl bg-[#fdf5ea] px-4 py-4 text-base text-[#7b1e3c]/80';
       empty.textContent = strings.recentActivityEmpty || 'No recent activity yet.';
       activityList.appendChild(empty);
       return;
@@ -496,13 +504,13 @@
 
     sorted.forEach((item) => {
       const li = document.createElement('li');
-      li.className = 'flex items-start gap-3 rounded-lg bg-gray-50 px-4 py-4 text-base text-gray-700';
+      li.className = 'flex items-start gap-3 rounded-2xl bg-[#fdf5ea] px-4 py-4 text-base text-[#502032] shadow-sm shadow-[#2b0618]/5';
       const icon = document.createElement('span');
       icon.className = 'text-2xl leading-none';
       icon.textContent = item.icon || '•';
       icon.setAttribute('aria-hidden', 'true');
       const text = document.createElement('span');
-      text.className = 'flex-1 text-base text-gray-700';
+      text.className = 'flex-1 text-base text-[#502032]';
       text.textContent = item.description;
       li.append(icon, text);
       activityList.appendChild(li);
@@ -515,10 +523,10 @@
     const totalAssignments = state.assignments.length;
     const totalMemorization = state.memorization.length;
 
-    updateLabelledValue(classTotal, formatNumber(totalClasses), strings.classesLabel || 'classes');
-    updateLabelledValue(studentTotal, formatNumber(totalStudents), strings.studentsUnit || strings.studentsLabel || 'students');
-    updateLabelledValue(assignmentTotal, formatNumber(totalAssignments), strings.assignmentCountLabel || 'assignments sent');
-    updateLabelledValue(memorizationCount, formatNumber(totalMemorization), strings.memoCountLabel || 'students tracked');
+    updateMetricGroup('classes', formatNumber(totalClasses), strings.classesLabel || 'classes');
+    updateMetricGroup('students', formatNumber(totalStudents), strings.studentsUnit || strings.studentsLabel || 'students');
+    updateMetricGroup('assignments', formatNumber(totalAssignments), strings.assignmentCountLabel || 'assignments sent');
+    updateMetricGroup('memorization', formatNumber(totalMemorization), strings.memoCountLabel || 'students tracked');
     updateLabelledValue(memoPill, formatNumber(totalMemorization), strings.memoCountLabel || 'students tracked');
 
     renderActivity();
@@ -585,9 +593,11 @@
   };
 
   createAssignmentButton?.addEventListener('click', openBuilderForCreate);
-  refreshButton?.addEventListener('click', (event) => {
-    event.preventDefault();
-    loadAll();
+  refreshButtons.forEach((button) => {
+    button.addEventListener('click', (event) => {
+      event.preventDefault();
+      loadAll();
+    });
   });
 
   previewClose?.addEventListener('click', closePreview);

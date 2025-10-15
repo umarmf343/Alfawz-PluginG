@@ -11,89 +11,172 @@ $qaidah_role = 'teacher';
 include ALFAWZQURAN_PLUGIN_PATH . 'public/partials/qaidah.php';
 $qaidah_markup = ob_get_clean();
 ?>
-<div class="min-h-screen bg-stone-50 py-10">
-    <div id="alfawz-teacher-dashboard" class="mx-auto max-w-6xl space-y-10 px-4 font-sans sm:px-6 lg:px-0">
-        <section class="text-center">
-            <div class="mb-4 text-4xl" aria-hidden="true">🧑‍🏫</div>
-            <h1 class="text-3xl font-bold text-gray-800"><?php esc_html_e( 'Welcome, Teacher!', 'alfawzquran' ); ?></h1>
-            <p class="mx-auto mt-3 max-w-2xl text-base text-gray-600">
-                <?php esc_html_e( 'You are assigned to', 'alfawzquran' ); ?>
-                <span class="font-semibold text-emerald-700" id="alfawz-teacher-class-total" data-label="<?php esc_attr_e( 'classes', 'alfawzquran' ); ?>"><?php esc_html_e( 'Loading…', 'alfawzquran' ); ?></span>
-                <?php esc_html_e( 'with', 'alfawzquran' ); ?>
-                <span class="font-semibold text-emerald-700" id="alfawz-teacher-student-total" data-label="<?php esc_attr_e( 'students', 'alfawzquran' ); ?>"><?php esc_html_e( 'Loading…', 'alfawzquran' ); ?></span>.
-                <?php esc_html_e( 'Create Qa’idah assignments or track memorisation progress below.', 'alfawzquran' ); ?>
-            </p>
+<div class="relative min-h-screen overflow-hidden bg-gradient-to-br from-[#2b0618] via-[#7b1e3c] to-[#f6efe2] py-16 text-slate-900">
+    <div class="pointer-events-none absolute -top-20 left-1/2 h-72 w-72 -translate-x-1/2 rounded-full bg-rose-200/30 blur-3xl"></div>
+    <div class="pointer-events-none absolute bottom-10 left-10 hidden h-52 w-52 rounded-full bg-[#fdf5ea]/80 blur-3xl sm:block"></div>
+    <div class="pointer-events-none absolute -bottom-20 right-0 h-96 w-80 rounded-full bg-[#3e0b23]/60 blur-3xl"></div>
+
+    <div id="alfawz-teacher-dashboard" class="relative z-10 mx-auto max-w-6xl space-y-12 px-4 font-sans sm:px-6 lg:px-0">
+        <section class="grid gap-10 rounded-3xl bg-white/80 p-8 shadow-2xl shadow-[#2b0618]/10 backdrop-blur">
+            <div class="flex flex-col items-start justify-between gap-6 lg:flex-row lg:items-center">
+                <div class="space-y-4">
+                    <span class="inline-flex items-center rounded-full bg-[#f3d9c1] px-4 py-1 text-sm font-semibold uppercase tracking-wide text-[#5a0f27]">
+                        <?php esc_html_e( 'Teacher hub', 'alfawzquran' ); ?>
+                    </span>
+                    <h1 class="max-w-2xl text-4xl font-extrabold text-[#3d0b1e] sm:text-5xl lg:text-6xl">
+                        <?php esc_html_e( 'Inspire every learner with purposeful Qa’idah journeys.', 'alfawzquran' ); ?>
+                    </h1>
+                    <p class="max-w-2xl text-lg leading-relaxed text-[#502032]">
+                        <?php esc_html_e( 'Craft Qa’idah lessons, review classroom momentum, and celebrate student milestones—all from your personalised teaching studio.', 'alfawzquran' ); ?>
+                    </p>
+                    <div class="flex flex-wrap items-center gap-4 text-base font-semibold text-[#7b1e3c]">
+                        <span class="inline-flex items-center gap-2 rounded-full bg-[#fdf5ea] px-4 py-2 shadow-sm">
+                            <span class="text-xl" aria-hidden="true">🏫</span>
+                            <span data-alfawz-metric="classes" data-label="<?php esc_attr_e( 'classes', 'alfawzquran' ); ?>"><?php esc_html_e( 'Loading…', 'alfawzquran' ); ?></span>
+                        </span>
+                        <span class="inline-flex items-center gap-2 rounded-full bg-[#fdf5ea] px-4 py-2 shadow-sm">
+                            <span class="text-xl" aria-hidden="true">👥</span>
+                            <span data-alfawz-metric="students" data-label="<?php esc_attr_e( 'students', 'alfawzquran' ); ?>"><?php esc_html_e( 'Loading…', 'alfawzquran' ); ?></span>
+                        </span>
+                    </div>
+                </div>
+                <div class="relative w-full max-w-sm self-stretch rounded-3xl border border-[#f1d9c9] bg-gradient-to-br from-[#7b1e3c] via-[#a4425d] to-[#f7e7d6] p-6 text-white shadow-lg shadow-[#24040f]/40">
+                    <div class="mb-6 flex items-center justify-between text-sm uppercase tracking-widest text-[#fbeadf]/80">
+                        <span><?php esc_html_e( 'Momentum tracker', 'alfawzquran' ); ?></span>
+                        <span><?php esc_html_e( 'Live sync', 'alfawzquran' ); ?></span>
+                    </div>
+                    <div class="space-y-4">
+                        <div class="rounded-2xl bg-white/10 p-4">
+                            <div class="flex items-center justify-between text-sm text-[#fbeadf]/80">
+                                <span><?php esc_html_e( 'Assignments shared', 'alfawzquran' ); ?></span>
+                                <span data-alfawz-metric="assignments" data-label="<?php esc_attr_e( 'assignments sent', 'alfawzquran' ); ?>"><?php esc_html_e( 'Loading…', 'alfawzquran' ); ?></span>
+                            </div>
+                            <div class="mt-3 h-2 rounded-full bg-white/20">
+                                <span class="block h-full w-3/4 rounded-full bg-gradient-to-r from-[#fbeadf] via-[#f3d9c1] to-[#f3b694] transition-all" aria-hidden="true"></span>
+                            </div>
+                        </div>
+                        <div class="rounded-2xl bg-white/10 p-4">
+                            <div class="flex items-center justify-between text-sm text-[#fbeadf]/80">
+                                <span><?php esc_html_e( 'Students tracked', 'alfawzquran' ); ?></span>
+                                <span data-alfawz-metric="memorization" data-label="<?php esc_attr_e( 'students tracked', 'alfawzquran' ); ?>"><?php esc_html_e( 'Loading…', 'alfawzquran' ); ?></span>
+                            </div>
+                            <div class="mt-3 h-2 rounded-full bg-white/20">
+                                <span class="block h-full w-2/3 rounded-full bg-gradient-to-r from-[#fbeadf] via-[#f7c3aa] to-[#ef8d8f] transition-all" aria-hidden="true"></span>
+                            </div>
+                        </div>
+                        <p class="text-sm text-[#fbeadf]/80">
+                            <?php esc_html_e( 'Teacher tip: share encouraging voice notes after each Qa’idah to keep motivation high.', 'alfawzquran' ); ?>
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="grid gap-4 text-sm text-[#502032] sm:grid-cols-3">
+                <div class="flex items-center gap-3 rounded-2xl bg-[#fdf5ea] p-4 shadow-sm shadow-[#2b0618]/5">
+                    <span class="flex h-12 w-12 items-center justify-center rounded-xl bg-white text-2xl">✨</span>
+                    <p class="leading-relaxed"><?php esc_html_e( 'Design rhythm-based Qa’idah playlists and assign them in moments.', 'alfawzquran' ); ?></p>
+                </div>
+                <div class="flex items-center gap-3 rounded-2xl bg-[#fdf5ea] p-4 shadow-sm shadow-[#2b0618]/5">
+                    <span class="flex h-12 w-12 items-center justify-center rounded-xl bg-white text-2xl">🎧</span>
+                    <p class="leading-relaxed"><?php esc_html_e( 'Monitor memorisation audio replays to celebrate growth.', 'alfawzquran' ); ?></p>
+                </div>
+                <div class="flex items-center gap-3 rounded-2xl bg-[#fdf5ea] p-4 shadow-sm shadow-[#2b0618]/5">
+                    <span class="flex h-12 w-12 items-center justify-center rounded-xl bg-white text-2xl">💬</span>
+                    <p class="leading-relaxed"><?php esc_html_e( 'Send motivating reflections or reminders directly with each assignment.', 'alfawzquran' ); ?></p>
+                </div>
+            </div>
         </section>
 
-        <section class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm" aria-labelledby="alfawz-teacher-classes-title">
-            <h2 id="alfawz-teacher-classes-title" class="mb-4 flex items-center text-2xl font-bold text-gray-800">
-                <span class="mr-2" aria-hidden="true">🏫</span><?php esc_html_e( 'Your Assigned Classes', 'alfawzquran' ); ?>
-            </h2>
-            <div id="alfawz-teacher-class-cards" class="space-y-3" aria-live="polite" aria-busy="true">
-                <div class="flex items-center justify-center rounded-lg bg-emerald-50 px-4 py-6 text-base font-medium text-emerald-700">
+        <section class="rounded-3xl border border-[#f1d9c9] bg-white/90 p-8 shadow-xl shadow-[#2b0618]/10 backdrop-blur" aria-labelledby="alfawz-teacher-classes-title">
+            <div class="flex flex-wrap items-center justify-between gap-4">
+                <h2 id="alfawz-teacher-classes-title" class="text-3xl font-extrabold text-[#3d0b1e]">
+                    <span class="mr-3 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-[#f3d9c1] text-2xl" aria-hidden="true">🏫</span>
+                    <?php esc_html_e( 'Your assigned classes', 'alfawzquran' ); ?>
+                </h2>
+                <button type="button" data-alfawz-teacher-refresh class="inline-flex items-center gap-2 rounded-full border border-[#d8a28d] bg-white px-5 py-2 text-sm font-semibold text-[#7b1e3c] transition hover:-translate-y-0.5 hover:border-[#7b1e3c] hover:text-[#3d0b1e] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#f3b694]">
+                    <span class="text-lg" aria-hidden="true">🔄</span>
+                    <?php esc_html_e( 'Refresh data', 'alfawzquran' ); ?>
+                </button>
+            </div>
+            <p class="mt-3 max-w-3xl text-base text-[#502032]">
+                <?php esc_html_e( 'Stay in sync with your classroom. Every Qa’idah you launch here appears instantly for your learners.', 'alfawzquran' ); ?>
+            </p>
+            <div id="alfawz-teacher-class-cards" class="mt-6 space-y-3" aria-live="polite" aria-busy="true">
+                <div class="flex items-center justify-center rounded-2xl bg-[#fdf5ea] px-4 py-6 text-base font-medium text-[#7b1e3c]">
                     <?php esc_html_e( 'Loading assigned classes…', 'alfawzquran' ); ?>
                 </div>
             </div>
-            <p class="mt-4 text-sm italic text-gray-500">
+            <p class="mt-6 text-sm italic text-[#7b1e3c]/70">
                 <?php esc_html_e( '💡 Classes and students are assigned by your administrator. Contact them to request changes.', 'alfawzquran' ); ?>
             </p>
         </section>
 
         <section class="grid grid-cols-1 gap-6 md:grid-cols-2" aria-label="<?php esc_attr_e( 'Primary teaching actions', 'alfawzquran' ); ?>">
-            <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm transition transform hover:shadow-md hover:-translate-y-1">
-                <div class="mb-3 text-4xl" aria-hidden="true">📚</div>
-                <h3 class="text-2xl font-bold text-gray-800"><?php esc_html_e( 'Qa’idah Assignments', 'alfawzquran' ); ?></h3>
-                <p class="mt-2 text-base text-gray-600"><?php esc_html_e( 'Create interactive audio lessons for your assigned classes.', 'alfawzquran' ); ?></p>
-                <div class="mt-6 flex items-center justify-between">
-                    <span class="text-sm font-medium text-emerald-700" id="alfawz-teacher-assignment-total" data-label="<?php esc_attr_e( 'assignments sent', 'alfawzquran' ); ?>"><?php esc_html_e( 'Loading…', 'alfawzquran' ); ?></span>
-                    <a href="?page=alfawz_qaidah" class="inline-block rounded-lg bg-emerald-600 px-4 py-2 text-base font-medium text-white transition hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2">
+            <div class="group rounded-3xl border border-[#f1d9c9] bg-white/90 p-8 shadow-xl shadow-[#2b0618]/10 transition duration-300 hover:-translate-y-1 hover:shadow-2xl">
+                <div class="mb-4 flex items-center justify-between">
+                    <span class="text-4xl" aria-hidden="true">📚</span>
+                    <span class="rounded-full bg-[#f3d9c1] px-3 py-1 text-xs font-semibold uppercase tracking-wide text-[#5a0f27]">Qa’idah</span>
+                </div>
+                <h3 class="text-3xl font-extrabold text-[#3d0b1e]"><?php esc_html_e( 'Qa’idah assignments', 'alfawzquran' ); ?></h3>
+                <p class="mt-3 text-base leading-relaxed text-[#502032]"><?php esc_html_e( 'Design immersive Qa’idah sets with voice, rhythm, and repetition that students can replay anytime.', 'alfawzquran' ); ?></p>
+                <div class="mt-8 flex items-center justify-between gap-4">
+                    <span class="text-sm font-semibold text-[#7b1e3c]" data-alfawz-metric="assignments" data-label="<?php esc_attr_e( 'assignments sent', 'alfawzquran' ); ?>"><?php esc_html_e( 'Loading…', 'alfawzquran' ); ?></span>
+                    <a href="?page=alfawz_qaidah" class="inline-flex items-center gap-2 rounded-full bg-[#7b1e3c] px-5 py-2 text-base font-semibold text-white shadow-lg shadow-[#2b0618]/30 transition hover:bg-[#5a0f27] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#f3b694]">
                         <?php esc_html_e( 'Create assignment →', 'alfawzquran' ); ?>
                     </a>
                 </div>
             </div>
 
-            <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm transition transform hover:shadow-md hover:-translate-y-1">
-                <div class="mb-3 text-4xl" aria-hidden="true">🧠</div>
-                <h3 class="text-2xl font-bold text-gray-800"><?php esc_html_e( 'Student Memorization', 'alfawzquran' ); ?></h3>
-                <p class="mt-2 text-base text-gray-600"><?php esc_html_e( 'View progress of students in your classes.', 'alfawzquran' ); ?></p>
-                <div class="mt-6 flex items-center justify-between">
-                    <span class="text-sm font-medium text-blue-700" id="alfawz-teacher-memorization-count" data-label="<?php esc_attr_e( 'students tracked', 'alfawzquran' ); ?>"><?php esc_html_e( 'Loading…', 'alfawzquran' ); ?></span>
-                    <a href="#alfawz-teacher-memorization" class="inline-block rounded-lg bg-blue-600 px-4 py-2 text-base font-medium text-white transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+            <div class="group rounded-3xl border border-[#d0e1ff] bg-gradient-to-br from-white/90 to-[#f3f7ff] p-8 shadow-xl shadow-[#1b1f3b]/10 transition duration-300 hover:-translate-y-1 hover:shadow-2xl">
+                <div class="mb-4 flex items-center justify-between">
+                    <span class="text-4xl" aria-hidden="true">🧠</span>
+                    <span class="rounded-full bg-[#dbe7ff] px-3 py-1 text-xs font-semibold uppercase tracking-wide text-[#1f2a5b]">Insights</span>
+                </div>
+                <h3 class="text-3xl font-extrabold text-[#1f2a5b]"><?php esc_html_e( 'Student memorisation', 'alfawzquran' ); ?></h3>
+                <p class="mt-3 text-base leading-relaxed text-[#243764]"><?php esc_html_e( 'Review streaks, pacing, and celebrate golden moments where a learner blossoms.', 'alfawzquran' ); ?></p>
+                <div class="mt-8 flex items-center justify-between gap-4">
+                    <span class="text-sm font-semibold text-[#1f2a5b]" data-alfawz-metric="memorization" data-label="<?php esc_attr_e( 'students tracked', 'alfawzquran' ); ?>"><?php esc_html_e( 'Loading…', 'alfawzquran' ); ?></span>
+                    <a href="#alfawz-teacher-memorization" class="inline-flex items-center gap-2 rounded-full bg-[#1f2a5b] px-5 py-2 text-base font-semibold text-white shadow-lg shadow-[#1b1f3b]/30 transition hover:bg-[#15214a] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#94b0ff]">
                         <?php esc_html_e( 'View progress →', 'alfawzquran' ); ?>
                     </a>
                 </div>
             </div>
         </section>
 
-        <section class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm" aria-labelledby="alfawz-teacher-activity-title">
-            <div class="flex flex-wrap items-center justify-between gap-3">
-                <h2 id="alfawz-teacher-activity-title" class="text-2xl font-bold text-gray-800"><?php esc_html_e( 'Recent Activity', 'alfawzquran' ); ?></h2>
+        <section class="rounded-3xl border border-[#f1d9c9] bg-white/90 p-8 shadow-xl shadow-[#2b0618]/10 backdrop-blur" aria-labelledby="alfawz-teacher-activity-title">
+            <div class="flex flex-wrap items-center justify-between gap-4">
+                <h2 id="alfawz-teacher-activity-title" class="text-3xl font-extrabold text-[#3d0b1e]"><?php esc_html_e( 'Recent activity pulse', 'alfawzquran' ); ?></h2>
+                <span class="inline-flex items-center gap-2 rounded-full bg-[#f3d9c1] px-4 py-2 text-sm font-semibold text-[#5a0f27]">
+                    <span class="text-lg" aria-hidden="true">⚡</span><?php esc_html_e( 'Auto refreshed', 'alfawzquran' ); ?>
+                </span>
             </div>
-            <ul id="alfawz-teacher-activity-list" class="mt-4 space-y-4" aria-live="polite" aria-busy="true">
-                <li class="rounded-lg bg-gray-50 px-4 py-4 text-base text-gray-600"><?php esc_html_e( 'Compiling recent activity…', 'alfawzquran' ); ?></li>
+            <ul id="alfawz-teacher-activity-list" class="mt-5 space-y-4" aria-live="polite" aria-busy="true">
+                <li class="rounded-2xl bg-[#fdf5ea] px-5 py-4 text-base text-[#7b1e3c]">
+                    <?php esc_html_e( 'Compiling recent activity…', 'alfawzquran' ); ?>
+                </li>
             </ul>
         </section>
 
-        <section class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm" aria-labelledby="alfawz-teacher-assignments-title">
-            <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                    <h2 id="alfawz-teacher-assignments-title" class="text-2xl font-bold text-gray-800"><?php esc_html_e( 'Manage Qa’idah Assignments', 'alfawzquran' ); ?></h2>
-                    <p class="mt-1 text-base text-gray-600"><?php esc_html_e( 'Review published lessons, open previews, or edit content before sending reminders.', 'alfawzquran' ); ?></p>
+        <section class="rounded-3xl border border-[#f1d9c9] bg-white/95 p-8 shadow-xl shadow-[#2b0618]/10 backdrop-blur" aria-labelledby="alfawz-teacher-assignments-title">
+            <div class="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+                <div class="space-y-3">
+                    <h2 id="alfawz-teacher-assignments-title" class="text-3xl font-extrabold text-[#3d0b1e]"><?php esc_html_e( 'Manage Qa’idah assignments', 'alfawzquran' ); ?></h2>
+                    <p class="max-w-2xl text-base text-[#502032]"><?php esc_html_e( 'Review published lessons, open previews, or edit content before sending gentle reminders.', 'alfawzquran' ); ?></p>
                 </div>
                 <div class="flex flex-col gap-3 sm:flex-row">
-                    <button type="button" id="alfawz-teacher-create-assignment" class="inline-flex items-center justify-center rounded-lg bg-emerald-600 px-4 py-2 text-base font-medium text-white transition hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2">
-                        <span aria-hidden="true" class="mr-2">✏️</span>
+                    <button type="button" id="alfawz-teacher-create-assignment" class="inline-flex items-center justify-center gap-2 rounded-full bg-[#7b1e3c] px-6 py-3 text-base font-semibold text-white shadow-lg shadow-[#2b0618]/30 transition hover:-translate-y-0.5 hover:bg-[#5a0f27] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#f3b694]">
+                        <span aria-hidden="true">✏️</span>
                         <span><?php esc_html_e( 'Create assignment', 'alfawzquran' ); ?></span>
                     </button>
-                    <button type="button" id="alfawz-teacher-refresh" class="inline-flex items-center justify-center rounded-lg border border-emerald-200 px-4 py-2 text-base font-medium text-emerald-700 transition hover:border-emerald-300 hover:text-emerald-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2">
+                    <button type="button" data-alfawz-teacher-refresh class="inline-flex items-center justify-center gap-2 rounded-full border border-[#d8a28d] bg-white px-6 py-3 text-base font-semibold text-[#7b1e3c] shadow-sm transition hover:-translate-y-0.5 hover:border-[#7b1e3c] hover:text-[#3d0b1e] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#f3b694]">
+                        <span aria-hidden="true">🔁</span>
                         <?php esc_html_e( 'Refresh data', 'alfawzquran' ); ?>
                     </button>
                 </div>
             </div>
-            <p id="alfawz-teacher-qaidah-status" class="mt-4 text-sm font-medium text-emerald-700" role="status" aria-live="polite"></p>
-            <div class="mt-4 overflow-x-auto rounded-xl border border-gray-200">
-                <table class="min-w-full divide-y divide-gray-200 text-left">
-                    <thead class="bg-gray-50 text-sm font-semibold uppercase tracking-wide text-gray-600">
+            <p id="alfawz-teacher-qaidah-status" class="mt-6 text-sm font-semibold text-[#7b1e3c]" role="status" aria-live="polite"></p>
+            <div class="mt-6 overflow-hidden rounded-3xl border border-[#f1d9c9]">
+                <table class="min-w-full divide-y divide-[#f1d9c9] text-left">
+                    <thead class="bg-[#fdf5ea] text-sm font-semibold uppercase tracking-wide text-[#5a0f27]">
                         <tr>
                             <th scope="col" class="px-4 py-3"><?php esc_html_e( 'Assignment', 'alfawzquran' ); ?></th>
                             <th scope="col" class="px-4 py-3"><?php esc_html_e( 'Class', 'alfawzquran' ); ?></th>
@@ -104,29 +187,51 @@ $qaidah_markup = ob_get_clean();
                     </thead>
                     <tbody id="alfawz-teacher-assignment-rows" aria-live="polite" aria-busy="true">
                         <tr>
-                            <td colspan="5" class="px-4 py-6 text-center text-base text-gray-500"><?php esc_html_e( 'Loading assignments…', 'alfawzquran' ); ?></td>
+                            <td colspan="5" class="px-4 py-6 text-center text-base text-[#7b1e3c]/70"><?php esc_html_e( 'Loading assignments…', 'alfawzquran' ); ?></td>
                         </tr>
                     </tbody>
                 </table>
+            </div>
+            <div class="mt-6 grid gap-4 rounded-3xl bg-[#fdf5ea] p-6 text-sm text-[#502032] sm:grid-cols-2">
+                <div>
+                    <h3 class="text-lg font-semibold text-[#3d0b1e]"><?php esc_html_e( 'Reflection prompts', 'alfawzquran' ); ?></h3>
+                    <p class="mt-2 leading-relaxed"><?php esc_html_e( 'After learners submit, send a reflective prompt—ask what line felt most joyful to recite.', 'alfawzquran' ); ?></p>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold text-[#3d0b1e]"><?php esc_html_e( 'Progress celebrations', 'alfawzquran' ); ?></h3>
+                    <p class="mt-2 leading-relaxed"><?php esc_html_e( 'Highlight milestones weekly with a class-wide audio shout-out or gratitude note.', 'alfawzquran' ); ?></p>
+                </div>
             </div>
             <div id="alfawz-qaidah-wrapper" class="hidden">
                 <?php echo $qaidah_markup; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
             </div>
         </section>
 
-        <section id="alfawz-teacher-memorization" class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm" aria-labelledby="alfawz-teacher-memorization-title">
-            <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                    <h2 id="alfawz-teacher-memorization-title" class="text-2xl font-bold text-gray-800"><?php esc_html_e( 'Student Memorization Oversight', 'alfawzquran' ); ?></h2>
-                    <p class="mt-1 text-base text-gray-600"><?php esc_html_e( 'Monitor repetitions, completion pace, and streak health for every student assigned to you.', 'alfawzquran' ); ?></p>
+        <section id="alfawz-teacher-memorization" class="rounded-3xl border border-[#d0e1ff] bg-gradient-to-br from-white/95 to-[#eef3ff] p-8 shadow-xl shadow-[#1b1f3b]/10 backdrop-blur" aria-labelledby="alfawz-teacher-memorization-title">
+            <div class="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+                <div class="space-y-3">
+                    <h2 id="alfawz-teacher-memorization-title" class="text-3xl font-extrabold text-[#1f2a5b]"><?php esc_html_e( 'Student memorisation oversight', 'alfawzquran' ); ?></h2>
+                    <p class="max-w-2xl text-base text-[#243764]"><?php esc_html_e( 'Monitor repetitions, completion pace, and streak health for every student assigned to you.', 'alfawzquran' ); ?></p>
                 </div>
-                <span class="inline-flex items-center rounded-full bg-blue-50 px-3 py-1 text-sm font-medium text-blue-700" id="alfawz-teacher-memo-pill" data-label="<?php esc_attr_e( 'students tracked', 'alfawzquran' ); ?>">
+                <span class="inline-flex items-center gap-2 rounded-full bg-[#dbe7ff] px-4 py-2 text-sm font-semibold text-[#1f2a5b]" id="alfawz-teacher-memo-pill" data-label="<?php esc_attr_e( 'students tracked', 'alfawzquran' ); ?>">
                     <?php esc_html_e( 'Loading…', 'alfawzquran' ); ?>
                 </span>
             </div>
             <div id="alfawz-teacher-memo-list" class="mt-6 space-y-4" aria-live="polite" aria-busy="true">
-                <div class="rounded-xl border border-gray-200 bg-gray-50 px-6 py-6 text-center text-base text-gray-500"><?php esc_html_e( 'Loading memorisation data…', 'alfawzquran' ); ?></div>
+                <div class="rounded-2xl border border-[#dbe7ff] bg-white/80 px-6 py-6 text-center text-base text-[#1f2a5b]/70">
+                    <?php esc_html_e( 'Loading memorisation data…', 'alfawzquran' ); ?>
+                </div>
             </div>
+            <details class="mt-8 rounded-2xl bg-white/80 p-6 text-sm text-[#243764] shadow-inner">
+                <summary class="cursor-pointer text-base font-semibold text-[#1f2a5b]">
+                    <?php esc_html_e( 'Need inspiration for your next Qa’idah?', 'alfawzquran' ); ?>
+                </summary>
+                <ul class="mt-3 list-disc space-y-2 pl-6">
+                    <li><?php esc_html_e( 'Blend melodic recitation challenges with collaborative feedback rounds.', 'alfawzquran' ); ?></li>
+                    <li><?php esc_html_e( 'Pair advanced learners with emerging reciters for nurturing peer mentoring.', 'alfawzquran' ); ?></li>
+                    <li><?php esc_html_e( 'Celebrate perseverance badges after three consistent memorisation streaks.', 'alfawzquran' ); ?></li>
+                </ul>
+            </details>
         </section>
     </div>
 </div>
