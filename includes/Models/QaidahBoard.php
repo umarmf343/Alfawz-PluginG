@@ -6,14 +6,14 @@ use WP_Error;
 use WP_Post;
 
 /**
- * Data layer for managing Qa'idah practice boards and assignments.
+ * Data layer for managing Qa'idah practice assignments.
  */
 class QaidahBoard {
     /**
-     * Persist a Qa'idah board and its metadata.
+     * Persist a Qa'idah assignment and its metadata.
      *
-     * @param array $data Sanitized board data.
-     * @param int   $board_id Optional board ID when updating an existing record.
+     * @param array $data Sanitized assignment data.
+     * @param int   $board_id Optional assignment ID when updating an existing record.
      *
      * @return int|WP_Error Post ID on success or WP_Error on failure.
      */
@@ -23,17 +23,19 @@ class QaidahBoard {
         $student_ids  = isset( $data['student_ids'] ) && is_array( $data['student_ids'] ) ? array_map( '\absint', $data['student_ids'] ) : [];
         $hotspots     = isset( $data['hotspots'] ) && is_array( $data['hotspots'] ) ? $data['hotspots'] : [];
         $author_id    = isset( $data['author_id'] ) ? \absint( $data['author_id'] ) : \get_current_user_id();
+        $class_id     = isset( $data['class_id'] ) ? $this->sanitize_class_id( $data['class_id'] ) : '';
+        $description  = isset( $data['description'] ) ? \wp_kses_post( $data['description'] ) : '';
 
         if ( empty( $title ) ) {
-            return new WP_Error( 'alfawz_missing_title', \__( 'A title is required for the Qa\'idah board.', 'alfawzquran' ) );
+            return new WP_Error( 'alfawz_missing_title', \__( 'A title is required for the Qa\'idah assignment.', 'alfawzquran' ) );
         }
 
         if ( ! $image_id ) {
-            return new WP_Error( 'alfawz_missing_image', \__( 'Please select an image before saving the Qa\'idah board.', 'alfawzquran' ) );
+            return new WP_Error( 'alfawz_missing_image', \__( 'Please select an image before saving the Qa\'idah assignment.', 'alfawzquran' ) );
         }
 
-        if ( empty( $student_ids ) ) {
-            return new WP_Error( 'alfawz_missing_students', \__( 'Select at least one student for this Qa\'idah board.', 'alfawzquran' ) );
+        if ( empty( $class_id ) && empty( $student_ids ) ) {
+            return new WP_Error( 'alfawz_missing_students', \__( 'Select a class or individual students for this Qa\'idah assignment.', 'alfawzquran' ) );
         }
 
         $sanitized_hotspots = [];
@@ -75,6 +77,8 @@ class QaidahBoard {
         \update_post_meta( $post_id, '_alfawz_qaidah_image_id', $image_id );
         \update_post_meta( $post_id, '_alfawz_qaidah_hotspots', \wp_json_encode( $sanitized_hotspots ) );
         \update_post_meta( $post_id, '_alfawz_qaidah_students', \wp_json_encode( $student_ids ) );
+        \update_post_meta( $post_id, '_alfawz_qaidah_class_id', $class_id );
+        \update_post_meta( $post_id, '_alfawz_qaidah_description', $description );
 
         return $post_id;
     }
@@ -93,17 +97,29 @@ class QaidahBoard {
             return [];
         }
 
+        $class_id  = $this->sanitize_class_id( \get_user_meta( $user_id, 'alfawz_class_id', true ) );
+        $meta_query = [
+            'relation' => 'OR',
+            [
+                'key'     => '_alfawz_qaidah_students',
+                'value'   => '"' . $user_id . '"',
+                'compare' => 'LIKE',
+            ],
+        ];
+
+        if ( $class_id ) {
+            $meta_query[] = [
+                'key'     => '_alfawz_qaidah_class_id',
+                'value'   => $class_id,
+                'compare' => '=',
+            ];
+        }
+
         $query_args = [
             'post_type'      => QaidahBoards::POST_TYPE,
             'posts_per_page' => -1,
             'post_status'    => 'publish',
-            'meta_query'     => [
-                [
-                    'key'     => '_alfawz_qaidah_students',
-                    'value'   => '"' . $user_id . '"',
-                    'compare' => 'LIKE',
-                ],
-            ],
+            'meta_query'     => $meta_query,
         ];
 
         $posts = \get_posts( $query_args );
@@ -149,9 +165,11 @@ class QaidahBoard {
      * @return array
      */
     public function prepare_board_for_response( WP_Post $post, $context = 'view' ) {
-        $image_id    = (int) \get_post_meta( $post->ID, '_alfawz_qaidah_image_id', true );
-        $hotspots    = $this->decode_meta_json( \get_post_meta( $post->ID, '_alfawz_qaidah_hotspots', true ) );
-        $student_ids = $this->decode_meta_json( \get_post_meta( $post->ID, '_alfawz_qaidah_students', true ) );
+        $image_id     = (int) \get_post_meta( $post->ID, '_alfawz_qaidah_image_id', true );
+        $hotspots     = $this->decode_meta_json( \get_post_meta( $post->ID, '_alfawz_qaidah_hotspots', true ) );
+        $student_ids  = $this->decode_meta_json( \get_post_meta( $post->ID, '_alfawz_qaidah_students', true ) );
+        $class_id     = $this->sanitize_class_id( \get_post_meta( $post->ID, '_alfawz_qaidah_class_id', true ) );
+        $description  = \get_post_meta( $post->ID, '_alfawz_qaidah_description', true );
 
         $image = null;
 
@@ -184,16 +202,21 @@ class QaidahBoard {
         }
 
         $response = [
-            'id'        => $post->ID,
-            'title'     => \get_the_title( $post ),
-            'image'     => $image,
-            'hotspots'  => $prepared_hotspots,
-            'students'  => array_map( '\absint', $student_ids ),
-            'teacher'   => [
+            'id'          => $post->ID,
+            'title'       => \get_the_title( $post ),
+            'image'       => $image,
+            'hotspots'    => $prepared_hotspots,
+            'students'    => array_map( '\absint', $student_ids ),
+            'class'       => $class_id ? [
+                'id'    => $class_id,
+                'label' => $this->resolve_class_label( $class_id ),
+            ] : null,
+            'description' => $description ? \wp_kses_post( $description ) : '',
+            'teacher'     => [
                 'id'   => (int) $post->post_author,
                 'name' => \get_the_author_meta( 'display_name', $post->post_author ),
             ],
-            'updated'   => \get_post_modified_time( 'c', false, $post ),
+            'updated'     => \get_post_modified_time( 'c', false, $post ),
         ];
 
         if ( 'manage' === $context ) {
@@ -257,5 +280,57 @@ class QaidahBoard {
         }
 
         return $details;
+    }
+
+    /**
+     * Normalize a class identifier into a safe string.
+     *
+     * @param mixed $value Raw class identifier.
+     * @return string Sanitized identifier.
+     */
+    private function sanitize_class_id( $value ) {
+        if ( is_array( $value ) ) {
+            $value = reset( $value );
+        }
+
+        if ( is_numeric( $value ) ) {
+            return (string) \absint( $value );
+        }
+
+        $value = (string) $value;
+
+        if ( '' === $value ) {
+            return '';
+        }
+
+        return \sanitize_text_field( $value );
+    }
+
+    /**
+     * Retrieve a friendly label for a class identifier.
+     *
+     * @param string $class_id Class identifier.
+     * @return string
+     */
+    private function resolve_class_label( $class_id ) {
+        if ( '' === $class_id ) {
+            return '';
+        }
+
+        $label = \apply_filters( 'alfawz_qaidah_class_label', '', $class_id );
+
+        if ( ! empty( $label ) ) {
+            return $label;
+        }
+
+        if ( is_numeric( $class_id ) ) {
+            $term = \get_term( (int) $class_id, 'alfawz_class' );
+
+            if ( $term && ! is_wp_error( $term ) ) {
+                return $term->name;
+            }
+        }
+
+        return \sprintf( \__( 'Class %s', 'alfawzquran' ), $class_id );
     }
 }

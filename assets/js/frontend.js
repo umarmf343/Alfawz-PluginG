@@ -83,50 +83,6 @@
 
   let cachedSurahList = null
 
-  const QAIDAH_STORAGE_KEY = "alfawzQaidahProgress"
-
-  const qaidahDeck = [
-    { symbol: "بَ", transliteration: "ba", tip: "Keep the mouth open for a light fat-ha sound.", families: ["short-vowels", "ba"] },
-    { symbol: "بِ", transliteration: "bi", tip: "Smile gently to land the kasra under the letter.", families: ["short-vowels", "ba"] },
-    { symbol: "بُ", transliteration: "bu", tip: "Round the lips for a quick dammah.", families: ["short-vowels", "ba"] },
-    { symbol: "تَ", transliteration: "ta", tip: "Tap the tip of the tongue to the teeth for a crisp release.", families: ["short-vowels", "ta"] },
-    { symbol: "تِ", transliteration: "ti", tip: "Keep the sound thin and smile to guide the kasra.", families: ["short-vowels", "ta"] },
-    { symbol: "تُ", transliteration: "tu", tip: "Push a rounded puff of air as you form the dammah.", families: ["short-vowels", "ta"] },
-    { symbol: "بٌ", transliteration: "bun", tip: "Let the tanween dammah finish with a soft noon hum.", families: ["tanween", "ba"] },
-    { symbol: "بٍ", transliteration: "bin", tip: "Ease into the tanween kasra by smiling then relaxing into noon.", families: ["tanween", "ba"] },
-    { symbol: "بً", transliteration: "ban", tip: "Drop the chin slightly to release the tanween fat-ha.", families: ["tanween", "ba"] },
-    { symbol: "مَا", transliteration: "maa", tip: "Hold the madd alif for two steady beats.", families: ["madd", "madd-alif"] },
-    { symbol: "سُو", transliteration: "soo", tip: "Glide into the madd wow while keeping lips gently rounded.", families: ["madd", "madd-wow"] },
-    { symbol: "لِي", transliteration: "lee", tip: "Stretch the madd yaa with a relaxed smile.", families: ["madd", "madd-yaa"] },
-  ]
-
-  const qaidahLessons = [
-    {
-      id: "all",
-      title: "Complete Deck",
-      focus: "Cycle through every syllable planned for today.",
-      families: [],
-    },
-    {
-      id: "short-vowels",
-      title: "Short Vowels",
-      focus: "Master fat-ha, kasra, and dammah on Ba & Ta.",
-      families: ["short-vowels"],
-    },
-    {
-      id: "tanween",
-      title: "Tanween Flow",
-      focus: "Add the soft noon sound to polish your endings.",
-      families: ["tanween"],
-    },
-    {
-      id: "madd",
-      title: "Madd Extensions",
-      focus: "Stretch vowel length for two confident counts.",
-      families: ["madd"],
-    },
-  ]
-
   // Initialize when document is ready
   $(document).ready(() => {
     initializeDashboard()
@@ -2666,197 +2622,224 @@
   // ========================================
   // QA'IDAH PRACTICE EXPERIENCE
   // ========================================
-  function initializeQaidah() {
-    const $page = $(".alfawz-qaidah")
 
-    if (!$page.length) {
+  function initializeQaidah() {
+    const $canvas = $(".alfawz-qaidah-canvas")
+
+    if (!$canvas.length) {
       return
     }
 
-    const boardTranslate = window.wp && window.wp.i18n && typeof window.wp.i18n.__ === "function" ? window.wp.i18n.__ : text => text
-    const boardText = text => boardTranslate(text, "alfawzquran")
-    const $boardsContainer = $("#qaidah-boards-container")
-    const $audioToggle = $("#qaidah-audio-toggle")
-    let boardsAudioEnabled = true
-    let activeHotspotAudio = null
-    let activeHotspotButton = null
+    const translate = window.wp && window.wp.i18n && typeof window.wp.i18n.__ === 'function' ? window.wp.i18n.__ : text => text
+    const t = text => translate(text, 'alfawzquran')
+    const $list = $('#qaidah-assignment-list')
+    const $stage = $('#qaidah-stage')
+    let assignments = []
+    let activeAssignmentId = null
+    let activeAudio = null
 
-    if ($boardsContainer.length) {
-      boardsAudioEnabled = $audioToggle.is(":checked")
+    fetchAssignments()
 
-      $audioToggle.on("change", () => {
-        boardsAudioEnabled = $audioToggle.is(":checked")
-
-        if (!boardsAudioEnabled) {
-          stopHotspotAudio()
-        }
-      })
-
-      loadAssignedBoards()
-    }
-
-    const $cardSymbol = $("#qaidah-card-symbol")
-    const $cardTransliteration = $("#qaidah-card-transliteration")
-    const $cardTip = $("#qaidah-card-tip")
-    const $progressFill = $("#qaidah-progress-fill")
-    const $progressCount = $("#qaidah-progress-count")
-    const $progressTotal = $("#qaidah-total-count")
-    const $progressBar = $("#qaidah-progress-bar")
-    const $focusLesson = $("#qaidah-focus-lesson")
-    const $masteredList = $("#qaidah-mastered-list")
-    const $lessonGrid = $("#qaidah-lesson-grid")
-    const $prevBtn = $("#qaidah-prev-card")
-    const $nextBtn = $("#qaidah-next-card")
-    const $markBtn = $("#qaidah-mark-mastered")
-    const $shuffleBtn = $("#qaidah-shuffle-deck")
-    const $resetBtn = $("#qaidah-reset-progress")
-
-    const emptyMasteredTemplate = $masteredList.html()
-
-    let filteredDeck = [...qaidahDeck]
-    let currentLesson = qaidahLessons[0] || null
-    let currentIndex = 0
-    let masteredSet = new Set(loadMastered())
-
-    function loadAssignedBoards() {
+    function fetchAssignments() {
       if (!alfawzData.isLoggedIn) {
-        renderBoardMessage(boardText("Log in to access your Qa'idah assignments."))
+        renderListMessage(t("Log in to access your Qa'idah assignments."))
+        renderStageMessage(t("Please sign in to listen to your teacher's hotspots."))
         return
       }
 
-      renderBoardLoading()
+      renderListLoading()
 
       $.ajax({
-        url: `${alfawzData.apiUrl}qaidah/boards`,
-        method: "GET",
+        url: `${alfawzData.apiUrl}qaidah/assignments`,
+        method: 'GET',
         headers: {
-          "X-WP-Nonce": alfawzData.nonce,
+          'X-WP-Nonce': alfawzData.nonce,
         },
       })
         .done(response => {
-          const boards = Array.isArray(response) ? response : []
-          renderBoards(boards)
+          assignments = Array.isArray(response) ? response : []
+          renderAssignmentList()
+
+          if (assignments.length) {
+            activateAssignment(assignments[0].id)
+          } else {
+            renderStageMessage(t("Your teacher has not shared any Qa'idah assignments yet."))
+          }
         })
         .fail(() => {
-          renderBoardMessage(boardText("We couldn't load your Qa'idah sheets right now."))
+          renderListMessage(t("We couldn't load your assignments right now."))
+          renderStageMessage(t('Please refresh the page or try again later.'))
         })
     }
 
-    function renderBoardLoading() {
-      $boardsContainer.html(
-        `<div class="alfawz-empty-state"><p>${boardText('Loading assignments…')}</p></div>`
-      )
+    function renderListLoading() {
+      $list.html(`<div class="alfawz-qaidah-empty"><p>${t('Loading your assignments…')}</p></div>`)
     }
 
-    function renderBoardMessage(message) {
-      $boardsContainer.html(`<div class="alfawz-empty-state"><p>${message}</p></div>`)
+    function renderListMessage(message) {
+      $list.html(`<div class="alfawz-qaidah-empty"><p>${message}</p></div>`)
     }
 
-    function renderBoards(boards) {
+    function renderStageMessage(message) {
       stopHotspotAudio()
+      $stage.html(`<div class="alfawz-qaidah-placeholder"><p>${message}</p></div>`)
+    }
 
-      if (!boards.length) {
-        renderBoardMessage(boardText('Your teacher has not shared any Qa\'idah sheets yet.'))
+    function renderAssignmentList() {
+      if (!assignments.length) {
+        renderListMessage(t('No Qa\'idah assignments are available yet.'))
         return
       }
 
-      $boardsContainer.empty()
+      $list.empty()
 
-      boards.forEach(board => {
-        $boardsContainer.append(createBoardCard(board))
+      assignments.forEach(assignment => {
+        const $card = $('<article>', { class: 'alfawz-qaidah-assignment-card' })
+          .toggleClass('is-active', assignment.id === activeAssignmentId)
+          .append(
+            $('<h4>', {
+              class: 'alfawz-qaidah-assignment-title',
+              text: assignment.title || t("Qa'idah assignment"),
+            })
+          )
+
+        const $meta = $('<div>', { class: 'alfawz-qaidah-assignment-meta' })
+
+        if (assignment.teacher && assignment.teacher.name) {
+          $meta.append($('<span>').text(`👩‍🏫 ${assignment.teacher.name}`))
+        }
+
+        if (assignment.class && assignment.class.label) {
+          $meta.append($('<span>').text(`🏷️ ${assignment.class.label}`))
+        }
+
+        if (assignment.updated) {
+          $meta.append($('<span>').text(`🕒 ${formatAssignmentDate(assignment.updated)}`))
+        }
+
+        $card.append($meta)
+
+        $card.on('click keypress', event => {
+          if (event.type === 'click' || event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault()
+            activateAssignment(assignment.id)
+          }
+        })
+
+        $card.attr('tabindex', 0)
+
+        $list.append($card)
       })
     }
 
-    function createBoardCard(board) {
-      const title = board.title || boardText("Qa'idah sheet")
-      const teacherName = board.teacher && board.teacher.name ? board.teacher.name : null
-      const hotspotCount = Array.isArray(board.hotspots) ? board.hotspots.length : 0
-
-      const $card = $("<article>", { class: "alfawz-qaidah-board-card" })
-      const $header = $("<header>", { class: "alfawz-qaidah-board-card-header" })
-      $("<h4>", { text: title }).appendTo($header)
-
-      if (teacherName) {
-        $("<p>", {
-          class: "alfawz-qaidah-board-card-meta",
-          text: `${boardText('Teacher')}: ${teacherName}`,
-        }).appendTo($header)
+    function activateAssignment(assignmentId) {
+      const assignment = assignments.find(item => item.id === assignmentId)
+      if (!assignment) {
+        return
       }
 
-      const $stage = $("<div>", { class: "alfawz-qaidah-board-stage" })
+      activeAssignmentId = assignmentId
+      renderAssignmentList()
+      renderStage(assignment)
+    }
 
-      if (board.image && board.image.url) {
-        $("<img>", {
-          src: board.image.url,
-          alt: board.image.alt || title,
-          loading: "lazy",
-        }).appendTo($stage)
+    function renderStage(assignment) {
+      stopHotspotAudio()
 
-        if (Array.isArray(board.hotspots)) {
-          board.hotspots.forEach(hotspot => {
-            $stage.append(createHotspotButton(hotspot))
-          })
-        }
+      const $header = $('<div>', { class: 'alfawz-qaidah-stage-header' })
+      $('<h3>', { text: assignment.title || t("Qa'idah assignment") }).appendTo($header)
+
+      if (assignment.description) {
+        $('<p>', { class: 'alfawz-qaidah-stage-description', html: assignment.description }).appendTo($header)
       } else {
-        $stage.append(
-          $("<div>", {
-            class: "alfawz-empty-state",
-            text: boardText('This sheet is missing an image.'),
+        $('<p>', { class: 'alfawz-qaidah-stage-description', text: t('Tap a hotspot to hear the model pronunciation.') }).appendTo($header)
+      }
+
+      const $meta = $('<div>', { class: 'alfawz-qaidah-stage-meta' })
+
+      if (assignment.teacher && assignment.teacher.name) {
+        $meta.append($('<span>').text(`👩‍🏫 ${assignment.teacher.name}`))
+      }
+
+      if (assignment.class && assignment.class.label) {
+        $meta.append($('<span>').text(`🏷️ ${assignment.class.label}`))
+      }
+
+      if (assignment.updated) {
+        $meta.append($('<span>').text(`🕒 ${formatAssignmentDate(assignment.updated)}`))
+      }
+
+      const $canvas = $('<div>', { class: 'alfawz-qaidah-stage-canvas' })
+
+      if (assignment.image && assignment.image.url) {
+        const $image = $('<div>', { class: 'alfawz-qaidah-stage-image' })
+
+        $('<img>', {
+          src: assignment.image.url,
+          alt: assignment.image.alt || assignment.title || t("Qa'idah assignment image"),
+        }).appendTo($image)
+
+        if (Array.isArray(assignment.hotspots) && assignment.hotspots.length) {
+          assignment.hotspots.forEach(hotspot => {
+            $image.append(createHotspotButton(hotspot))
+          })
+        } else {
+          $image.append(
+            $('<div>', {
+              class: 'alfawz-qaidah-empty',
+              html: `<p>${t('This assignment does not have any hotspots yet.')}</p>`,
+            })
+          )
+        }
+
+        $canvas.append($image)
+      } else {
+        $canvas.append(
+          $('<div>', {
+            class: 'alfawz-qaidah-empty',
+            html: `<p>${t('This assignment is missing an image.')}</p>`,
           })
         )
       }
 
-      const $footer = $("<footer>", { class: "alfawz-qaidah-board-card-footer" })
-      $("<span>", {
-        text: `${hotspotCount} ${boardText('hotspots')}`,
-      }).appendTo($footer)
-
-      $card.append($header, $stage, $footer)
-
-      return $card
+      $stage.empty().append($header, $meta, $canvas)
     }
 
     function createHotspotButton(hotspot) {
-      const label = hotspot.label || boardText("Qa'idah hotspot")
-      const audioUrl = hotspot.audio_url || ""
+      const label = hotspot.label || t("Qa'idah hotspot")
+      const audioUrl = hotspot.audio_url || ''
+      const x = clampPercentage(hotspot.x)
+      const y = clampPercentage(hotspot.y)
+      const width = clampPercentage(hotspot.width, 6)
+      const height = clampPercentage(hotspot.height, 6)
 
-      const $button = $("<button>", {
-        class: "alfawz-qaidah-board-hotspot",
-        type: "button",
-        "aria-label": label,
+      const $button = $('<button>', {
+        type: 'button',
+        class: 'alfawz-qaidah-hotspot',
+        'aria-label': label,
+      }).css({
+        left: `${x}%`,
+        top: `${y}%`,
+        width: `${width}%`,
+        height: `${height}%`,
       })
-        .css({
-          left: `${hotspot.x}%`,
-          top: `${hotspot.y}%`,
-          width: `${hotspot.width}%`,
-          height: `${hotspot.height}%`,
-        })
+
+      $button.append($('<span>').text('▶'))
 
       if (!audioUrl) {
-        $button.addClass("is-muted")
+        $button.addClass('is-muted')
       }
 
-      if (label) {
-        $("<span>", {
-          class: "alfawz-qaidah-board-hotspot-label",
-          text: label,
-        }).appendTo($button)
-      }
-
-      const handleTap = event => {
+      $button.on('click', event => {
         event.preventDefault()
 
-        if (!boardsAudioEnabled || !audioUrl) {
-          $button.addClass("is-pulsed")
-          window.setTimeout(() => $button.removeClass("is-pulsed"), 250)
+        if (!audioUrl) {
+          flashHotspot($button)
           return
         }
 
         playHotspotAudio(audioUrl, $button)
-      }
-
-      $button.on("click", handleTap)
-      $button.on("touchstart", handleTap)
+      })
 
       return $button
     }
@@ -2865,258 +2848,63 @@
       stopHotspotAudio()
 
       try {
-        activeHotspotAudio = new Audio(url)
-        activeHotspotButton = $button
-        $button.addClass("is-playing")
+        activeAudio = new Audio(url)
+        $button.addClass('is-playing')
 
-        activeHotspotAudio.addEventListener("ended", () => {
+        activeAudio.addEventListener('ended', stopHotspotAudio)
+        activeAudio.addEventListener('error', () => {
+          flashHotspot($button)
           stopHotspotAudio()
         })
 
-        activeHotspotAudio.addEventListener("error", () => {
+        activeAudio.play().catch(() => {
+          flashHotspot($button)
           stopHotspotAudio()
-          flashHotspotError($button)
-        })
-
-        activeHotspotAudio.play().catch(() => {
-          stopHotspotAudio()
-          flashHotspotError($button)
         })
       } catch (error) {
-        console.error('Unable to play hotspot audio', error)
+        console.error("Unable to play Qa'idah hotspot", error)
+        flashHotspot($button)
         stopHotspotAudio()
-        flashHotspotError($button)
       }
     }
 
     function stopHotspotAudio() {
-      if (activeHotspotAudio) {
+      if (activeAudio) {
         try {
-          activeHotspotAudio.pause()
+          activeAudio.pause()
         } catch (error) {
           // Ignore pause errors
         }
-        activeHotspotAudio.currentTime = 0
-        activeHotspotAudio = null
+        activeAudio = null
       }
 
-      if (activeHotspotButton) {
-        activeHotspotButton.removeClass("is-playing")
-        activeHotspotButton = null
+      $stage.find('.alfawz-qaidah-hotspot').removeClass('is-playing')
+    }
+
+    function flashHotspot($button) {
+      $button.addClass('is-error')
+      window.setTimeout(() => $button.removeClass('is-error'), 600)
+    }
+
+    function clampPercentage(value, fallback = 0) {
+      const numeric = typeof value === 'number' ? value : parseFloat(value)
+
+      if (Number.isNaN(numeric)) {
+        return fallback
       }
+
+      return Math.max(0, Math.min(100, numeric))
     }
 
-    function flashHotspotError($button) {
-      $button.addClass("is-error")
-      window.setTimeout(() => $button.removeClass("is-error"), 600)
-    }
-
-    $progressTotal.text(qaidahDeck.length)
-
-    function loadMastered() {
+    function formatAssignmentDate(dateString) {
       try {
-        const stored = window.localStorage.getItem(QAIDAH_STORAGE_KEY)
-        if (!stored) {
-          return []
-        }
-
-        const parsed = JSON.parse(stored)
-        if (Array.isArray(parsed)) {
-          return parsed
-        }
+        const date = new Date(dateString)
+        return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
       } catch (error) {
-        console.warn("Unable to load Qa'idah progress", error)
-      }
-
-      return []
-    }
-
-    function saveMastered() {
-      try {
-        window.localStorage.setItem(QAIDAH_STORAGE_KEY, JSON.stringify(Array.from(masteredSet)))
-      } catch (error) {
-        console.warn("Unable to save Qa'idah progress", error)
+        return ''
       }
     }
-
-    function renderProgress() {
-      const masteredCount = masteredSet.size
-      const total = qaidahDeck.length || 1
-      const percent = Math.round((masteredCount / total) * 100)
-
-      $progressCount.text(masteredCount)
-      $progressTotal.text(total)
-      $progressFill.css("width", `${percent}%`)
-      $progressBar.attr("aria-valuenow", percent)
-    }
-
-    function renderMasteredList() {
-      if (!masteredSet.size) {
-        $masteredList.html(emptyMasteredTemplate)
-        return
-      }
-
-      const chips = Array.from(masteredSet)
-        .map(symbol => `<span class="alfawz-qaidah-mastered-pill" data-symbol="${symbol}">${symbol}</span>`)
-        .join("")
-
-      $masteredList.html(chips)
-    }
-
-    function renderCard() {
-      if (!filteredDeck.length) {
-        $cardSymbol.text("—")
-        $cardTransliteration.text("…")
-        $cardTip.text("Add another lesson focus to unlock cards.")
-        $prevBtn.prop("disabled", true)
-        $nextBtn.prop("disabled", true)
-        $markBtn.prop("disabled", true).attr("aria-pressed", false).removeClass("is-active")
-        return
-      }
-
-      if (currentIndex >= filteredDeck.length) {
-        currentIndex = 0
-      }
-
-      const card = filteredDeck[currentIndex]
-      const isMastered = masteredSet.has(card.symbol)
-
-      $cardSymbol.text(card.symbol)
-      $cardTransliteration.text(card.transliteration)
-      $cardTip.text(isMastered ? `${card.tip} ✅` : card.tip)
-
-      const hasMultipleCards = filteredDeck.length > 1
-      $prevBtn.prop("disabled", !hasMultipleCards)
-      $nextBtn.prop("disabled", !hasMultipleCards)
-      $markBtn.prop("disabled", false).attr("aria-pressed", isMastered)
-      $markBtn.toggleClass("is-active", isMastered)
-    }
-
-    function setFocusLesson(lesson, deckSize) {
-      if (!lesson) {
-        $focusLesson.text(`${deckSize} cards`)
-        return
-      }
-
-      $focusLesson.text(`${lesson.title} · ${deckSize} cards`)
-    }
-
-    function selectLesson(lesson, $button) {
-      const families = (lesson && lesson.families) || []
-
-      filteredDeck = families.length
-        ? qaidahDeck.filter(card => card.families.some(family => families.includes(family)))
-        : [...qaidahDeck]
-
-      if (!filteredDeck.length) {
-        filteredDeck = [...qaidahDeck]
-      }
-
-      currentLesson = lesson
-      currentIndex = 0
-
-      $lessonGrid.find(".alfawz-qaidah-lesson").removeClass("is-active")
-      if ($button && $button.length) {
-        $button.addClass("is-active")
-      }
-
-      setFocusLesson(lesson, filteredDeck.length)
-      renderCard()
-    }
-
-    function buildLessonGrid() {
-      $lessonGrid.empty()
-
-      qaidahLessons.forEach(lesson => {
-        const $button = $("<button>", {
-          class: "alfawz-qaidah-lesson",
-          type: "button",
-          "data-lesson": lesson.id,
-        })
-
-        $("<span>", { class: "alfawz-qaidah-lesson-title", text: lesson.title }).appendTo($button)
-        $("<span>", { class: "alfawz-qaidah-lesson-focus", text: lesson.focus }).appendTo($button)
-
-        $button.on("click", () => {
-          selectLesson(lesson, $button)
-        })
-
-        $lessonGrid.append($button)
-      })
-    }
-
-    $prevBtn.on("click", () => {
-      if (!filteredDeck.length) {
-        return
-      }
-
-      currentIndex = (currentIndex - 1 + filteredDeck.length) % filteredDeck.length
-      renderCard()
-    })
-
-    $nextBtn.on("click", () => {
-      if (!filteredDeck.length) {
-        return
-      }
-
-      currentIndex = (currentIndex + 1) % filteredDeck.length
-      renderCard()
-    })
-
-    $markBtn.on("click", () => {
-      if (!filteredDeck.length) {
-        return
-      }
-
-      const card = filteredDeck[currentIndex]
-
-      if (masteredSet.has(card.symbol)) {
-        masteredSet.delete(card.symbol)
-      } else {
-        masteredSet.add(card.symbol)
-      }
-
-      saveMastered()
-      renderProgress()
-      renderMasteredList()
-      renderCard()
-    })
-
-    $shuffleBtn.on("click", () => {
-      if (!filteredDeck.length) {
-        return
-      }
-
-      filteredDeck = [...filteredDeck].sort(() => Math.random() - 0.5)
-      currentIndex = 0
-      renderCard()
-    })
-
-    $resetBtn.on("click", () => {
-      masteredSet = new Set()
-      saveMastered()
-      renderProgress()
-      renderMasteredList()
-      renderCard()
-    })
-
-    buildLessonGrid()
-
-    if (qaidahLessons.length) {
-      const $firstButton = $lessonGrid.find(".alfawz-qaidah-lesson").first()
-      selectLesson(qaidahLessons[0], $firstButton)
-    } else {
-      setFocusLesson(null, filteredDeck.length)
-      renderCard()
-    }
-
-    renderProgress()
-    renderMasteredList()
   }
-
-  // ========================================
-  // BOTTOM NAVIGATION
-  // ========================================
   function initializeBottomNavigation() {
     const $nav = $(".alfawz-bottom-navigation")
 

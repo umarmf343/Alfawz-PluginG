@@ -91,8 +91,8 @@ class Admin {
         if ( $this->user_can_manage_boards() ) {
             add_submenu_page(
                 'alfawz-quran',
-                __( "Qa'idah Boards", 'alfawzquran' ),
-                __( "Qa'idah Boards", 'alfawzquran' ),
+                __( "Qa'idah Assignments", 'alfawzquran' ),
+                __( "Qa'idah Assignments", 'alfawzquran' ),
                 'edit_posts',
                 'alfawz-qaidah-boards',
                 [ $this, 'display_qaidah_boards' ]
@@ -188,9 +188,9 @@ class Admin {
                 'currentUserId'    => get_current_user_id(),
                 'canManageBoards'  => $this->user_can_manage_boards(),
                 'strings'          => [
-                    'boardSaved'    => __( 'Qa\'idah board saved successfully.', 'alfawzquran' ),
-                    'boardDeleted'  => __( 'Qa\'idah board deleted successfully.', 'alfawzquran' ),
-                    'confirmDelete' => __( 'Are you sure you want to delete this board?', 'alfawzquran' ),
+                    'boardSaved'    => __( 'Qa\'idah assignment saved successfully.', 'alfawzquran' ),
+                    'boardDeleted'  => __( 'Qa\'idah assignment deleted successfully.', 'alfawzquran' ),
+                    'confirmDelete' => __( 'Are you sure you want to delete this assignment?', 'alfawzquran' ),
                 ],
             ]);
         }

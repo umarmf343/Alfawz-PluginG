@@ -26,11 +26,15 @@
   function initBoardManager($root) {
     const state = {
       boards: [],
+      classes: [],
       students: [],
       selectedBoardId: null,
       title: '',
+      description: '',
       image: null,
+      classId: '',
       studentIds: [],
+      assignEntireClass: true,
       hotspots: [],
       drawing: false,
       drawStart: null,
@@ -45,7 +49,7 @@
     bindToolbar()
     bindStageInteractions()
 
-    Promise.all([loadStudents(), loadBoards()])
+    Promise.all([loadClasses(), loadBoards()])
       .then(() => {
         renderBoardList()
         resetForm()
@@ -66,16 +70,16 @@
         $('<button>', {
           class: 'button button-primary',
           type: 'button',
-          text: t('New board'),
+          text: t('New assignment'),
         }).on('click', () => {
           resetForm()
           renderBoardList()
         })
       )
 
-      const $listTitle = $('<h2>', { text: t('Existing boards') })
+      const $listTitle = $('<h2>', { text: t('Existing assignments') })
       const $list = $('<ul>', { class: 'alfawz-qaidah-board-items', id: 'alfawz-board-list' })
-      const $emptyList = $('<div>', { class: 'alfawz-hotspot-empty', text: t('No boards created yet. Create one to get started.') })
+      const $emptyList = $('<div>', { class: 'alfawz-hotspot-empty', text: t('No assignments created yet. Create one to get started.') })
 
       $listColumn.append($listTitle, $listHeader, $list, $emptyList)
 
@@ -95,27 +99,85 @@
           })
         )
 
-      const $studentField = $('<div>', { class: 'form-field' })
+      const $classField = $('<div>', { class: 'form-field' })
         .append(
           $('<label>', {
-            for: 'alfawz-board-students',
-            text: t('Assign to students'),
+            for: 'alfawz-assignment-class',
+            text: t('Class'),
           })
         )
         .append(
           $('<select>', {
-            id: 'alfawz-board-students',
-            multiple: 'multiple',
-            size: 6,
-          }).on('change', function () {
-            const selected = Array.from(this.options)
-              .filter(option => option.selected)
-              .map(option => parseInt(option.value, 10))
-            state.studentIds = selected
+            id: 'alfawz-assignment-class',
+          }).on('change', event => {
+            state.classId = event.target.value
+            state.assignEntireClass = true
+            state.studentIds = []
+            renderAssignAllToggle()
+            setFormLoading(true)
+            loadStudentsForClass(state.classId)
+              .then(() => {
+                renderStudentChecklist()
+                setFormLoading(false)
+              })
+              .catch(() => setFormLoading(false))
           })
         )
         .append(
-          $('<p>', { class: 'description', text: t('Hold Ctrl/Command to select multiple students.') })
+          $('<p>', {
+            class: 'description',
+            text: t('Assignments deliver to the entire class by default. Uncheck the toggle below to target specific learners.'),
+          })
+        )
+
+      const $studentField = $('<fieldset>', { class: 'form-field alfawz-student-field' })
+        .append($('<legend>', { text: t('Student delivery') }))
+
+      const $assignAllToggle = $('<label>', { class: 'alfawz-checkbox-inline' })
+        .append(
+          $('<input>', {
+            type: 'checkbox',
+            id: 'alfawz-assignment-all',
+            checked: state.assignEntireClass,
+          }).on('change', event => {
+            state.assignEntireClass = event.target.checked
+            if (state.assignEntireClass) {
+              state.studentIds = []
+            }
+            renderAssignAllToggle()
+            renderStudentChecklist()
+          })
+        )
+        .append(
+          $('<span>', {
+            text: t('Send to entire class'),
+          })
+        )
+
+      const $studentList = $('<div>', {
+        class: 'alfawz-student-list',
+        id: 'alfawz-student-list',
+        role: 'group',
+        'aria-describedby': 'alfawz-assignment-class',
+      })
+
+      $studentField.append($assignAllToggle, $studentList)
+
+      const $descriptionField = $('<div>', { class: 'form-field' })
+        .append(
+          $('<label>', {
+            for: 'alfawz-assignment-description',
+            text: t('Lesson notes (optional)'),
+          })
+        )
+        .append(
+          $('<textarea>', {
+            id: 'alfawz-assignment-description',
+            rows: 3,
+            placeholder: t('Explain the focus or give practice tips for students.'),
+          }).on('input', event => {
+            state.description = event.target.value
+          })
         )
 
       const $imageField = $('<div>', { class: 'form-field' })
@@ -197,8 +259,8 @@
       $form.on('submit', handleSubmit)
 
       $imageField.append($imageLabel, $toolbar, $stage)
-      $form.append($alerts, $titleField, $studentField, $imageField, $stageToolbar, $hotspotEditor, $formActions)
-      $formColumn.append($('<h2>', { text: t('Board builder') }), $form)
+      $form.append($alerts, $titleField, $classField, $studentField, $descriptionField, $imageField, $stageToolbar, $hotspotEditor, $formActions)
+      $formColumn.append($('<h2>', { text: t('Assignment builder') }), $form)
 
       $grid.append($listColumn, $formColumn)
       $container.append($grid)
@@ -207,7 +269,10 @@
         list: $list,
         listEmpty: $emptyList,
         titleInput: $titleField.find('input'),
-        studentSelect: $studentField.find('select'),
+        classSelect: $classField.find('select'),
+        studentList: $studentList,
+        assignAllCheckbox: $assignAllToggle.find('input'),
+        descriptionInput: $descriptionField.find('textarea'),
         stage: $stage,
         drawButton: $drawButton,
         hotspotEditor: $hotspotEditor,
@@ -339,11 +404,43 @@
       renderHotspotEditor(hotspot.id)
     }
 
-    function loadStudents() {
-      return apiFetch('qaidah/students')
+    function loadClasses() {
+      return apiFetch('qaidah/classes')
+        .then(data => {
+          state.classes = Array.isArray(data) ? data : []
+
+          if (!state.classId && state.classes.length) {
+            state.classId = String(state.classes[0].id)
+          }
+
+          renderClassOptions()
+          renderAssignAllToggle()
+
+          if (state.classId) {
+            return loadStudentsForClass(state.classId)
+          }
+
+          state.students = []
+          renderStudentChecklist()
+          return Promise.resolve()
+        })
+        .catch(error => {
+          console.error('Unable to load classes', error)
+          throw error
+        })
+    }
+
+    function loadStudentsForClass(classId) {
+      if (!classId) {
+        state.students = []
+        renderStudentChecklist()
+        return Promise.resolve()
+      }
+
+      return apiFetch(`qaidah/students?class_id=${encodeURIComponent(classId)}`)
         .then(data => {
           state.students = Array.isArray(data) ? data : []
-          populateStudents()
+          renderStudentChecklist()
         })
         .catch(error => {
           console.error('Unable to load students', error)
@@ -351,31 +448,93 @@
         })
     }
 
-    function populateStudents() {
-      const $select = elements.studentSelect
-      $select.empty()
+    function renderClassOptions() {
+      const { classSelect } = elements
+      classSelect.empty()
 
-      if (!state.students.length) {
-        $select.append($('<option>', { value: '', text: t('No students found') }))
-        $select.prop('disabled', true)
+      if (!state.classes.length) {
+        classSelect.append($('<option>', { value: '', text: t('No classes assigned') }))
+        classSelect.prop('disabled', true)
         return
       }
 
-      $select.prop('disabled', false)
+      classSelect.prop('disabled', false)
+
+      state.classes.forEach(classItem => {
+        const id = String(classItem.id)
+        classSelect.append(
+          $('<option>', {
+            value: id,
+            text: classItem.label || id,
+            selected: state.classId === id,
+          })
+        )
+      })
+
+      if (state.classId) {
+        classSelect.val(state.classId)
+      }
+    }
+
+    function renderAssignAllToggle() {
+      const { assignAllCheckbox, studentList } = elements
+      assignAllCheckbox.prop('checked', !!state.assignEntireClass)
+      studentList.toggleClass('is-disabled', state.assignEntireClass)
+    }
+
+    function renderStudentChecklist() {
+      const { studentList } = elements
+      studentList.empty()
+
+      renderAssignAllToggle()
+
+      if (!state.students.length) {
+        studentList.append($('<div>', { class: 'alfawz-hotspot-empty', text: t('No students found for this class.') }))
+        return
+      }
+
+      const selectedIds = state.studentIds.map(id => parseInt(id, 10))
+
       state.students
+        .slice()
         .sort((a, b) => a.name.localeCompare(b.name))
         .forEach(student => {
-          $select.append(
-            $('<option>', {
-              value: student.id,
-              text: student.name,
-            })
-          )
+          const studentId = parseInt(student.id, 10)
+          const checkboxId = `alfawz-student-${studentId}`
+
+          const $wrapper = $('<label>', { class: 'alfawz-student-checkbox', for: checkboxId })
+          const $input = $('<input>', {
+            type: 'checkbox',
+            id: checkboxId,
+            value: studentId,
+            disabled: state.assignEntireClass,
+            checked: !state.assignEntireClass && selectedIds.includes(studentId),
+          }).on('change', event => {
+            const value = parseInt(event.target.value, 10)
+
+            if (event.target.checked) {
+              if (!state.studentIds.includes(value)) {
+                state.studentIds.push(value)
+              }
+            } else {
+              state.studentIds = state.studentIds.filter(id => id !== value)
+            }
+          })
+
+          const $details = $('<span>', { class: 'alfawz-student-label' })
+            .append($('<strong>', { text: student.name || t('Unnamed student') }))
+
+          if (student.email) {
+            $details.append($('<span>', { class: 'alfawz-student-meta', text: student.email }))
+          }
+
+          $wrapper.append($input, $details)
+          studentList.append($wrapper)
         })
     }
 
     function loadBoards() {
-      return apiFetch('qaidah/boards?context=manage')
+      return apiFetch('qaidah/assignments?context=manage')
         .then(data => {
           state.boards = Array.isArray(data) ? data : []
           renderBoardList()
@@ -398,12 +557,25 @@
       listEmpty.hide()
 
       state.boards.forEach(board => {
+        const title = board.title || t('Untitled assignment')
+        const classLabel = board.class && board.class.label ? board.class.label : ''
+        const recipients = formatRecipientMeta(board)
+        const metaParts = []
+
+        if (classLabel) {
+          metaParts.push(`${t('Class')}: ${classLabel}`)
+        }
+
+        if (recipients) {
+          metaParts.push(`${t('Recipients')}: ${recipients}`)
+        }
+
         const $item = $('<li>')
           .toggleClass('is-active', board.id === state.selectedBoardId)
           .append(
             $('<div>', { class: 'board-info' }).append(
-              $('<strong>', { text: board.title || t('Untitled board') }),
-              $('<div>', { class: 'board-meta', text: formatStudentMeta(board.student_details || board.students) })
+              $('<strong>', { text: title }),
+              $('<div>', { class: 'board-meta', text: metaParts.join(' • ') })
             )
           )
           .append(
@@ -420,19 +592,24 @@
       })
     }
 
-    function formatStudentMeta(students) {
-      if (!students || !students.length) {
-        return t('No students assigned')
+    function formatRecipientMeta(board) {
+      if (!board) {
+        return ''
       }
 
-      if (Array.isArray(students) && typeof students[0] === 'object') {
-        return students.map(student => student.name).join(', ')
+      if (Array.isArray(board.students) && board.students.length) {
+        if (Array.isArray(board.student_details) && board.student_details.length) {
+          return board.student_details.map(student => student.name).join(', ')
+        }
+
+        return board.students.map(studentId => `#${studentId}`).join(', ')
       }
 
-      return state.students
-        .filter(student => students.includes(student.id))
-        .map(student => student.name)
-        .join(', ')
+      if (board.class && board.class.id) {
+        return t('Entire class')
+      }
+
+      return ''
     }
 
     function selectBoard(boardId) {
@@ -443,17 +620,31 @@
 
       state.selectedBoardId = board.id
       state.title = board.title || ''
+      state.description = board.description || ''
       state.image = board.image || null
-      state.studentIds = (board.students || []).map(id => parseInt(id, 10))
+      state.classId = board.class && board.class.id ? String(board.class.id) : ''
+      const targetedStudents = Array.isArray(board.students) ? board.students.map(id => parseInt(id, 10)) : []
+      state.assignEntireClass = targetedStudents.length === 0
+      state.studentIds = state.assignEntireClass ? [] : targetedStudents
       state.hotspots = Array.isArray(board.hotspots) ? board.hotspots.map(h => ({ ...h })) : []
 
       renderBoardList()
-      renderForm()
+      renderClassOptions()
+      setFormLoading(true)
+      loadStudentsForClass(state.classId)
+        .then(() => {
+          renderForm()
+          setFormLoading(false)
+        })
+        .catch(() => setFormLoading(false))
     }
 
     function renderForm() {
       elements.titleInput.val(state.title)
-      elements.studentSelect.val(state.studentIds.map(id => String(id)))
+      elements.descriptionInput.val(state.description)
+      renderClassOptions()
+      renderAssignAllToggle()
+      renderStudentChecklist()
       renderStage()
       renderHotspotEditor()
       elements.deleteButton.toggle(!!state.selectedBoardId)
@@ -601,12 +792,21 @@
     function resetForm() {
       state.selectedBoardId = null
       state.title = ''
+      state.description = ''
       state.image = null
-      state.studentIds = []
       state.hotspots = []
+      state.assignEntireClass = true
+      state.studentIds = []
+      state.classId = state.classes.length ? String(state.classes[0].id) : ''
       elements.form.trigger('reset')
-      renderForm()
       renderBoardList()
+      setFormLoading(true)
+      loadStudentsForClass(state.classId)
+        .then(() => {
+          renderForm()
+          setFormLoading(false)
+        })
+        .catch(() => setFormLoading(false))
     }
 
     function handleSubmit(event) {
@@ -620,7 +820,9 @@
       const payload = {
         title: state.title,
         image_id: state.image ? state.image.id : 0,
-        student_ids: state.studentIds,
+        class_id: state.classId,
+        description: state.description,
+        student_ids: state.assignEntireClass ? [] : state.studentIds,
         hotspots: state.hotspots.map(h => ({
           id: h.id,
           label: h.label,
@@ -632,7 +834,7 @@
         })),
       }
 
-      const endpoint = state.selectedBoardId ? `qaidah/boards/${state.selectedBoardId}` : 'qaidah/boards'
+      const endpoint = state.selectedBoardId ? `qaidah/assignments/${state.selectedBoardId}` : 'qaidah/assignments'
       const method = state.selectedBoardId ? 'PUT' : 'POST'
 
       setFormLoading(true)
@@ -645,7 +847,7 @@
         },
       })
         .then(board => {
-          showNotice('success', adminData.strings ? adminData.strings.boardSaved : 'Board saved.')
+          showNotice('success', adminData.strings ? adminData.strings.boardSaved : t('Assignment saved.'))
           const updatedBoard = Array.isArray(board) ? board[0] : board
           const existingIndex = state.boards.findIndex(item => item.id === updatedBoard.id)
           if (existingIndex > -1) {
@@ -656,8 +858,8 @@
           selectBoard(updatedBoard.id)
         })
         .catch(error => {
-          console.error('Unable to save board', error)
-          showNotice('error', error?.message || t('Unable to save board. Please try again.'))
+          console.error('Unable to save assignment', error)
+          showNotice('error', error?.message || t('Unable to save assignment. Please try again.'))
         })
         .finally(() => setFormLoading(false))
     }
@@ -667,30 +869,30 @@
         return
       }
 
-      if (!window.confirm(adminData.strings ? adminData.strings.confirmDelete : 'Delete this board?')) {
+      if (!window.confirm(adminData.strings ? adminData.strings.confirmDelete : t('Delete this assignment?'))) {
         return
       }
 
       setFormLoading(true)
 
-      apiFetch(`qaidah/boards/${state.selectedBoardId}`, {
+      apiFetch(`qaidah/assignments/${state.selectedBoardId}`, {
         method: 'DELETE',
       })
         .then(() => {
-          showNotice('success', adminData.strings ? adminData.strings.boardDeleted : 'Board deleted.')
+          showNotice('success', adminData.strings ? adminData.strings.boardDeleted : t('Assignment deleted.'))
           state.boards = state.boards.filter(board => board.id !== state.selectedBoardId)
           resetForm()
         })
         .catch(error => {
-          console.error('Unable to delete board', error)
-          showNotice('error', error?.message || t('Unable to delete board. Please try again.'))
+          console.error('Unable to delete assignment', error)
+          showNotice('error', error?.message || t('Unable to delete assignment. Please try again.'))
         })
         .finally(() => setFormLoading(false))
     }
 
     function validateForm() {
       if (!state.title.trim()) {
-        showNotice('error', t('Add a title for this board.'))
+        showNotice('error', t('Add a title for this assignment.'))
         elements.titleInput.focus()
         return false
       }
@@ -700,9 +902,14 @@
         return false
       }
 
-      if (!state.studentIds.length) {
-        showNotice('error', t('Assign the board to at least one student.'))
-        elements.studentSelect.focus()
+      if (!state.classId && !state.studentIds.length) {
+        showNotice('error', t('Choose a class or select individual students.'))
+        elements.classSelect.focus()
+        return false
+      }
+
+      if (!state.assignEntireClass && !state.studentIds.length) {
+        showNotice('error', t('Select at least one student.'))
         return false
       }
 

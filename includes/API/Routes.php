@@ -136,6 +136,12 @@ class Routes {
             },
         ]);
 
+        register_rest_route( $namespace, '/qaidah/classes', [
+            'methods'             => 'GET',
+            'callback'            => [ $this, 'get_qaidah_classes' ],
+            'permission_callback' => [ $this, 'teacher_permission_callback' ],
+        ] );
+
         register_rest_route( $namespace, '/qaidah/students', [
             'methods'             => 'GET',
             'callback'            => [ $this, 'get_qaidah_students' ],
@@ -161,7 +167,38 @@ class Routes {
             ],
         ] );
 
+        register_rest_route( $namespace, '/qaidah/assignments', [
+            [
+                'methods'             => 'GET',
+                'callback'            => [ $this, 'get_qaidah_boards' ],
+                'permission_callback' => [ $this, 'check_permission' ],
+            ],
+            [
+                'methods'             => 'POST',
+                'callback'            => [ $this, 'create_qaidah_board' ],
+                'permission_callback' => [ $this, 'teacher_permission_callback' ],
+            ],
+        ] );
+
         register_rest_route( $namespace, '/qaidah/boards/(?P<id>\d+)', [
+            [
+                'methods'             => 'GET',
+                'callback'            => [ $this, 'get_single_qaidah_board' ],
+                'permission_callback' => [ $this, 'teacher_permission_callback' ],
+            ],
+            [
+                'methods'             => 'PUT',
+                'callback'            => [ $this, 'update_qaidah_board' ],
+                'permission_callback' => [ $this, 'teacher_permission_callback' ],
+            ],
+            [
+                'methods'             => 'DELETE',
+                'callback'            => [ $this, 'delete_qaidah_board' ],
+                'permission_callback' => [ $this, 'teacher_permission_callback' ],
+            ],
+        ] );
+
+        register_rest_route( $namespace, '/qaidah/assignments/(?P<id>\d+)', [
             [
                 'methods'             => 'GET',
                 'callback'            => [ $this, 'get_single_qaidah_board' ],
@@ -247,22 +284,64 @@ class Routes {
     }
 
     /**
+     * Return the classes assigned to the current teacher.
+     */
+    public function get_qaidah_classes( WP_REST_Request $request ) {
+        $user_id = get_current_user_id();
+
+        if ( ! $user_id ) {
+            return new WP_REST_Response( [], 200 );
+        }
+
+        $class_ids = $this->get_classes_for_user( $user_id );
+
+        $classes = array_map( function ( $class_id ) {
+            return [
+                'id'    => $class_id,
+                'label' => $this->resolve_class_label( $class_id ),
+            ];
+        }, $class_ids );
+
+        return new WP_REST_Response( $classes, 200 );
+    }
+
+    /**
      * Return students eligible for Qa'idah board assignments.
      */
     public function get_qaidah_students( WP_REST_Request $request ) {
-        $roles = apply_filters( 'alfawz_qaidah_student_roles', [ 'student', 'subscriber' ] );
+        $class_id = $this->normalize_class_id( $request->get_param( 'class_id' ) );
+        $roles    = apply_filters( 'alfawz_qaidah_student_roles', [ 'student', 'subscriber' ] );
 
-        $users = get_users( [
+        if ( $class_id && ! $this->current_user_can_access_class( get_current_user_id(), $class_id ) ) {
+            return new WP_REST_Response( [], 200 );
+        }
+
+        $args = [
             'role__in' => $roles,
             'orderby'  => 'display_name',
             'order'    => 'ASC',
-        ] );
+        ];
 
-        $students = array_map( static function ( $user ) {
+        if ( $class_id ) {
+            $args['meta_query'] = [
+                [
+                    'key'     => 'alfawz_class_id',
+                    'value'   => $class_id,
+                    'compare' => '=',
+                ],
+            ];
+        }
+
+        $users = get_users( $args );
+
+        $students = array_map( function ( $user ) use ( $class_id ) {
             return [
-                'id'   => (int) $user->ID,
-                'name' => $user->display_name,
-                'email' => $user->user_email,
+                'id'        => (int) $user->ID,
+                'name'      => $user->display_name,
+                'email'     => $user->user_email,
+                'class_id'  => \get_user_meta( $user->ID, 'alfawz_class_id', true ),
+                'avatar'    => \get_avatar_url( $user->ID ),
+                'is_assigned'=> $class_id ? ( \get_user_meta( $user->ID, 'alfawz_class_id', true ) === $class_id ) : false,
             ];
         }, $users );
 
@@ -396,6 +475,8 @@ class Routes {
                 'title'       => $data['title'] ?? '',
                 'image_id'    => $data['image_id'] ?? 0,
                 'student_ids' => $data['student_ids'] ?? [],
+                'class_id'    => $data['class_id'] ?? '',
+                'description' => $data['description'] ?? '',
                 'hotspots'    => $data['hotspots'] ?? [],
                 'author_id'   => get_current_user_id(),
             ]
@@ -434,6 +515,8 @@ class Routes {
                 'title'       => $data['title'] ?? $post->post_title,
                 'image_id'    => $data['image_id'] ?? (int) get_post_meta( $post->ID, '_alfawz_qaidah_image_id', true ),
                 'student_ids' => $data['student_ids'] ?? [],
+                'class_id'    => $data['class_id'] ?? get_post_meta( $post->ID, '_alfawz_qaidah_class_id', true ),
+                'description' => $data['description'] ?? get_post_meta( $post->ID, '_alfawz_qaidah_description', true ),
                 'hotspots'    => $data['hotspots'] ?? [],
                 'author_id'   => (int) $post->post_author,
             ],
@@ -489,6 +572,140 @@ class Routes {
         }
 
         return current_user_can( 'edit_posts' );
+    }
+
+    /**
+     * Retrieve the classes accessible to the given user.
+     *
+     * @param int $user_id User identifier.
+     * @return array
+     */
+    private function get_classes_for_user( $user_id ) {
+        if ( \current_user_can( 'manage_options' ) ) {
+            return $this->discover_all_classes();
+        }
+
+        $raw = \get_user_meta( $user_id, 'alfawz_teacher_classes', true );
+
+        if ( empty( $raw ) ) {
+            return [];
+        }
+
+        if ( is_string( $raw ) ) {
+            $raw = array_map( 'trim', explode( ',', $raw ) );
+        }
+
+        if ( ! is_array( $raw ) ) {
+            $raw = [ $raw ];
+        }
+
+        $normalized = [];
+
+        foreach ( $raw as $value ) {
+            $class_id = $this->normalize_class_id( $value );
+
+            if ( '' === $class_id ) {
+                continue;
+            }
+
+            $normalized[] = $class_id;
+        }
+
+        return array_values( array_unique( $normalized ) );
+    }
+
+    /**
+     * Determine whether the current user can access a specific class identifier.
+     *
+     * @param int    $user_id  Current user ID.
+     * @param string $class_id Class identifier.
+     * @return bool
+     */
+    private function current_user_can_access_class( $user_id, $class_id ) {
+        if ( \current_user_can( 'manage_options' ) ) {
+            return true;
+        }
+
+        $classes = $this->get_classes_for_user( $user_id );
+
+        return in_array( $class_id, $classes, true );
+    }
+
+    /**
+     * Normalize a raw class identifier.
+     *
+     * @param mixed $value Raw value.
+     * @return string
+     */
+    private function normalize_class_id( $value ) {
+        if ( is_array( $value ) ) {
+            $value = reset( $value );
+        }
+
+        if ( is_numeric( $value ) ) {
+            return (string) \absint( $value );
+        }
+
+        $value = (string) $value;
+
+        if ( '' === $value ) {
+            return '';
+        }
+
+        return \sanitize_text_field( $value );
+    }
+
+    /**
+     * Resolve a class label using taxonomy or filters.
+     *
+     * @param string $class_id Class identifier.
+     * @return string
+     */
+    private function resolve_class_label( $class_id ) {
+        if ( '' === $class_id ) {
+            return '';
+        }
+
+        $label = \apply_filters( 'alfawz_qaidah_class_label', '', $class_id );
+
+        if ( ! empty( $label ) ) {
+            return $label;
+        }
+
+        if ( is_numeric( $class_id ) ) {
+            $term = \get_term( (int) $class_id, 'alfawz_class' );
+
+            if ( $term && ! \is_wp_error( $term ) ) {
+                return $term->name;
+            }
+        }
+
+        return \sprintf( \__( 'Class %s', 'alfawzquran' ), $class_id );
+    }
+
+    /**
+     * Collect all class identifiers stored in user meta.
+     *
+     * @return array
+     */
+    private function discover_all_classes() {
+        global $wpdb;
+
+        $results = $wpdb->get_col( $wpdb->prepare( "SELECT DISTINCT meta_value FROM {$wpdb->usermeta} WHERE meta_key = %s AND meta_value <> ''", 'alfawz_class_id' ) );
+
+        $classes = [];
+
+        foreach ( (array) $results as $value ) {
+            $class_id = $this->normalize_class_id( $value );
+
+            if ( '' === $class_id ) {
+                continue;
+            }
+
+            $classes[] = $class_id;
+        }
+
+        return array_values( array_unique( $classes ) );
     }
 
     /**

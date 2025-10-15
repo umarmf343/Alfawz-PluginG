@@ -3068,232 +3068,228 @@
   gap: var(--spacing-xl);
 }
 
-.alfawz-qaidah-hero {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-md);
-  background: var(--primary-gradient);
+.alfawz-qaidah-header {
+  background: linear-gradient(135deg, rgba(111, 29, 27, 0.95), rgba(191, 106, 56, 0.9));
   color: #ffffff;
   padding: var(--spacing-xl);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
 }
 
-.alfawz-qaidah-hero-copy h2 {
-  font-size: 1.5rem;
+.alfawz-qaidah-header h2 {
+  font-size: 1.6rem;
   margin: 0;
 }
 
-.alfawz-qaidah-hero-copy p {
+.alfawz-qaidah-header p {
   margin: 0;
   opacity: 0.9;
 }
 
-.alfawz-qaidah-hero-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-  align-self: flex-start;
-  background: rgba(255, 255, 255, 0.16);
-  padding: var(--spacing-sm) var(--spacing-md);
-  border-radius: 999px;
-  font-weight: 600;
-}
-
-.alfawz-qaidah-progress,
-.alfawz-qaidah-card,
-.alfawz-qaidah-lessons,
-.alfawz-qaidah-mastered,
-.alfawz-qaidah-tips {
-  background: #ffffff;
-  border-radius: var(--radius-lg);
-  padding: var(--spacing-xl);
-  box-shadow: var(--shadow-sm);
-}
-
-.alfawz-qaidah-progress-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--spacing-md);
-}
-
-.alfawz-qaidah-progress-count {
-  font-weight: 600;
-  color: #6f1d1b;
-}
-
-.alfawz-qaidah-progress-bar {
-  height: 12px;
-  background: #f1e7df;
-  border-radius: 999px;
-  overflow: hidden;
-}
-
-.alfawz-qaidah-progress-fill {
-  height: 100%;
-  width: 0;
-  background: var(--primary-gradient);
-  transition: width 0.3s ease;
-}
-
-.alfawz-qaidah-card-display {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--spacing-sm);
-  text-align: center;
-}
-
-.alfawz-qaidah-card-symbol {
-  font-family: var(--font-arabic);
-  font-size: 3.5rem;
-  color: #6f1d1b;
-}
-
-.alfawz-qaidah-card-transliteration {
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: #9f5238;
-}
-
-.alfawz-qaidah-card-tip {
-  font-size: 0.95rem;
-  color: #4a4a4a;
-  max-width: 320px;
-}
-
-.alfawz-qaidah-card-controls,
-.alfawz-qaidah-card-utilities {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: var(--spacing-sm);
-}
-
-.alfawz-btn-ghost {
-  background: transparent;
-  border: 1px dashed rgba(111, 29, 27, 0.35);
-  color: #6f1d1b;
-}
-
-.alfawz-btn-ghost:hover {
-  background: rgba(111, 29, 27, 0.06);
-}
-
-.alfawz-qaidah-card-controls .alfawz-btn.is-active {
-  box-shadow: 0 0 0 2px rgba(111, 29, 27, 0.15);
-}
-
-.alfawz-qaidah-lesson-grid {
+.alfawz-qaidah-grid {
   display: grid;
+  gap: var(--spacing-xl);
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 1024px) {
+  .alfawz-qaidah-grid {
+    grid-template-columns: minmax(260px, 320px) 1fr;
+  }
+}
+
+.alfawz-qaidah-assignment-list {
+  display: flex;
+  flex-direction: column;
   gap: var(--spacing-md);
 }
 
-.alfawz-qaidah-lesson {
-  border: 1px solid #f1e7df;
-  background: rgba(255, 255, 255, 0.8);
-  border-radius: var(--radius-md);
+.alfawz-qaidah-assignment-card {
+  background: #ffffff;
+  border: 1px solid #f0e8df;
+  border-radius: var(--radius-lg);
   padding: var(--spacing-md);
-  text-align: left;
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  transition: all 0.2s ease;
+  gap: var(--spacing-sm);
+  transition: box-shadow 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+  cursor: pointer;
 }
 
-.alfawz-qaidah-lesson:hover {
-  border-color: #d8c7b8;
+.alfawz-qaidah-assignment-card:hover,
+.alfawz-qaidah-assignment-card.is-active {
+  border-color: rgba(111, 29, 27, 0.5);
+  box-shadow: var(--shadow-md);
   transform: translateY(-1px);
 }
 
-.alfawz-qaidah-lesson.is-active {
-  border-color: transparent;
-  background: linear-gradient(135deg, rgba(111, 29, 27, 0.12), rgba(163, 63, 68, 0.16));
-  box-shadow: var(--shadow-sm);
-}
-
-.alfawz-qaidah-lesson-title {
+.alfawz-qaidah-assignment-title {
+  margin: 0;
+  font-size: 1.05rem;
   font-weight: 600;
-  color: #6f1d1b;
+  color: #3b1f0e;
 }
 
-.alfawz-qaidah-lesson-focus {
-  font-size: 0.9rem;
-  color: #4a4a4a;
-}
-
-.alfawz-qaidah-mastered-list {
+.alfawz-qaidah-assignment-meta {
+  font-size: 0.85rem;
+  color: #6b7280;
   display: flex;
   flex-wrap: wrap;
-  gap: var(--spacing-sm);
+  gap: 8px;
 }
 
-.alfawz-qaidah-mastered-pill {
-  padding: var(--spacing-sm) var(--spacing-md);
+.alfawz-qaidah-assignment-meta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(111, 29, 27, 0.08);
+  color: #5f2a1a;
+  padding: 3px 8px;
   border-radius: 999px;
-  background: rgba(111, 29, 27, 0.12);
-  color: #6f1d1b;
-  font-family: var(--font-arabic);
-  font-size: 1.4rem;
-  box-shadow: var(--shadow-sm);
 }
 
-.alfawz-qaidah-tip-grid {
-  display: grid;
+.alfawz-qaidah-stage {
+  background: #ffffff;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  padding: var(--spacing-lg);
+  display: flex;
+  flex-direction: column;
   gap: var(--spacing-md);
+  min-height: 420px;
 }
 
-.alfawz-qaidah-tip {
-  border: 1px solid #f1e7df;
-  border-radius: var(--radius-md);
-  padding: var(--spacing-md);
-  background: rgba(249, 244, 239, 0.6);
+.alfawz-qaidah-stage-header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
 }
 
-.alfawz-qaidah-tip h4 {
-  margin: 0 0 var(--spacing-xs) 0;
-  color: #6f1d1b;
+.alfawz-qaidah-stage-header h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  color: #351c11;
 }
 
-.alfawz-qaidah-tip p {
+.alfawz-qaidah-stage-description {
   margin: 0;
   color: #4a4a4a;
   font-size: 0.95rem;
 }
 
-@media (min-width: 640px) {
-  .alfawz-qaidah-lesson-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .alfawz-qaidah-tip-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
+.alfawz-qaidah-stage-canvas {
+  position: relative;
+  border: 1px solid #eadfd4;
+  border-radius: var(--radius-lg);
+  background: #f9f6f2;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 320px;
 }
 
-@media (min-width: 768px) {
-  .alfawz-qaidah-hero {
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
+.alfawz-qaidah-stage-image {
+  position: relative;
+  width: 100%;
+}
+
+.alfawz-qaidah-stage-image img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.alfawz-qaidah-hotspot {
+  position: absolute;
+  border: 2px solid rgba(239, 68, 68, 0.65);
+  background: rgba(239, 68, 68, 0.18);
+  border-radius: 999px;
+  min-width: 48px;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+  padding: 0;
+}
+
+.alfawz-qaidah-hotspot span {
+  pointer-events: none;
+}
+
+.alfawz-qaidah-hotspot:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.35);
+}
+
+.alfawz-qaidah-hotspot:hover {
+  transform: scale(1.05);
+  background: rgba(239, 68, 68, 0.28);
+}
+
+.alfawz-qaidah-hotspot.is-playing {
+  background: rgba(34, 197, 94, 0.2);
+  border-color: rgba(34, 197, 94, 0.6);
+}
+
+.alfawz-qaidah-hotspot.is-error {
+  background: rgba(239, 68, 68, 0.4);
+  border-color: rgba(239, 68, 68, 0.85);
+}
+
+.alfawz-qaidah-hotspot.is-muted {
+  background: rgba(148, 163, 184, 0.25);
+  border-color: rgba(148, 163, 184, 0.6);
+  color: #1f2937;
+  cursor: default;
+}
+
+.alfawz-qaidah-placeholder,
+.alfawz-qaidah-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: #6b7280;
+  min-height: 320px;
+  padding: var(--spacing-lg);
+}
+
+.alfawz-qaidah-placeholder p,
+.alfawz-qaidah-empty p {
+  max-width: 420px;
+  margin: 0;
+}
+
+.alfawz-qaidah-stage-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+  color: #6b7280;
+  font-size: 0.9rem;
+}
+
+.alfawz-qaidah-stage-meta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+@media (max-width: 767px) {
+  .alfawz-qaidah-stage {
+    padding: var(--spacing-md);
   }
 
-  .alfawz-qaidah-card {
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--spacing-xl);
-  }
-
-  .alfawz-qaidah-card-display {
-    align-items: flex-start;
-    text-align: left;
-  }
-
-  .alfawz-qaidah-card-controls,
-  .alfawz-qaidah-card-utilities {
-    justify-content: flex-end;
+  .alfawz-qaidah-stage-canvas {
+    min-height: 260px;
   }
 }
 
