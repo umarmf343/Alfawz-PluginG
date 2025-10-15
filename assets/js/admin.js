@@ -36,6 +36,7 @@
       userNonce: adminData.nonces ? adminData.nonces.users : '',
       settingsNonce: adminData.nonces ? adminData.nonces.settings : '',
       classStudents: [],
+      classFormMode: 'create',
       overviewLoaded: false,
       usersLoaded: false,
       userFilter: {
@@ -46,13 +47,17 @@
 
     const $classForm = $('#alfawz-class-form')
     const $classTable = $('#alfawz-class-table tbody')
+    const $classFormPanel = $('#alfawz-class-form-panel')
+    const $classFormTitle = $('#alfawz-class-form-title')
+    const $classFormSubtitle = $('#alfawz-class-form-subtitle')
     const $classFeedback = $('#alfawz-class-feedback')
     const $teacherSelect = $('#alfawz-class-teacher')
     const $classIdField = $('#alfawz-class-id')
     const $classNameField = $('#alfawz-class-name')
     const $classDescriptionField = $('#alfawz-class-description')
-    const $newClassButton = $('#alfawz-new-class')
+    const $newClassButton = $('#add-class-btn')
     const $cancelClassButton = $('#alfawz-cancel-class')
+    const $closeClassFormButton = $('#close-class-form')
     const $classNonceInput = $('#alfawz_admin_classes_nonce')
     const $enrollmentSection = $('#alfawz-student-enrollment')
     const $selectedClassName = $('#alfawz-selected-class-name')
@@ -61,7 +66,7 @@
     const $studentSearchButton = $('#alfawz-search-students')
     const $studentSearchResults = $('#alfawz-student-search-results')
     const $closeEnrollment = $('#alfawz-close-enrollment')
-    const $userTableBody = $('#alfawz-user-table tbody')
+    const $userList = $('#alfawz-user-list')
     const $userFilterForm = $('#alfawz-user-filter')
     const $userNonceInput = $('#alfawz_admin_users_nonce')
     const $settingsForm = $('#alfawz-settings-form')
@@ -81,6 +86,7 @@
     }
 
     resetClassForm()
+    closeClassForm()
 
     loadTeachers().then(loadClasses)
     loadOverview()
@@ -94,11 +100,18 @@
 
     $newClassButton.on('click', function () {
       resetClassForm()
+      openClassForm('create')
       $classNameField.trigger('focus')
     })
 
     $cancelClassButton.on('click', function () {
       resetClassForm()
+      closeClassForm()
+    })
+
+    $closeClassFormButton.on('click', function () {
+      resetClassForm()
+      closeClassForm()
     })
 
     $classTable.on('click', '.alfawz-edit-class', function () {
@@ -126,6 +139,8 @@
       })
         .then(() => {
           resetClassForm()
+          closeClassForm()
+          showClassSuccess(__('Class deleted.', 'alfawzquran'))
           loadClasses()
         })
         .catch(showClassError)
@@ -197,11 +212,15 @@
       loadUsers()
     })
 
-    $userTableBody.on('click', '.alfawz-update-role', function () {
-      const $row = $(this).closest('tr')
-      const userId = $row.data('userId')
-      const newRole = $row.find('.alfawz-role-select').val()
+    $userList.on('click', '.alfawz-update-role', function () {
+      const $item = $(this).closest('[data-user-id]')
+      const userId = $item.data('userId')
+      const newRole = $item.find('.alfawz-role-select').val()
       if (!userId || !newRole) {
+        return
+      }
+
+      if (!window.confirm(__('Confirm role assignment for this user?', 'alfawzquran'))) {
         return
       }
 
@@ -212,11 +231,11 @@
         nonce: state.userNonce,
       })
         .then(() => {
-          showTransientNotice($row, 'success', adminData.strings.roleUpdate)
+          showTransientNotice($item, 'success', adminData.strings.roleUpdate)
           loadUsers()
         })
         .catch(() => {
-          showTransientNotice($row, 'error', adminData.strings.roleUpdateError)
+          showTransientNotice($item, 'error', adminData.strings.roleUpdateError)
         })
     })
 
@@ -227,6 +246,10 @@
         alfawz_enable_leaderboard: $('#alfawz-setting-leaderboard').is(':checked') ? 1 : 0,
         alfawz_enable_egg_challenge: $('#alfawz-setting-egg').is(':checked') ? 1 : 0,
         alfawz_daily_verse_target: parseInt($('#alfawz-setting-daily-goal').val(), 10) || 0,
+      }
+
+      if (!window.confirm(__('Apply these platform settings?', 'alfawzquran'))) {
+        return
       }
 
       dashboardRequest({
@@ -265,10 +288,19 @@
         nonce: state.classNonce,
       }
 
+      const confirmMessage = classId
+        ? __('Apply these updates to the class?', 'alfawzquran')
+        : __('Create this class now?', 'alfawzquran')
+
+      if (!window.confirm(confirmMessage)) {
+        return
+      }
+
       dashboardRequest(requestOptions)
         .then(() => {
-          showClassSuccess(classId ? __('Class updated.', 'alfawzquran') : __('Class created.', 'alfawzquran'))
           resetClassForm()
+          setClassFormMode('create')
+          showClassSuccess(classId ? __('Class updated.', 'alfawzquran') : __('Class created.', 'alfawzquran'))
           loadClasses()
         })
         .catch(showClassError)
@@ -281,15 +313,40 @@
       if ($teacherSelect.length) {
         $teacherSelect.val('')
       }
-      $classFeedback.hide().removeClass('notice-error notice-success').text('')
+      $classFeedback
+        .addClass('hidden')
+        .removeClass('bg-red-50 border-red-500 text-red-700 bg-emerald-50 border-emerald-500 text-emerald-800')
+        .text('')
+    }
+
+    function setClassFormMode(mode) {
+      state.classFormMode = mode
+      if (mode === 'edit') {
+        $classFormTitle.text(__('Edit Class', 'alfawzquran'))
+        $classFormSubtitle.text(__('Update class details or reassign the lead teacher.', 'alfawzquran'))
+      } else {
+        $classFormTitle.text(__('Create Class', 'alfawzquran'))
+        $classFormSubtitle.text(__('Provide class details and assign a teacher.', 'alfawzquran'))
+      }
+    }
+
+    function openClassForm(mode = 'create') {
+      setClassFormMode(mode)
+      $classFormPanel.removeClass('hidden')
+    }
+
+    function closeClassForm() {
+      setClassFormMode('create')
+      $classFormPanel.addClass('hidden')
     }
 
     function populateClassForm(classData) {
+      openClassForm('edit')
       $classIdField.val(classData.id)
       $classNameField.val(classData.name)
       $classDescriptionField.val(classData.description || '')
       $teacherSelect.val(classData.teacher ? String(classData.teacher.id) : '')
-      window.scrollTo({ top: $classForm.offset().top - 80, behavior: 'smooth' })
+      window.scrollTo({ top: $classFormPanel.offset().top - 80, behavior: 'smooth' })
     }
 
     function showClassError(error) {
@@ -299,19 +356,27 @@
         message = (error && error.responseJSON && error.responseJSON.message) || __('An unexpected error occurred.', 'alfawzquran')
       }
 
-      $classFeedback.removeClass('notice-success').addClass('notice notice-error').text(message).show()
+      $classFeedback
+        .removeClass('hidden bg-emerald-50 border-emerald-500 text-emerald-800')
+        .addClass('bg-red-50 border-red-500 text-red-700')
+        .text(message)
+        .removeClass('hidden')
     }
 
     function showClassSuccess(message) {
-      $classFeedback.removeClass('notice-error').addClass('notice notice-success').text(message).show()
+      $classFeedback
+        .removeClass('hidden bg-red-50 border-red-500 text-red-700')
+        .addClass('bg-emerald-50 border-emerald-500 text-emerald-800')
+        .text(message)
+        .removeClass('hidden')
       setTimeout(() => {
-        $classFeedback.fadeOut()
+        $classFeedback.addClass('hidden')
       }, 3500)
     }
 
     function renderClasses() {
       if (!state.classes.length) {
-        $classTable.html(`<tr><td colspan="4">${__('No classes found.', 'alfawzquran')}</td></tr>`)
+        $classTable.html(`<tr><td colspan="4" class="px-4 py-4 text-center text-base text-gray-500">${__('No classes found.', 'alfawzquran')}</td></tr>`)
         return
       }
 
@@ -320,17 +385,19 @@
         const studentCount = Array.isArray(classItem.students) ? classItem.students.length : 0
 
         return `
-          <tr data-class-id="${classItem.id}">
-            <td>
-              <strong>${escapeHtml(classItem.name)}</strong>
-              ${classItem.description ? `<p class="description">${escapeHtml(classItem.description)}</p>` : ''}
+          <tr data-class-id="${classItem.id}" class="transition hover:bg-gray-50">
+            <td class="px-4 py-4 align-top">
+              <div class="text-base font-semibold text-gray-900">${escapeHtml(classItem.name)}</div>
+              ${classItem.description ? `<p class="mt-2 text-base text-gray-600">${escapeHtml(classItem.description)}</p>` : ''}
             </td>
-            <td>${escapeHtml(teacherName)}</td>
-            <td>${studentCount}</td>
-            <td>
-              <button type="button" class="button button-small alfawz-manage-students">${__('Enroll Students', 'alfawzquran')}</button>
-              <button type="button" class="button button-link-delete alfawz-delete-class">${__('Delete', 'alfawzquran')}</button>
-              <button type="button" class="button button-link alfawz-edit-class">${__('Edit', 'alfawzquran')}</button>
+            <td class="px-4 py-4 align-top text-base text-gray-700">${escapeHtml(teacherName)}</td>
+            <td class="px-4 py-4 align-top text-base text-gray-700">${studentCount}</td>
+            <td class="px-4 py-4 align-top text-base text-gray-700">
+              <div class="flex flex-wrap gap-3">
+                <button type="button" class="alfawz-manage-students inline-flex items-center rounded-lg border border-blue-600 px-3 py-2 text-base font-semibold text-blue-600 transition hover:bg-blue-50">${__('Manage Students', 'alfawzquran')}</button>
+                <button type="button" class="alfawz-edit-class inline-flex items-center rounded-lg bg-blue-600 px-3 py-2 text-base font-semibold text-white transition hover:bg-blue-700">${__('Edit', 'alfawzquran')}</button>
+                <button type="button" class="alfawz-delete-class inline-flex items-center rounded-lg bg-red-600 px-3 py-2 text-base font-semibold text-white transition hover:bg-red-700">${__('Delete', 'alfawzquran')}</button>
+              </div>
             </td>
           </tr>
         `
@@ -341,15 +408,15 @@
 
     function renderEnrolledStudents(students) {
       if (!students.length) {
-        $enrolledStudents.html(`<li>${__('No students assigned yet.', 'alfawzquran')}</li>`)
+        $enrolledStudents.html(`<li class="text-base text-gray-500">${__('No students assigned yet.', 'alfawzquran')}</li>`)
         return
       }
 
       const items = students.map(student => {
         return `
-          <li data-student-id="${student.id}">
-            <span>${escapeHtml(student.name)}</span>
-            <button type="button" class="button-link alfawz-chip-remove" aria-label="${__('Remove student', 'alfawzquran')}">×</button>
+          <li data-student-id="${student.id}" class="flex items-center gap-2 rounded-full bg-emerald-100 px-3 py-1">
+            <span class="text-base font-medium text-emerald-800">${escapeHtml(student.name)}</span>
+            <button type="button" class="alfawz-chip-remove text-lg font-semibold text-emerald-600 transition hover:text-emerald-800" aria-label="${__('Remove student', 'alfawzquran')}">×</button>
           </li>
         `
       })
@@ -386,18 +453,23 @@
 
       const markup = students
         .map(student => {
-          const disabled = state.classStudents.includes(student.id) ? 'disabled' : ''
-          const label = state.classStudents.includes(student.id)
+          const alreadyEnrolled = state.classStudents.includes(student.id)
+          const disabled = alreadyEnrolled ? 'disabled' : ''
+          const label = alreadyEnrolled
             ? __('Already enrolled', 'alfawzquran')
             : __('Enroll', 'alfawzquran')
 
+          const buttonClasses = alreadyEnrolled
+            ? 'inline-flex items-center rounded-lg bg-gray-200 px-3 py-2 text-base font-semibold text-gray-500 cursor-not-allowed'
+            : 'inline-flex items-center rounded-lg bg-emerald-600 px-3 py-2 text-base font-semibold text-white transition hover:bg-emerald-700'
+
           return `
-            <div class="alfawz-search-result-item">
+            <div class="flex items-center justify-between rounded-lg border border-gray-200 bg-white px-4 py-3 shadow-sm">
               <div>
-                <strong>${escapeHtml(student.name)}</strong><br />
-                <span class="description">${escapeHtml(student.email)}</span>
+                <div class="text-base font-semibold text-gray-800">${escapeHtml(student.name)}</div>
+                <div class="text-base text-gray-500">${escapeHtml(student.email)}</div>
               </div>
-              <button type="button" class="button button-small alfawz-enroll-student" data-student-id="${student.id}" ${disabled}>${label}</button>
+              <button type="button" class="alfawz-enroll-student ${buttonClasses}" data-student-id="${student.id}" ${disabled}>${label}</button>
             </div>
           `
         })
@@ -407,6 +479,10 @@
     }
 
     function updateClassStudents(classId, studentIds) {
+      if (!window.confirm(__('Apply enrollment changes for this class?', 'alfawzquran'))) {
+        return
+      }
+
       dashboardRequest({
         method: 'POST',
         path: `admin/classes/${classId}/students`,
@@ -474,14 +550,12 @@
           $('#alfawz-stat-teachers').text(response.total_teachers || 0)
           $('#alfawz-stat-classes').text(response.total_classes || 0)
           $('#alfawz-stat-plans').text(response.active_plans || 0)
-          $('#alfawz-stat-qaidah').text(response.recent_qaidah || 0)
         })
         .catch(() => {
           $('#alfawz-stat-students').text('—')
           $('#alfawz-stat-teachers').text('—')
           $('#alfawz-stat-classes').text('—')
           $('#alfawz-stat-plans').text('—')
-          $('#alfawz-stat-qaidah').text('—')
         })
     }
 
@@ -506,28 +580,32 @@
 
     function renderUsers(users) {
       if (!users.length) {
-        $userTableBody.html(`<tr><td colspan="5">${__('No users found for this filter.', 'alfawzquran')}</td></tr>`)
+        $userList.html(`<div class="rounded-lg border border-dashed border-gray-300 bg-gray-50 px-4 py-6 text-center text-base text-gray-500">${__('No users found for this filter.', 'alfawzquran')}</div>`)
         return
       }
 
-      const rows = users.map(user => {
+      const items = users.map(user => {
         const roleOptions = buildRoleOptions(user.roles)
         const classLabel = user.class && user.class.label ? escapeHtml(user.class.label) : __('Unassigned', 'alfawzquran')
 
         return `
-          <tr data-user-id="${user.id}">
-            <td>${escapeHtml(user.name)}</td>
-            <td>${escapeHtml(user.email)}</td>
-            <td>
-              <select class="alfawz-role-select">${roleOptions}</select>
-            </td>
-            <td>${classLabel}</td>
-            <td><button type="button" class="button button-small alfawz-update-role">${__('Update', 'alfawzquran')}</button></td>
-          </tr>
+          <div data-user-id="${user.id}" class="flex flex-col gap-4 rounded-xl border border-gray-200 bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+            <div class="space-y-2">
+              <div class="text-base font-semibold text-gray-800">${escapeHtml(user.name)}</div>
+              <div class="text-base text-gray-600">${escapeHtml(user.email)}</div>
+              <div class="text-base text-gray-500">
+                <span class="font-semibold text-gray-700">${__('Assigned Class:', 'alfawzquran')}</span> ${classLabel}
+              </div>
+            </div>
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
+              <select class="alfawz-role-select rounded-lg border border-gray-300 px-3 py-2 text-base focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500" aria-label="${__('Select user role', 'alfawzquran')}">${roleOptions}</select>
+              <button type="button" class="alfawz-update-role inline-flex items-center rounded-lg bg-blue-600 px-4 py-2 text-base font-semibold text-white transition hover:bg-blue-700">${__('Save', 'alfawzquran')}</button>
+            </div>
+          </div>
         `
       })
 
-      $userTableBody.html(rows.join(''))
+      $userList.html(items.join(''))
     }
 
     function buildRoleOptions(roles) {
@@ -566,11 +644,18 @@
     }
 
     function showSettingsMessage(type, message) {
-      $settingsFeedback.removeClass('notice-error notice-success')
-      $settingsFeedback.addClass(type === 'updated' ? 'notice notice-success' : 'notice notice-error')
-      $settingsFeedback.text(message).show()
+      const isSuccess = type === 'updated'
+      $settingsFeedback
+        .removeClass('hidden bg-red-50 border-red-500 text-red-700 bg-emerald-50 border-emerald-500 text-emerald-800')
+        .addClass(
+          isSuccess
+            ? 'bg-emerald-50 border-emerald-500 text-emerald-800'
+            : 'bg-red-50 border-red-500 text-red-700'
+        )
+        .text(message)
+        .removeClass('hidden')
       setTimeout(() => {
-        $settingsFeedback.fadeOut()
+        $settingsFeedback.addClass('hidden')
       }, 3500)
     }
   }
@@ -605,21 +690,25 @@
   }
 
   function showTransientNotice($row, type, message) {
-    const $cell = $row.find('td').last()
-    $cell.find('.alfawz-inline-notice').remove()
+    $row.find('.alfawz-inline-notice').remove()
 
-    const $notice = $('<span>', {
-      class: `alfawz-inline-notice ${type}`,
+    const noticeClass =
+      type === 'success'
+        ? 'alfawz-inline-notice mt-2 text-base font-semibold text-emerald-700'
+        : 'alfawz-inline-notice mt-2 text-base font-semibold text-red-600'
+
+    const $notice = $('<div>', {
+      class: noticeClass,
       text: message,
     })
 
-    $cell.append($notice)
+    $row.append($notice)
 
     setTimeout(() => {
       $notice.fadeOut(200, function () {
         $(this).remove()
       })
-    }, 2500)
+    }, 3200)
   }
 
   function initBoardManager($root) {

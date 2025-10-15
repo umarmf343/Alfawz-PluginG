@@ -189,6 +189,13 @@ class Admin {
     public function enqueue_admin_assets() {
         if ( isset( $_GET['page'] ) && strpos( sanitize_key( wp_unslash( $_GET['page'] ) ), 'alfawz-quran' ) !== false ) {
             wp_enqueue_style(
+                'alfawz-tailwind',
+                'https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css',
+                [],
+                ALFAWZQURAN_VERSION
+            );
+
+            wp_enqueue_style(
                 'alfawz-admin-style',
                 ALFAWZQURAN_PLUGIN_URL . 'assets/css/admin.css',
                 [],

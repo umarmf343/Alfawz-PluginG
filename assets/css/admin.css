@@ -385,20 +385,6 @@
   transform: scale(1.2);
 }
 
-.alfawz-inline-notice {
-  margin-left: 8px;
-  font-size: 12px;
-  font-weight: 600;
-}
-
-.alfawz-inline-notice.success {
-  color: #0f5132;
-}
-
-.alfawz-inline-notice.error {
-  color: #842029;
-}
-
 .button-link-delete {
   color: #b32d2e;
   border: none;
