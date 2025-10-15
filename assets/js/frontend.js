@@ -1376,39 +1376,47 @@
         item.appendChild(iconWrap);
 
         const panel = document.createElement('div');
-        panel.className = 'rounded-2xl border border-slate-200 bg-white/90 p-5 shadow-sm';
+        panel.className = 'alfawz-timeline-card';
 
         const titleEl = document.createElement('p');
-        titleEl.className = 'text-lg font-semibold text-slate-900';
+        titleEl.className = 'alfawz-timeline-title';
         titleEl.textContent = title;
         panel.appendChild(titleEl);
 
         if (subtitle) {
           const subtitleEl = document.createElement('p');
-          subtitleEl.className = 'mt-1 text-base font-medium text-emerald-700';
+          subtitleEl.className = 'alfawz-timeline-subtitle';
           subtitleEl.textContent = subtitle;
           panel.appendChild(subtitleEl);
         }
 
         if (detail) {
           const detailEl = document.createElement('p');
-          detailEl.className = 'mt-2 text-base text-slate-600';
+          detailEl.className = 'alfawz-timeline-detail';
           detailEl.textContent = detail;
           panel.appendChild(detailEl);
         }
 
         if (progress) {
           const progressTrack = document.createElement('div');
-          progressTrack.className = 'mt-3 h-2 w-full overflow-hidden rounded-full bg-slate-200';
+          progressTrack.className = 'alfawz-timeline-progress';
           const progressFill = document.createElement('div');
-          progressFill.className = `h-2 rounded-full transition-all duration-700 ease-out ${progress.accentClass || 'bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600'}`;
+          progressFill.className = 'alfawz-timeline-progress-fill';
+          if (progress.accentClass) {
+            progress.accentClass
+              .split(' ')
+              .filter(Boolean)
+              .forEach((cls) => progressFill.classList.add(cls));
+          } else {
+            progressFill.classList.add('alfawz-progress-accent');
+          }
           progressFill.style.width = `${Math.max(0, Math.min(100, progress.value || 0))}%`;
           progressTrack.appendChild(progressFill);
           panel.appendChild(progressTrack);
 
           if (progress.label) {
             const progressLabel = document.createElement('p');
-            progressLabel.className = 'mt-2 text-base font-medium text-slate-600';
+            progressLabel.className = 'alfawz-timeline-progress-label';
             progressLabel.textContent = progress.label;
             panel.appendChild(progressLabel);
           }
@@ -1416,7 +1424,7 @@
 
         if (accent) {
           const accentEl = document.createElement('p');
-          accentEl.className = 'mt-2 text-base font-semibold text-amber-600';
+          accentEl.className = 'alfawz-timeline-accent';
           accentEl.textContent = accent;
           panel.appendChild(accentEl);
         }
@@ -1425,13 +1433,13 @@
         return item;
       };
 
-      if (list.length === 0) {
-        const encouragement = document.createElement('div');
-        encouragement.className = 'rounded-2xl border border-emerald-100 bg-emerald-50/80 p-5 text-base font-medium text-emerald-700 shadow-sm';
-        encouragement.textContent = 'Begin your first memorization plan to start recording milestones.';
-        timelineEl.appendChild(encouragement);
-        return;
-      }
+        if (list.length === 0) {
+          const encouragement = document.createElement('div');
+          encouragement.className = 'alfawz-timeline-card text-base font-semibold text-[#741f31]';
+          encouragement.textContent = 'Begin your first memorization plan to start recording milestones.';
+          timelineEl.appendChild(encouragement);
+          return;
+        }
 
       const completedPlan = list.find((plan) => Number(plan?.completion_percentage || 0) >= 100 || String(plan?.status || '').toLowerCase() === 'completed');
       if (completedPlan) {
@@ -1455,12 +1463,12 @@
             accent,
           })
         );
-      } else {
-        const awaiting = document.createElement('div');
-        awaiting.className = 'rounded-2xl border border-emerald-100 bg-emerald-50/70 p-5 text-base font-medium text-emerald-700 shadow-sm';
-        awaiting.textContent = 'Your first completion is on the horizon—stay consistent and it will arrive soon.';
-        timelineEl.appendChild(awaiting);
-      }
+        } else {
+          const awaiting = document.createElement('div');
+          awaiting.className = 'alfawz-timeline-card text-base font-semibold text-[#741f31]';
+          awaiting.textContent = 'Your first completion is on the horizon—stay consistent and it will arrive soon.';
+          timelineEl.appendChild(awaiting);
+        }
 
       const activePlan = list.find((plan) => Number(plan?.completion_percentage || 0) < 100);
       if (activePlan) {
