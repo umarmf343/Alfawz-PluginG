@@ -1561,10 +1561,10 @@
   margin: 0 auto;
   padding: clamp(2.5rem, 5vw, 3.75rem);
   border-radius: var(--alfawz-radius-xl);
-  background: linear-gradient(140deg, rgba(74, 12, 24, 0.96), rgba(116, 31, 49, 0.92) 55%, rgba(255, 215, 188, 0.38));
-  color: var(--alfawz-milk);
-  box-shadow: 0 48px 88px rgba(47, 8, 17, 0.28);
-  border: 1px solid rgba(255, 244, 230, 0.18);
+  background: linear-gradient(140deg, rgba(15, 23, 42, 0.97), rgba(30, 41, 59, 0.94) 55%, rgba(56, 91, 146, 0.88));
+  color: #f8fafc;
+  box-shadow: 0 48px 88px rgba(15, 23, 42, 0.35);
+  border: 1px solid rgba(148, 163, 184, 0.28);
   overflow: hidden;
   isolation: isolate;
 }
@@ -1574,9 +1574,9 @@
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(65% 65% at 18% 14%, rgba(255, 224, 186, 0.48), transparent 70%),
-    radial-gradient(50% 50% at 85% 12%, rgba(245, 159, 130, 0.28), transparent 62%),
-    radial-gradient(55% 55% at 50% 90%, rgba(255, 244, 230, 0.18), transparent 70%);
+    radial-gradient(65% 65% at 18% 14%, rgba(148, 197, 255, 0.45), transparent 70%),
+    radial-gradient(50% 50% at 85% 12%, rgba(96, 165, 250, 0.32), transparent 62%),
+    radial-gradient(55% 55% at 50% 90%, rgba(59, 130, 246, 0.18), transparent 70%);
   pointer-events: none;
   z-index: 0;
   mix-blend-mode: screen;
@@ -1587,8 +1587,8 @@
   inset: -25% -20% auto -20%;
   height: 130%;
   background:
-    radial-gradient(circle at 25% 30%, rgba(255, 231, 214, 0.45), transparent 60%),
-    radial-gradient(circle at 65% 80%, rgba(245, 159, 130, 0.28), transparent 65%);
+    radial-gradient(circle at 25% 30%, rgba(148, 197, 255, 0.4), transparent 60%),
+    radial-gradient(circle at 65% 80%, rgba(96, 165, 250, 0.32), transparent 65%);
   filter: blur(45px);
   opacity: 0.75;
   animation: alfawz-aurora 18s ease-in-out infinite alternate;
@@ -1599,8 +1599,8 @@
 .alfawz-dashboard-aurora--accent {
   inset: auto -30% -35% 15%;
   background:
-    radial-gradient(circle at 20% 60%, rgba(168, 50, 84, 0.65), transparent 65%),
-    radial-gradient(circle at 80% 40%, rgba(255, 244, 230, 0.25), transparent 60%);
+    radial-gradient(circle at 20% 60%, rgba(59, 130, 246, 0.5), transparent 65%),
+    radial-gradient(circle at 80% 40%, rgba(148, 197, 255, 0.25), transparent 60%);
   animation-duration: 22s;
   animation-delay: -4s;
 }
