@@ -1757,44 +1757,333 @@
       state.refreshLeaderboard = null;
       return;
     }
+
     const tbody = qs('#alfawz-leaderboard-body', root);
     const updated = qs('#alfawz-leaderboard-updated', root);
+    const podium = qs('#alfawz-leaderboard-podium', root);
+    const podiumWrapper = root.querySelector('[data-leaderboard-podium-wrapper]');
+    const emptyState = qs('#alfawz-leaderboard-empty', root);
+    const refreshButton = qs('#alfawz-leaderboard-refresh', root);
+    const refreshIcon = refreshButton ? refreshButton.querySelector('[data-refresh-icon]') : null;
+    const refreshSpinner = refreshButton ? refreshButton.querySelector('[data-refresh-spinner]') : null;
+    const totalEl = qs('#alfawz-leaderboard-total', root);
+    const topVersesEl = qs('#alfawz-leaderboard-verses', root);
+    const topHasanatEl = qs('#alfawz-leaderboard-hasanat', root);
+
     if (!tbody) {
       state.refreshLeaderboard = null;
       return;
     }
 
+    const setRefreshState = (loading) => {
+      if (!refreshButton) {
+        return;
+      }
+      refreshButton.disabled = Boolean(loading);
+      if (loading) {
+        refreshButton.setAttribute('aria-busy', 'true');
+      } else {
+        refreshButton.removeAttribute('aria-busy');
+      }
+      if (refreshIcon) {
+        refreshIcon.classList.toggle('hidden', Boolean(loading));
+      }
+      if (refreshSpinner) {
+        refreshSpinner.classList.toggle('hidden', !loading);
+      }
+    };
+
+    const initialsFor = (name) => {
+      if (!name) {
+        return '—';
+      }
+      const words = String(name)
+        .trim()
+        .split(/\s+/)
+        .filter(Boolean);
+      if (!words.length) {
+        return '—';
+      }
+      if (words.length === 1) {
+        return words[0].slice(0, 2).toUpperCase();
+      }
+      return `${(words[0][0] || '').toUpperCase()}${(words[1][0] || '').toUpperCase()}`;
+    };
+
+    const podiumLabel = (rank) => {
+      if (rank === 1) {
+        return '1st place';
+      }
+      if (rank === 2) {
+        return '2nd place';
+      }
+      if (rank === 3) {
+        return '3rd place';
+      }
+      return `${rank}th place`;
+    };
+
+    const differenceLabel = (rank, verses, leaderVerses) => {
+      const total = Number(verses || 0);
+      const leader = Number(leaderVerses || 0);
+      if (rank === 1) {
+        return 'Leading this week';
+      }
+      if (leader <= 0) {
+        return 'Building momentum';
+      }
+      const diff = leader - total;
+      if (diff <= 0) {
+        return 'Tied with the leader';
+      }
+      return `${formatNumber(diff)} verses behind`;
+    };
+
+    const percentOfLeader = (value, leader) => {
+      const leaderValue = Number(leader || 0);
+      if (!leaderValue) {
+        return 0;
+      }
+      return Math.max(0, Math.min(100, Math.round((Number(value || 0) / leaderValue) * 100)));
+    };
+
+    const renderPodiumSkeleton = () => {
+      if (!podium) {
+        return;
+      }
+      podium.setAttribute('aria-busy', 'true');
+      if (podium.children.length) {
+        return;
+      }
+      podium.dataset.skeleton = 'true';
+      podium.innerHTML = '';
+      for (let index = 0; index < 3; index += 1) {
+        const card = document.createElement('article');
+        card.className = 'alfawz-leaderboard-podium-card animate-pulse bg-white/40';
+        card.innerHTML = `
+          <div class="flex items-center gap-4">
+            <div class="h-14 w-14 rounded-full bg-[#fbe4d6]"></div>
+            <div class="space-y-3">
+              <div class="h-4 w-28 rounded-full bg-[#f3d7c7]"></div>
+              <div class="h-3 w-24 rounded-full bg-[#f7ddce]"></div>
+            </div>
+          </div>
+          <div class="mt-6 space-y-3">
+            <div class="h-3 w-full rounded-full bg-[#fcefe6]"></div>
+            <div class="h-3 w-3/4 rounded-full bg-[#f7ddce]"></div>
+          </div>
+        `;
+        podium.appendChild(card);
+      }
+    };
+
+    const renderTableSkeleton = () => {
+      if (!tbody) {
+        return;
+      }
+      tbody.setAttribute('aria-busy', 'true');
+      if (tbody.children.length) {
+        return;
+      }
+      tbody.dataset.skeleton = 'true';
+      tbody.innerHTML = '';
+      for (let index = 0; index < 6; index += 1) {
+        const tr = document.createElement('tr');
+        tr.className = 'animate-pulse';
+        tr.innerHTML = `
+          <td class="px-6 py-4">
+            <div class="h-4 w-8 rounded-full bg-[#f3d7c7]"></div>
+          </td>
+          <td class="px-6 py-4">
+            <div class="flex items-center gap-4">
+              <div class="h-11 w-11 rounded-full bg-[#fbe4d6]"></div>
+              <div class="space-y-3">
+                <div class="h-4 w-32 rounded-full bg-[#f7ddce]"></div>
+                <div class="h-3 w-24 rounded-full bg-[#fcefe6]"></div>
+              </div>
+            </div>
+          </td>
+          <td class="px-6 py-4 text-right">
+            <div class="space-y-3">
+              <div class="ml-auto h-4 w-16 rounded-full bg-[#f7ddce]"></div>
+              <div class="ml-auto h-2 w-24 rounded-full bg-[#fcefe6]"></div>
+            </div>
+          </td>
+          <td class="px-6 py-4 text-right">
+            <div class="ml-auto h-4 w-20 rounded-full bg-[#f3d7c7]"></div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      }
+    };
+
+    const renderSkeleton = () => {
+      renderPodiumSkeleton();
+      renderTableSkeleton();
+      toggleHidden(emptyState, false);
+    };
+
+    const renderPodium = (entries, leaderVerses) => {
+      if (!podium) {
+        return;
+      }
+      podium.innerHTML = '';
+      const medals = ['🥇', '🥈', '🥉'];
+      entries.forEach((entry, index) => {
+        const rank = index + 1;
+        const verses = Number(entry?.verses_read || 0);
+        const percent = percentOfLeader(verses, leaderVerses || verses);
+        const card = document.createElement('article');
+        card.className = 'alfawz-leaderboard-podium-card';
+        card.dataset.rank = String(rank);
+        card.setAttribute('data-animate', 'rise');
+        card.style.animationDelay = `${index * 90}ms`;
+        card.innerHTML = `
+          <div class="alfawz-leaderboard-medal" aria-hidden="true">${medals[index] || '🏅'}</div>
+          <div class="space-y-6">
+            <div class="flex items-center gap-4">
+              <div class="relative h-14 w-14 overflow-hidden rounded-full bg-white/80 shadow-lg">
+                <span class="absolute inset-0 flex items-center justify-center text-lg font-semibold text-[#741f31]">${initialsFor(entry?.display_name)}</span>
+              </div>
+              <div class="space-y-1">
+                <p class="text-xs font-semibold uppercase tracking-[0.3em] text-[#741f31]/70">${podiumLabel(rank)}</p>
+                <h3 class="text-xl font-semibold text-[#2f0811]">${entry?.display_name || '—'}</h3>
+                <p class="text-sm text-[#741f31]/70">${differenceLabel(rank, verses, leaderVerses)}</p>
+              </div>
+            </div>
+            <dl class="grid grid-cols-2 gap-4 text-sm text-[#4b0d18]/80">
+              <div>
+                <dt class="text-xs font-semibold uppercase tracking-[0.3em] text-[#741f31]/60">Verses</dt>
+                <dd class="text-lg font-semibold text-[#2f0811]">${formatNumber(verses)}</dd>
+              </div>
+              <div>
+                <dt class="text-xs font-semibold uppercase tracking-[0.3em] text-[#741f31]/60">Hasanat</dt>
+                <dd class="text-lg font-semibold text-[#a83254]">${formatNumber(entry?.total_hasanat || 0)}</dd>
+              </div>
+            </dl>
+            <div class="mt-4 space-y-2">
+              <div class="alfawz-leaderboard-progress" style="--alfawz-progress:${percent}%">
+                <span class="sr-only">${percent}% of leader</span>
+              </div>
+              <p class="text-xs font-medium uppercase tracking-[0.3em] text-[#a83254]/70">${percent}% of leader</p>
+            </div>
+          </div>
+        `;
+        podium.appendChild(card);
+      });
+      podium.removeAttribute('aria-busy');
+      delete podium.dataset.skeleton;
+    };
+
+    const renderRows = (entries, leaderVerses, offset = 0) => {
+      tbody.innerHTML = '';
+      entries.forEach((entry, index) => {
+        const rank = offset + index + 1;
+        const verses = Number(entry?.verses_read || 0);
+        const percent = percentOfLeader(verses, leaderVerses || verses);
+        const tr = document.createElement('tr');
+        tr.className = 'transition-all duration-300 hover:bg-[#fff4e6]/70 focus-within:bg-[#fff4e6]/80';
+        tr.dataset.rank = String(rank);
+        tr.setAttribute('data-animate', 'rise');
+        tr.style.animationDelay = `${index * 45}ms`;
+        tr.innerHTML = `
+          <td class="px-6 py-4 text-base font-semibold text-[#741f31]">${rank}</td>
+          <td class="px-6 py-4">
+            <div class="flex items-center gap-4">
+              <span class="relative flex h-11 w-11 items-center justify-center rounded-full bg-[#fbe4d6] text-base font-semibold text-[#741f31] shadow-inner">${initialsFor(entry?.display_name)}</span>
+              <div class="space-y-1">
+                <p class="font-semibold text-[#2f0811]">${entry?.display_name || '—'}</p>
+                <p class="text-xs text-[#a83254]/70">${differenceLabel(rank, verses, leaderVerses)}</p>
+              </div>
+            </div>
+          </td>
+          <td class="px-6 py-4 text-right">
+            <div class="space-y-2">
+              <p class="text-sm font-semibold text-[#4b0d18]">${formatNumber(verses)}</p>
+              <div class="alfawz-leaderboard-progress" style="--alfawz-progress:${percent}%">
+                <span class="sr-only">${percent}% of leader</span>
+              </div>
+              <p class="text-xs font-medium uppercase tracking-[0.3em] text-[#a83254]/60">${percent}% of leader</p>
+            </div>
+          </td>
+          <td class="px-6 py-4 text-right text-base font-semibold text-[#a83254]">${formatNumber(entry?.total_hasanat || 0)}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+      tbody.removeAttribute('aria-busy');
+      delete tbody.dataset.skeleton;
+    };
+
+    const updateSummaries = (entries, leaderVerses, leaderHasanat) => {
+      setText(totalEl, formatNumber(entries.length || 0));
+      setText(topVersesEl, formatNumber(leaderVerses || 0));
+      setText(topHasanatEl, formatNumber(leaderHasanat || 0));
+    };
+
     const loadLeaderboard = async () => {
       if (state.leaderboardLoading) {
         return state.leaderboardLoading;
       }
-      tbody.setAttribute('aria-busy', 'true');
+
+      renderSkeleton();
+      setRefreshState(true);
+
       const request = (async () => {
         try {
           const leaderboard = await apiRequest('leaderboard');
-          tbody.innerHTML = '';
-          (leaderboard || []).forEach((entry, index) => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-              <td class="px-4 py-3 text-sm font-semibold text-slate-500">${index + 1}</td>
-              <td class="px-4 py-3">
-                <div class="flex items-center gap-3">
-                  <span class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-emerald-100 text-sm font-semibold text-emerald-700">${(entry.display_name || '?').slice(0, 2)}</span>
-                  <span class="font-semibold text-slate-900">${entry.display_name || '—'}</span>
-                </div>
-              </td>
-              <td class="px-4 py-3 text-right text-sm font-semibold text-slate-700">${formatNumber(entry.verses_read || 0)}</td>
-              <td class="px-4 py-3 text-right text-sm font-semibold text-emerald-600">${formatNumber(entry.total_hasanat || 0)}</td>
-            `;
-            tbody.appendChild(tr);
-          });
+          const entries = Array.isArray(leaderboard) ? leaderboard : [];
+          const leaderVerses = entries.reduce((max, item) => {
+            const verses = Number(item?.verses_read || 0);
+            return verses > max ? verses : max;
+          }, 0);
+          const topEntries = entries.slice(0, 3);
+          const leaderHasanat = topEntries.length ? Number(topEntries[0]?.total_hasanat || 0) : 0;
+
+          if (topEntries.length) {
+            renderPodium(topEntries, leaderVerses || Number(topEntries[0]?.verses_read || 0));
+          } else if (podium) {
+            podium.innerHTML = '';
+            podium.removeAttribute('aria-busy');
+            delete podium.dataset.skeleton;
+          }
+
+          if (entries.length) {
+            renderRows(entries, leaderVerses || Number(topEntries[0]?.verses_read || 0), 0);
+          } else {
+            tbody.innerHTML = '';
+            tbody.removeAttribute('aria-busy');
+            delete tbody.dataset.skeleton;
+          }
+
+          toggleHidden(emptyState, entries.length === 0);
+          if (podiumWrapper) {
+            toggleHidden(podiumWrapper, topEntries.length > 0);
+          }
+
+          updateSummaries(entries, leaderVerses || Number(topEntries[0]?.verses_read || 0), leaderHasanat);
+
           if (updated) {
-            updated.textContent = `Updated ${new Date().toLocaleTimeString()}`;
+            updated.textContent = entries.length
+              ? `Updated ${new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`
+              : 'Waiting for first entries';
           }
         } catch (error) {
           console.warn('[AlfawzQuran] Unable to load leaderboard', error);
+          if (updated) {
+            updated.textContent = 'Unable to refresh leaderboard';
+          }
+          if (tbody && tbody.dataset.skeleton) {
+            tbody.innerHTML = '';
+            delete tbody.dataset.skeleton;
+          }
+          if (podium && podium.dataset.skeleton) {
+            podium.innerHTML = '';
+            delete podium.dataset.skeleton;
+          }
         } finally {
+          setRefreshState(false);
           tbody.removeAttribute('aria-busy');
+          podium?.removeAttribute('aria-busy');
           state.leaderboardLoading = null;
         }
       })();
@@ -1802,6 +2091,12 @@
       state.leaderboardLoading = request;
       return request;
     };
+
+    if (refreshButton) {
+      refreshButton.addEventListener('click', () => {
+        loadLeaderboard();
+      });
+    }
 
     state.refreshLeaderboard = loadLeaderboard;
     loadLeaderboard();
