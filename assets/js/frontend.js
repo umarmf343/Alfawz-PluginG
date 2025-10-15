@@ -3,7 +3,10 @@
   const API_BASE = (wpData.apiUrl || '/wp-json/alfawzquran/v1/').replace(/\/+$/, '/');
   const AL_QURAN_API_BASE = 'https://api.alquran.cloud/v1/';
   const QURAN_AUDIO_CDN_BASE = 'https://cdn.islamic.network/quran/audio/128/';
-  const RECITER_EDITION = wpData.defaultReciter || 'ar.alafasy';
+  const CDN_FALLBACK_RECITER = 'ar.alafasy';
+  const GWANI_ARCHIVE_RECITER = 'gwani-dahir';
+  const GWANI_ARCHIVE_BASE = 'https://archive.org/download/MoshafGwaniDahir/';
+  const RECITER_EDITION = wpData.defaultReciter || CDN_FALLBACK_RECITER;
   let currentReciter = wpData.userPreferences?.default_reciter || RECITER_EDITION;
   const TRANSLATION_EDITION = wpData.defaultTranslation || 'en.sahih';
   const TRANSLITERATION_EDITION = wpData.defaultTransliteration || 'en.transliteration';
@@ -209,14 +212,48 @@
     return null;
   };
 
-  const buildAudioCdnUrl = (reciter, surahId, verseId) => {
-    const safeReciter = reciter || 'ar.alafasy';
-    const paddedSurah = String(Number(surahId || 0)).padStart(3, '0');
-    const paddedVerse = String(Number(verseId || 0)).padStart(3, '0');
-    if (!Number(surahId) || !Number(verseId)) {
+  const padAudioFragment = (value) => {
+    const numeric = Number(value || 0);
+    if (!numeric) {
       return '';
     }
+    return String(numeric).padStart(3, '0');
+  };
+
+  const isArchiveReciter = (reciter) => (reciter || '').toLowerCase() === GWANI_ARCHIVE_RECITER;
+
+  const buildArchiveVerseUrl = (surahId, verseId) => {
+    const paddedSurah = padAudioFragment(surahId);
+    const paddedVerse = padAudioFragment(verseId);
+    if (!paddedSurah || !paddedVerse) {
+      return '';
+    }
+    return `${GWANI_ARCHIVE_BASE}${paddedSurah}${paddedVerse}.mp3`;
+  };
+
+  const buildArchiveSurahUrl = (surahId) => {
+    const paddedSurah = padAudioFragment(surahId);
+    if (!paddedSurah) {
+      return '';
+    }
+    return `${GWANI_ARCHIVE_BASE}${paddedSurah}.mp3`;
+  };
+
+  const buildCdnAudioUrl = (reciter, surahId, verseId) => {
+    const paddedSurah = padAudioFragment(surahId);
+    const paddedVerse = padAudioFragment(verseId);
+    if (!paddedSurah || !paddedVerse) {
+      return '';
+    }
+    const safeReciter = reciter || CDN_FALLBACK_RECITER;
     return `${QURAN_AUDIO_CDN_BASE}${safeReciter}/${paddedSurah}${paddedVerse}.mp3`;
+  };
+
+  const buildAudioUrl = (reciter, surahId, verseId) => {
+    if (isArchiveReciter(reciter)) {
+      return buildArchiveVerseUrl(surahId, verseId);
+    }
+    return buildCdnAudioUrl(reciter, surahId, verseId);
   };
 
   const normaliseAlQuranVerse = (
@@ -363,7 +400,7 @@
     const arabicPayload = extractAyahPayload(arabicResponse);
     const translationPayload = extractAyahPayload(translationResponse);
     const transliterationPayload = extractAyahPayload(transliterationResponse);
-    const audioUrl = buildAudioCdnUrl(currentReciter || RECITER_EDITION, surahId, verseId);
+    const audioUrl = buildAudioUrl(currentReciter || RECITER_EDITION, surahId, verseId);
 
     const verse = normaliseAlQuranVerse(
       arabicPayload,
@@ -440,7 +477,7 @@
             }
             const translationAyah = translationMap.get(verseId) || null;
             const transliterationAyah = transliterationMap.get(verseId) || null;
-            const audioUrl = buildAudioCdnUrl(currentReciter || RECITER_EDITION, surahId, verseId);
+            const audioUrl = buildAudioUrl(currentReciter || RECITER_EDITION, surahId, verseId);
             return normaliseAlQuranVerse(ayah, translationAyah, transliterationAyah, surahId, verseId, audioUrl);
           })
           .filter(Boolean);
@@ -467,16 +504,21 @@
     return request;
   };
 
-  const loadAudio = async (surahId, verseId) => {
-    const reciter = currentReciter || RECITER_EDITION || 'ar.alafasy';
-    const cacheKey = `${reciter}:${surahId}:${verseId}`;
+  const loadReciterAudio = (reciter, surahId, verseId) => {
+    const safeReciter = reciter || CDN_FALLBACK_RECITER;
+    const cacheKey = `${safeReciter}:${surahId}:${verseId}`;
     if (state.audioCache.has(cacheKey)) {
       return state.audioCache.get(cacheKey);
     }
 
-    const audioUrl = buildAudioCdnUrl(reciter, surahId, verseId);
+    const audioUrl = buildAudioUrl(safeReciter, surahId, verseId);
     state.audioCache.set(cacheKey, audioUrl);
     return audioUrl;
+  };
+
+  const loadAudio = async (surahId, verseId) => {
+    const reciter = currentReciter || RECITER_EDITION || CDN_FALLBACK_RECITER;
+    return loadReciterAudio(reciter, surahId, verseId);
   };
 
   const setText = (element, value) => {
@@ -1128,6 +1170,21 @@
       return audioElement;
     };
 
+    const getAudioSourceMeta = () => {
+      const reciter = currentReciter || RECITER_EDITION || CDN_FALLBACK_RECITER;
+      const archive = isArchiveReciter(reciter);
+      return {
+        reciter,
+        isArchive: archive,
+        waitingLabel: archive ? 'Archive · waiting' : 'CDN · waiting',
+        resolvingLabel: archive ? 'Archive · resolving' : 'CDN · resolving',
+        unavailableLabel: archive ? 'Archive · unavailable' : 'CDN · unavailable',
+        fallbackLabel: archive ? 'Backup · CDN' : 'CDN · primary',
+        fallbackTheme: archive ? 'rose' : 'emerald',
+        fallbackReciter: archive ? CDN_FALLBACK_RECITER : reciter,
+      };
+    };
+
     const resetAudio = (message, { keepSource = false } = {}) => {
       audioLoadToken += 1;
       const audio = ensureAudioElement();
@@ -1146,7 +1203,8 @@
       setAudioProgress(0);
       updateAudioTimes(0, 0);
       if (!keepSource) {
-        setAudioSourceBadge('Archive · waiting', 'emerald');
+        const sourceMeta = getAudioSourceMeta();
+        setAudioSourceBadge(sourceMeta.waitingLabel, 'emerald');
       }
       setAudioStatus(message || 'Select a verse to load the recitation.');
       updateAudioToggle();
@@ -1206,23 +1264,6 @@
         audio.load();
       });
 
-    const buildArchiveVerseUrl = (surahId, verseId) => {
-      if (!surahId || !verseId) {
-        return '';
-      }
-      const surahPart = String(surahId).padStart(3, '0');
-      const versePart = String(verseId).padStart(3, '0');
-      return `https://archive.org/download/MoshafGwaniDahir/${surahPart}${versePart}.mp3`;
-    };
-
-    const buildArchiveSurahUrl = (surahId) => {
-      if (!surahId) {
-        return '';
-      }
-      const surahPart = String(surahId).padStart(3, '0');
-      return `https://archive.org/download/MoshafGwaniDahir/${surahPart}.mp3`;
-    };
-
     const prepareAudio = async (surahId, verseId, verse) => {
       if (!audioPanel || !surahId || !verseId) {
         return;
@@ -1244,28 +1285,30 @@
       setAudioProgress(0);
       updateAudioTimes(0, 0);
       const surahName = verse?.surahName || currentSurah?.englishName || `Surah ${surahId}`;
+      const sourceMeta = getAudioSourceMeta();
       setAudioLabel(`${surahName} • Ayah ${verseId}`);
       setAudioStatus('Loading recitation…');
-      setAudioSourceBadge('Archive · resolving', 'emerald');
+      setAudioSourceBadge(sourceMeta.resolvingLabel, 'emerald');
       updateAudioToggle();
       updateAudioPanelState();
 
-      const verseUrl = buildArchiveVerseUrl(surahId, verseId);
-      const surahUrl = buildArchiveSurahUrl(surahId);
+      const candidates = [];
+      if (sourceMeta.isArchive) {
+        const verseUrl = buildArchiveVerseUrl(surahId, verseId);
+        const surahUrl = buildArchiveSurahUrl(surahId);
+        candidates.push({ loader: () => attemptLoadCandidate(verseUrl, 'Archive · ayah', 'emerald') });
+        candidates.push({ loader: () => attemptLoadCandidate(surahUrl, 'Archive · surah', 'amber') });
+      }
 
-      const candidates = [
-        { loader: () => attemptLoadCandidate(verseUrl, 'Archive · ayah', 'emerald') },
-        { loader: () => attemptLoadCandidate(surahUrl, 'Archive · surah', 'amber') },
-        {
-          loader: async () => {
-            const fallbackUrl = await loadAudio(surahId, verseId);
-            if (!fallbackUrl) {
-              throw new Error('Fallback unavailable');
-            }
-            return attemptLoadCandidate(fallbackUrl, 'Backup · CDN', 'rose');
-          },
+      candidates.push({
+        loader: () => {
+          const fallbackUrl = loadReciterAudio(sourceMeta.fallbackReciter, surahId, verseId);
+          if (!fallbackUrl) {
+            return Promise.reject(new Error('Fallback unavailable'));
+          }
+          return attemptLoadCandidate(fallbackUrl, sourceMeta.fallbackLabel, sourceMeta.fallbackTheme);
         },
-      ];
+      });
 
       let resolved = null;
       for (const candidate of candidates) {
@@ -1287,7 +1330,7 @@
       if (!resolved) {
         audioReady = false;
         setAudioStatus('Audio not available for this verse yet.');
-        setAudioSourceBadge('Archive · unavailable', 'rose');
+        setAudioSourceBadge(sourceMeta.unavailableLabel, 'rose');
         updateAudioToggle();
         updateAudioPanelState();
         return;
