@@ -176,6 +176,26 @@ class Routes {
 
         register_rest_route(
             $namespace,
+            '/user-preferences',
+            [
+                'methods'             => WP_REST_Server::READABLE,
+                'callback'            => [ $this, 'get_user_preferences' ],
+                'permission_callback' => [ $this, 'check_permission' ],
+            ]
+        );
+
+        register_rest_route(
+            $namespace,
+            '/user-preferences',
+            [
+                'methods'             => WP_REST_Server::CREATABLE,
+                'callback'            => [ $this, 'update_user_preferences' ],
+                'permission_callback' => [ $this, 'check_permission' ],
+            ]
+        );
+
+        register_rest_route(
+            $namespace,
             '/recitation-goal',
             [
                 'methods'             => 'GET',
@@ -506,6 +526,65 @@ class Routes {
         $stats['daily_goal'] = $this->prepare_daily_goal_state( $user_id, $timezone_offset );
 
         return new \WP_REST_Response( $stats, 200 );
+    }
+
+    public function get_user_preferences( WP_REST_Request $request ) {
+        $user_id = get_current_user_id();
+        if ( empty( $user_id ) ) {
+            return new WP_REST_Response( [ 'success' => false, 'message' => 'User not logged in.' ], 401 );
+        }
+
+        return new WP_REST_Response( $this->prepare_user_preferences( $user_id ), 200 );
+    }
+
+    public function update_user_preferences( WP_REST_Request $request ) {
+        $user_id = get_current_user_id();
+        if ( empty( $user_id ) ) {
+            return new WP_REST_Response( [ 'success' => false, 'message' => 'User not logged in.' ], 401 );
+        }
+
+        $params = $request->get_json_params();
+        if ( empty( $params ) ) {
+            $params = $request->get_params();
+        }
+
+        $map = [
+            'default_reciter'         => 'alfawz_pref_default_reciter',
+            'default_translation'     => 'alfawz_pref_default_translation',
+            'default_transliteration' => 'alfawz_pref_default_transliteration',
+            'hasanat_per_letter'      => 'alfawz_pref_hasanat_per_letter',
+            'daily_verse_target'      => 'alfawz_pref_daily_target',
+            'enable_leaderboard'      => 'alfawz_pref_enable_leaderboard',
+        ];
+
+        foreach ( $map as $key => $meta_key ) {
+            if ( ! array_key_exists( $key, $params ) ) {
+                continue;
+            }
+
+            $value = $params[ $key ];
+
+            switch ( $key ) {
+                case 'default_reciter':
+                case 'default_translation':
+                    update_user_meta( $user_id, $meta_key, sanitize_text_field( $value ) );
+                    break;
+                case 'default_transliteration':
+                    update_user_meta( $user_id, $meta_key, sanitize_text_field( $value ) );
+                    break;
+                case 'hasanat_per_letter':
+                    update_user_meta( $user_id, $meta_key, max( 1, absint( $value ) ) );
+                    break;
+                case 'daily_verse_target':
+                    update_user_meta( $user_id, $meta_key, max( 1, absint( $value ) ) );
+                    break;
+                case 'enable_leaderboard':
+                    update_user_meta( $user_id, $meta_key, $value ? 1 : 0 );
+                    break;
+            }
+        }
+
+        return new WP_REST_Response( $this->prepare_user_preferences( $user_id ), 200 );
     }
 
     /**
@@ -2026,6 +2105,47 @@ class Routes {
             ],
             200
         );
+    }
+
+    private function prepare_user_preferences( $user_id ) {
+        $defaults = [
+            'default_reciter'         => get_option( 'alfawz_default_reciter', 'ar.alafasy' ),
+            'default_translation'     => get_option( 'alfawz_default_translation', 'en.sahih' ),
+            'default_transliteration' => get_option( 'alfawz_default_transliteration', 'en.transliteration' ),
+            'hasanat_per_letter'      => (int) get_option( 'alfawz_hasanat_per_letter', 10 ),
+            'daily_verse_target'      => (int) get_option( 'alfawz_daily_verse_target', 10 ),
+            'enable_leaderboard'      => (bool) get_option( 'alfawz_enable_leaderboard', 1 ),
+        ];
+
+        $map = [
+            'default_reciter'         => 'alfawz_pref_default_reciter',
+            'default_translation'     => 'alfawz_pref_default_translation',
+            'default_transliteration' => 'alfawz_pref_default_transliteration',
+            'hasanat_per_letter'      => 'alfawz_pref_hasanat_per_letter',
+            'daily_verse_target'      => 'alfawz_pref_daily_target',
+            'enable_leaderboard'      => 'alfawz_pref_enable_leaderboard',
+        ];
+
+        $preferences = [];
+
+        foreach ( $map as $key => $meta_key ) {
+            $value = get_user_meta( $user_id, $meta_key, true );
+
+            if ( '' === $value || null === $value ) {
+                $preferences[ $key ] = $defaults[ $key ];
+                continue;
+            }
+
+            if ( 'enable_leaderboard' === $key ) {
+                $preferences[ $key ] = (bool) $value;
+            } elseif ( in_array( $key, [ 'hasanat_per_letter', 'daily_verse_target' ], true ) ) {
+                $preferences[ $key ] = (int) $value;
+            } else {
+                $preferences[ $key ] = $value;
+            }
+        }
+
+        return $preferences;
     }
 
     /**

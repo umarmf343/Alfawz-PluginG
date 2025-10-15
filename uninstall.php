@@ -43,6 +43,12 @@ foreach ( $users as $user_id ) {
     delete_user_meta( $user_id, 'alfawz_quran_current_streak' );
     delete_user_meta( $user_id, 'alfawz_quran_longest_streak' );
     delete_user_meta( $user_id, 'alfawz_quran_last_activity_date' );
+    delete_user_meta( $user_id, 'alfawz_pref_default_reciter' );
+    delete_user_meta( $user_id, 'alfawz_pref_default_translation' );
+    delete_user_meta( $user_id, 'alfawz_pref_default_transliteration' );
+    delete_user_meta( $user_id, 'alfawz_pref_hasanat_per_letter' );
+    delete_user_meta( $user_id, 'alfawz_pref_daily_target' );
+    delete_user_meta( $user_id, 'alfawz_pref_enable_leaderboard' );
 }
 
 // Clear any scheduled cron jobs
