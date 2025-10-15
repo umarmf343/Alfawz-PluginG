@@ -949,108 +949,12 @@
     }
   };
 
-  const initQaidah = async () => {
-    const root = qs('#alfawz-qaidah');
-    if (!root || !wpData.isLoggedIn) {
-      return;
-    }
-    const role = root.dataset.role || 'student';
-
-    if (role === 'teacher') {
-      const classList = qs('#alfawz-qaidah-class-list', root);
-      const assignmentList = qs('#alfawz-qaidah-assignment-list', root);
-      const audioForm = qs('#alfawz-qaidah-audio-form', root);
-      const audioStatus = qs('#alfawz-qaidah-audio-status', root);
-
-      try {
-        const classes = await apiRequest('qaidah/classes');
-        renderList(classList, Array.isArray(classes) ? classes : [], (item) => {
-          const li = createListItem();
-          li.innerHTML = `<p class="font-semibold text-slate-900">${item.label}</p>`;
-          return li;
-        });
-      } catch (error) {
-        classList.innerHTML = '<li class="text-sm text-slate-500">Unable to load classes.</li>';
-      }
-
-      try {
-        const assignments = await apiRequest('qaidah/assignments?context=manage');
-        renderList(assignmentList, Array.isArray(assignments) ? assignments : [], (assignment) => {
-          const li = createListItem();
-          li.innerHTML = `
-            <div class="space-y-1">
-              <p class="font-semibold text-slate-900">${assignment.title || 'Qa’idah board'}</p>
-              <p class="text-xs text-slate-500">${assignment.description || ''}</p>
-            </div>
-            <span class="text-xs text-slate-500">${assignment.students ? assignment.students.length : 0} learners</span>
-          `;
-          return li;
-        });
-      } catch (error) {
-        assignmentList.innerHTML = '<li class="text-sm text-slate-500">Unable to load assignments.</li>';
-      }
-
-      audioForm?.addEventListener('submit', async (event) => {
-        event.preventDefault();
-        const fileInput = qs('#alfawz-qaidah-audio-file', audioForm);
-        if (!fileInput?.files?.length) {
-          return;
-        }
-        const formData = new FormData();
-        formData.append('audio', fileInput.files[0]);
-        try {
-          await apiRequest('qaidah/audio', { method: 'POST', body: formData });
-          audioStatus.textContent = 'Audio uploaded successfully.';
-          fileInput.value = '';
-        } catch (error) {
-          audioStatus.textContent = 'Upload failed. Please try again.';
-        }
-      });
-    } else {
-      const assignmentList = qs('#alfawz-qaidah-student-assignments', root);
-      const progressBar = qs('#alfawz-qaidah-progress-bar', root);
-      const progressLabel = qs('#alfawz-qaidah-progress-label', root);
-
-      try {
-        const assignments = await apiRequest('qaidah/assignments');
-        renderList(assignmentList, Array.isArray(assignments) ? assignments : [], (assignment) => {
-          const li = createListItem();
-          li.innerHTML = `
-            <div class="space-y-1">
-              <p class="font-semibold text-slate-900">${assignment.title || 'Qa’idah practice'}</p>
-              <p class="text-xs text-slate-500">${assignment.description || ''}</p>
-            </div>
-            <a class="text-sm font-semibold text-emerald-600" href="${assignment.permalink || '#'}">Open</a>
-          `;
-          return li;
-        });
-      } catch (error) {
-        assignmentList.innerHTML = '<li class="text-sm text-slate-500">No assignments yet. Stay tuned!</li>';
-      }
-
-      try {
-        const egg = await apiRequest('egg-challenge');
-        if (progressBar) {
-          progressBar.style.width = `${egg.percentage || 0}%`;
-        }
-        if (progressLabel) {
-          progressLabel.textContent = `${egg.count} of ${egg.target} recitations logged by your class.`;
-        }
-      } catch (error) {
-        if (progressLabel) {
-          progressLabel.textContent = 'Unable to load egg challenge progress.';
-        }
-      }
-    }
-  };
-
   document.addEventListener('DOMContentLoaded', () => {
     initDashboard();
     initReader();
     initMemorizer();
     initLeaderboard();
     initProfile();
-    initQaidah();
     attachNavigation();
   });
 })();

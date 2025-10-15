@@ -30,8 +30,7 @@ class Frontend {
         add_shortcode('alfawz_profile', [$this, 'profile_shortcode']);
         add_shortcode('alfawz_settings', [$this, 'settings_shortcode']);
         add_shortcode('alfawz_games', [$this, 'games_shortcode']);
-        add_shortcode('alfawz_qaidah_teacher', [$this, 'qaidah_teacher_shortcode']);
-        add_shortcode('alfawz_qaidah_student', [$this, 'qaidah_student_shortcode']);
+        add_shortcode('alfawz_qaidah', [$this, 'qaidah_shortcode']);
     }
     
     public function enqueue_assets() {
@@ -72,6 +71,43 @@ class Frontend {
                 'defaultTranslation' => get_option('alfawz_default_translation', 'en.sahih')
             ]);
         }
+
+        if ($this->current_page_uses_shortcode('alfawz_qaidah')) {
+            wp_enqueue_media();
+
+            wp_enqueue_script(
+                'alfawz-qaidah',
+                ALFAWZQURAN_PLUGIN_URL . 'assets/js/alfawz-qaidah.js',
+                [],
+                ALFAWZQURAN_VERSION,
+                true
+            );
+
+            wp_localize_script('alfawz-qaidah', 'alfawzQaidahData', [
+                'apiUrl'         => rest_url('alfawzquran/v1/'),
+                'nonce'          => wp_create_nonce('wp_rest'),
+                'userId'         => get_current_user_id(),
+                'isTeacher'      => $this->current_user_is_teacher(),
+                'strings'        => [
+                    'loading'        => __('Loading…', 'alfawzquran'),
+                    'uploadError'    => __('Upload failed. Please try again.', 'alfawzquran'),
+                    'recordError'    => __('Unable to access microphone. You can upload audio files instead.', 'alfawzquran'),
+                    'recording'      => __('Recording…', 'alfawzquran'),
+                    'saving'         => __('Saving assignment…', 'alfawzquran'),
+                    'saved'          => __('Assignment sent successfully.', 'alfawzquran'),
+                    'saveError'      => __('Assignment could not be saved. Please review the form and try again.', 'alfawzquran'),
+                    'noAssignments'  => __('No assignments yet.', 'alfawzquran'),
+                    'noStudents'     => __('No students available for this class.', 'alfawzquran'),
+                    'firstHotspot'   => __('Click the image to add your first hotspot.', 'alfawzquran'),
+                    'hotspotRequired'=> __('Add at least one hotspot before sending.', 'alfawzquran'),
+                    'playbackError'  => __('Unable to play this audio clip.', 'alfawzquran'),
+                ],
+                'mediaSettings' => [
+                    'title'  => __('Select Qa’idah Image', 'alfawzquran'),
+                    'button' => __('Use this image', 'alfawzquran'),
+                ],
+            ]);
+        }
     }
     
     public function add_meta_tags() {
@@ -96,8 +132,7 @@ class Frontend {
             'alfawz_profile',
             'alfawz_settings',
             'alfawz_games',
-            'alfawz_qaidah_teacher',
-            'alfawz_qaidah_student'
+            'alfawz_qaidah'
         ];
 
         foreach ($alfawz_shortcodes as $shortcode) {
@@ -107,6 +142,16 @@ class Frontend {
         }
 
         return false;
+    }
+
+    private function current_page_uses_shortcode($shortcode) {
+        global $post;
+
+        if (! $post instanceof \WP_Post) {
+            return false;
+        }
+
+        return has_shortcode($post->post_content, $shortcode);
     }
 
     public function dashboard_shortcode($atts) {
@@ -188,7 +233,7 @@ class Frontend {
         return ob_get_clean();
     }
 
-    public function qaidah_teacher_shortcode($atts) {
+    public function qaidah_shortcode($atts) {
         if (!is_user_logged_in()) {
             return $this->login_required_message();
         }
@@ -196,22 +241,35 @@ class Frontend {
         $this->active_view = 'qaidah';
 
         ob_start();
-        $qaidah_role = 'teacher';
+        $qaidah_role = $this->determine_qaidah_role();
         include ALFAWZQURAN_PLUGIN_PATH . 'public/partials/qaidah.php';
         return ob_get_clean();
     }
 
-    public function qaidah_student_shortcode($atts) {
-        if (!is_user_logged_in()) {
-            return $this->login_required_message();
+    private function determine_qaidah_role() {
+        if ($this->current_user_is_teacher()) {
+            return 'teacher';
         }
 
-        $this->active_view = 'qaidah';
+        return 'student';
+    }
 
-        ob_start();
-        $qaidah_role = 'student';
-        include ALFAWZQURAN_PLUGIN_PATH . 'public/partials/qaidah.php';
-        return ob_get_clean();
+    private function current_user_is_teacher() {
+        if (!is_user_logged_in()) {
+            return false;
+        }
+
+        if (current_user_can('manage_options')) {
+            return true;
+        }
+
+        $user = wp_get_current_user();
+
+        if (in_array('teacher', (array) $user->roles, true)) {
+            return true;
+        }
+
+        return current_user_can('edit_posts');
     }
     
     private function login_required_message() {
