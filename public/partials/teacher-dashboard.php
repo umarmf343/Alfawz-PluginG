@@ -7,8 +7,7 @@ $qaidah_page_link = isset( $qaidah_page_link ) ? $qaidah_page_link : '';
 $qaidah_markup    = '';
 
 ob_start();
-$qaidah_role = 'teacher';
-include ALFAWZQURAN_PLUGIN_PATH . 'public/partials/qaidah.php';
+include ALFAWZQURAN_PLUGIN_PATH . 'public/partials/qaidah-builder.php';
 $qaidah_markup = ob_get_clean();
 ?>
 <div class="relative min-h-screen overflow-hidden bg-gradient-to-br from-[#2b0618] via-[#7b1e3c] to-[#f6efe2] py-16 text-slate-900">
