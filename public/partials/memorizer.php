@@ -82,6 +82,11 @@ if ( ! defined( 'ABSPATH' ) ) {
             <p class="mt-3 text-xs uppercase tracking-wide text-emerald-700" id="alfawz-memo-progress-note"></p>
         </article>
 
+        <article id="alfawz-memo-celebration" class="hidden rounded-3xl border border-amber-200 bg-amber-50/90 p-6 text-center shadow-inner">
+            <h3 class="text-lg font-semibold text-amber-800" id="alfawz-memo-celebration-title"><?php esc_html_e( 'Takbir! Repetitions complete', 'alfawzquran' ); ?></h3>
+            <p class="mt-2 text-sm text-amber-700" id="alfawz-memo-celebration-note"><?php esc_html_e( 'Mark the verse to log your progress and unlock the next ayah.', 'alfawzquran' ); ?></p>
+        </article>
+
         <article class="rounded-3xl bg-slate-50/80 p-6" id="alfawz-memo-journal">
             <h3 class="text-base font-semibold text-slate-900"><?php esc_html_e( 'Reflection journal', 'alfawzquran' ); ?></h3>
             <p class="mt-1 text-sm text-slate-600"><?php esc_html_e( 'Capture tajwid notes and teaching feedback to review later.', 'alfawzquran' ); ?></p>

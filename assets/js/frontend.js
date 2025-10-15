@@ -639,6 +639,9 @@
     const saveStatus = qs('#alfawz-memo-save-status', root);
     const planList = qs('#alfawz-memo-plan-list', root);
     const refreshPlans = qs('#alfawz-memo-refresh', root);
+    const celebrationCard = qs('#alfawz-memo-celebration', root);
+    const celebrationTitle = qs('#alfawz-memo-celebration-title', root);
+    const celebrationNote = qs('#alfawz-memo-celebration-note', root);
 
     await populateSurahSelect(surahSelect);
 
@@ -647,14 +650,57 @@
     let repetitionCount = 0;
     let currentAudio = null;
 
+    const getCurrentSurahLength = () => {
+      const surah = getSurahById(currentSurahId);
+      return surah ? Number(surah.numberOfAyahs || surah.ayahs || 0) : 0;
+    };
+
+    const updateNavigationButtons = () => {
+      const totalVerses = getCurrentSurahLength();
+      const hasSelection = Boolean(currentSurahId && currentVerseId);
+      prevBtn.disabled = !hasSelection || currentVerseId <= 1;
+      const canAdvance = hasSelection && currentVerseId < totalVerses && repetitionCount >= 20;
+      nextBtn.disabled = !canAdvance;
+      nextBtn.classList.toggle('alfawz-ready', canAdvance);
+    };
+
+    const setCelebrationState = (isActive) => {
+      toggleHidden(celebrationCard, isActive);
+      root.classList.toggle('alfawz-celebration', isActive);
+
+      if (!isActive) {
+        return;
+      }
+
+      const totalVerses = getCurrentSurahLength();
+      const nextVerseNumber = currentVerseId ? currentVerseId + 1 : null;
+      setText(celebrationTitle, 'Takbir! 20 repetitions complete');
+      if (celebrationNote) {
+        if (nextVerseNumber && nextVerseNumber <= totalVerses) {
+          celebrationNote.textContent = `Ayah ${nextVerseNumber} is now unlocked. Tap "Mark memorised" to continue.`;
+        } else {
+          celebrationNote.textContent = 'You have completed the final ayah in this surah. Outstanding effort!';
+        }
+      }
+    };
+
     const updateRepetitionUI = () => {
       setText(counterLabel, `${repetitionCount} / 20`);
       setText(counter, formatNumber(repetitionCount));
       if (progress) {
         progress.style.width = `${Math.min(100, (repetitionCount / 20) * 100)}%`;
       }
-      setText(progressNote, repetitionCount >= 20 ? 'All 20 repetitions complete — ready to log!' : `${20 - repetitionCount} repetitions remaining.`);
-      completeBtn.disabled = repetitionCount < 20;
+      const remaining = Math.max(0, 20 - repetitionCount);
+      const hasCompleted = repetitionCount >= 20;
+      setText(
+        progressNote,
+        hasCompleted
+          ? 'Takbir! You have reached 20 repetitions — log it to update your memorisation stats.'
+          : `${remaining} repetitions remaining.`
+      );
+      completeBtn.disabled = !hasCompleted;
+      setCelebrationState(hasCompleted);
+      updateNavigationButtons();
     };
 
     const renderPlanList = async () => {
@@ -698,6 +744,8 @@
         updateRepetitionUI();
         session.classList.remove('hidden');
         note.textContent = 'Focus on tajwid, rhythm, and meaning with every repetition.';
+        delete completeBtn.dataset.status;
+        setCelebrationState(false);
       } catch (error) {
         note.textContent = 'Unable to load verse. Please try again.';
       }
@@ -710,11 +758,16 @@
       verseSelect.value = '';
       verseSelect.disabled = !currentSurahId;
       loadBtn.disabled = !currentSurahId;
+      repetitionCount = 0;
+      setCelebrationState(false);
+      updateNavigationButtons();
     });
 
     verseSelect.addEventListener('change', (event) => {
       currentVerseId = Number(event.target.value) || null;
       loadBtn.disabled = !currentVerseId;
+      setCelebrationState(false);
+      updateNavigationButtons();
     });
 
     loadBtn.addEventListener('click', loadVerseForMemorisation);
@@ -757,6 +810,12 @@
           },
         });
         completeBtn.dataset.status = 'saved';
+        setText(
+          progressNote,
+          'Memorisation logged! Advance whenever you are ready for the next ayah.'
+        );
+        setCelebrationState(true);
+        updateNavigationButtons();
         await renderPlanList();
       } catch (error) {
         completeBtn.dataset.status = 'error';
@@ -774,6 +833,9 @@
     nextBtn.addEventListener('click', async () => {
       const surah = getSurahById(currentSurahId);
       if (!surah) {
+        return;
+      }
+      if (nextBtn.disabled) {
         return;
       }
       if (currentVerseId && currentVerseId < (surah.numberOfAyahs || 0)) {
