@@ -206,6 +206,223 @@
   transition: border-color 0.2s ease, background 0.2s ease;
 }
 
+/* Admin dashboard layout */
+.alfawz-admin-dashboard .description {
+  max-width: 720px;
+  color: #555d66;
+}
+
+.alfawz-admin-overview {
+  margin-top: 24px;
+  margin-bottom: 32px;
+}
+
+.alfawz-admin-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 16px;
+}
+
+.alfawz-admin-card {
+  background: #fff;
+  border: 1px solid #dcdcde;
+  border-radius: 6px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  box-shadow: 0 4px 12px rgba(18, 43, 70, 0.05);
+}
+
+.alfawz-card-label {
+  font-size: 12px;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.alfawz-stat-number {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1d2327;
+}
+
+.alfawz-admin-two-column {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 24px;
+  align-items: start;
+}
+
+.alfawz-admin-panel {
+  background: #fff;
+  border: 1px solid #dcdcde;
+  border-radius: 6px;
+  padding: 20px;
+  box-shadow: 0 8px 24px rgba(18, 43, 70, 0.06);
+}
+
+.alfawz-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.alfawz-panel-header h2 {
+  margin: 0;
+}
+
+.alfawz-panel-subheader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.alfawz-stacked-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.alfawz-inline-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.alfawz-form-field label {
+  font-weight: 600;
+  display: block;
+  margin-bottom: 6px;
+}
+
+.alfawz-form-field textarea,
+.alfawz-form-field input[type='text'],
+.alfawz-form-field input[type='number'],
+.alfawz-form-field select {
+  width: 100%;
+}
+
+.alfawz-form-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.alfawz-enrollment {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.alfawz-current-class {
+  margin-bottom: 12px;
+}
+
+.alfawz-selected-students ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.alfawz-chip-list li {
+  background: #f0f6fc;
+  border: 1px solid #c3dafe;
+  border-radius: 999px;
+  padding: 4px 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.alfawz-chip-remove {
+  color: #b91c1c;
+  cursor: pointer;
+}
+
+.alfawz-student-search {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-top: 16px;
+}
+
+.alfawz-search-results {
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  background: #f9fafb;
+  min-height: 40px;
+}
+
+.alfawz-search-result-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.alfawz-search-result-item:last-child {
+  border-bottom: none;
+}
+
+.alfawz-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 500;
+}
+
+.alfawz-toggle input {
+  transform: scale(1.2);
+}
+
+.alfawz-inline-notice {
+  margin-left: 8px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.alfawz-inline-notice.success {
+  color: #0f5132;
+}
+
+.alfawz-inline-notice.error {
+  color: #842029;
+}
+
+.button-link-delete {
+  color: #b32d2e;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+  text-decoration: underline;
+  padding: 0 4px;
+}
+
+.button-link-delete:hover,
+.button-link-delete:focus {
+  color: #86181d;
+}
+
+@media (max-width: 960px) {
+  .alfawz-admin-card-grid {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  }
+
+  .alfawz-admin-two-column {
+    grid-template-columns: 1fr;
+  }
+}
+
 .alfawz-qaidah-hotspot-stage .alfawz-hotspot-box.is-selected {
   border-color: rgba(220, 53, 69, 0.9);
   background: rgba(220, 53, 69, 0.15);

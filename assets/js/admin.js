@@ -16,12 +16,611 @@
   }
 
   $(document).ready(function () {
+    if (adminData.canManageAdmin && adminData.currentPage === 'alfawz-quran') {
+      initAdminDashboard()
+    }
+
     const $app = $('#alfawz-qaidah-board-app')
 
     if ($app.length && adminData.canManageBoards) {
       initBoardManager($app)
     }
   })
+
+  function initAdminDashboard() {
+    const state = {
+      classes: [],
+      teachers: [],
+      selectedClassId: null,
+      classNonce: adminData.nonces ? adminData.nonces.classes : '',
+      userNonce: adminData.nonces ? adminData.nonces.users : '',
+      settingsNonce: adminData.nonces ? adminData.nonces.settings : '',
+      classStudents: [],
+      overviewLoaded: false,
+      usersLoaded: false,
+      userFilter: {
+        role: 'all',
+        search: '',
+      },
+    }
+
+    const $classForm = $('#alfawz-class-form')
+    const $classTable = $('#alfawz-class-table tbody')
+    const $classFeedback = $('#alfawz-class-feedback')
+    const $teacherSelect = $('#alfawz-class-teacher')
+    const $classIdField = $('#alfawz-class-id')
+    const $classNameField = $('#alfawz-class-name')
+    const $classDescriptionField = $('#alfawz-class-description')
+    const $newClassButton = $('#alfawz-new-class')
+    const $cancelClassButton = $('#alfawz-cancel-class')
+    const $classNonceInput = $('#alfawz_admin_classes_nonce')
+    const $enrollmentSection = $('#alfawz-student-enrollment')
+    const $selectedClassName = $('#alfawz-selected-class-name')
+    const $enrolledStudents = $('#alfawz-enrolled-student-list')
+    const $studentSearchInput = $('#alfawz-student-search-input')
+    const $studentSearchButton = $('#alfawz-search-students')
+    const $studentSearchResults = $('#alfawz-student-search-results')
+    const $closeEnrollment = $('#alfawz-close-enrollment')
+    const $userTableBody = $('#alfawz-user-table tbody')
+    const $userFilterForm = $('#alfawz-user-filter')
+    const $userNonceInput = $('#alfawz_admin_users_nonce')
+    const $settingsForm = $('#alfawz-settings-form')
+    const $settingsNonceInput = $('#alfawz_admin_settings_nonce')
+    const $settingsFeedback = $('#alfawz-settings-feedback')
+
+    if ($classNonceInput.length) {
+      state.classNonce = $classNonceInput.val()
+    }
+
+    if ($userNonceInput.length) {
+      state.userNonce = $userNonceInput.val()
+    }
+
+    if ($settingsNonceInput.length) {
+      state.settingsNonce = $settingsNonceInput.val()
+    }
+
+    resetClassForm()
+
+    loadTeachers().then(loadClasses)
+    loadOverview()
+    loadUsers()
+    loadSettings()
+
+    $classForm.on('submit', function (event) {
+      event.preventDefault()
+      saveClass()
+    })
+
+    $newClassButton.on('click', function () {
+      resetClassForm()
+      $classNameField.trigger('focus')
+    })
+
+    $cancelClassButton.on('click', function () {
+      resetClassForm()
+    })
+
+    $classTable.on('click', '.alfawz-edit-class', function () {
+      const classId = $(this).closest('tr').data('classId')
+      const classData = state.classes.find(item => item.id === classId)
+      if (classData) {
+        populateClassForm(classData)
+      }
+    })
+
+    $classTable.on('click', '.alfawz-delete-class', function () {
+      const classId = $(this).closest('tr').data('classId')
+      if (!classId) {
+        return
+      }
+
+      if (!window.confirm(adminData.strings.confirmClass)) {
+        return
+      }
+
+      dashboardRequest({
+        method: 'DELETE',
+        path: `admin/classes/${classId}`,
+        nonce: state.classNonce,
+      })
+        .then(() => {
+          resetClassForm()
+          loadClasses()
+        })
+        .catch(showClassError)
+    })
+
+    $classTable.on('click', '.alfawz-manage-students', function () {
+      const classId = $(this).closest('tr').data('classId')
+      const classData = state.classes.find(item => item.id === classId)
+
+      if (!classData) {
+        return
+      }
+
+      state.selectedClassId = classId
+      state.classStudents = Array.isArray(classData.students) ? classData.students.map(student => student.id) : []
+
+      $selectedClassName.text(classData.name)
+      renderEnrolledStudents(classData.students || [])
+      $enrollmentSection.prop('hidden', false)
+      $studentSearchResults.empty()
+    })
+
+    $closeEnrollment.on('click', function () {
+      $enrollmentSection.prop('hidden', true)
+      state.selectedClassId = null
+      state.classStudents = []
+      $selectedClassName.text('')
+    })
+
+    $enrolledStudents.on('click', '.alfawz-chip-remove', function () {
+      const studentId = parseInt($(this).closest('li').data('studentId'), 10)
+      if (!state.selectedClassId || !studentId) {
+        return
+      }
+
+      const updatedList = state.classStudents.filter(id => id !== studentId)
+      updateClassStudents(state.selectedClassId, updatedList)
+    })
+
+    $studentSearchButton.on('click', function () {
+      performStudentSearch()
+    })
+
+    $studentSearchInput.on('keypress', function (event) {
+      if (event.which === 13) {
+        event.preventDefault()
+        performStudentSearch()
+      }
+    })
+
+    $studentSearchResults.on('click', '.alfawz-enroll-student', function () {
+      const studentId = parseInt($(this).data('studentId'), 10)
+      if (!state.selectedClassId || !studentId) {
+        return
+      }
+
+      if (state.classStudents.includes(studentId)) {
+        return
+      }
+
+      const updatedList = state.classStudents.concat([studentId])
+      updateClassStudents(state.selectedClassId, updatedList)
+    })
+
+    $userFilterForm.on('submit', function (event) {
+      event.preventDefault()
+      state.userFilter.role = $('#alfawz-role-filter').val()
+      state.userFilter.search = $('#alfawz-user-search').val()
+      loadUsers()
+    })
+
+    $userTableBody.on('click', '.alfawz-update-role', function () {
+      const $row = $(this).closest('tr')
+      const userId = $row.data('userId')
+      const newRole = $row.find('.alfawz-role-select').val()
+      if (!userId || !newRole) {
+        return
+      }
+
+      dashboardRequest({
+        method: 'POST',
+        path: `admin/users/${userId}/role`,
+        data: { role: newRole },
+        nonce: state.userNonce,
+      })
+        .then(() => {
+          showTransientNotice($row, 'success', adminData.strings.roleUpdate)
+          loadUsers()
+        })
+        .catch(() => {
+          showTransientNotice($row, 'error', adminData.strings.roleUpdateError)
+        })
+    })
+
+    $settingsForm.on('submit', function (event) {
+      event.preventDefault()
+
+      const payload = {
+        alfawz_enable_leaderboard: $('#alfawz-setting-leaderboard').is(':checked') ? 1 : 0,
+        alfawz_enable_egg_challenge: $('#alfawz-setting-egg').is(':checked') ? 1 : 0,
+        alfawz_daily_verse_target: parseInt($('#alfawz-setting-daily-goal').val(), 10) || 0,
+      }
+
+      dashboardRequest({
+        method: 'POST',
+        path: 'admin/settings',
+        data: payload,
+        nonce: state.settingsNonce,
+      })
+        .then(response => {
+          renderSettings(response)
+          showSettingsMessage('updated', __('Settings saved successfully.', 'alfawzquran'))
+        })
+        .catch(() => {
+          showSettingsMessage('error', __('Unable to save settings. Please try again.', 'alfawzquran'))
+        })
+    })
+
+    function saveClass() {
+      const classId = $classIdField.val()
+      const name = $classNameField.val().trim()
+      if (!name) {
+        showClassError(__('Class name is required.', 'alfawzquran'))
+        return
+      }
+
+      const payload = {
+        name,
+        description: $classDescriptionField.val(),
+        teacher_id: parseInt($teacherSelect.val(), 10) || null,
+      }
+
+      const requestOptions = {
+        method: classId ? 'PUT' : 'POST',
+        path: classId ? `admin/classes/${classId}` : 'admin/classes',
+        data: payload,
+        nonce: state.classNonce,
+      }
+
+      dashboardRequest(requestOptions)
+        .then(() => {
+          showClassSuccess(classId ? __('Class updated.', 'alfawzquran') : __('Class created.', 'alfawzquran'))
+          resetClassForm()
+          loadClasses()
+        })
+        .catch(showClassError)
+    }
+
+    function resetClassForm() {
+      $classIdField.val('')
+      $classNameField.val('')
+      $classDescriptionField.val('')
+      if ($teacherSelect.length) {
+        $teacherSelect.val('')
+      }
+      $classFeedback.hide().removeClass('notice-error notice-success').text('')
+    }
+
+    function populateClassForm(classData) {
+      $classIdField.val(classData.id)
+      $classNameField.val(classData.name)
+      $classDescriptionField.val(classData.description || '')
+      $teacherSelect.val(classData.teacher ? String(classData.teacher.id) : '')
+      window.scrollTo({ top: $classForm.offset().top - 80, behavior: 'smooth' })
+    }
+
+    function showClassError(error) {
+      let message = error
+
+      if (typeof error !== 'string') {
+        message = (error && error.responseJSON && error.responseJSON.message) || __('An unexpected error occurred.', 'alfawzquran')
+      }
+
+      $classFeedback.removeClass('notice-success').addClass('notice notice-error').text(message).show()
+    }
+
+    function showClassSuccess(message) {
+      $classFeedback.removeClass('notice-error').addClass('notice notice-success').text(message).show()
+      setTimeout(() => {
+        $classFeedback.fadeOut()
+      }, 3500)
+    }
+
+    function renderClasses() {
+      if (!state.classes.length) {
+        $classTable.html(`<tr><td colspan="4">${__('No classes found.', 'alfawzquran')}</td></tr>`)
+        return
+      }
+
+      const rows = state.classes.map(classItem => {
+        const teacherName = classItem.teacher ? classItem.teacher.name : __('Unassigned', 'alfawzquran')
+        const studentCount = Array.isArray(classItem.students) ? classItem.students.length : 0
+
+        return `
+          <tr data-class-id="${classItem.id}">
+            <td>
+              <strong>${escapeHtml(classItem.name)}</strong>
+              ${classItem.description ? `<p class="description">${escapeHtml(classItem.description)}</p>` : ''}
+            </td>
+            <td>${escapeHtml(teacherName)}</td>
+            <td>${studentCount}</td>
+            <td>
+              <button type="button" class="button button-small alfawz-manage-students">${__('Enroll Students', 'alfawzquran')}</button>
+              <button type="button" class="button button-link-delete alfawz-delete-class">${__('Delete', 'alfawzquran')}</button>
+              <button type="button" class="button button-link alfawz-edit-class">${__('Edit', 'alfawzquran')}</button>
+            </td>
+          </tr>
+        `
+      })
+
+      $classTable.html(rows.join(''))
+    }
+
+    function renderEnrolledStudents(students) {
+      if (!students.length) {
+        $enrolledStudents.html(`<li>${__('No students assigned yet.', 'alfawzquran')}</li>`)
+        return
+      }
+
+      const items = students.map(student => {
+        return `
+          <li data-student-id="${student.id}">
+            <span>${escapeHtml(student.name)}</span>
+            <button type="button" class="button-link alfawz-chip-remove" aria-label="${__('Remove student', 'alfawzquran')}">×</button>
+          </li>
+        `
+      })
+
+      $enrolledStudents.html(items.join(''))
+    }
+
+    function performStudentSearch() {
+      const query = $studentSearchInput.val().trim()
+      if (!query || !state.selectedClassId) {
+        return
+      }
+
+      $studentSearchResults.text(__('Searching…', 'alfawzquran'))
+
+      dashboardRequest({
+        method: 'GET',
+        path: 'admin/users',
+        query: { role: 'student', search: query },
+      })
+        .then(response => {
+          renderStudentSearchResults(response.users || [])
+        })
+        .catch(() => {
+          $studentSearchResults.text(__('Unable to load students.', 'alfawzquran'))
+        })
+    }
+
+    function renderStudentSearchResults(students) {
+      if (!students.length) {
+        $studentSearchResults.text(__('No students found for this search.', 'alfawzquran'))
+        return
+      }
+
+      const markup = students
+        .map(student => {
+          const disabled = state.classStudents.includes(student.id) ? 'disabled' : ''
+          const label = state.classStudents.includes(student.id)
+            ? __('Already enrolled', 'alfawzquran')
+            : __('Enroll', 'alfawzquran')
+
+          return `
+            <div class="alfawz-search-result-item">
+              <div>
+                <strong>${escapeHtml(student.name)}</strong><br />
+                <span class="description">${escapeHtml(student.email)}</span>
+              </div>
+              <button type="button" class="button button-small alfawz-enroll-student" data-student-id="${student.id}" ${disabled}>${label}</button>
+            </div>
+          `
+        })
+        .join('')
+
+      $studentSearchResults.html(markup)
+    }
+
+    function updateClassStudents(classId, studentIds) {
+      dashboardRequest({
+        method: 'POST',
+        path: `admin/classes/${classId}/students`,
+        data: { student_ids: studentIds },
+        nonce: state.classNonce,
+      })
+        .then(response => {
+          const updatedClass = response.class
+          state.classStudents = Array.isArray(updatedClass.students) ? updatedClass.students.map(student => student.id) : []
+          state.classes = state.classes.map(item => (item.id === updatedClass.id ? updatedClass : item))
+          renderEnrolledStudents(updatedClass.students || [])
+          renderClasses()
+        })
+        .catch(() => {
+          showClassError(__('Unable to update student enrollment.', 'alfawzquran'))
+        })
+    }
+
+    function loadTeachers() {
+      return dashboardRequest({
+        method: 'GET',
+        path: 'admin/users',
+        query: { role: 'teacher', per_page: 100 },
+      })
+        .then(response => {
+          state.teachers = response.users || []
+          renderTeacherOptions()
+        })
+        .catch(() => {
+          state.teachers = []
+          renderTeacherOptions()
+        })
+    }
+
+    function renderTeacherOptions() {
+      const options = ['<option value="">' + __('Select a teacher', 'alfawzquran') + '</option>']
+      state.teachers.forEach(teacher => {
+        options.push(`<option value="${teacher.id}">${escapeHtml(teacher.name)}</option>`)
+      })
+      $teacherSelect.html(options.join(''))
+    }
+
+    function loadClasses() {
+      dashboardRequest({
+        method: 'GET',
+        path: 'admin/classes',
+      })
+        .then(response => {
+          state.classes = response.classes || []
+          renderClasses()
+        })
+        .catch(() => {
+          state.classes = []
+          renderClasses()
+        })
+    }
+
+    function loadOverview() {
+      dashboardRequest({
+        method: 'GET',
+        path: 'admin/overview',
+      })
+        .then(response => {
+          $('#alfawz-stat-students').text(response.total_students || 0)
+          $('#alfawz-stat-teachers').text(response.total_teachers || 0)
+          $('#alfawz-stat-classes').text(response.total_classes || 0)
+          $('#alfawz-stat-plans').text(response.active_plans || 0)
+          $('#alfawz-stat-qaidah').text(response.recent_qaidah || 0)
+        })
+        .catch(() => {
+          $('#alfawz-stat-students').text('—')
+          $('#alfawz-stat-teachers').text('—')
+          $('#alfawz-stat-classes').text('—')
+          $('#alfawz-stat-plans').text('—')
+          $('#alfawz-stat-qaidah').text('—')
+        })
+    }
+
+    function loadUsers() {
+      const query = {
+        role: state.userFilter.role,
+        search: state.userFilter.search,
+      }
+
+      dashboardRequest({
+        method: 'GET',
+        path: 'admin/users',
+        query,
+      })
+        .then(response => {
+          renderUsers(response.users || [])
+        })
+        .catch(() => {
+          renderUsers([])
+        })
+    }
+
+    function renderUsers(users) {
+      if (!users.length) {
+        $userTableBody.html(`<tr><td colspan="5">${__('No users found for this filter.', 'alfawzquran')}</td></tr>`)
+        return
+      }
+
+      const rows = users.map(user => {
+        const roleOptions = buildRoleOptions(user.roles)
+        const classLabel = user.class && user.class.label ? escapeHtml(user.class.label) : __('Unassigned', 'alfawzquran')
+
+        return `
+          <tr data-user-id="${user.id}">
+            <td>${escapeHtml(user.name)}</td>
+            <td>${escapeHtml(user.email)}</td>
+            <td>
+              <select class="alfawz-role-select">${roleOptions}</select>
+            </td>
+            <td>${classLabel}</td>
+            <td><button type="button" class="button button-small alfawz-update-role">${__('Update', 'alfawzquran')}</button></td>
+          </tr>
+        `
+      })
+
+      $userTableBody.html(rows.join(''))
+    }
+
+    function buildRoleOptions(roles) {
+      const primaryRole = Array.isArray(roles) && roles.length ? roles[0] : 'subscriber'
+      const availableRoles = [
+        { value: 'student', label: __('Student', 'alfawzquran') },
+        { value: 'teacher', label: __('Teacher', 'alfawzquran') },
+        { value: 'subscriber', label: __('Subscriber', 'alfawzquran') },
+      ]
+
+      return availableRoles
+        .map(role => {
+          const selected = role.value === primaryRole ? 'selected' : ''
+          return `<option value="${role.value}" ${selected}>${role.label}</option>`
+        })
+        .join('')
+    }
+
+    function loadSettings() {
+      dashboardRequest({
+        method: 'GET',
+        path: 'admin/settings',
+      })
+        .then(response => {
+          renderSettings(response)
+        })
+        .catch(() => {
+          renderSettings({})
+        })
+    }
+
+    function renderSettings(settings) {
+      $('#alfawz-setting-leaderboard').prop('checked', Boolean(parseInt(settings.alfawz_enable_leaderboard, 10)))
+      $('#alfawz-setting-egg').prop('checked', Boolean(parseInt(settings.alfawz_enable_egg_challenge, 10)))
+      $('#alfawz-setting-daily-goal').val(settings.alfawz_daily_verse_target || 10)
+    }
+
+    function showSettingsMessage(type, message) {
+      $settingsFeedback.removeClass('notice-error notice-success')
+      $settingsFeedback.addClass(type === 'updated' ? 'notice notice-success' : 'notice notice-error')
+      $settingsFeedback.text(message).show()
+      setTimeout(() => {
+        $settingsFeedback.fadeOut()
+      }, 3500)
+    }
+  }
+
+  function dashboardRequest({ method = 'GET', path, data = null, nonce = '', query = null }) {
+    const queryString = query ? `?${$.param(query)}` : ''
+    const options = {
+      url: API_BASE + path + queryString,
+      method,
+      headers: {
+        'X-WP-Nonce': NONCE,
+      },
+      dataType: 'json',
+    }
+
+    const upperMethod = method.toUpperCase()
+
+    if (upperMethod !== 'GET' && upperMethod !== 'HEAD') {
+      const payload = data ? { ...data } : {}
+      if (nonce) {
+        payload.nonce = nonce
+      }
+      options.data = JSON.stringify(payload)
+      options.contentType = 'application/json'
+    }
+
+    return $.ajax(options)
+  }
+
+  function escapeHtml(value) {
+    return $('<div>').text(value || '').html()
+  }
+
+  function showTransientNotice($row, type, message) {
+    const $cell = $row.find('td').last()
+    $cell.find('.alfawz-inline-notice').remove()
+
+    const $notice = $('<span>', {
+      class: `alfawz-inline-notice ${type}`,
+      text: message,
+    })
+
+    $cell.append($notice)
+
+    setTimeout(() => {
+      $notice.fadeOut(200, function () {
+        $(this).remove()
+      })
+    }, 2500)
+  }
 
   function initBoardManager($root) {
     const state = {

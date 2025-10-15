@@ -74,12 +74,19 @@ function run_alfawz_quran() {
     $loader->add_action( 'init', $qaidah_boards, 'register_post_type' );
     $loader->add_action( 'init', $qaidah_boards, 'register_meta' );
 
+    // Load class registration and helpers
+    require_once ALFAWZQURAN_PLUGIN_PATH . 'includes/Core/ClassManager.php';
+    $class_manager = new AlfawzQuran\Core\ClassManager();
+    $loader->add_action( 'init', $class_manager, 'register_post_type' );
+    $loader->add_action( 'before_delete_post', $class_manager, 'cleanup_assignments', 10, 1 );
+
     // Load admin-specific functionality
     require_once ALFAWZQURAN_PLUGIN_PATH . 'includes/Admin/Admin.php';
     $admin = new AlfawzQuran\Admin\Admin();
     $loader->add_action( 'admin_menu', $admin, 'add_admin_menu' );
     $loader->add_action( 'admin_enqueue_scripts', $admin, 'enqueue_admin_assets' );
     $loader->add_action( 'admin_notices', $admin, 'display_api_connection_notice' );
+    $loader->add_action( 'admin_init', $admin, 'ensure_admin_capability' );
 
     // Load public-facing functionality
     require_once ALFAWZQURAN_PLUGIN_PATH . 'includes/Frontend/Frontend.php';

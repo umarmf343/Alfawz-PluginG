@@ -3,6 +3,7 @@ namespace AlfawzQuran\API;
 
 use AlfawzQuran\Models\QaidahBoard;
 use AlfawzQuran\Models\UserProgress;
+use WP_REST_Server;
 use WP_Error;
 use WP_REST_Request;
 use WP_REST_Response;
@@ -319,6 +320,13 @@ class Routes {
     }
 
     /**
+     * Ensure the current request is made by an administrator or privileged staff.
+     */
+    public function admin_permission_callback( WP_REST_Request $request ) {
+        return current_user_can( 'manage_options' ) || current_user_can( 'alfawz_admin' );
+    }
+
+    /**
      * Update user progress (read or memorized).
      *
      * @param \WP_REST_Request $request Full data about the request.
@@ -368,6 +376,368 @@ class Routes {
         $stats['member_since'] = $user_data ? date( 'M Y', strtotime( $user_data->user_registered ) ) : 'N/A';
 
         return new \WP_REST_Response( $stats, 200 );
+    }
+
+    /**
+     * Provide administrators with a high-level system overview.
+     */
+    public function get_admin_overview( WP_REST_Request $request ) {
+        $counts        = count_users();
+        $role_counts   = isset( $counts['avail_roles'] ) ? (array) $counts['avail_roles'] : [];
+        $total_students = isset( $role_counts['student'] ) ? (int) $role_counts['student'] : 0;
+        $total_teachers = isset( $role_counts['teacher'] ) ? (int) $role_counts['teacher'] : 0;
+
+        $class_counts = wp_count_posts( 'alfawz_class' );
+        $total_classes = $class_counts && isset( $class_counts->publish ) ? (int) $class_counts->publish : 0;
+
+        global $wpdb;
+        $plan_table   = $wpdb->prefix . 'alfawz_quran_memorization_plans';
+        $active_plans = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$plan_table} WHERE status = %s", 'active' ) );
+
+        $qaidah_type   = \AlfawzQuran\Core\QaidahBoards::POST_TYPE;
+        $qaidah_counts = wp_count_posts( $qaidah_type );
+        $recent_qaidah = $qaidah_counts && isset( $qaidah_counts->publish ) ? (int) $qaidah_counts->publish : 0;
+
+        return new WP_REST_Response(
+            [
+                'total_students' => $total_students,
+                'total_teachers' => $total_teachers,
+                'total_classes'  => $total_classes,
+                'active_plans'   => $active_plans,
+                'recent_qaidah'  => $recent_qaidah,
+            ],
+            200
+        );
+    }
+
+    /**
+     * Return all classes for the administrator dashboard.
+     */
+    public function get_admin_classes( WP_REST_Request $request ) {
+        $classes = get_posts(
+            [
+                'post_type'      => 'alfawz_class',
+                'post_status'    => 'publish',
+                'posts_per_page' => -1,
+                'orderby'        => 'title',
+                'order'          => 'ASC',
+            ]
+        );
+
+        $data = array_map( function ( $post ) {
+            return $this->prepare_class_payload( $post->ID );
+        }, $classes );
+
+        return new WP_REST_Response(
+            [
+                'classes' => array_values( array_filter( $data ) ),
+            ],
+            200
+        );
+    }
+
+    /**
+     * Create a new class.
+     */
+    public function create_admin_class( WP_REST_Request $request ) {
+        $nonce = $this->verify_action_nonce( $request, 'alfawz_admin_classes' );
+        if ( is_wp_error( $nonce ) ) {
+            return $nonce;
+        }
+
+        $params      = $request->get_json_params();
+        $name        = isset( $params['name'] ) ? sanitize_text_field( $params['name'] ) : '';
+        $description = isset( $params['description'] ) ? wp_kses_post( $params['description'] ) : '';
+        $teacher_id  = isset( $params['teacher_id'] ) ? absint( $params['teacher_id'] ) : 0;
+
+        if ( '' === $name ) {
+            return new WP_Error( 'rest_invalid_param', __( 'Class name is required.', 'alfawzquran' ), [ 'status' => 400 ] );
+        }
+
+        $post_id = wp_insert_post(
+            [
+                'post_type'    => 'alfawz_class',
+                'post_status'  => 'publish',
+                'post_title'   => $name,
+                'post_content' => $description,
+            ],
+            true
+        );
+
+        if ( is_wp_error( $post_id ) ) {
+            return $post_id;
+        }
+
+        if ( $teacher_id ) {
+            $this->assign_teacher_to_class( $post_id, $teacher_id );
+        } else {
+            delete_post_meta( $post_id, '_alfawz_class_teacher' );
+        }
+
+        return new WP_REST_Response(
+            [
+                'class' => $this->prepare_class_payload( $post_id ),
+            ],
+            201
+        );
+    }
+
+    /**
+     * Update an existing class record.
+     */
+    public function update_admin_class( WP_REST_Request $request ) {
+        $nonce = $this->verify_action_nonce( $request, 'alfawz_admin_classes' );
+        if ( is_wp_error( $nonce ) ) {
+            return $nonce;
+        }
+
+        $class_id = absint( $request->get_param( 'id' ) );
+        $post     = get_post( $class_id );
+
+        if ( ! $post || 'alfawz_class' !== $post->post_type ) {
+            return new WP_Error( 'rest_class_not_found', __( 'Class not found.', 'alfawzquran' ), [ 'status' => 404 ] );
+        }
+
+        $params      = $request->get_json_params();
+        $name        = isset( $params['name'] ) ? sanitize_text_field( $params['name'] ) : $post->post_title;
+        $description = isset( $params['description'] ) ? wp_kses_post( $params['description'] ) : $post->post_content;
+        $teacher_id  = isset( $params['teacher_id'] ) ? absint( $params['teacher_id'] ) : 0;
+
+        $update = wp_update_post(
+            [
+                'ID'           => $class_id,
+                'post_title'   => $name,
+                'post_content' => $description,
+            ],
+            true
+        );
+
+        if ( is_wp_error( $update ) ) {
+            return $update;
+        }
+
+        if ( $teacher_id ) {
+            $this->assign_teacher_to_class( $class_id, $teacher_id );
+        } else {
+            $this->remove_teacher_from_class( $class_id );
+        }
+
+        return new WP_REST_Response(
+            [
+                'class' => $this->prepare_class_payload( $class_id ),
+            ],
+            200
+        );
+    }
+
+    /**
+     * Delete a class and release relationships.
+     */
+    public function delete_admin_class( WP_REST_Request $request ) {
+        $nonce = $this->verify_action_nonce( $request, 'alfawz_admin_classes' );
+        if ( is_wp_error( $nonce ) ) {
+            return $nonce;
+        }
+
+        $class_id = absint( $request->get_param( 'id' ) );
+        $post     = get_post( $class_id );
+
+        if ( ! $post || 'alfawz_class' !== $post->post_type ) {
+            return new WP_Error( 'rest_class_not_found', __( 'Class not found.', 'alfawzquran' ), [ 'status' => 404 ] );
+        }
+
+        $this->remove_teacher_from_class( $class_id );
+
+        $students = get_users(
+            [
+                'meta_key'   => 'alfawz_class_id',
+                'meta_value' => $class_id,
+                'fields'     => 'ids',
+            ]
+        );
+
+        foreach ( $students as $student_id ) {
+            delete_user_meta( $student_id, 'alfawz_class_id' );
+        }
+
+        $deleted = wp_delete_post( $class_id, true );
+
+        if ( ! $deleted ) {
+            return new WP_Error( 'rest_cannot_delete', __( 'Unable to delete class.', 'alfawzquran' ), [ 'status' => 500 ] );
+        }
+
+        return new WP_REST_Response( [ 'deleted' => true ], 200 );
+    }
+
+    /**
+     * Update student enrollment for a class.
+     */
+    public function update_admin_class_students( WP_REST_Request $request ) {
+        $nonce = $this->verify_action_nonce( $request, 'alfawz_admin_classes' );
+        if ( is_wp_error( $nonce ) ) {
+            return $nonce;
+        }
+
+        $class_id = absint( $request->get_param( 'id' ) );
+        $post     = get_post( $class_id );
+
+        if ( ! $post || 'alfawz_class' !== $post->post_type ) {
+            return new WP_Error( 'rest_class_not_found', __( 'Class not found.', 'alfawzquran' ), [ 'status' => 404 ] );
+        }
+
+        $params      = $request->get_json_params();
+        $student_ids = isset( $params['student_ids'] ) ? (array) $params['student_ids'] : [];
+        $student_ids = array_values( array_unique( array_map( 'absint', $student_ids ) ) );
+
+        $current_students = get_users(
+            [
+                'meta_key'   => 'alfawz_class_id',
+                'meta_value' => $class_id,
+                'fields'     => 'ids',
+            ]
+        );
+
+        foreach ( $current_students as $student_id ) {
+            if ( ! in_array( $student_id, $student_ids, true ) ) {
+                delete_user_meta( $student_id, 'alfawz_class_id' );
+            }
+        }
+
+        foreach ( $student_ids as $student_id ) {
+            if ( get_userdata( $student_id ) ) {
+                update_user_meta( $student_id, 'alfawz_class_id', $class_id );
+            }
+        }
+
+        return new WP_REST_Response(
+            [
+                'class' => $this->prepare_class_payload( $class_id ),
+            ],
+            200
+        );
+    }
+
+    /**
+     * Return users for administrative role management.
+     */
+    public function get_admin_users( WP_REST_Request $request ) {
+        $role   = sanitize_text_field( $request->get_param( 'role' ) );
+        $search = sanitize_text_field( $request->get_param( 'search' ) );
+
+        $args = [
+            'number'     => 100,
+            'orderby'    => 'display_name',
+            'order'      => 'ASC',
+            'fields'     => [ 'ID', 'display_name', 'user_email', 'roles' ],
+        ];
+
+        if ( $role && 'all' !== $role ) {
+            if ( 'student' === $role ) {
+                $args['role__in'] = [ 'student', 'subscriber' ];
+            } elseif ( 'teacher' === $role ) {
+                $args['role__in'] = [ 'teacher' ];
+            } else {
+                $args['role__in'] = [ $role ];
+            }
+        }
+
+        if ( $search ) {
+            $args['search']          = '*' . $search . '*';
+            $args['search_columns']  = [ 'user_login', 'user_email', 'display_name' ];
+        }
+
+        $users = get_users( $args );
+
+        $data = array_values( array_filter( array_map( function ( $user ) {
+            return $this->prepare_user_payload( $user );
+        }, $users ) ) );
+
+        return new WP_REST_Response(
+            [
+                'users' => $data,
+            ],
+            200
+        );
+    }
+
+    /**
+     * Update a user's primary role.
+     */
+    public function update_admin_user_role( WP_REST_Request $request ) {
+        $nonce = $this->verify_action_nonce( $request, 'alfawz_admin_users' );
+        if ( is_wp_error( $nonce ) ) {
+            return $nonce;
+        }
+
+        $user_id = absint( $request->get_param( 'id' ) );
+        $user    = get_userdata( $user_id );
+
+        if ( ! $user ) {
+            return new WP_Error( 'rest_user_not_found', __( 'User not found.', 'alfawzquran' ), [ 'status' => 404 ] );
+        }
+
+        $params = $request->get_json_params();
+        $role   = isset( $params['role'] ) ? sanitize_text_field( $params['role'] ) : '';
+
+        $allowed_roles = apply_filters( 'alfawz_admin_allowed_roles', [ 'student', 'teacher', 'subscriber' ] );
+
+        if ( ! in_array( $role, $allowed_roles, true ) ) {
+            return new WP_Error( 'rest_invalid_role', __( 'Invalid role supplied.', 'alfawzquran' ), [ 'status' => 400 ] );
+        }
+
+        $updated = wp_update_user(
+            [
+                'ID'   => $user_id,
+                'role' => $role,
+            ]
+        );
+
+        if ( is_wp_error( $updated ) ) {
+            return $updated;
+        }
+
+        return new WP_REST_Response(
+            [
+                'user' => $this->prepare_user_payload( get_userdata( $user_id ) ),
+            ],
+            200
+        );
+    }
+
+    /**
+     * Return the current plugin settings relevant to the admin dashboard.
+     */
+    public function get_admin_settings( WP_REST_Request $request ) {
+        return new WP_REST_Response(
+            [
+                'alfawz_enable_leaderboard'   => (int) get_option( 'alfawz_enable_leaderboard', 1 ),
+                'alfawz_enable_egg_challenge' => (int) get_option( 'alfawz_enable_egg_challenge', 1 ),
+                'alfawz_daily_verse_target'   => (int) get_option( 'alfawz_daily_verse_target', 10 ),
+            ],
+            200
+        );
+    }
+
+    /**
+     * Persist plugin settings from the admin dashboard.
+     */
+    public function save_admin_settings( WP_REST_Request $request ) {
+        $nonce = $this->verify_action_nonce( $request, 'alfawz_admin_settings' );
+        if ( is_wp_error( $nonce ) ) {
+            return $nonce;
+        }
+
+        $params = $request->get_json_params();
+
+        $leaderboard = ! empty( $params['alfawz_enable_leaderboard'] ) ? 1 : 0;
+        $egg         = ! empty( $params['alfawz_enable_egg_challenge'] ) ? 1 : 0;
+        $daily_goal  = isset( $params['alfawz_daily_verse_target'] ) ? max( 1, absint( $params['alfawz_daily_verse_target'] ) ) : 10;
+
+        update_option( 'alfawz_enable_leaderboard', $leaderboard );
+        update_option( 'alfawz_enable_egg_challenge', $egg );
+        update_option( 'alfawz_daily_verse_target', $daily_goal );
+
+        return $this->get_admin_settings( $request );
     }
 
     /**
@@ -638,6 +1008,185 @@ class Routes {
         wp_delete_post( $board_id, true );
 
         return new WP_REST_Response( null, 204 );
+    }
+
+    /**
+     * Verify an admin action nonce embedded in REST payloads.
+     */
+    private function verify_action_nonce( WP_REST_Request $request, $action ) {
+        $nonce = $this->get_request_nonce( $request );
+
+        if ( ! $nonce || ! wp_verify_nonce( $nonce, $action ) ) {
+            return new WP_Error( 'rest_forbidden', __( 'Security check failed.', 'alfawzquran' ), [ 'status' => 403 ] );
+        }
+
+        return true;
+    }
+
+    /**
+     * Extract the nonce from JSON or request parameters.
+     */
+    private function get_request_nonce( WP_REST_Request $request ) {
+        $nonce = $request->get_param( 'nonce' );
+
+        if ( null === $nonce ) {
+            $json_params = $request->get_json_params();
+            if ( is_array( $json_params ) && isset( $json_params['nonce'] ) ) {
+                $nonce = $json_params['nonce'];
+            }
+        }
+
+        return $nonce;
+    }
+
+    /**
+     * Prepare a class payload for REST responses.
+     */
+    private function prepare_class_payload( $class_id ) {
+        $post = get_post( $class_id );
+
+        if ( ! $post || 'alfawz_class' !== $post->post_type ) {
+            return null;
+        }
+
+        $teacher_id = (int) get_post_meta( $class_id, '_alfawz_class_teacher', true );
+        $teacher    = null;
+
+        if ( $teacher_id ) {
+            $teacher_user = get_userdata( $teacher_id );
+
+            if ( $teacher_user ) {
+                $teacher = [
+                    'id'    => (int) $teacher_user->ID,
+                    'name'  => $teacher_user->display_name,
+                    'email' => $teacher_user->user_email,
+                ];
+            }
+        }
+
+        $students = get_users(
+            [
+                'meta_key'   => 'alfawz_class_id',
+                'meta_value' => $class_id,
+                'orderby'    => 'display_name',
+                'order'      => 'ASC',
+                'fields'     => [ 'ID', 'display_name', 'user_email' ],
+            ]
+        );
+
+        $student_data = array_map(
+            function ( $student ) {
+                return [
+                    'id'    => (int) $student->ID,
+                    'name'  => $student->display_name,
+                    'email' => $student->user_email,
+                ];
+            },
+            $students
+        );
+
+        return [
+            'id'          => (int) $class_id,
+            'name'        => $post->post_title,
+            'description' => $post->post_content,
+            'teacher'     => $teacher,
+            'students'    => $student_data,
+        ];
+    }
+
+    /**
+     * Assign a teacher to the provided class.
+     */
+    private function assign_teacher_to_class( $class_id, $teacher_id ) {
+        $teacher = get_userdata( $teacher_id );
+
+        if ( ! $teacher ) {
+            return;
+        }
+
+        $previous_teacher = (int) get_post_meta( $class_id, '_alfawz_class_teacher', true );
+
+        if ( $previous_teacher && $previous_teacher !== $teacher_id ) {
+            $this->detach_class_from_teacher( $previous_teacher, $class_id );
+        }
+
+        update_post_meta( $class_id, '_alfawz_class_teacher', $teacher_id );
+
+        $classes = get_user_meta( $teacher_id, 'alfawz_teacher_classes', true );
+
+        if ( ! is_array( $classes ) ) {
+            $classes = [];
+        }
+
+        $classes[] = (int) $class_id;
+
+        update_user_meta( $teacher_id, 'alfawz_teacher_classes', array_values( array_unique( array_map( 'intval', $classes ) ) ) );
+    }
+
+    /**
+     * Remove the assigned teacher from a class.
+     */
+    private function remove_teacher_from_class( $class_id ) {
+        $teacher_id = (int) get_post_meta( $class_id, '_alfawz_class_teacher', true );
+
+        if ( $teacher_id ) {
+            $this->detach_class_from_teacher( $teacher_id, $class_id );
+        }
+
+        delete_post_meta( $class_id, '_alfawz_class_teacher' );
+    }
+
+    /**
+     * Detach class mapping from a teacher meta record.
+     */
+    private function detach_class_from_teacher( $teacher_id, $class_id ) {
+        $classes = get_user_meta( $teacher_id, 'alfawz_teacher_classes', true );
+
+        if ( ! is_array( $classes ) ) {
+            return;
+        }
+
+        $classes = array_map( 'intval', $classes );
+        $classes = array_values(
+            array_filter(
+                $classes,
+                function ( $value ) use ( $class_id ) {
+                    return (int) $value !== (int) $class_id;
+                }
+            )
+        );
+
+        update_user_meta( $teacher_id, 'alfawz_teacher_classes', $classes );
+    }
+
+    /**
+     * Prepare user data for REST responses.
+     */
+    private function prepare_user_payload( $user ) {
+        $user_object = $user instanceof \WP_User ? $user : get_userdata( $user );
+
+        if ( ! $user_object ) {
+            return null;
+        }
+
+        $class_id = get_user_meta( $user_object->ID, 'alfawz_class_id', true );
+
+        $class = null;
+
+        if ( $class_id ) {
+            $class = [
+                'id'    => is_numeric( $class_id ) ? (int) $class_id : $class_id,
+                'label' => $this->resolve_class_label( $class_id ),
+            ];
+        }
+
+        return [
+            'id'    => (int) $user_object->ID,
+            'name'  => $user_object->display_name,
+            'email' => $user_object->user_email,
+            'roles' => array_values( (array) $user_object->roles ),
+            'class' => $class,
+        ];
     }
 
     /**
@@ -1539,3 +2088,99 @@ class Routes {
         delete_transient('alfawz_quran_api_notice');
     }
 }
+        register_rest_route(
+            $namespace,
+            '/admin/overview',
+            [
+                'methods'             => WP_REST_Server::READABLE,
+                'callback'            => [ $this, 'get_admin_overview' ],
+                'permission_callback' => [ $this, 'admin_permission_callback' ],
+            ]
+        );
+
+        register_rest_route(
+            $namespace,
+            '/admin/classes',
+            [
+                [
+                    'methods'             => WP_REST_Server::READABLE,
+                    'callback'            => [ $this, 'get_admin_classes' ],
+                    'permission_callback' => [ $this, 'admin_permission_callback' ],
+                ],
+                [
+                    'methods'             => WP_REST_Server::CREATABLE,
+                    'callback'            => [ $this, 'create_admin_class' ],
+                    'permission_callback' => [ $this, 'admin_permission_callback' ],
+                    'args'                => [
+                        'name' => [
+                            'required'          => true,
+                            'sanitize_callback' => 'sanitize_text_field',
+                        ],
+                    ],
+                ],
+            ]
+        );
+
+        register_rest_route(
+            $namespace,
+            '/admin/classes/(?P<id>\d+)',
+            [
+                [
+                    'methods'             => WP_REST_Server::EDITABLE,
+                    'callback'            => [ $this, 'update_admin_class' ],
+                    'permission_callback' => [ $this, 'admin_permission_callback' ],
+                ],
+                [
+                    'methods'             => WP_REST_Server::DELETABLE,
+                    'callback'            => [ $this, 'delete_admin_class' ],
+                    'permission_callback' => [ $this, 'admin_permission_callback' ],
+                ],
+            ]
+        );
+
+        register_rest_route(
+            $namespace,
+            '/admin/classes/(?P<id>\d+)/students',
+            [
+                'methods'             => WP_REST_Server::CREATABLE,
+                'callback'            => [ $this, 'update_admin_class_students' ],
+                'permission_callback' => [ $this, 'admin_permission_callback' ],
+            ]
+        );
+
+        register_rest_route(
+            $namespace,
+            '/admin/users',
+            [
+                'methods'             => WP_REST_Server::READABLE,
+                'callback'            => [ $this, 'get_admin_users' ],
+                'permission_callback' => [ $this, 'admin_permission_callback' ],
+            ]
+        );
+
+        register_rest_route(
+            $namespace,
+            '/admin/users/(?P<id>\d+)/role',
+            [
+                'methods'             => WP_REST_Server::CREATABLE,
+                'callback'            => [ $this, 'update_admin_user_role' ],
+                'permission_callback' => [ $this, 'admin_permission_callback' ],
+            ]
+        );
+
+        register_rest_route(
+            $namespace,
+            '/admin/settings',
+            [
+                [
+                    'methods'             => WP_REST_Server::READABLE,
+                    'callback'            => [ $this, 'get_admin_settings' ],
+                    'permission_callback' => [ $this, 'admin_permission_callback' ],
+                ],
+                [
+                    'methods'             => WP_REST_Server::CREATABLE,
+                    'callback'            => [ $this, 'save_admin_settings' ],
+                    'permission_callback' => [ $this, 'admin_permission_callback' ],
+                ],
+            ]
+        );

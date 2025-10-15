@@ -96,6 +96,7 @@ class Activator {
         add_option( 'alfawz_default_reciter', 'ar.alafasy' );
         add_option( 'alfawz_default_translation', 'en.sahih' );
         add_option( 'alfawz_enable_leaderboard', true );
+        add_option( 'alfawz_enable_egg_challenge', 1 );
 
         // Schedule daily cron job for streak calculation
         if ( ! wp_next_scheduled( 'alfawz_quran_daily_cron' ) ) {
@@ -106,6 +107,11 @@ class Activator {
 
         // Log activation
         error_log('AlfawzQuran Plugin activated successfully');
+
+        $admin_role = get_role( 'administrator' );
+        if ( $admin_role && ! $admin_role->has_cap( 'alfawz_admin' ) ) {
+            $admin_role->add_cap( 'alfawz_admin' );
+        }
     }
 
     /**
