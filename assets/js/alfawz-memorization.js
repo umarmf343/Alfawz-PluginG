@@ -9,6 +9,7 @@
   const QURAN_API_BASE = 'https://api.alquran.cloud/v1/';
   const ARABIC_EDITION = 'quran-uthmani';
   const TRANSLATION_EDITION = wpData.defaultTranslation || 'en.sahih';
+  const AUDIO_EDITION = wpData.audioEdition || 'ar.alafasy';
   const HEADERS = {};
   if (wpData.nonce) {
     HEADERS['X-WP-Nonce'] = wpData.nonce;
@@ -30,12 +31,17 @@
     verseArabic: root.querySelector('#alfawz-memorization-ayah-ar'),
     verseTranslation: root.querySelector('#alfawz-memorization-ayah-translation'),
     verseTransliteration: root.querySelector('#alfawz-memorization-ayah-transliteration'),
+    verseMeta: root.querySelector('#alfawz-memorization-verse-meta'),
     translationToggle: root.querySelector('#alfawz-memorization-toggle-translation'),
+    surahToggle: root.querySelector('#alfawz-memorization-toggle-surah'),
     repetitionsLabel: root.querySelector('#alfawz-memorization-repetitions'),
     progressBar: root.querySelector('#progress-bar'),
     progressNote: root.querySelector('#progress-note'),
     counter: root.querySelector('#counter'),
     repeatButton: root.querySelector('#repeat-btn'),
+    prevButton: root.querySelector('#alfawz-memorization-prev'),
+    nextButton: root.querySelector('#alfawz-memorization-next'),
+    audioButton: root.querySelector('#alfawz-memorization-audio'),
     statsTotal: root.querySelector('#alfawz-memorization-stat-total'),
     statsMemorized: root.querySelector('#alfawz-memorization-stat-memorized'),
     statsRemaining: root.querySelector('#alfawz-memorization-stat-remaining'),
@@ -44,6 +50,8 @@
     modal: root.querySelector('#celebration-modal'),
     continueButton: root.querySelector('#next-verse-btn'),
     reviewButton: root.querySelector('#review-later'),
+    surahContents: root.querySelector('#alfawz-memorization-surah-contents'),
+    verseList: root.querySelector('#alfawz-memorization-verse-list'),
   };
 
   const state = {
@@ -55,9 +63,17 @@
     currentVerse: null,
     currentVerseData: null,
     translationVisible: true,
+    fullSurahVisible: false,
     modalOpen: false,
     hasAwardedCurrentVerse: false,
     awardInFlight: false,
+    verseCache: new Map(),
+    surahContentCache: new Map(),
+    audioElement: null,
+    audioButtonDefaultLabel:
+      el.audioButton?.querySelector('span:last-child')?.textContent?.trim() ||
+      wpData.playAudioLabel ||
+      'Play verse audio',
   };
 
   const softChimeSrc =
@@ -96,6 +112,30 @@
       return;
     }
     element.classList.toggle('hidden', !show);
+  };
+
+  const setButtonLabel = (button, text) => {
+    if (!button) {
+      return;
+    }
+    const spans = button.querySelectorAll('span');
+    const labelSpan = spans.length > 1 ? spans[1] : spans[0];
+    if (labelSpan) {
+      labelSpan.textContent = text;
+    } else {
+      button.textContent = text;
+    }
+  };
+
+  const getCacheKey = (surahId, verseId) => `${surahId}:${verseId}`;
+
+  const getCachedVerse = (surahId, verseId) => state.verseCache.get(getCacheKey(surahId, verseId)) || null;
+
+  const storeCachedVerse = (surahId, verseId, data) => {
+    if (!surahId || !verseId || !data) {
+      return;
+    }
+    state.verseCache.set(getCacheKey(surahId, verseId), data);
   };
 
   const setStatus = (message, tone = 'muted') => {
@@ -240,23 +280,166 @@
     if (!surahId || !verseId) {
       return null;
     }
+    const cached = getCachedVerse(surahId, verseId);
+    if (cached) {
+      return cached;
+    }
+
     const requests = [
       fetch(`${QURAN_API_BASE}ayah/${surahId}:${verseId}/${ARABIC_EDITION}`),
       fetch(`${QURAN_API_BASE}ayah/${surahId}:${verseId}/${TRANSLATION_EDITION}`),
+      fetch(`${QURAN_API_BASE}ayah/${surahId}:${verseId}/${AUDIO_EDITION}`),
     ];
 
-    const [arabicResponse, translationResponse] = await Promise.all(requests);
+    const [arabicResponse, translationResponse, audioResponse] = await Promise.all(requests);
     if (!arabicResponse.ok || !translationResponse.ok) {
       throw new Error('Unable to load verse from API');
     }
     const [arabicData, translationData] = await Promise.all([arabicResponse.json(), translationResponse.json()]);
+    let audioUrl = '';
+    if (audioResponse.ok) {
+      try {
+        const audioData = await audioResponse.json();
+        audioUrl = audioData?.data?.audio || '';
+      } catch (error) {
+        console.warn('[Alfawz Memorization] Unable to parse audio response', error);
+      }
+    }
 
-    return {
+    const verse = {
       arabic: arabicData?.data?.text || '',
       translation: translationData?.data?.text || '',
       surahName: arabicData?.data?.surah?.englishName || '',
       numberInSurah: arabicData?.data?.numberInSurah || verseId,
+      audio: audioUrl,
     };
+
+    storeCachedVerse(surahId, verseId, verse);
+    return verse;
+  };
+
+  const fetchSurahContent = async (surahId) => {
+    if (!surahId) {
+      return null;
+    }
+    if (state.surahContentCache.has(surahId)) {
+      return state.surahContentCache.get(surahId);
+    }
+
+    try {
+      const [arabicResponse, translationResponse] = await Promise.all([
+        fetch(`${QURAN_API_BASE}surah/${surahId}/${ARABIC_EDITION}`),
+        fetch(`${QURAN_API_BASE}surah/${surahId}/${TRANSLATION_EDITION}`),
+      ]);
+
+      if (!arabicResponse.ok || !translationResponse.ok) {
+        throw new Error('Unable to load surah content');
+      }
+
+      const [arabicData, translationData] = await Promise.all([arabicResponse.json(), translationResponse.json()]);
+      const arabicVerses = Array.isArray(arabicData?.data?.ayahs) ? arabicData.data.ayahs : [];
+      const translationVerses = Array.isArray(translationData?.data?.ayahs) ? translationData.data.ayahs : [];
+
+      const verses = arabicVerses.map((ayah, index) => ({
+        numberInSurah: ayah.numberInSurah,
+        arabic: ayah.text || '',
+        translation: translationVerses[index]?.text || '',
+      }));
+
+      const bundle = {
+        surahName: arabicData?.data?.englishName || '',
+        totalAyahs: arabicVerses.length,
+        verses,
+      };
+
+      state.surahContentCache.set(surahId, bundle);
+      return bundle;
+    } catch (error) {
+      console.error('[Alfawz Memorization] Failed to load surah content', error);
+      return null;
+    }
+  };
+
+  const goToVerse = async (verseId) => {
+    if (!state.planDetail) {
+      return;
+    }
+    const numericVerse = Number(verseId);
+    if (!numericVerse) {
+      return;
+    }
+    const start = Number(state.planDetail.start_verse || 1);
+    const end = Number(state.planDetail.end_verse || start);
+    if (numericVerse < start || numericVerse > end) {
+      return;
+    }
+    if (state.currentVerse === numericVerse) {
+      highlightActiveVerse();
+      return;
+    }
+    state.currentVerse = numericVerse;
+    await renderVerse();
+  };
+
+  const renderFullSurah = async () => {
+    if (!state.fullSurahVisible || !state.planDetail || !el.surahContents || !el.verseList) {
+      return;
+    }
+    const surahId = state.planDetail.surah_id;
+    const bundle = await fetchSurahContent(surahId);
+    if (!bundle) {
+      el.verseList.innerHTML = `<p class="rounded-2xl bg-[#fde8ea] px-4 py-4 text-sm text-[#6a2133]">${
+        wpData.surahLoadError || 'Unable to display the full surah right now.'
+      }</p>`;
+      return;
+    }
+
+    el.verseList.innerHTML = '';
+    const start = Number(state.planDetail.start_verse || 1);
+    const end = Number(state.planDetail.end_verse || start);
+
+    bundle.verses.forEach((verse) => {
+      const verseRow = document.createElement('article');
+      const withinPlan = verse.numberInSurah >= start && verse.numberInSurah <= end;
+      verseRow.dataset.verseId = verse.numberInSurah;
+      verseRow.className = `transition rounded-2xl border px-5 py-4 shadow-sm hover:shadow-md ${
+        withinPlan ? 'border-[#f3d9d7] bg-white' : 'border-transparent bg-white/70'
+      }`;
+      verseRow.innerHTML = `
+        <div class="flex items-start gap-4">
+          <span class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-[#f3d9d7] text-[#6a2133] font-semibold">${formatNumber(
+            verse.numberInSurah,
+          )}</span>
+          <div class="flex-1 space-y-3 text-right" dir="rtl" lang="ar">
+            <p class="text-2xl font-semibold text-[#2f0716]">${verse.arabic}</p>
+          </div>
+        </div>
+        <p class="mt-3 text-left text-base text-[#6a2133]">${verse.translation}</p>
+      `;
+      verseRow.addEventListener('click', () => {
+        if (!state.fullSurahVisible) {
+          return;
+        }
+        goToVerse(verse.numberInSurah);
+      });
+      el.verseList.appendChild(verseRow);
+    });
+
+    highlightActiveVerse();
+  };
+
+  const syncSurahVisibility = async () => {
+    if (!el.surahContents) {
+      return;
+    }
+    if (state.fullSurahVisible) {
+      toggleElement(el.surahContents, true);
+      await renderFullSurah();
+    } else {
+      toggleElement(el.surahContents, false);
+    }
+    updateSurahToggleLabel();
+    updateNavigationState();
   };
 
   const updateStats = (plan) => {
@@ -350,7 +533,140 @@
     const label = state.translationVisible
       ? wpData.hideTranslationLabel || 'Hide translation'
       : wpData.showTranslationLabel || 'Show translation';
-    el.translationToggle.innerHTML = `🔁 ${label}`;
+    setButtonLabel(el.translationToggle, label);
+  };
+
+  const updateSurahToggleLabel = () => {
+    if (!el.surahToggle) {
+      return;
+    }
+    const label = state.fullSurahVisible
+      ? wpData.hideSurahLabel || 'Hide entire surah'
+      : wpData.showSurahLabel || 'Show entire surah';
+    setButtonLabel(el.surahToggle, label);
+  };
+
+  const updateNavigationState = () => {
+    if (!el.prevButton || !el.nextButton || !state.planDetail) {
+      return;
+    }
+    const start = Number(state.planDetail.start_verse || 1);
+    const end = Number(state.planDetail.end_verse || start);
+    const current = Number(state.currentVerse || start);
+    const disableNav = state.fullSurahVisible || !state.currentVerse;
+    el.prevButton.disabled = disableNav || current <= start;
+    el.nextButton.disabled = disableNav || current >= end;
+  };
+
+  const getAudioElement = () => {
+    if (!state.audioElement) {
+      state.audioElement = new Audio();
+      state.audioElement.preload = 'auto';
+      state.audioElement.addEventListener('ended', () => {
+        if (el.audioButton) {
+          el.audioButton.disabled = false;
+          setButtonLabel(el.audioButton, state.audioButtonDefaultLabel || wpData.playAudioLabel || 'Play verse audio');
+        }
+      });
+      state.audioElement.addEventListener('error', () => {
+        if (el.audioButton) {
+          el.audioButton.disabled = false;
+          setButtonLabel(el.audioButton, state.audioButtonDefaultLabel || wpData.playAudioLabel || 'Play verse audio');
+        }
+      });
+    }
+    return state.audioElement;
+  };
+
+  const stopAudioPlayback = () => {
+    if (!state.audioElement) {
+      return;
+    }
+    try {
+      state.audioElement.pause();
+      state.audioElement.currentTime = 0;
+    } catch (error) {
+      // Ignore
+    }
+    if (el.audioButton) {
+      el.audioButton.disabled = false;
+      setButtonLabel(el.audioButton, state.audioButtonDefaultLabel || wpData.playAudioLabel || 'Play verse audio');
+    }
+  };
+
+  const playCurrentVerseAudio = async () => {
+    if (!el.audioButton) {
+      return;
+    }
+    const audioUrl = state.currentVerseData?.audio;
+    if (!audioUrl) {
+      el.activeStatus.textContent = wpData.audioUnavailableMessage || 'Audio for this verse is not available right now.';
+      return;
+    }
+    const audioElement = getAudioElement();
+    try {
+      stopAudioPlayback();
+      el.audioButton.disabled = true;
+      setButtonLabel(el.audioButton, wpData.playingAudioLabel || 'Playing…');
+      audioElement.src = audioUrl;
+      await audioElement.play();
+    } catch (error) {
+      console.warn('[Alfawz Memorization] Unable to play verse audio', error);
+      el.audioButton.disabled = false;
+      setButtonLabel(el.audioButton, state.audioButtonDefaultLabel || wpData.playAudioLabel || 'Play verse audio');
+      el.activeStatus.textContent = wpData.audioErrorMessage || 'Unable to play audio for this verse.';
+    }
+  };
+
+  const updateVerseMeta = (verseData) => {
+    if (!el.verseMeta) {
+      return;
+    }
+    if (!verseData) {
+      el.verseMeta.textContent = '';
+      return;
+    }
+    const surahName = verseData.surahName || state.planDetail?.plan_name || '';
+    const verseNumber = formatNumber(verseData.numberInSurah || state.currentVerse || 0);
+    const rangeStart = state.planDetail ? formatNumber(state.planDetail.start_verse) : '';
+    const rangeEnd = state.planDetail ? formatNumber(state.planDetail.end_verse) : '';
+    const rangeText = state.planDetail && rangeStart && rangeEnd ? `${wpData.rangeLabel || 'Range'} ${rangeStart}-${rangeEnd}` : '';
+    const verseText = `${wpData.verseLabel || 'Ayah'} ${verseNumber}`;
+    el.verseMeta.textContent = [surahName, verseText, rangeText].filter(Boolean).join(' • ');
+  };
+
+  const highlightActiveVerse = () => {
+    if (!el.verseList) {
+      return;
+    }
+    const current = Number(state.currentVerse || 0);
+    el.verseList.querySelectorAll('[data-verse-id]').forEach((node) => {
+      const isActive = Number(node.dataset.verseId) === current;
+      node.classList.toggle('ring-2', isActive);
+      node.classList.toggle('ring-[#7b1c3a]', isActive);
+      node.classList.toggle('shadow-lg', isActive);
+    });
+  };
+
+  const prefetchAdjacentVerses = () => {
+    if (!state.planDetail || !state.currentVerse) {
+      return;
+    }
+    const surahId = state.planDetail.surah_id;
+    const start = Number(state.planDetail.start_verse || 1);
+    const end = Number(state.planDetail.end_verse || start);
+    const prev = state.currentVerse - 1;
+    const next = state.currentVerse + 1;
+    const promises = [];
+    if (prev >= start && !getCachedVerse(surahId, prev)) {
+      promises.push(fetchVerse(surahId, prev).catch(() => null));
+    }
+    if (next <= end && !getCachedVerse(surahId, next)) {
+      promises.push(fetchVerse(surahId, next).catch(() => null));
+    }
+    if (promises.length) {
+      Promise.all(promises).catch(() => {});
+    }
   };
 
   const updateProgressUI = () => {
@@ -422,6 +738,7 @@
       return;
     }
     el.activeStatus.textContent = '';
+    stopAudioPlayback();
     try {
       const verse = await fetchVerse(state.planDetail.surah_id, state.currentVerse);
       if (!verse) {
@@ -437,17 +754,26 @@
       el.verseArabic.textContent = verse.arabic;
       el.verseTranslation.textContent = verse.translation;
       el.verseTranslation.classList.toggle('hidden', !state.translationVisible);
+      updateVerseMeta(verse);
+      if (el.audioButton) {
+        el.audioButton.disabled = false;
+        setButtonLabel(el.audioButton, state.audioButtonDefaultLabel || wpData.playAudioLabel || 'Play verse audio');
+      }
       if (el.progressNote) {
         el.progressNote.textContent = wpData.progressIntro || 'Tap repeat to begin your twenty-fold focus session.';
       }
       updateTranslationToggleLabel();
       el.repetitionsLabel.textContent = `0 / 20 ${wpData.repetitionLabel || 'Repetitions'}`;
       resetRepetition();
+      updateNavigationState();
+      highlightActiveVerse();
+      prefetchAdjacentVerses();
     } catch (error) {
       console.error('[Alfawz Memorization] Failed to render verse', error);
       state.currentVerseData = null;
       state.hasAwardedCurrentVerse = false;
       state.awardInFlight = false;
+      updateVerseMeta(null);
       el.activeStatus.textContent = wpData.verseErrorMessage || 'Unable to load verse details right now.';
     }
   };
@@ -458,6 +784,7 @@
   };
 
   const refreshPlan = async () => {
+    const previousSurahId = state.planDetail?.surah_id || null;
     const plans = await fetchPlans();
     state.planSummary = chooseActivePlan(plans);
     if (!state.planSummary) {
@@ -466,9 +793,12 @@
       state.currentVerseData = null;
       state.hasAwardedCurrentVerse = false;
       state.awardInFlight = false;
+      state.fullSurahVisible = false;
+      stopAudioPlayback();
       setActiveState(false);
       setStatus(wpData.noPlanMessage || 'Create your first plan to begin memorizing.', 'muted');
       setRepeatButtonState();
+      await syncSurahVisibility();
       return;
     }
     state.planDetail = await fetchPlanDetail(state.planSummary.id);
@@ -478,7 +808,17 @@
       state.currentVerseData = null;
       state.hasAwardedCurrentVerse = false;
       state.awardInFlight = false;
+      state.fullSurahVisible = false;
+      stopAudioPlayback();
+      if (el.audioButton) {
+        el.audioButton.disabled = true;
+        setButtonLabel(el.audioButton, state.audioButtonDefaultLabel || wpData.playAudioLabel || 'Play verse audio');
+      }
+      await syncSurahVisibility();
       return;
+    }
+    if (previousSurahId && Number(previousSurahId) !== Number(state.planDetail.surah_id)) {
+      state.fullSurahVisible = false;
     }
     await fetchSurahs();
     setPlanHeader(state.planDetail);
@@ -502,11 +842,19 @@
       if (el.progressNote) {
         el.progressNote.textContent = wpData.planCompleteMessage || 'All verses in this plan are memorized. Create a new plan to continue.';
       }
+      state.currentVerseData = null;
+      stopAudioPlayback();
+      if (el.audioButton) {
+        el.audioButton.disabled = true;
+        setButtonLabel(el.audioButton, state.audioButtonDefaultLabel || wpData.playAudioLabel || 'Play verse audio');
+      }
       setRepeatButtonState();
+      await syncSurahVisibility();
       return;
     }
     toggleElement(el.repeatButton, true);
     await renderVerse();
+    await syncSurahVisibility();
   };
 
   const recordCompletion = (verseId) => {
@@ -559,9 +907,13 @@
           el.progressNote.textContent = wpData.planCompleteMessage || 'All verses in this plan are memorized. Create a new plan to continue.';
         }
         setPlanHeader(state.planDetail);
+        await syncSurahVisibility();
         return;
       }
       await renderVerse();
+      if (state.fullSurahVisible) {
+        await renderFullSurah();
+      }
     } catch (error) {
       console.error('[Alfawz Memorization] Failed to record completion', error);
       el.activeStatus.textContent = wpData.progressErrorMessage || 'Unable to save progress. Please try again.';
@@ -645,6 +997,27 @@
       updateTranslationToggleLabel();
     });
 
+    el.prevButton?.addEventListener('click', () => {
+      if (state.fullSurahVisible) {
+        return;
+      }
+      goToVerse((state.currentVerse || 0) - 1);
+    });
+
+    el.nextButton?.addEventListener('click', () => {
+      if (state.fullSurahVisible) {
+        return;
+      }
+      goToVerse((state.currentVerse || 0) + 1);
+    });
+
+    el.audioButton?.addEventListener('click', playCurrentVerseAudio);
+
+    el.surahToggle?.addEventListener('click', async () => {
+      state.fullSurahVisible = !state.fullSurahVisible;
+      await syncSurahVisibility();
+    });
+
     el.continueButton?.addEventListener('click', handleContinue);
     el.reviewButton?.addEventListener('click', handleReviewLater);
   };
@@ -652,6 +1025,8 @@
   const init = async () => {
     await populateSurahSelect();
     constrainRangeInputs();
+    updateTranslationToggleLabel();
+    updateSurahToggleLabel();
     initEventListeners();
     await refreshPlan();
     updateProgressUI();
