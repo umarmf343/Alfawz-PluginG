@@ -11,38 +11,39 @@
             </div>
         </div>
 
-        <div class="alfawz-memorization-stats">
-            <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-                <div class="alfawz-stat-container alfawz-memorized-container">
-                    <div class="alfawz-stat-icon-wrapper">
-                        <div class="alfawz-stat-pulse"></div>
-                        <div class="alfawz-stat-icon-circle"><span class="alfawz-stat-icon">🧠</span></div>
-                    </div>
-                    <div class="alfawz-stat-number" id="total-memorized-verses">0</div>
-                    <div class="alfawz-stat-label"><?php _e('Memorized Verses', 'alfawzquran'); ?></div>
-                    <div class="alfawz-stat-decoration"></div>
+        <div class="alfawz-memorization-stats alfawz-progress-grid">
+            <div class="alfawz-progress-card alfawz-memorizer-card">
+                <div class="alfawz-card-icon">
+                    <div class="alfawz-icon-circle alfawz-memorized-icon"><span class="alfawz-icon">🧠</span></div>
                 </div>
-                <div class="alfawz-stat-container alfawz-streak-container">
-                    <div class="alfawz-stat-icon-wrapper">
-                        <div class="alfawz-stat-flame"></div>
-                        <div class="alfawz-stat-icon-circle"><span class="alfawz-stat-icon">🔥</span></div>
-                    </div>
-                    <div class="alfawz-stat-number" id="current-memorization-streak">0</div>
-                    <div class="alfawz-stat-label"><?php _e('Current Streak', 'alfawzquran'); ?></div>
-                    <div class="alfawz-stat-decoration"></div>
+                <div class="alfawz-card-content">
+                    <div class="alfawz-card-value" id="total-memorized-verses">0</div>
+                    <div class="alfawz-card-label"><?php _e('Memorized Verses', 'alfawzquran'); ?></div>
                 </div>
-                <div class="alfawz-stat-container alfawz-plans-container">
-                    <div class="alfawz-stat-icon-wrapper">
-                        <div class="alfawz-stat-shine"></div>
-                        <div class="alfawz-stat-icon-circle"><span class="alfawz-stat-icon">📝</span></div>
-                    </div>
-                    <div class="alfawz-stat-number" id="active-plans-count">0</div>
-                    <div class="alfawz-stat-label"><?php _e('Active Plans', 'alfawzquran'); ?></div>
+                <div class="alfawz-card-decoration"></div>
+            </div>
+            <div class="alfawz-progress-card alfawz-memorizer-card">
+                <div class="alfawz-card-icon">
+                    <div class="alfawz-icon-circle alfawz-memorizer-streak-icon"><span class="alfawz-icon">🔥</span></div>
+                </div>
+                <div class="alfawz-card-content">
+                    <div class="alfawz-card-value" id="current-memorization-streak">0</div>
+                    <div class="alfawz-card-label"><?php _e('Current Streak', 'alfawzquran'); ?></div>
+                </div>
+                <div class="alfawz-card-decoration"></div>
+            </div>
+            <div class="alfawz-progress-card alfawz-memorizer-card">
+                <div class="alfawz-card-icon">
+                    <div class="alfawz-icon-circle alfawz-plans-icon"><span class="alfawz-icon">📝</span></div>
+                </div>
+                <div class="alfawz-card-content">
+                    <div class="alfawz-card-value" id="active-plans-count">0</div>
+                    <div class="alfawz-card-label"><?php _e('Active Plans', 'alfawzquran'); ?></div>
                     <a href="<?php echo esc_url(home_url('/memorizer/create-plan/')); ?>" role="button" class="alfawz-btn alfawz-btn-primary alfawz-create-plan-btn">
                         <span aria-hidden="true" class="alfawz-btn-icon">+</span><?php _e('Create Memorization Plan', 'alfawzquran'); ?>
                     </a>
-                    <div class="alfawz-stat-decoration"></div>
                 </div>
+                <div class="alfawz-card-decoration"></div>
             </div>
         </div>
 
