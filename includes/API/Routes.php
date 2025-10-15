@@ -334,6 +334,103 @@ class Routes {
             'callback'            => [ $this, 'get_teacher_classes_overview' ],
             'permission_callback' => [ $this, 'teacher_permission_callback' ],
         ] );
+
+        register_rest_route(
+            $namespace,
+            '/admin/overview',
+            [
+                'methods'             => WP_REST_Server::READABLE,
+                'callback'            => [ $this, 'get_admin_overview' ],
+                'permission_callback' => [ $this, 'admin_permission_callback' ],
+            ]
+        );
+
+        register_rest_route(
+            $namespace,
+            '/admin/classes',
+            [
+                [
+                    'methods'             => WP_REST_Server::READABLE,
+                    'callback'            => [ $this, 'get_admin_classes' ],
+                    'permission_callback' => [ $this, 'admin_permission_callback' ],
+                ],
+                [
+                    'methods'             => WP_REST_Server::CREATABLE,
+                    'callback'            => [ $this, 'create_admin_class' ],
+                    'permission_callback' => [ $this, 'admin_permission_callback' ],
+                    'args'                => [
+                        'name' => [
+                            'required'          => true,
+                            'sanitize_callback' => 'sanitize_text_field',
+                        ],
+                    ],
+                ],
+            ]
+        );
+
+        register_rest_route(
+            $namespace,
+            '/admin/classes/(?P<id>\\d+)',
+            [
+                [
+                    'methods'             => WP_REST_Server::EDITABLE,
+                    'callback'            => [ $this, 'update_admin_class' ],
+                    'permission_callback' => [ $this, 'admin_permission_callback' ],
+                ],
+                [
+                    'methods'             => WP_REST_Server::DELETABLE,
+                    'callback'            => [ $this, 'delete_admin_class' ],
+                    'permission_callback' => [ $this, 'admin_permission_callback' ],
+                ],
+            ]
+        );
+
+        register_rest_route(
+            $namespace,
+            '/admin/classes/(?P<id>\\d+)/students',
+            [
+                'methods'             => WP_REST_Server::CREATABLE,
+                'callback'            => [ $this, 'update_admin_class_students' ],
+                'permission_callback' => [ $this, 'admin_permission_callback' ],
+            ]
+        );
+
+        register_rest_route(
+            $namespace,
+            '/admin/users',
+            [
+                'methods'             => WP_REST_Server::READABLE,
+                'callback'            => [ $this, 'get_admin_users' ],
+                'permission_callback' => [ $this, 'admin_permission_callback' ],
+            ]
+        );
+
+        register_rest_route(
+            $namespace,
+            '/admin/users/(?P<id>\\d+)/role',
+            [
+                'methods'             => WP_REST_Server::CREATABLE,
+                'callback'            => [ $this, 'update_admin_user_role' ],
+                'permission_callback' => [ $this, 'admin_permission_callback' ],
+            ]
+        );
+
+        register_rest_route(
+            $namespace,
+            '/admin/settings',
+            [
+                [
+                    'methods'             => WP_REST_Server::READABLE,
+                    'callback'            => [ $this, 'get_admin_settings' ],
+                    'permission_callback' => [ $this, 'admin_permission_callback' ],
+                ],
+                [
+                    'methods'             => WP_REST_Server::CREATABLE,
+                    'callback'            => [ $this, 'save_admin_settings' ],
+                    'permission_callback' => [ $this, 'admin_permission_callback' ],
+                ],
+            ]
+        );
     }
 
     /**
@@ -2392,99 +2489,3 @@ class Routes {
         delete_transient('alfawz_quran_api_notice');
     }
 }
-        register_rest_route(
-            $namespace,
-            '/admin/overview',
-            [
-                'methods'             => WP_REST_Server::READABLE,
-                'callback'            => [ $this, 'get_admin_overview' ],
-                'permission_callback' => [ $this, 'admin_permission_callback' ],
-            ]
-        );
-
-        register_rest_route(
-            $namespace,
-            '/admin/classes',
-            [
-                [
-                    'methods'             => WP_REST_Server::READABLE,
-                    'callback'            => [ $this, 'get_admin_classes' ],
-                    'permission_callback' => [ $this, 'admin_permission_callback' ],
-                ],
-                [
-                    'methods'             => WP_REST_Server::CREATABLE,
-                    'callback'            => [ $this, 'create_admin_class' ],
-                    'permission_callback' => [ $this, 'admin_permission_callback' ],
-                    'args'                => [
-                        'name' => [
-                            'required'          => true,
-                            'sanitize_callback' => 'sanitize_text_field',
-                        ],
-                    ],
-                ],
-            ]
-        );
-
-        register_rest_route(
-            $namespace,
-            '/admin/classes/(?P<id>\d+)',
-            [
-                [
-                    'methods'             => WP_REST_Server::EDITABLE,
-                    'callback'            => [ $this, 'update_admin_class' ],
-                    'permission_callback' => [ $this, 'admin_permission_callback' ],
-                ],
-                [
-                    'methods'             => WP_REST_Server::DELETABLE,
-                    'callback'            => [ $this, 'delete_admin_class' ],
-                    'permission_callback' => [ $this, 'admin_permission_callback' ],
-                ],
-            ]
-        );
-
-        register_rest_route(
-            $namespace,
-            '/admin/classes/(?P<id>\d+)/students',
-            [
-                'methods'             => WP_REST_Server::CREATABLE,
-                'callback'            => [ $this, 'update_admin_class_students' ],
-                'permission_callback' => [ $this, 'admin_permission_callback' ],
-            ]
-        );
-
-        register_rest_route(
-            $namespace,
-            '/admin/users',
-            [
-                'methods'             => WP_REST_Server::READABLE,
-                'callback'            => [ $this, 'get_admin_users' ],
-                'permission_callback' => [ $this, 'admin_permission_callback' ],
-            ]
-        );
-
-        register_rest_route(
-            $namespace,
-            '/admin/users/(?P<id>\d+)/role',
-            [
-                'methods'             => WP_REST_Server::CREATABLE,
-                'callback'            => [ $this, 'update_admin_user_role' ],
-                'permission_callback' => [ $this, 'admin_permission_callback' ],
-            ]
-        );
-
-        register_rest_route(
-            $namespace,
-            '/admin/settings',
-            [
-                [
-                    'methods'             => WP_REST_Server::READABLE,
-                    'callback'            => [ $this, 'get_admin_settings' ],
-                    'permission_callback' => [ $this, 'admin_permission_callback' ],
-                ],
-                [
-                    'methods'             => WP_REST_Server::CREATABLE,
-                    'callback'            => [ $this, 'save_admin_settings' ],
-                    'permission_callback' => [ $this, 'admin_permission_callback' ],
-                ],
-            ]
-        );

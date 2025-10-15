@@ -425,8 +425,11 @@ class Frontend {
     }
     
     private function login_required_message() {
-        $login_url = wp_login_url(get_permalink());
-        $register_url = wp_registration_enabled() ? wp_registration_url() : '';
+        $login_url  = wp_login_url(get_permalink());
+        $can_register = function_exists('wp_registration_enabled')
+            ? wp_registration_enabled()
+            : (bool) get_option('users_can_register');
+        $register_url = $can_register ? wp_registration_url() : '';
 
         ob_start();
         ?>
