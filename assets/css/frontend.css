@@ -987,6 +987,73 @@ body.alfawz-qaidah-modal-open {
   font-family: 'Inter', system-ui, sans-serif;
 }
 
+.alfawz-qaidah-shell {
+  position: relative;
+  background: linear-gradient(135deg, #571222, #7a1a31 45%, #f4e6d8 100%);
+  box-shadow: 0 28px 60px rgba(87, 18, 34, 0.35);
+}
+
+.alfawz-qaidah-shell::before,
+.alfawz-qaidah-shell::after {
+  content: '';
+  position: absolute;
+  pointer-events: none;
+  border-radius: 50%;
+  filter: blur(0);
+  opacity: 0.28;
+}
+
+.alfawz-qaidah-shell::before {
+  width: 320px;
+  height: 320px;
+  background: radial-gradient(circle at center, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0));
+  top: -120px;
+  right: -80px;
+}
+
+.alfawz-qaidah-shell::after {
+  width: 280px;
+  height: 280px;
+  background: radial-gradient(circle at center, rgba(255, 191, 105, 0.75), rgba(255, 191, 105, 0));
+  bottom: -120px;
+  left: -60px;
+}
+
+.alfawz-qaidah-surface {
+  position: relative;
+  background: linear-gradient(155deg, rgba(255, 255, 255, 0.9), rgba(253, 247, 240, 0.95));
+}
+
+.qaidah-hero {
+  position: relative;
+  overflow: hidden;
+}
+
+.qaidah-hero-glow {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 20% 20%, rgba(255, 222, 201, 0.85), transparent 55%),
+    radial-gradient(circle at 80% 30%, rgba(255, 243, 227, 0.75), transparent 60%),
+    radial-gradient(circle at 50% 80%, rgba(122, 26, 49, 0.18), transparent 70%);
+  opacity: 0.8;
+  transform: scale(1.1);
+  animation: qaidahAurora 18s ease-in-out infinite;
+  z-index: 0;
+}
+
+.qaidah-hero > * {
+  position: relative;
+  z-index: 1;
+}
+
+.qaidah-hero-badge {
+  letter-spacing: 0.22em;
+}
+
+#alfawz-qaidah .animate-ping-slow {
+  animation: qaidahPingSlow 2.6s ease-in-out infinite;
+}
+
 #alfawz-qaidah .animate-fade-in-up {
   animation: qaidahFadeInUp 0.45s ease forwards;
   opacity: 0;
@@ -1001,6 +1068,90 @@ body.alfawz-qaidah-modal-open {
     opacity: 1;
     transform: translateY(0) scale(1);
   }
+}
+
+@keyframes qaidahAurora {
+  0%,
+  100% {
+    transform: scale(1.05) translate3d(0, 0, 0);
+  }
+  50% {
+    transform: scale(1.1) translate3d(12px, -8px, 0);
+  }
+}
+
+@keyframes qaidahPingSlow {
+  0%,
+  100% {
+    opacity: 0.6;
+    transform: scale(0.8);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+}
+
+.qaidah-assignment-card {
+  position: relative;
+  list-style: none;
+  backdrop-filter: blur(4px);
+}
+
+.qaidah-assignment-card__accent {
+  position: absolute;
+  inset: -40% 10% 30% -30%;
+  background: linear-gradient(135deg, rgba(122, 26, 49, 0.55), rgba(244, 230, 216, 0.75));
+  filter: blur(60px);
+  transform: translate3d(-20px, 0, 0) scale(1);
+  transition: transform 0.6s ease, opacity 0.6s ease;
+  opacity: 0.7;
+}
+
+.qaidah-assignment-card:hover .qaidah-assignment-card__accent,
+.qaidah-assignment-card:focus-within .qaidah-assignment-card__accent {
+  transform: translate3d(0, -10px, 0) scale(1.08);
+  opacity: 0.85;
+}
+
+.qaidah-assignment-card__badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  background: rgba(255, 224, 205, 0.95);
+  color: #7a1a31;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 0.375rem 0.85rem;
+  letter-spacing: 0.18em;
+  box-shadow: 0 10px 20px rgba(122, 26, 49, 0.18);
+  transition: transform 0.25s ease, opacity 0.25s ease;
+}
+
+.qaidah-assignment-card__badge.is-hidden {
+  display: none;
+}
+
+.qaidah-assignment-card__cta {
+  position: relative;
+  overflow: hidden;
+}
+
+.qaidah-assignment-card__cta::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0));
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+.qaidah-assignment-card:hover .qaidah-assignment-card__cta::after,
+.qaidah-assignment-card__cta:focus-visible::after {
+  opacity: 1;
 }
 
 #alfawz-qaidah .animate-bounce-slow {
