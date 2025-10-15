@@ -76,7 +76,15 @@ class Routes {
                     'validate_callback' => function($param) {
                         return is_numeric($param);
                     }
-                ]
+                ],
+                'translation' => [
+                    'required' => false,
+                    'sanitize_callback' => 'sanitize_text_field',
+                ],
+                'transliteration' => [
+                    'required' => false,
+                    'sanitize_callback' => 'sanitize_text_field',
+                ],
             ]
         ]);
 
@@ -2878,9 +2886,25 @@ class Routes {
     }
 
     public function get_verses($request) {
-        $surah_id = $request->get_param('id');
+        $surah_id = (int) $request->get_param('id');
+        $translation = $request->get_param('translation');
+        $transliteration = $request->get_param('transliteration');
 
-        $verses = $this->get_surah_verses((int) $surah_id);
+        $default_translation = get_option('alfawz_default_translation', 'en.sahih');
+        $default_transliteration = get_option('alfawz_default_transliteration', 'en.transliteration');
+
+        $translation_edition = $translation !== null ? sanitize_text_field($translation) : $default_translation;
+        $transliteration_edition = $transliteration !== null ? sanitize_text_field($transliteration) : $default_transliteration;
+
+        if (in_array(strtolower($translation_edition), ['none', 'false', '0'], true)) {
+            $translation_edition = '';
+        }
+
+        if (in_array(strtolower($transliteration_edition), ['none', 'false', '0'], true)) {
+            $transliteration_edition = '';
+        }
+
+        $verses = $this->get_surah_verses($surah_id, $translation_edition, $transliteration_edition);
 
         if (is_wp_error($verses)) {
             return $verses;
@@ -3042,9 +3066,15 @@ class Routes {
      *
      * @return array|\WP_Error
      */
-    private function get_surah_verses(int $surah_id) {
-        $transient_key = sprintf('alfawz_surah_%d_verses', $surah_id);
-        $option_key    = sprintf('alfawz_surah_%d_verses', $surah_id);
+    private function get_surah_verses(int $surah_id, string $translation_edition = '', string $transliteration_edition = '') {
+        if ($surah_id <= 0) {
+            return new \WP_Error('invalid_surah', __('A valid surah reference is required.', 'alfawzquran'));
+        }
+
+        $translation_key = $translation_edition ? sanitize_key(str_replace('.', '_', strtolower($translation_edition))) : 'none';
+        $transliteration_key = $transliteration_edition ? sanitize_key(str_replace('.', '_', strtolower($transliteration_edition))) : 'none';
+        $transient_key = sprintf('alfawz_surah_%d_%s_%s', $surah_id, $translation_key, $transliteration_key);
+        $option_key    = sprintf('alfawz_surah_%d_%s_%s', $surah_id, $translation_key, $transliteration_key);
 
         $cached = get_transient($transient_key);
         if (is_array($cached) && !empty($cached)) {
@@ -3057,8 +3087,123 @@ class Routes {
             return $stored;
         }
 
+        if ('none' === $translation_key && 'none' === $transliteration_key) {
+            $legacy_key = sprintf('alfawz_surah_%d_verses', $surah_id);
+            $legacy_cached = get_transient($legacy_key);
+            if (is_array($legacy_cached) && !empty($legacy_cached)) {
+                $normalized = $this->prepare_surah_verses($legacy_cached, [], [], []);
+                set_transient($transient_key, $normalized, WEEK_IN_SECONDS);
+                update_option($option_key, $normalized, false);
+                return $normalized;
+            }
+            $legacy_stored = get_option($legacy_key);
+            if (is_array($legacy_stored) && !empty($legacy_stored)) {
+                set_transient($legacy_key, $legacy_stored, WEEK_IN_SECONDS);
+                $normalized = $this->prepare_surah_verses($legacy_stored, [], [], []);
+                set_transient($transient_key, $normalized, WEEK_IN_SECONDS);
+                update_option($option_key, $normalized, false);
+                return $normalized;
+            }
+        }
+
+        $arabic_payload = $this->fetch_surah_data($surah_id, '');
+        if (is_wp_error($arabic_payload)) {
+            return $arabic_payload;
+        }
+
+        $translation_map = [];
+        if (!empty($translation_edition)) {
+            $translation_payload = $this->fetch_surah_data($surah_id, $translation_edition);
+            if (!is_wp_error($translation_payload)) {
+                foreach ($translation_payload['ayahs'] as $ayah) {
+                    $number = isset($ayah['numberInSurah']) ? (int) $ayah['numberInSurah'] : 0;
+                    if ($number > 0) {
+                        $translation_map[$number] = wp_strip_all_tags($ayah['text'] ?? '');
+                    }
+                }
+            }
+        }
+
+        $transliteration_map = [];
+        if (!empty($transliteration_edition)) {
+            $transliteration_payload = $this->fetch_surah_data($surah_id, $transliteration_edition);
+            if (!is_wp_error($transliteration_payload)) {
+                foreach ($transliteration_payload['ayahs'] as $ayah) {
+                    $number = isset($ayah['numberInSurah']) ? (int) $ayah['numberInSurah'] : 0;
+                    if ($number > 0) {
+                        $transliteration_map[$number] = wp_strip_all_tags($ayah['text'] ?? '');
+                    }
+                }
+            }
+        }
+
+        $verses = $this->prepare_surah_verses(
+            $arabic_payload['ayahs'],
+            $translation_map,
+            $transliteration_map,
+            $arabic_payload['meta']
+        );
+
+        set_transient($transient_key, $verses, WEEK_IN_SECONDS);
+        update_option($option_key, $verses, false);
+        $this->clear_api_failure_notice();
+
+        return $verses;
+    }
+
+    private function prepare_surah_verses(array $base_verses, array $translations, array $transliterations, array $meta) {
+        $prepared = [];
+        foreach ($base_verses as $verse) {
+            $number = isset($verse['numberInSurah']) ? (int) $verse['numberInSurah'] : 0;
+            if ($number <= 0) {
+                continue;
+            }
+            $surah_info = isset($verse['surah']) && is_array($verse['surah']) ? $verse['surah'] : [];
+            if (!empty($meta)) {
+                $surah_info = array_merge(
+                    [
+                        'englishName'   => $meta['englishName'] ?? '',
+                        'name'          => $meta['name'] ?? '',
+                        'numberOfAyahs' => $meta['numberOfAyahs'] ?? count($base_verses),
+                    ],
+                    $surah_info
+                );
+            }
+            $prepared[] = array_merge(
+                $verse,
+                [
+                    'surah'          => $surah_info,
+                    'translation'    => $translations[$number] ?? ($verse['translation'] ?? ''),
+                    'transliteration'=> $transliterations[$number] ?? ($verse['transliteration'] ?? ''),
+                ]
+            );
+        }
+
+        return $prepared;
+    }
+
+    private function fetch_surah_data(int $surah_id, string $edition = '') {
+        $edition_slug = $edition ? sanitize_key(str_replace('.', '_', strtolower($edition))) : 'quran_uthmani';
+        $transient_key = sprintf('alfawz_surah_%d_%s_payload', $surah_id, $edition_slug);
+        $option_key    = sprintf('alfawz_surah_%d_%s_payload', $surah_id, $edition_slug);
+
+        $cached = get_transient($transient_key);
+        if (is_array($cached) && !empty($cached)) {
+            return $cached;
+        }
+
+        $stored = get_option($option_key);
+        if (is_array($stored) && !empty($stored)) {
+            set_transient($transient_key, $stored, WEEK_IN_SECONDS);
+            return $stored;
+        }
+
+        $url = $edition
+            ? sprintf('%s/surah/%d/%s', self::API_BASE, $surah_id, rawurlencode($edition))
+            : sprintf('%s/surah/%d', self::API_BASE, $surah_id);
+
         $response = wp_remote_get(
-            sprintf('%s/surah/%d', self::API_BASE, $surah_id),
+            $url,
             [
                 'timeout' => 20,
                 'headers' => [
@@ -3078,13 +3223,19 @@ class Routes {
             return $this->record_api_failure(new \WP_Error('api_error', __('Invalid response received from the Quran API.', 'alfawzquran')));
         }
 
-        $verses = $data['data']['ayahs'];
+        $payload = [
+            'ayahs' => $data['data']['ayahs'],
+            'meta'  => [
+                'englishName'   => $data['data']['englishName'] ?? '',
+                'name'          => $data['data']['name'] ?? '',
+                'numberOfAyahs' => isset($data['data']['numberOfAyahs']) ? (int) $data['data']['numberOfAyahs'] : count($data['data']['ayahs']),
+            ],
+        ];
 
-        set_transient($transient_key, $verses, WEEK_IN_SECONDS);
-        update_option($option_key, $verses, false);
-        $this->clear_api_failure_notice();
+        set_transient($transient_key, $payload, WEEK_IN_SECONDS);
+        update_option($option_key, $payload, false);
 
-        return $verses;
+        return $payload;
     }
 
     /**

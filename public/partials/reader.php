@@ -3,63 +3,103 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 ?>
-<div id="alfawz-reader" class="alfawz-reader-shell alfawz-no-scrollbar bg-amber-50 min-h-screen px-4 pt-8 sm:px-6">
-    <div class="relative mx-auto max-w-2xl rounded-xl bg-white bg-opacity-90 px-4 py-8 shadow-sm sm:px-6 alfawz-glass" aria-live="polite" aria-busy="true">
-        <div id="alfawz-confetti-host" class="pointer-events-none absolute inset-0 overflow-visible" aria-hidden="true"></div>
-        <div id="alfawz-verse-loader" class="rounded-xl border border-dashed border-emerald-200 bg-emerald-50 bg-opacity-80 px-4 py-16 text-center text-base text-emerald-700">
-            <?php esc_html_e( 'Select a surah and verse to begin your recitation.', 'alfawzquran' ); ?>
-        </div>
-        <article id="alfawz-verse-container" class="relative hidden" aria-labelledby="alfawz-verse-heading">
-            <div id="alfawz-egg-widget" class="flex flex-col items-center mb-6 animate-fade-in" aria-live="polite">
-                <div id="alfawz-egg-emoji" class="text-4xl mb-2" role="img" aria-label="<?php esc_attr_e( 'Egg progress', 'alfawzquran' ); ?>">🥚</div>
-                <div class="w-full bg-gray-200 rounded-full h-2 mb-1 overflow-hidden">
-                    <div id="alfawz-egg-progress-bar" class="h-2 rounded-full bg-amber-500 transition-all duration-500 ease-out" style="width:0%"></div>
-                </div>
-                <span id="alfawz-egg-count" class="text-sm text-gray-600">0 / 0</span>
-                <p id="alfawz-egg-message" class="mt-1 text-xs text-amber-600 text-center"><?php esc_html_e( 'Keep reading to hatch the surprise.', 'alfawzquran' ); ?></p>
+<div id="alfawz-reader" class="alfawz-reader-shell alfawz-no-scrollbar relative min-h-screen overflow-x-hidden px-4 pb-16 pt-12 sm:px-6">
+    <div class="mx-auto flex w-full max-w-5xl flex-col gap-10">
+        <header class="alfawz-reader-hero text-center">
+            <p class="alfawz-reader-kicker"><?php esc_html_e( 'Student Quran Reader', 'alfawzquran' ); ?></p>
+            <h1 class="alfawz-reader-title"><?php esc_html_e( 'Immerse in your recitation flow', 'alfawzquran' ); ?></h1>
+            <p class="alfawz-reader-lead"><?php esc_html_e( 'Choose a surah, glide through verses, and let every ayah resonate with beauty and clarity.', 'alfawzquran' ); ?></p>
+        </header>
+
+        <div class="alfawz-reader-card" aria-live="polite" aria-busy="true">
+            <div id="alfawz-confetti-host" class="pointer-events-none absolute inset-0 overflow-visible" aria-hidden="true"></div>
+            <div id="alfawz-verse-loader" class="alfawz-reader-loader">
+                <?php esc_html_e( 'Select a surah and verse to begin your recitation.', 'alfawzquran' ); ?>
             </div>
 
-            <button type="button" id="alfawz-prev-verse" class="alfawz-verse-nav absolute left-4 top-1/2 flex h-12 w-12 -translate-y-1/2 transform items-center justify-center rounded-full bg-black bg-opacity-10 text-2xl text-emerald-700 transition focus:outline-none focus:ring-2 focus:ring-emerald-500 hover:bg-opacity-20" aria-label="<?php esc_attr_e( 'Previous verse', 'alfawzquran' ); ?>" disabled>◁</button>
-            <button type="button" id="alfawz-next-verse" class="alfawz-verse-nav absolute right-4 top-1/2 flex h-12 w-12 -translate-y-1/2 transform items-center justify-center rounded-full bg-black bg-opacity-10 text-2xl text-emerald-700 transition focus:outline-none focus:ring-2 focus:ring-emerald-500 hover:bg-opacity-20" aria-label="<?php esc_attr_e( 'Next verse', 'alfawzquran' ); ?>" disabled>▷</button>
-
-            <header class="space-y-2 text-center">
-                <p id="alfawz-verse-meta" class="text-xs font-semibold uppercase text-emerald-700 alfawz-tracking-wide"></p>
-                <h3 id="alfawz-verse-heading" class="text-2xl font-semibold text-emerald-900"></h3>
-            </header>
-
-            <div id="alfawz-verse-content" class="mt-6 rounded-lg bg-emerald-50 px-4 py-6 text-center shadow-inner alfawz-verse-panel">
-                <p id="alfawz-arabic-text" class="font-arabic text-4xl leading-relaxed text-emerald-900 sm:text-5xl" dir="rtl" lang="ar"></p>
-                <p id="alfawz-transliteration" class="text-lg text-gray-700 mt-2"></p>
-                <p id="alfawz-translation" class="text-base italic text-gray-600 mt-1"></p>
-            </div>
-
-            <section class="mt-6 text-center" aria-live="polite">
-                <div class="w-full bg-gray-200 rounded-full h-2 mb-1 overflow-hidden">
-                    <div id="alfawz-daily-progress-bar" class="h-2 rounded-full bg-emerald-500 transition-all duration-500 ease-out" style="width:0%"></div>
+            <article id="alfawz-verse-container" class="alfawz-reader-stage hidden" aria-labelledby="alfawz-verse-heading">
+                <div id="alfawz-egg-widget" class="alfawz-reader-egg" aria-live="polite">
+                    <div id="alfawz-egg-emoji" class="alfawz-egg-emoji" role="img" aria-label="<?php esc_attr_e( 'Egg progress', 'alfawzquran' ); ?>">🥚</div>
+                    <div class="alfawz-meter" role="presentation">
+                        <div id="alfawz-egg-progress-bar" class="alfawz-meter__bar" style="width:0%"></div>
+                    </div>
+                    <span id="alfawz-egg-count" class="alfawz-egg-count">0 / 0</span>
+                    <p id="alfawz-egg-message" class="alfawz-egg-message"><?php esc_html_e( 'Keep reading to hatch the surprise.', 'alfawzquran' ); ?></p>
                 </div>
-                <span id="alfawz-daily-label" class="text-xs text-gray-500">0 / 10 Verses Today</span>
-                <p id="alfawz-daily-note" class="mt-1 text-xs text-emerald-700"></p>
+
+                <button type="button" id="alfawz-prev-verse" class="alfawz-verse-nav alfawz-verse-nav--prev" aria-label="<?php esc_attr_e( 'Previous verse', 'alfawzquran' ); ?>" disabled>
+                    <span aria-hidden="true">◁</span>
+                </button>
+                <button type="button" id="alfawz-next-verse" class="alfawz-verse-nav alfawz-verse-nav--next" aria-label="<?php esc_attr_e( 'Next verse', 'alfawzquran' ); ?>" disabled>
+                    <span aria-hidden="true">▷</span>
+                </button>
+
+                <header class="alfawz-verse-header">
+                    <p id="alfawz-verse-meta" class="alfawz-verse-meta"></p>
+                    <h3 id="alfawz-verse-heading" class="alfawz-verse-heading"></h3>
+                </header>
+
+                <div id="alfawz-verse-content" class="alfawz-verse-content">
+                    <p id="alfawz-arabic-text" class="alfawz-verse-arabic" dir="rtl" lang="ar"></p>
+                    <p id="alfawz-transliteration" class="alfawz-verse-transliteration"></p>
+                    <p id="alfawz-translation" class="alfawz-verse-translation"></p>
+                </div>
+
+                <div class="alfawz-verse-actions" aria-live="polite">
+                    <button type="button" id="alfawz-verse-audio" class="alfawz-audio-button" aria-describedby="alfawz-verse-meta" disabled>
+                        <span id="alfawz-verse-audio-icon" class="alfawz-audio-icon" aria-hidden="true">▶️</span>
+                        <span id="alfawz-verse-audio-label" class="alfawz-audio-label"><?php esc_html_e( 'Play verse audio', 'alfawzquran' ); ?></span>
+                    </button>
+                    <button type="button" id="alfawz-surah-toggle" class="alfawz-toggle" role="switch" aria-checked="false" aria-disabled="true" disabled>
+                        <span class="sr-only"><?php esc_html_e( 'Toggle full surah display', 'alfawzquran' ); ?></span>
+                        <span class="alfawz-toggle__track" aria-hidden="true">
+                            <span class="alfawz-toggle__thumb"></span>
+                        </span>
+                        <span class="alfawz-toggle__text">
+                            <span class="alfawz-toggle__label"><?php esc_html_e( 'Surah display', 'alfawzquran' ); ?></span>
+                            <span id="alfawz-surah-toggle-state" class="alfawz-toggle__state"><?php esc_html_e( 'Off', 'alfawzquran' ); ?></span>
+                        </span>
+                    </button>
+                </div>
+
+                <section class="alfawz-daily" aria-live="polite">
+                    <div class="alfawz-meter" role="presentation">
+                        <div id="alfawz-daily-progress-bar" class="alfawz-meter__bar" style="width:0%"></div>
+                    </div>
+                    <span id="alfawz-daily-label" class="alfawz-daily-label">0 / 10 Verses Today</span>
+                    <p id="alfawz-daily-note" class="alfawz-daily-note"></p>
+                </section>
+            </article>
+
+            <section id="alfawz-surah-list-wrapper" class="alfawz-surah-wrapper hidden" aria-live="polite">
+                <header class="alfawz-surah-header">
+                    <h4 class="alfawz-surah-title"><?php esc_html_e( 'Full Surah View', 'alfawzquran' ); ?></h4>
+                    <p class="alfawz-surah-subtitle"><?php esc_html_e( 'Scroll to absorb every ayah or tap one to focus above.', 'alfawzquran' ); ?></p>
+                </header>
+                <div id="alfawz-surah-list-loader" class="alfawz-surah-loader"><?php esc_html_e( 'Loading the full surah…', 'alfawzquran' ); ?></div>
+                <div id="alfawz-surah-list" class="alfawz-surah-list hidden" data-testid="alfawz-surah-list"></div>
             </section>
-        </article>
-    </div>
+        </div>
 
-    <div class="mx-auto mt-8 max-w-2xl rounded-xl bg-white bg-opacity-90 p-4 shadow-sm sm:p-6 alfawz-glass" aria-labelledby="alfawz-reader-label">
-        <h2 id="alfawz-reader-label" class="text-sm font-semibold uppercase tracking-widest text-emerald-700">
-            <?php esc_html_e( 'Select a surah and ayah', 'alfawzquran' ); ?>
-        </h2>
-        <div class="mt-4 grid gap-4 sm:grid-cols-2">
-            <label class="flex flex-col">
-                <span class="text-sm font-medium text-emerald-800"><?php esc_html_e( 'Surah', 'alfawzquran' ); ?></span>
-                <select id="alfawz-surah-select" class="mt-2 w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-base text-emerald-900 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-400">
-                    <option value=""><?php esc_html_e( 'Loading…', 'alfawzquran' ); ?></option>
-                </select>
-            </label>
-            <label class="flex flex-col">
-                <span class="text-sm font-medium text-emerald-800"><?php esc_html_e( 'Verse', 'alfawzquran' ); ?></span>
-                <select id="alfawz-verse-select" class="mt-2 w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-base text-emerald-900 shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-400" disabled>
-                    <option value=""><?php esc_html_e( 'Select a surah first', 'alfawzquran' ); ?></option>
-                </select>
-            </label>
+        <div class="alfawz-selector-card" aria-labelledby="alfawz-reader-label">
+            <div class="alfawz-selector-header">
+                <h2 id="alfawz-reader-label" class="alfawz-selector-title"><?php esc_html_e( 'Select a surah and ayah', 'alfawzquran' ); ?></h2>
+                <p class="alfawz-selector-note"><?php esc_html_e( 'Build your flow by pairing a surah with a verse, then glide using the arrows or full view.', 'alfawzquran' ); ?></p>
+            </div>
+            <div class="mt-6 grid gap-5 sm:grid-cols-2">
+                <label class="alfawz-selector-field">
+                    <span class="alfawz-selector-label"><?php esc_html_e( 'Surah', 'alfawzquran' ); ?></span>
+                    <select id="alfawz-surah-select" class="alfawz-selector-input">
+                        <option value=""><?php esc_html_e( 'Loading…', 'alfawzquran' ); ?></option>
+                    </select>
+                </label>
+                <label class="alfawz-selector-field">
+                    <span class="alfawz-selector-label"><?php esc_html_e( 'Verse', 'alfawzquran' ); ?></span>
+                    <select id="alfawz-verse-select" class="alfawz-selector-input" disabled>
+                        <option value=""><?php esc_html_e( 'Select a surah first', 'alfawzquran' ); ?></option>
+                    </select>
+                </label>
+            </div>
         </div>
     </div>
 

@@ -65,6 +65,539 @@
   --alfawz-text: #0f172a;
   --alfawz-muted: #475569;
   --alfawz-emerald: #047857;
+  --alfawz-maroon: #5f0a1d;
+  --alfawz-maroon-dark: #3a0613;
+  --alfawz-maroon-light: #a0183d;
+  --alfawz-milk: #fdf6ed;
+  --alfawz-gold: #f6c27a;
+  --alfawz-sheen: rgba(255, 255, 255, 0.35);
+}
+
+.alfawz-reader-shell {
+  position: relative;
+  background: radial-gradient(circle at 15% 20%, rgba(253, 246, 237, 0.45), transparent 50%),
+    radial-gradient(circle at 85% 25%, rgba(255, 233, 214, 0.35), transparent 55%),
+    linear-gradient(135deg, var(--alfawz-maroon-dark), var(--alfawz-maroon) 52%, rgba(253, 233, 221, 0.86));
+}
+
+.alfawz-reader-shell::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 20% 80%, rgba(240, 200, 152, 0.18), transparent 60%);
+  pointer-events: none;
+}
+
+.alfawz-reader-hero {
+  position: relative;
+  z-index: 1;
+  padding: 3.5rem 2rem;
+  border-radius: 2.5rem;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.05));
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  box-shadow: 0 40px 90px rgba(63, 5, 25, 0.28);
+  backdrop-filter: blur(24px);
+}
+
+.alfawz-reader-hero::after {
+  content: '';
+  position: absolute;
+  inset: 15% 20%;
+  border-radius: 999px;
+  background: radial-gradient(circle at center, rgba(255, 255, 255, 0.25), transparent 70%);
+  filter: blur(24px);
+  pointer-events: none;
+}
+
+.alfawz-reader-kicker {
+  font-size: 0.8rem;
+  letter-spacing: 0.45em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.7);
+  margin-bottom: 1rem;
+}
+
+.alfawz-reader-title {
+  font-size: clamp(2.4rem, 4vw, 3.5rem);
+  line-height: 1.1;
+  font-weight: 700;
+  color: var(--alfawz-milk);
+  text-shadow: 0 12px 30px rgba(45, 4, 18, 0.45);
+  margin-bottom: 1rem;
+}
+
+.alfawz-reader-lead {
+  font-size: clamp(1.05rem, 2.2vw, 1.35rem);
+  max-width: 45rem;
+  margin: 0 auto;
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.alfawz-reader-card {
+  position: relative;
+  z-index: 1;
+  border-radius: 2.25rem;
+  padding: clamp(2.5rem, 5vw, 3.5rem);
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.32);
+  box-shadow: 0 45px 120px rgba(26, 3, 11, 0.32);
+  overflow: hidden;
+}
+
+.alfawz-reader-loader {
+  border-radius: 1.75rem;
+  border: 1px dashed rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.18);
+  color: var(--alfawz-milk);
+  padding: 3.5rem 2rem;
+  text-align: center;
+  font-size: 1.125rem;
+  line-height: 1.6;
+}
+
+.alfawz-reader-stage {
+  position: relative;
+  z-index: 2;
+}
+
+.alfawz-reader-egg {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.75rem;
+  margin-bottom: 2rem;
+  background: rgba(253, 246, 237, 0.24);
+  border-radius: 1.75rem;
+  padding: 1.75rem 1.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35);
+}
+
+.alfawz-egg-emoji {
+  font-size: clamp(3.5rem, 6vw, 4.5rem);
+}
+
+.alfawz-egg-count {
+  font-size: 1rem;
+  font-weight: 600;
+  color: rgba(80, 11, 27, 0.75);
+}
+
+.alfawz-egg-message {
+  font-size: 0.95rem;
+  color: var(--alfawz-maroon-light);
+  max-width: 26rem;
+}
+
+.alfawz-meter {
+  position: relative;
+  width: 100%;
+  height: 0.6rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.35);
+  overflow: hidden;
+  box-shadow: inset 0 1px 4px rgba(58, 6, 19, 0.22);
+}
+
+.alfawz-meter__bar {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--alfawz-gold), #f97316, #facc15);
+  transition: width 480ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.alfawz-verse-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 3.5rem;
+  width: 3.5rem;
+  border-radius: 999px;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.45));
+  color: var(--alfawz-maroon);
+  font-size: 1.75rem;
+  box-shadow: 0 18px 40px rgba(44, 7, 18, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  transition: transform 200ms ease, box-shadow 200ms ease, background 200ms ease, opacity 200ms ease;
+}
+
+.alfawz-verse-nav:hover:not([disabled]),
+.alfawz-verse-nav:focus-visible:not([disabled]) {
+  transform: translateY(-50%) scale(1.05);
+  box-shadow: 0 24px 50px rgba(44, 7, 18, 0.45);
+}
+
+.alfawz-verse-nav[disabled] {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.alfawz-verse-nav--prev {
+  left: 1.25rem;
+}
+
+.alfawz-verse-nav--next {
+  right: 1.25rem;
+}
+
+.alfawz-verse-header {
+  text-align: center;
+  margin: 0 auto 2rem;
+  max-width: 36rem;
+}
+
+.alfawz-verse-meta {
+  font-size: 0.85rem;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.75);
+  margin-bottom: 0.65rem;
+}
+
+.alfawz-verse-heading {
+  font-size: clamp(2rem, 4vw, 2.8rem);
+  font-weight: 700;
+  color: var(--alfawz-milk);
+  text-shadow: 0 10px 24px rgba(30, 4, 12, 0.4);
+}
+
+.alfawz-verse-content {
+  border-radius: 2.25rem;
+  padding: clamp(2rem, 4vw, 3rem);
+  background: radial-gradient(circle at top, rgba(255, 255, 255, 0.48), rgba(255, 255, 255, 0.1));
+  border: 1px solid rgba(255, 255, 255, 0.42);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45), 0 24px 65px rgba(27, 5, 12, 0.32);
+  text-align: center;
+}
+
+.alfawz-verse-arabic {
+  font-size: clamp(2.8rem, 6vw, 4.2rem);
+  line-height: 1.35;
+  color: var(--alfawz-maroon-dark);
+}
+
+.alfawz-verse-transliteration {
+  font-size: clamp(1.15rem, 2.4vw, 1.35rem);
+  color: rgba(80, 11, 27, 0.78);
+  margin-top: 1.5rem;
+}
+
+.alfawz-verse-translation {
+  font-size: clamp(1.05rem, 2.2vw, 1.25rem);
+  margin-top: 1rem;
+  color: rgba(33, 17, 26, 0.75);
+  font-style: italic;
+}
+
+.alfawz-verse-actions {
+  margin-top: 2.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1.25rem;
+}
+
+.alfawz-audio-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  border-radius: 999px;
+  padding: 0.85rem 1.6rem;
+  font-weight: 600;
+  color: var(--alfawz-maroon);
+  background: linear-gradient(120deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.65));
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  box-shadow: 0 18px 45px rgba(40, 5, 15, 0.25);
+  transition: transform 220ms ease, box-shadow 220ms ease, background 220ms ease;
+}
+
+.alfawz-audio-button:hover:not([disabled]),
+.alfawz-audio-button:focus-visible:not([disabled]) {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 24px 60px rgba(40, 5, 15, 0.32);
+}
+
+.alfawz-audio-button[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.alfawz-audio-icon {
+  font-size: 1.35rem;
+}
+
+.alfawz-audio-label {
+  font-size: 1.05rem;
+}
+
+.alfawz-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.9rem;
+  border-radius: 999px;
+  padding: 0.65rem 0.85rem 0.65rem 0.7rem;
+  background: rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 18px 38px rgba(26, 4, 12, 0.28);
+  transition: var(--alfawz-transition);
+  cursor: pointer;
+}
+
+.alfawz-toggle[disabled],
+.alfawz-toggle[aria-disabled='true'] {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.alfawz-toggle__track {
+  position: relative;
+  width: 3.25rem;
+  height: 1.8rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.32);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  overflow: hidden;
+}
+
+.alfawz-toggle__thumb {
+  position: absolute;
+  top: 0.2rem;
+  left: 0.25rem;
+  height: 1.3rem;
+  width: 1.3rem;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #fff, rgba(255, 255, 255, 0.55));
+  box-shadow: 0 8px 20px rgba(23, 3, 10, 0.25);
+  transition: transform 200ms ease;
+}
+
+.alfawz-toggle__text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.alfawz-toggle__label {
+  font-size: 0.6rem;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.alfawz-toggle__state {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--alfawz-milk);
+}
+
+.alfawz-toggle[aria-checked='true'] {
+  background: linear-gradient(135deg, rgba(253, 246, 237, 0.45), rgba(255, 255, 255, 0.25));
+  border-color: rgba(255, 255, 255, 0.65);
+}
+
+.alfawz-toggle[aria-checked='true'] .alfawz-toggle__thumb {
+  transform: translateX(1.35rem);
+  background: linear-gradient(135deg, var(--alfawz-gold), #f59e0b);
+}
+
+.alfawz-daily {
+  margin-top: 2.75rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  color: var(--alfawz-milk);
+}
+
+.alfawz-daily-label {
+  font-size: 0.95rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.alfawz-daily-note {
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.alfawz-surah-wrapper {
+  margin-top: 3rem;
+  border-radius: 2rem;
+  background: rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  padding: 2.4rem 2rem;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+.alfawz-surah-header {
+  text-align: center;
+  max-width: 38rem;
+  margin: 0 auto 2rem;
+}
+
+.alfawz-surah-title {
+  font-size: clamp(1.45rem, 3vw, 1.85rem);
+  font-weight: 700;
+  color: var(--alfawz-milk);
+}
+
+.alfawz-surah-subtitle {
+  margin-top: 0.5rem;
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.alfawz-surah-loader {
+  text-align: center;
+  font-size: 1.05rem;
+  color: rgba(255, 255, 255, 0.72);
+  padding: 2rem 0;
+}
+
+.alfawz-surah-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1.5rem;
+}
+
+.alfawz-surah-verse {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1.4rem 1.6rem;
+  border-radius: 1.5rem;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow: 0 18px 44px rgba(26, 4, 12, 0.25);
+  text-align: left;
+  transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease;
+  cursor: pointer;
+}
+
+.alfawz-surah-verse:hover,
+.alfawz-surah-verse:focus-visible {
+  transform: translateY(-6px);
+  box-shadow: 0 24px 60px rgba(26, 4, 12, 0.32);
+}
+
+.alfawz-surah-verse__number {
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.28em;
+  color: rgba(88, 18, 42, 0.65);
+}
+
+.alfawz-surah-verse__arabic {
+  font-family: 'KFGQPC Uthmanic Script HAFS', 'Scheherazade New', serif;
+  font-size: 1.7rem;
+  line-height: 1.65;
+  color: var(--alfawz-maroon-dark);
+}
+
+.alfawz-surah-verse__translation {
+  font-size: 0.95rem;
+  color: rgba(66, 26, 39, 0.78);
+}
+
+.alfawz-surah-verse__transliteration {
+  font-size: 0.9rem;
+  color: rgba(92, 22, 41, 0.72);
+}
+
+.alfawz-surah-verse--active {
+  border-color: rgba(190, 30, 75, 0.85);
+  box-shadow: 0 28px 68px rgba(190, 30, 75, 0.38);
+}
+
+.alfawz-selector-card {
+  position: relative;
+  z-index: 1;
+  border-radius: 2rem;
+  padding: clamp(2.2rem, 4vw, 3rem);
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  box-shadow: 0 38px 90px rgba(30, 4, 12, 0.3);
+  backdrop-filter: blur(18px);
+}
+
+.alfawz-selector-header {
+  text-align: center;
+  max-width: 32rem;
+  margin: 0 auto;
+}
+
+.alfawz-selector-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--alfawz-milk);
+}
+
+.alfawz-selector-note {
+  margin-top: 0.6rem;
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.alfawz-selector-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.alfawz-selector-label {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.32em;
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.alfawz-selector-input {
+  width: 100%;
+  border-radius: 1rem;
+  padding: 0.85rem 1rem;
+  background: rgba(255, 255, 255, 0.95);
+  color: var(--alfawz-maroon);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45);
+  transition: box-shadow 200ms ease, transform 200ms ease;
+}
+
+.alfawz-selector-input:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(250, 204, 21, 0.4);
+  transform: translateY(-1px);
+}
+
+.alfawz-surah-list button {
+  border: none;
+  background: none;
+}
+
+@media (max-width: 640px) {
+  .alfawz-verse-nav--prev,
+  .alfawz-verse-nav--next {
+    top: auto;
+    bottom: -2.8rem;
+    transform: none;
+  }
+
+  .alfawz-verse-nav--prev {
+    left: calc(50% - 4rem);
+  }
+
+  .alfawz-verse-nav--next {
+    right: calc(50% - 4rem);
+  }
+
+  .alfawz-reader-card {
+    padding-bottom: 5rem;
+  }
 }
 
 body .alfawz-surface {
