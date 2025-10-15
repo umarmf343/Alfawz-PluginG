@@ -699,133 +699,44 @@
    5. MEMORIZATION STATS CONTAINERS
    ======================================== */
 .alfawz-memorization-stats {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: var(--spacing-md);
   margin-bottom: var(--spacing-lg);
 }
 
-.alfawz-stat-container {
-  background: #fff9f2;
-  border-radius: var(--radius-lg);
-  padding: var(--spacing-xl);
-  box-shadow: var(--shadow-md);
-  border: 1px solid #f1dfd5;
-  position: relative;
-  overflow: hidden;
-  transition: all 0.3s ease;
+.alfawz-memorizer-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
   text-align: center;
 }
 
-.alfawz-stat-container:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-lg);
-}
-
-.alfawz-stat-icon-wrapper {
-  position: relative;
-  margin-bottom: var(--spacing-md);
+.alfawz-memorizer-card .alfawz-card-content {
+  width: 100%;
   display: flex;
-  justify-content: center;
-}
-
-.alfawz-stat-icon-circle {
-  width: 45px;
-  height: 45px;
-  border-radius: var(--radius-full);
-  display: flex;
+  flex-direction: column;
   align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.alfawz-memorizer-card .alfawz-create-plan-btn {
+  margin-top: var(--spacing-sm);
+  width: 100%;
   justify-content: center;
-  position: relative;
-  overflow: hidden;
-  background: var(--icon-gradient-violet);
-  border: 1px solid var(--icon-ring-color);
-  box-shadow: 0 10px 24px rgba(161, 140, 209, 0.35);
-  background-size: 200% 200%;
-  animation: iconSheen 12s ease infinite;
-  isolation: isolate;
 }
 
-.alfawz-stat-icon-circle::before,
-.alfawz-stat-icon-circle::after {
-  content: "";
-  position: absolute;
-  inset: 3px;
-  border-radius: inherit;
-  background: rgba(255, 255, 255, 0.2);
-  pointer-events: none;
-  z-index: -1;
-}
-
-.alfawz-stat-icon-circle::after {
-  inset: -35%;
-  background: radial-gradient(circle at 65% 25%, rgba(255, 255, 255, 0.65), transparent 60%);
-  opacity: 0.8;
-  z-index: -1;
-}
-
-.alfawz-memorized-container .alfawz-stat-icon-circle {
+.alfawz-memorized-icon {
   background: var(--icon-gradient-emerald);
   box-shadow: 0 12px 28px rgba(67, 233, 123, 0.35);
 }
 
-.alfawz-streak-container .alfawz-stat-icon-circle {
+.alfawz-memorizer-streak-icon {
   background: var(--icon-gradient-flame);
   box-shadow: 0 12px 28px rgba(246, 211, 101, 0.35);
 }
 
-.alfawz-plans-container .alfawz-stat-icon-circle {
+.alfawz-plans-icon {
   background: var(--icon-gradient-violet);
   box-shadow: 0 12px 28px rgba(161, 140, 209, 0.35);
-}
-
-.alfawz-stat-icon {
-  font-size: 1.3em;
-  color: white;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-  position: relative;
-  z-index: 1;
-}
-
-.alfawz-stat-pulse,
-.alfawz-stat-flame,
-.alfawz-stat-shine {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 60px;
-  height: 60px;
-  border-radius: var(--radius-full);
-  opacity: 0.3;
-  animation: pulse 2s infinite;
-}
-
-.alfawz-stat-pulse {
-  background: radial-gradient(circle, rgba(72, 187, 120, 0.3), transparent);
-}
-
-.alfawz-stat-flame {
-  background: radial-gradient(circle, rgba(245, 101, 101, 0.3), transparent);
-}
-
-.alfawz-stat-shine {
-  background: radial-gradient(circle, rgba(102, 126, 234, 0.3), transparent);
-}
-
-@keyframes pulse {
-  0% {
-    transform: translate(-50%, -50%) scale(0.8);
-    opacity: 0.3;
-  }
-  50% {
-    transform: translate(-50%, -50%) scale(1.2);
-    opacity: 0.1;
-  }
-  100% {
-    transform: translate(-50%, -50%) scale(0.8);
-    opacity: 0.3;
-  }
 }
 
 .alfawz-stat-number {
