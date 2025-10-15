@@ -36,6 +36,10 @@ class Frontend {
     
     public function enqueue_assets() {
         if ($this->is_alfawz_page()) {
+            $rest_nonce = wp_create_nonce('wp_rest');
+            $is_logged_in = is_user_logged_in();
+            $current_user_id = get_current_user_id();
+
             // Tailwind via CDN keeps the plugin lightweight and avoids build tooling.
             wp_enqueue_style(
                 'alfawz-tailwind',
@@ -59,17 +63,50 @@ class Frontend {
                 true
             );
 
+            wp_enqueue_script(
+                'alfawz-memorization',
+                ALFAWZQURAN_PLUGIN_URL . 'assets/js/alfawz-memorization.js',
+                [],
+                ALFAWZQURAN_VERSION,
+                true
+            );
+
             wp_localize_script('alfawz-frontend', 'alfawzData', [
                 'apiUrl' => rest_url('alfawzquran/v1/'),
-                'nonce' => wp_create_nonce('wp_rest'),
-                'userId' => get_current_user_id(),
-                'isLoggedIn' => is_user_logged_in(),
+                'nonce' => $rest_nonce,
+                'userId' => $current_user_id,
+                'isLoggedIn' => $is_logged_in,
                 'ajaxUrl' => admin_url('admin-ajax.php'),
                 'pluginUrl' => ALFAWZQURAN_PLUGIN_URL,
                 'hasanatPerLetter' => get_option('alfawz_hasanat_per_letter', 10),
                 'dailyTarget' => get_option('alfawz_daily_verse_target', 10),
                 'defaultReciter' => get_option('alfawz_default_reciter', 'ar.alafasy'),
                 'defaultTranslation' => get_option('alfawz_default_translation', 'en.sahih')
+            ]);
+
+            wp_localize_script('alfawz-memorization', 'alfawzMemoData', [
+                'apiUrl' => rest_url('alfawzquran/v1/'),
+                'nonce' => $rest_nonce,
+                'isLoggedIn' => $is_logged_in,
+                'defaultTranslation' => get_option('alfawz_default_translation', 'en.sahih'),
+                'selectSurahLabel' => __('Select a surah', 'alfawzquran'),
+                'surahErrorMessage' => __('Unable to load surahs right now.', 'alfawzquran'),
+                'formValidationMessage' => __('Please select a surah and valid ayah range.', 'alfawzquran'),
+                'rangeErrorMessage' => __('End ayah must be greater than start ayah.', 'alfawzquran'),
+                'creatingPlanMessage' => __('Creating plan…', 'alfawzquran'),
+                'planCreatedMessage' => __('Plan created! Loading your first verse…', 'alfawzquran'),
+                'planCreateError' => __('Unable to create plan. Please try again.', 'alfawzquran'),
+                'noPlanMessage' => __('Create your first plan to begin memorizing.', 'alfawzquran'),
+                'planLoadError' => __('Unable to load your memorization plan.', 'alfawzquran'),
+                'planCompleteMessage' => __('All verses in this plan are memorized. Create a new plan to continue.', 'alfawzquran'),
+                'progressErrorMessage' => __('Unable to save progress. Please try again.', 'alfawzquran'),
+                'verseErrorMessage' => __('Unable to load verse details right now.', 'alfawzquran'),
+                'readyMessage' => __('Takbir! You may progress to the next ayah.', 'alfawzquran'),
+                'remainingLabel' => __('repetitions remaining.', 'alfawzquran'),
+                'hideTranslationLabel' => __('Hide translation', 'alfawzquran'),
+                'showTranslationLabel' => __('Show translation', 'alfawzquran'),
+                'versesLabel' => __('Verses', 'alfawzquran'),
+                'repetitionLabel' => __('Repetitions', 'alfawzquran'),
             ]);
         }
     }
