@@ -6,7 +6,7 @@
   let currentReciter = wpData.userPreferences?.default_reciter || RECITER_EDITION;
   const TRANSLATION_EDITION = wpData.defaultTranslation || 'en.sahih';
   const TRANSLITERATION_EDITION = wpData.defaultTransliteration || 'en.transliteration';
-  const HASANAT_PER_LETTER = Number(wpData.hasanatPerLetter || 10);
+  const HASANAT_PER_LETTER = 10;
 
   const headers = {};
   if (wpData.nonce) {
@@ -18,12 +18,27 @@
     verseCache: new Map(),
     audioCache: new Map(),
     dashboardStats: null,
+    hasanatTotal: 0,
+    hasanatBadge: null,
+    hasanatBadgeCount: null,
+    refreshLeaderboard: null,
+    leaderboardLoading: null,
   };
 
   const qs = (selector, scope = document) => scope.querySelector(selector);
   const formatNumber = (value) => new Intl.NumberFormat().format(Number(value || 0));
   const formatPercent = (value) => `${Math.min(100, Math.max(0, Number(value || 0))).toFixed(0)}%`;
   const timezoneOffset = () => -new Date().getTimezoneOffset();
+
+  const countArabicLetters = (arabicText = '') => {
+    if (!arabicText) {
+      return 0;
+    }
+    return String(arabicText)
+      .replace(/[\u064B-\u065F\u0670]/g, '')
+      .replace(/[^\u0621-\u064A\u066E-\u06D3]/g, '')
+      .length;
+  };
 
   const buildApiUrl = (path) => {
     const clean = path.replace(/^\//, '');
@@ -182,12 +197,165 @@
     return span;
   };
 
-  const computeHasanat = (arabicText) => {
-    if (!arabicText) {
-      return 0;
+  const computeHasanat = (arabicText) => countArabicLetters(arabicText) * HASANAT_PER_LETTER;
+
+  const ensureHasanatBadge = () => {
+    if (!wpData.isLoggedIn) {
+      return null;
     }
-    const letters = arabicText.replace(/[^\u0600-\u06FF]/g, '').length;
-    return letters * HASANAT_PER_LETTER;
+
+    if (state.hasanatBadge) {
+      return state.hasanatBadge;
+    }
+
+    let badge = document.getElementById('alfawz-hasanat-badge');
+    if (!badge) {
+      badge = document.createElement('div');
+      badge.id = 'alfawz-hasanat-badge';
+      badge.className = 'alfawz-hasanat-badge';
+      badge.setAttribute('role', 'status');
+      badge.setAttribute('aria-live', 'polite');
+      badge.innerHTML = `
+        <div class="alfawz-hasanat-badge__count">0</div>
+        <div class="alfawz-hasanat-badge__label">HASANAT EARNED</div>
+      `;
+      document.body.appendChild(badge);
+    }
+
+    state.hasanatBadge = badge;
+    state.hasanatBadgeCount = badge.querySelector('.alfawz-hasanat-badge__count');
+    return badge;
+  };
+
+  const updateHasanatDisplays = (total) => {
+    const value = Number(total || 0);
+    state.hasanatTotal = value;
+
+    if (state.dashboardStats && typeof state.dashboardStats === 'object') {
+      state.dashboardStats.total_hasanat = value;
+    }
+
+    const badge = ensureHasanatBadge();
+    if (badge && state.hasanatBadgeCount) {
+      state.hasanatBadgeCount.textContent = formatNumber(value);
+    }
+
+    const ids = ['#alfawz-hasanat-total', '#alfawz-profile-hasanat-total'];
+    ids.forEach((selector) => {
+      const element = qs(selector);
+      if (element) {
+        element.textContent = formatNumber(value);
+      }
+    });
+
+    document.querySelectorAll('[data-stat="hasanat"]').forEach((node) => {
+      node.textContent = formatNumber(value);
+    });
+  };
+
+  const showHasanatSplash = (amount, anchor) => {
+    if (!amount || amount <= 0) {
+      return;
+    }
+    const host = document.body;
+    if (!host) {
+      return;
+    }
+    const splash = document.createElement('div');
+    splash.className = 'alfawz-hasanat-splash animate-float-up';
+    splash.textContent = `+${formatNumber(amount)} Hasanat!`;
+    splash.setAttribute('aria-hidden', 'true');
+
+    let top = window.innerHeight / 2 + window.scrollY;
+    let left = window.innerWidth / 2 + window.scrollX;
+
+    if (anchor && typeof anchor.getBoundingClientRect === 'function') {
+      const rect = anchor.getBoundingClientRect();
+      top = rect.top + window.scrollY - 8;
+      left = rect.left + (rect.width / 2) + window.scrollX;
+    }
+
+    splash.style.top = `${top}px`;
+    splash.style.left = `${left}px`;
+
+    host.appendChild(splash);
+    window.setTimeout(() => {
+      splash.remove();
+    }, 1500);
+  };
+
+  const dispatchHasanatEvent = (detail) => {
+    try {
+      document.dispatchEvent(new CustomEvent('alfawz:hasanat-updated', { detail }));
+    } catch (error) {
+      console.warn('[AlfawzQuran] Unable to dispatch hasanat event', error);
+    }
+  };
+
+  const awardHasanat = async ({
+    surahId,
+    verseId,
+    hasanat,
+    progressType = 'read',
+    repetitionCount = 0,
+    anchorEl = null,
+  } = {}) => {
+    if (!wpData.isLoggedIn) {
+      return null;
+    }
+    const parsedHasanat = Number(hasanat || 0);
+    const safeSurah = Number(surahId || 0);
+    const safeVerse = Number(verseId || 0);
+    if (parsedHasanat <= 0 || safeSurah <= 0 || safeVerse <= 0) {
+      return null;
+    }
+    try {
+      const response = await apiRequest('hasanat', {
+        method: 'POST',
+        body: {
+          surah_id: safeSurah,
+          verse_id: safeVerse,
+          hasanat: parsedHasanat,
+          progress_type: progressType,
+          repetition_count: repetitionCount,
+        },
+      });
+
+      const total = response?.total_hasanat ?? state.hasanatTotal;
+      updateHasanatDisplays(total);
+
+      const awarded = Number(response?.hasanat_awarded || 0);
+      if (awarded > 0) {
+        showHasanatSplash(awarded, anchorEl);
+        if (typeof state.refreshLeaderboard === 'function') {
+          state.refreshLeaderboard();
+        }
+      }
+
+      dispatchHasanatEvent({
+        total,
+        amount: awarded,
+        surahId: safeSurah,
+        verseId: safeVerse,
+        progressType,
+        alreadyCounted: !(awarded > 0),
+      });
+
+      return response;
+    } catch (error) {
+      console.warn('[AlfawzQuran] Unable to award hasanat', error);
+      return null;
+    }
+  };
+
+  window.AlfawzHasanat = {
+    ...(window.AlfawzHasanat || {}),
+    countLetters: countArabicLetters,
+    computeHasanat,
+    updateDisplays: updateHasanatDisplays,
+    showSplash: showHasanatSplash,
+    award: awardHasanat,
+    formatNumber,
   };
 
   const buildVerseKey = (surahId, verseId) => `${surahId}:${verseId}`;
@@ -216,7 +384,9 @@
       }
       setText(qs('#alfawz-memorised-today', root), formatNumber(stats?.verses_memorized || 0));
       setText(qs('#alfawz-current-streak', root), formatNumber(stats?.current_streak || 0));
-      setText(qs('#alfawz-hasanat-total', root), formatNumber(stats?.total_hasanat || 0));
+      const totalHasanat = Number(stats?.total_hasanat || 0);
+      setText(qs('#alfawz-hasanat-total', root), formatNumber(totalHasanat));
+      updateHasanatDisplays(totalHasanat);
 
       const dailyProgressBar = qs('#alfawz-daily-progress-bar', root);
       const dailyProgressLabel = qs('#alfawz-daily-progress-label', root);
@@ -599,11 +769,13 @@
         }
         updateNavigationButtons();
         finishVerseTransition();
+        return verse;
       } catch (error) {
         isLoading = false;
         console.warn('[AlfawzQuran] Unable to load verse', error);
         setLoadingState(true, 'Unable to load verse. Please try again.');
         finishVerseTransition();
+        return null;
       }
     };
 
@@ -686,7 +858,19 @@
       if (verseSelect) {
         verseSelect.value = String(nextVerse);
       }
-      await renderVerse(currentSurahId, nextVerse);
+      const verse = await renderVerse(currentSurahId, nextVerse);
+      if (verse) {
+        const hasanat = computeHasanat(verse.arabic);
+        if (hasanat > 0) {
+          await awardHasanat({
+            surahId: currentSurahId,
+            verseId: nextVerse,
+            hasanat,
+            progressType: 'read',
+            anchorEl: nextBtn,
+          });
+        }
+      }
       await logVerseProgress(currentSurahId, nextVerse);
     };
 
@@ -803,6 +987,8 @@
     let currentVerseId = null;
     let repetitionCount = 0;
     let currentAudio = null;
+    let memoHasAwarded = false;
+    let memoAwardInFlight = false;
 
     const getCurrentSurahLength = () => {
       const surah = getSurahById(currentSurahId);
@@ -881,6 +1067,39 @@
 
     refreshPlans?.addEventListener('click', renderPlanList);
 
+    const triggerMemoHasanat = async (anchorEl) => {
+      if (memoHasAwarded || memoAwardInFlight) {
+        return memoHasAwarded;
+      }
+      if (!currentSurahId || !currentVerseId) {
+        return false;
+      }
+      const hasanat = computeHasanat(arabicEl.textContent || '');
+      if (!hasanat) {
+        return false;
+      }
+      memoAwardInFlight = true;
+      try {
+        const response = await awardHasanat({
+          surahId: currentSurahId,
+          verseId: currentVerseId,
+          hasanat,
+          progressType: 'memorized',
+          repetitionCount,
+          anchorEl,
+        });
+        if (response) {
+          memoHasAwarded = true;
+        }
+        return Boolean(response);
+      } catch (error) {
+        console.warn('[Alfawz Memorizer] Unable to award hasanat', error);
+        return false;
+      } finally {
+        memoAwardInFlight = false;
+      }
+    };
+
     const loadVerseForMemorisation = async () => {
       if (!currentSurahId || !currentVerseId) {
         return;
@@ -895,6 +1114,8 @@
         setText(arabicEl, verse.arabic);
         setText(translationEl, verse.translation);
         repetitionCount = 0;
+        memoHasAwarded = false;
+        memoAwardInFlight = false;
         updateRepetitionUI();
         session.classList.remove('hidden');
         note.textContent = 'Focus on tajwid, rhythm, and meaning with every repetition.';
@@ -926,9 +1147,12 @@
 
     loadBtn.addEventListener('click', loadVerseForMemorisation);
 
-    repeatBtn.addEventListener('click', () => {
+    repeatBtn.addEventListener('click', async () => {
       repetitionCount = Math.min(20, repetitionCount + 1);
       updateRepetitionUI();
+      if (repetitionCount >= 20) {
+        await triggerMemoHasanat(repeatBtn);
+      }
     });
 
     audioBtn.addEventListener('click', async () => {
@@ -951,26 +1175,21 @@
         return;
       }
       try {
-        const verse = await loadVerse(currentSurahId, currentVerseId);
-        const hasanat = computeHasanat(verse.arabic);
-        await apiRequest('progress', {
-          method: 'POST',
-          body: {
-            surah_id: currentSurahId,
-            verse_id: currentVerseId,
-            progress_type: 'memorized',
-            hasanat,
-            repetition_count: repetitionCount,
-          },
-        });
-        completeBtn.dataset.status = 'saved';
-        setText(
-          progressNote,
-          'Memorisation logged! Advance whenever you are ready for the next ayah.'
-        );
-        setCelebrationState(true);
-        updateNavigationButtons();
-        await renderPlanList();
+        if (!memoHasAwarded) {
+          await triggerMemoHasanat(completeBtn);
+        }
+        if (memoHasAwarded) {
+          completeBtn.dataset.status = 'saved';
+          setText(
+            progressNote,
+            'Memorisation logged! Advance whenever you are ready for the next ayah.'
+          );
+          setCelebrationState(true);
+          updateNavigationButtons();
+          await renderPlanList();
+        } else {
+          completeBtn.dataset.status = 'error';
+        }
       } catch (error) {
         completeBtn.dataset.status = 'error';
       }
@@ -1008,41 +1227,60 @@
     await renderPlanList();
   };
 
-  const initLeaderboard = async () => {
+  const initLeaderboard = () => {
     const root = qs('#alfawz-leaderboard');
     if (!root) {
+      state.refreshLeaderboard = null;
       return;
     }
-    try {
-      const leaderboard = await apiRequest('leaderboard');
-      const tbody = qs('#alfawz-leaderboard-body', root);
-      const updated = qs('#alfawz-leaderboard-updated', root);
-      if (!tbody) {
-        return;
-      }
-      tbody.innerHTML = '';
-      (leaderboard || []).forEach((entry, index) => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td class="px-4 py-3 text-sm font-semibold text-slate-500">${index + 1}</td>
-          <td class="px-4 py-3">
-            <div class="flex items-center gap-3">
-              <span class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-emerald-100 text-sm font-semibold text-emerald-700">${(entry.display_name || '?').slice(0, 2)}</span>
-              <span class="font-semibold text-slate-900">${entry.display_name || '—'}</span>
-            </div>
-          </td>
-          <td class="px-4 py-3 text-right text-sm font-semibold text-slate-700">${formatNumber(entry.verses_read || 0)}</td>
-          <td class="px-4 py-3 text-right text-sm font-semibold text-emerald-600">${formatNumber(entry.total_hasanat || 0)}</td>
-        `;
-        tbody.appendChild(tr);
-      });
-      if (updated) {
-        updated.textContent = `Updated ${new Date().toLocaleTimeString()}`;
-      }
-      tbody.removeAttribute('aria-busy');
-    } catch (error) {
-      console.warn('[AlfawzQuran] Unable to load leaderboard', error);
+    const tbody = qs('#alfawz-leaderboard-body', root);
+    const updated = qs('#alfawz-leaderboard-updated', root);
+    if (!tbody) {
+      state.refreshLeaderboard = null;
+      return;
     }
+
+    const loadLeaderboard = async () => {
+      if (state.leaderboardLoading) {
+        return state.leaderboardLoading;
+      }
+      tbody.setAttribute('aria-busy', 'true');
+      const request = (async () => {
+        try {
+          const leaderboard = await apiRequest('leaderboard');
+          tbody.innerHTML = '';
+          (leaderboard || []).forEach((entry, index) => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td class="px-4 py-3 text-sm font-semibold text-slate-500">${index + 1}</td>
+              <td class="px-4 py-3">
+                <div class="flex items-center gap-3">
+                  <span class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-emerald-100 text-sm font-semibold text-emerald-700">${(entry.display_name || '?').slice(0, 2)}</span>
+                  <span class="font-semibold text-slate-900">${entry.display_name || '—'}</span>
+                </div>
+              </td>
+              <td class="px-4 py-3 text-right text-sm font-semibold text-slate-700">${formatNumber(entry.verses_read || 0)}</td>
+              <td class="px-4 py-3 text-right text-sm font-semibold text-emerald-600">${formatNumber(entry.total_hasanat || 0)}</td>
+            `;
+            tbody.appendChild(tr);
+          });
+          if (updated) {
+            updated.textContent = `Updated ${new Date().toLocaleTimeString()}`;
+          }
+        } catch (error) {
+          console.warn('[AlfawzQuran] Unable to load leaderboard', error);
+        } finally {
+          tbody.removeAttribute('aria-busy');
+          state.leaderboardLoading = null;
+        }
+      })();
+
+      state.leaderboardLoading = request;
+      return request;
+    };
+
+    state.refreshLeaderboard = loadLeaderboard;
+    loadLeaderboard();
   };
 
   const applyProfileAnimations = (root) => {
@@ -1317,7 +1555,9 @@
         }
 
         setText(streakDaysEl, formatNumber(stats.current_streak || 0));
-        setText(hasanatEl, formatNumber(stats.total_hasanat || 0));
+        const profileHasanat = Number(stats.total_hasanat || 0);
+        setText(hasanatEl, formatNumber(profileHasanat));
+        updateHasanatDisplays(profileHasanat);
         setText(memorizedEl, formatNumber(stats.verses_memorized || 0));
         setText(readEl, formatNumber(stats.verses_read || 0));
         setText(currentStreakEl, formatNumber(stats.current_streak || 0));
@@ -1688,6 +1928,9 @@
   };
 
   document.addEventListener('DOMContentLoaded', () => {
+    if (wpData.isLoggedIn) {
+      ensureHasanatBadge();
+    }
     initDashboard();
     initReader();
     initMemorizer();
