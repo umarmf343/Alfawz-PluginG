@@ -4272,3 +4272,213 @@ body.alfawz-qaidah-modal-open {
     padding: 1.5rem;
   }
 }
+
+/*
+ * Layout and typography refinements
+ * ---------------------------------
+ * Many front-end surfaces previously relied on narrow max-width constraints
+ * and compact typography. The following overrides widen the primary wrappers
+ * and scale up type so that content can breathe on larger screens without
+ * feeling cramped.
+ */
+
+#alfawz-dashboard.alfawz-dashboard-shell,
+#alfawz-leaderboard,
+.alfawz-qaidah-shell,
+#alfawz-teacher-dashboard,
+#alfawz-memorization .max-w-6xl,
+#alfawz-settings .max-w-4xl {
+  max-width: min(90rem, calc(100vw - 2.5rem));
+}
+
+#alfawz-dashboard.alfawz-dashboard-shell {
+  padding: clamp(1.75rem, 3.5vw, 3rem);
+}
+
+#alfawz-dashboard .alfawz-dashboard-hero {
+  gap: clamp(2rem, 3.5vw, 3.5rem);
+}
+
+.alfawz-dashboard-eyebrow,
+.alfawz-dashboard-panel-eyebrow {
+  font-size: 0.9rem;
+  letter-spacing: 0.22em;
+}
+
+.alfawz-dashboard-title {
+  font-size: clamp(3rem, 1.2rem + 2.8vw, 3.8rem);
+}
+
+.alfawz-dashboard-subtitle {
+  font-size: clamp(1.2rem, 0.95rem + 0.7vw, 1.5rem);
+}
+
+.alfawz-dashboard-action {
+  padding: 0.9rem 1.4rem;
+  font-size: 1rem;
+}
+
+.alfawz-dashboard-stat {
+  padding: clamp(1.6rem, 3vw, 2.2rem);
+}
+
+.alfawz-dashboard-stat-icon {
+  width: 3.9rem;
+  height: 3.9rem;
+  font-size: 1.9rem;
+}
+
+.alfawz-dashboard-stat-label {
+  font-size: 0.95rem;
+  letter-spacing: 0.18em;
+}
+
+.alfawz-dashboard-stat-value {
+  font-size: clamp(2.4rem, 1.5rem + 3vw, 3.1rem);
+}
+
+.alfawz-dashboard-stat-meta {
+  font-size: 0.95rem;
+}
+
+.alfawz-dashboard-panel {
+  padding: clamp(1.6rem, 3vw, 2.35rem);
+}
+
+.alfawz-dashboard-panel-header h4 {
+  font-size: clamp(1.65rem, 1.2rem + 1vw, 2.2rem);
+}
+
+.alfawz-dashboard-panel-body {
+  font-size: 1.08rem;
+  line-height: 1.75;
+}
+
+.alfawz-dashboard-progress-indicator {
+  font-size: 0.95rem;
+  padding: 0.4rem 1rem;
+}
+
+#alfawz-reader {
+  padding-inline: clamp(1.25rem, 4vw, 4rem);
+}
+
+#alfawz-reader .max-w-3xl,
+#alfawz-reader .max-w-4xl,
+#alfawz-reader .max-w-2xl {
+  max-width: min(70rem, calc(100vw - 3rem));
+}
+
+.alfawz-reader-surface {
+  padding: clamp(1.75rem, 3.5vw, 2.75rem);
+}
+
+.alfawz-verse-card {
+  padding: clamp(2.5rem, 4.2vw, 3.4rem);
+}
+
+.alfawz-verse-meta {
+  font-size: 0.95rem;
+  letter-spacing: 0.2em;
+}
+
+.alfawz-verse-heading {
+  font-size: clamp(2.4rem, 1.4rem + 2.4vw, 3.2rem);
+}
+
+.alfawz-arabic {
+  font-size: clamp(3.1rem, 2.4rem + 2vw, 3.9rem);
+}
+
+.alfawz-transliteration,
+.alfawz-translation {
+  font-size: 1.15rem;
+  line-height: 1.85;
+}
+
+.alfawz-switch-title {
+  font-size: 1.05rem;
+}
+
+.alfawz-switch-hint {
+  font-size: 0.9rem;
+  letter-spacing: 0.1em;
+}
+
+.alfawz-progress-label {
+  font-size: 0.95rem;
+  letter-spacing: 0.18em;
+}
+
+.alfawz-progress-note {
+  font-size: 1.05rem;
+}
+
+.alfawz-surah-list__intro h4 {
+  font-size: 1.25rem;
+}
+
+.alfawz-surah-list__hint {
+  font-size: 1rem;
+}
+
+#alfawz-memorization .max-w-4xl,
+#alfawz-memorization .max-w-2xl {
+  max-width: min(70rem, calc(100vw - 3rem));
+}
+
+#alfawz-memorization,
+#alfawz-leaderboard,
+#alfawz-teacher-dashboard,
+#alfawz-settings {
+  font-size: 1.05rem;
+  line-height: 1.7;
+}
+
+#alfawz-memorization h2,
+#alfawz-memorization h3,
+#alfawz-memorization h4 {
+  line-height: 1.2;
+}
+
+#alfawz-settings h1 {
+  font-size: clamp(2.4rem, 1.6rem + 2vw, 3rem);
+}
+
+#alfawz-settings h2 {
+  font-size: clamp(1.75rem, 1.2rem + 1vw, 2.3rem);
+}
+
+#alfawz-settings p,
+#alfawz-settings label,
+#alfawz-settings input,
+#alfawz-settings button,
+#alfawz-settings select {
+  font-size: inherit;
+}
+
+#alfawz-settings .text-sm {
+  font-size: 0.95rem;
+}
+
+#alfawz-settings .text-xs {
+  font-size: 0.85rem;
+}
+
+#alfawz-teacher-dashboard h2,
+#alfawz-leaderboard h2,
+.alfawz-qaidah-shell h2 {
+  font-size: clamp(2rem, 1.3rem + 1.6vw, 2.8rem);
+}
+
+#alfawz-teacher-dashboard h3,
+#alfawz-leaderboard h3,
+.alfawz-qaidah-shell h3 {
+  font-size: clamp(1.5rem, 1.1rem + 1.2vw, 2.1rem);
+}
+
+#alfawz-teacher-dashboard p,
+#alfawz-leaderboard p,
+.alfawz-qaidah-shell p {
+  font-size: 1.05rem;
+}
