@@ -3,143 +3,44 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
-if ( ! function_exists( 'alfawz_get_mobile_nav_items' ) ) {
-    function alfawz_get_mobile_nav_items() {
-        $items = [
-            [
-                'slug'  => 'dashboard',
-                'icon'  => '📊',
-                'label' => __( 'Dashboard', 'alfawzquran' ),
-            ],
-            [
-                'slug'  => 'reader',
-                'icon'  => '📖',
-                'label' => __( 'Reader', 'alfawzquran' ),
-            ],
-            [
-                'slug'  => 'memorizer',
-                'icon'  => '🧠',
-                'label' => __( 'Memorization', 'alfawzquran' ),
-            ],
-            [
-                'slug'  => 'qaidah',
-                'icon'  => '📚',
-                'label' => __( "Qa'idah", 'alfawzquran' ),
-            ],
-            [
-                'slug'  => 'leaderboard',
-                'icon'  => '🏆',
-                'label' => __( 'Leaderboard', 'alfawzquran' ),
-            ],
-            [
-                'slug'  => 'profile',
-                'icon'  => '👤',
-                'label' => __( 'Profile', 'alfawzquran' ),
-            ],
-        ];
-
-        if ( is_user_logged_in() ) {
-            $qaidah_index = 3;
-            $teacher_roles = apply_filters( 'alfawz_teacher_roles', [ 'teacher', 'editor', 'administrator' ] );
-            $user          = wp_get_current_user();
-            $is_teacher    = false;
-
-            if ( current_user_can( 'manage_options' ) || current_user_can( 'edit_posts' ) ) {
-                $is_teacher = true;
-            }
-
-            if ( ! $is_teacher && $user instanceof \WP_User ) {
-                $is_teacher = (bool) array_intersect( $teacher_roles, (array) $user->roles );
-            }
-
-            $items[ $qaidah_index ]['url'] = $is_teacher
-                ? apply_filters( 'alfawz_mobile_nav_url', '', 'qaidah-teacher' )
-                : apply_filters( 'alfawz_mobile_nav_url', '', 'qaidah-student' );
-        }
-
-        return $items;
-    }
+if ( empty( $tabs ) || ! is_array( $tabs ) ) {
+    return;
 }
 
-if ( ! function_exists( 'alfawz_get_mobile_nav_url' ) ) {
-    function alfawz_get_mobile_nav_url( $slug ) {
-        $potential_slugs = [
-            $slug,
-            'alfawz-' . $slug,
-        ];
-
-        foreach ( $potential_slugs as $path ) {
-            $page = get_page_by_path( $path );
-            if ( $page ) {
-                return get_permalink( $page );
-            }
-        }
-
-        $filtered = apply_filters( 'alfawz_mobile_nav_url', '', $slug );
-        if ( ! empty( $filtered ) ) {
-            return $filtered;
-        }
-
-        return home_url( trailingslashit( $slug ) );
-    }
-}
-
-$current_page = isset( $current_page ) ? $current_page : '';
-$nav_items    = apply_filters( 'alfawz_mobile_nav_items', alfawz_get_mobile_nav_items(), $current_page );
-
-if ( $current_page ) {
-    if ( ! function_exists( 'wp_list_pluck' ) ) {
-        require_once ABSPATH . 'wp-includes/functions.php';
-    }
-
-    $existing_slugs = wp_list_pluck( $nav_items, 'slug' );
-    if ( ! in_array( $current_page, $existing_slugs, true ) ) {
-        $replacements = apply_filters(
-            'alfawz_mobile_nav_replacements',
-            [
-                'games'    => [
-                    'slug'  => 'games',
-                    'icon'  => '🎮',
-                    'label' => __( 'Games', 'alfawzquran' ),
-                ],
-                'settings' => [
-                    'slug'  => 'settings',
-                    'icon'  => '⚙️',
-                    'label' => __( 'Settings', 'alfawzquran' ),
-                ],
-            ],
-            $current_page
-        );
-
-        if ( isset( $replacements[ $current_page ] ) ) {
-            $replacement_index = array_search( 'leaderboard', $existing_slugs, true );
-
-            if ( false === $replacement_index ) {
-                $replacement_index = count( $nav_items ) - 1;
-            }
-
-            $nav_items[ $replacement_index ] = $replacements[ $current_page ];
-        }
-    }
-}
-
+$active_slug = isset( $active_slug ) ? $active_slug : '';
+$role        = isset( $role ) ? $role : 'student';
 ?>
-<nav class="alfawz-bottom-navigation md:hidden" data-current-page="<?php echo esc_attr( $current_page ); ?>" aria-label="<?php echo esc_attr__( 'Primary mobile navigation', 'alfawzquran' ); ?>">
-    <div class="alfawz-nav-container">
-        <?php foreach ( $nav_items as $item ) :
-            if ( empty( $item['slug'] ) ) {
-                continue;
-            }
+<nav
+    id="alfawz-bottom-nav"
+    class="alfawz-bottom-navigation fixed inset-x-0 bottom-0 bg-white/95 backdrop-blur border-t border-slate-200 shadow-[0_-8px_24px_rgba(15,118,110,0.15)] z-[60]"
+    data-role="<?php echo esc_attr( $role ); ?>"
+    data-active-tab="<?php echo esc_attr( $active_slug ); ?>"
+    style="padding-bottom: env(safe-area-inset-bottom);"
+    aria-label="<?php esc_attr_e( 'Primary navigation', 'alfawzquran' ); ?>"
+>
+    <div class="mx-auto w-full max-w-5xl px-2 sm:px-4">
+        <div class="alfawz-bottom-nav-track flex items-stretch justify-between gap-2 overflow-x-auto md:overflow-x-visible md:justify-center md:gap-4 alfawz-hide-scrollbar scroll-smooth snap-x snap-mandatory md:snap-none py-2">
+            <?php foreach ( $tabs as $tab ) :
+                if ( empty( $tab['slug'] ) ) {
+                    continue;
+                }
 
-            $is_active    = $current_page === $item['slug'];
-            $nav_classes  = 'alfawz-nav-item flex flex-col items-center justify-center gap-1 text-xs';
-            $nav_classes .= $is_active ? ' active' : '';
-            $nav_url      = isset( $item['url'] ) ? $item['url'] : alfawz_get_mobile_nav_url( $item['slug'] );
-            ?>
-            <a href="<?php echo esc_url( $nav_url ); ?>" class="<?php echo esc_attr( $nav_classes ); ?>" data-page="<?php echo esc_attr( $item['slug'] ); ?>"<?php echo $is_active ? ' aria-current="page"' : ''; ?>>
-                <span class="alfawz-nav-icon"><?php echo esc_html( $item['icon'] ); ?></span>
-                <span class="alfawz-nav-label"><?php echo esc_html( $item['label'] ); ?></span>
-            </a>
-        <?php endforeach; ?>
+                $is_active      = $active_slug === $tab['slug'];
+                $link_classes   = 'group flex min-w-[80px] min-h-[48px] flex-col items-center justify-center rounded-xl px-3 py-2 text-xs font-medium transition-colors duration-200';
+                $link_classes  .= $is_active ? ' text-emerald-600 font-semibold' : ' text-slate-500';
+                $label_classes  = 'mt-1 text-[0.7rem] tracking-wide';
+                ?>
+                <a
+                    href="<?php echo esc_url( $tab['url'] ); ?>"
+                    class="<?php echo esc_attr( $link_classes ); ?>"
+                    data-slug="<?php echo esc_attr( $tab['slug'] ); ?>"
+                    data-active="<?php echo $is_active ? 'true' : 'false'; ?>"
+                    <?php echo $is_active ? 'aria-current="page"' : ''; ?>
+                >
+                    <span class="text-xl leading-none" aria-hidden="true"><?php echo esc_html( $tab['icon'] ); ?></span>
+                    <span class="<?php echo esc_attr( $label_classes ); ?>"><?php echo esc_html( $tab['label'] ); ?></span>
+                </a>
+            <?php endforeach; ?>
+        </div>
     </div>
 </nav>

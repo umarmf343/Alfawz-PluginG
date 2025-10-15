@@ -115,6 +115,10 @@ class Frontend {
         if ($this->is_alfawz_page()) {
             echo '<meta name="viewport" content="width=device-width, initial-scale=1.0">' . "\n";
             echo '<meta name="description" content="AlfawzQuran - Read, memorize and track your Quran progress">' . "\n";
+
+            if (\is_user_logged_in()) {
+                echo '<style id="alfawz-bottom-nav-padding">body{padding-bottom:70px;padding-bottom:calc(70px + env(safe-area-inset-bottom));}</style>' . "\n";
+            }
         }
     }
     
@@ -279,11 +283,140 @@ class Frontend {
     }
 
     public function render_bottom_navigation() {
-        if (!$this->active_view) {
+        if (!\is_user_logged_in() || !$this->is_alfawz_page()) {
             return;
         }
 
-        $current_page = $this->active_view;
+        $role = $this->determine_bottom_nav_role();
+        $tabs = $this->build_bottom_nav_tabs($role);
+
+        if (empty($tabs)) {
+            return;
+        }
+
+        $active_slug = $this->determine_active_tab_slug($tabs);
+
         include ALFAWZQURAN_PLUGIN_PATH . 'public/partials/mobile-nav.php';
+    }
+
+    private function determine_bottom_nav_role() {
+        if (\current_user_can('manage_options')) {
+            return 'admin';
+        }
+
+        $user = \wp_get_current_user();
+        $teacher_roles = \apply_filters('alfawz_teacher_roles', ['teacher']);
+        $has_teacher_role = $user instanceof \WP_User && \count(\array_intersect($teacher_roles, (array) $user->roles)) > 0;
+
+        if ($has_teacher_role || \current_user_can('edit_posts')) {
+            return 'teacher';
+        }
+
+        return 'student';
+    }
+
+    private function build_bottom_nav_tabs($role) {
+        $qaidah_slug = ($role === 'teacher' || $role === 'admin') ? 'qaidah-teacher' : 'qaidah-student';
+
+        $tabs = [
+            $this->format_nav_tab('dashboard', '📊', __('Dashboard', 'alfawzquran')),
+            $this->format_nav_tab('reader', '📖', __('Reader', 'alfawzquran')),
+            $this->format_nav_tab('memorizer', '🧠', __('Memorization', 'alfawzquran')),
+            $this->format_nav_tab('qaidah', '📚', __("Qa'idah", 'alfawzquran'), $qaidah_slug),
+        ];
+
+        if ($role === 'student' || $role === 'admin') {
+            $tabs[] = $this->format_nav_tab('leaderboard', '🏆', __('Leaderboard', 'alfawzquran'));
+        }
+
+        if ($role === 'teacher' || $role === 'admin') {
+            $tabs[] = $this->format_nav_tab('teacher-dashboard', '🧑‍🏫', __('Teacher Dashboard', 'alfawzquran'));
+        }
+
+        if ($role === 'admin') {
+            $tabs[] = $this->format_nav_tab('admin-dashboard', '🛡️', __('Admin Dashboard', 'alfawzquran'));
+        }
+
+        $tabs[] = $this->format_nav_tab('profile', '👤', __('Profile', 'alfawzquran'));
+
+        return \apply_filters('alfawz_bottom_nav_tabs', $tabs, $role);
+    }
+
+    private function format_nav_tab($slug, $icon, $label, $url_slug = null) {
+        return [
+            'slug' => $slug,
+            'icon' => $icon,
+            'label' => $label,
+            'url' => $this->resolve_nav_url($url_slug ?: $slug),
+        ];
+    }
+
+    private function resolve_nav_url($slug) {
+        $potential_slugs = [$slug, 'alfawz-' . $slug];
+
+        foreach ($potential_slugs as $path) {
+            $page = \get_page_by_path($path);
+            if ($page) {
+                return \get_permalink($page);
+            }
+        }
+
+        $filtered = \apply_filters('alfawz_mobile_nav_url', '', $slug);
+        if (!empty($filtered)) {
+            return $filtered;
+        }
+
+        return \home_url(\trailingslashit($slug));
+    }
+
+    private function determine_active_tab_slug(array $tabs) {
+        if ($this->active_view) {
+            return $this->active_view;
+        }
+
+        $current_url = $this->current_url();
+        if (!$current_url) {
+            return '';
+        }
+
+        foreach ($tabs as $tab) {
+            if (empty($tab['url'])) {
+                continue;
+            }
+
+            if ($this->urls_match($current_url, $tab['url'])) {
+                return $tab['slug'];
+            }
+        }
+
+        return '';
+    }
+
+    private function current_url() {
+        $scheme = \is_ssl() ? 'https' : 'http';
+        $host = isset($_SERVER['HTTP_HOST']) ? \sanitize_text_field(\wp_unslash($_SERVER['HTTP_HOST'])) : '';
+        $request_uri = isset($_SERVER['REQUEST_URI']) ? \sanitize_text_field(\wp_unslash($_SERVER['REQUEST_URI'])) : '';
+
+        if (empty($host)) {
+            return '';
+        }
+
+        return $scheme . '://' . $host . $request_uri;
+    }
+
+    private function urls_match($first, $second) {
+        $normalize = static function ($url) {
+            $parsed = \wp_parse_url($url);
+            if (!$parsed) {
+                return '';
+            }
+
+            $host = isset($parsed['host']) ? $parsed['host'] : '';
+            $path = isset($parsed['path']) ? trim($parsed['path'], '/') : '';
+
+            return strtolower($host . '/' . $path);
+        };
+
+        return $normalize($first) === $normalize($second);
     }
 }

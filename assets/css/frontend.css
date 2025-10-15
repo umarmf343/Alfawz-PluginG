@@ -191,19 +191,6 @@ body .alfawz-surface {
   background: rgba(16, 185, 129, 0.18);
 }
 
-.alfawz-bottom-navigation {
-  position: fixed;
-  bottom: 1rem;
-  left: 50%;
-  transform: translateX(-50%);
-  width: min(420px, calc(100vw - 2rem));
-  z-index: 50;
-  background: rgba(15, 118, 110, 0.95);
-  border-radius: 999px;
-  box-shadow: 0 18px 42px rgba(15, 118, 110, 0.25);
-  padding: 0.6rem;
-}
-
 #alfawz-memorizer.alfawz-celebration {
   animation: alfawz-celebrate 600ms ease-out;
 }
@@ -252,45 +239,19 @@ body .alfawz-surface {
   }
 }
 
-.alfawz-bottom-navigation .alfawz-nav-container {
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 0.35rem;
-}
-
-.alfawz-bottom-navigation .alfawz-nav-item {
-  color: rgba(255, 255, 255, 0.8);
-  border-radius: 999px;
-  padding: 0.35rem 0.25rem;
-  transition: var(--alfawz-transition);
-}
-
-.alfawz-bottom-navigation .alfawz-nav-item.active,
-.alfawz-bottom-navigation .alfawz-nav-item:hover,
-.alfawz-bottom-navigation .alfawz-nav-item:focus {
-  color: #fff;
-  background: rgba(255, 255, 255, 0.12);
-}
-
-.alfawz-bottom-navigation .alfawz-nav-icon {
-  font-size: 1.15rem;
-}
-
-.alfawz-bottom-navigation .alfawz-nav-label {
-  font-size: 0.65rem;
-  letter-spacing: 0.08em;
-}
-
-@media (min-width: 768px) {
-  .alfawz-bottom-navigation {
-    display: none;
-  }
-}
-
 [data-status="saved"] {
   box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.35) inset;
 }
 
 [data-status="error"] {
   box-shadow: 0 0 0 2px rgba(248, 113, 113, 0.45) inset;
+}
+
+.alfawz-hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.alfawz-hide-scrollbar::-webkit-scrollbar {
+  display: none;
 }

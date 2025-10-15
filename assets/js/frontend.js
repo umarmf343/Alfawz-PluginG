@@ -167,18 +167,86 @@
   const buildVerseKey = (surahId, verseId) => `${surahId}:${verseId}`;
 
   const attachNavigation = () => {
-    const nav = qs('.alfawz-bottom-navigation');
+    const nav = qs('#alfawz-bottom-nav');
     if (!nav) {
       return;
     }
-    nav.addEventListener('click', (event) => {
-      const link = event.target.closest('a[data-page]');
+
+    const track = nav.querySelector('.alfawz-bottom-nav-track');
+    if (!track) {
+      return;
+    }
+
+    const ACTIVE_CLASSES = ['text-emerald-600', 'font-semibold'];
+    const INACTIVE_CLASSES = ['text-slate-500'];
+
+    const applyActiveState = (element, isActive) => {
+      element.dataset.active = isActive ? 'true' : 'false';
+      ACTIVE_CLASSES.forEach((cls) => element.classList.toggle(cls, isActive));
+      INACTIVE_CLASSES.forEach((cls) => element.classList.toggle(cls, !isActive));
+      if (isActive) {
+        element.setAttribute('aria-current', 'page');
+      } else {
+        element.removeAttribute('aria-current');
+      }
+    };
+
+    const setActive = (target) => {
+      const items = track.querySelectorAll('a[data-slug]');
+      items.forEach((item) => {
+        applyActiveState(item, item === target);
+      });
+    };
+
+    const scrollToActive = (behavior = 'auto') => {
+      const active = track.querySelector('a[data-active="true"]');
+      if (!active) {
+        return;
+      }
+
+      if (track.scrollWidth > track.clientWidth + 1) {
+        active.scrollIntoView({ block: 'nearest', inline: 'center', behavior });
+      }
+    };
+
+    const updateOverflowState = () => {
+      const scrollable = track.scrollWidth > track.clientWidth + 1;
+      nav.classList.toggle('alfawz-nav-scrollable', scrollable);
+      track.classList.toggle('snap-x', scrollable);
+      track.classList.toggle('snap-mandatory', scrollable);
+      track.classList.toggle('scroll-smooth', scrollable);
+      if (!scrollable) {
+        track.scrollTo({ left: 0 });
+      }
+    };
+
+    updateOverflowState();
+
+    const activeItem = track.querySelector('a[data-active="true"]') || track.querySelector('a[data-slug]');
+    if (activeItem) {
+      setActive(activeItem);
+      scrollToActive('instant');
+    }
+
+    let resizeTimer;
+    window.addEventListener('resize', () => {
+      window.clearTimeout(resizeTimer);
+      resizeTimer = window.setTimeout(() => {
+        updateOverflowState();
+        scrollToActive('instant');
+      }, 150);
+    });
+
+    track.addEventListener('click', (event) => {
+      const link = event.target.closest('a[data-slug]');
       if (!link) {
         return;
       }
-      nav.querySelectorAll('a[data-page]').forEach((anchor) => {
-        anchor.classList.toggle('active', anchor === link);
-      });
+
+      setActive(link);
+      if (track.scrollWidth > track.clientWidth + 1) {
+        link.scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' });
+      }
     });
   };
 
