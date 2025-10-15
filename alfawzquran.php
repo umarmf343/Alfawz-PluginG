@@ -95,6 +95,9 @@ function run_alfawz_quran() {
     $loader->add_action( 'init', $frontend, 'register_shortcodes' );
     $loader->add_action( 'wp_enqueue_scripts', $frontend, 'enqueue_assets' );
     $loader->add_action( 'wp_head', $frontend, 'add_meta_tags' );
+    $loader->add_action( 'login_init', $frontend, 'redirect_wp_login_page' );
+    $loader->add_action( 'wp_login_failed', $frontend, 'handle_login_failure', 10, 1 );
+    $loader->add_action( 'admin_init', $frontend, 'redirect_non_admin_dashboard' );
 
     // Load API routes
     require_once ALFAWZQURAN_PLUGIN_PATH . 'includes/API/Routes.php';

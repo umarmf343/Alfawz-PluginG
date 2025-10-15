@@ -24,6 +24,71 @@ $settings_url = function_exists( 'alfawz_get_bottom_nav_url' )
     ? alfawz_get_bottom_nav_url( 'settings' )
     : home_url( trailingslashit( 'alfawz-settings' ) );
 
+$requested_redirect = '';
+if ( isset( $_GET['redirect_to'] ) ) {
+    $raw_redirect       = wp_unslash( $_GET['redirect_to'] );
+    $raw_redirect       = is_string( $raw_redirect ) ? rawurldecode( $raw_redirect ) : '';
+    $requested_redirect = wp_validate_redirect( $raw_redirect, '' );
+}
+
+$student_redirect = $requested_redirect ? $requested_redirect : $student_dashboard_url;
+$teacher_redirect = $requested_redirect ? $requested_redirect : $teacher_dashboard_url;
+
+$notices = [];
+
+if ( isset( $_GET['alfawz_notice'] ) ) {
+    $raw_notices = wp_unslash( $_GET['alfawz_notice'] );
+    $notice_keys = array_filter( array_map( 'sanitize_key', (array) $raw_notices ) );
+
+    foreach ( $notice_keys as $notice_key ) {
+        if ( 'login_failed' === $notice_key ) {
+            $notices[] = [
+                'type'    => 'error',
+                'icon'    => '⚠️',
+                'message' => __( 'We could not sign you in. Please check your email or password and try again.', 'alfawzquran' ),
+            ];
+        } elseif ( 'reauth' === $notice_key ) {
+            $notices[] = [
+                'type'    => 'warning',
+                'icon'    => '🔐',
+                'message' => __( 'For your security, please log in again to continue.', 'alfawzquran' ),
+            ];
+        } elseif ( 'restricted' === $notice_key ) {
+            $notices[] = [
+                'type'    => 'warning',
+                'icon'    => '🚫',
+                'message' => __( 'Dashboard access is reserved for administrators. Use the Alfawz tools below instead.', 'alfawzquran' ),
+            ];
+        } elseif ( 'check_email' === $notice_key ) {
+            $notices[] = [
+                'type'    => 'info',
+                'icon'    => '✉️',
+                'message' => __( 'Check your email for a link to reset your password.', 'alfawzquran' ),
+            ];
+        } elseif ( 'registration' === $notice_key ) {
+            $notices[] = [
+                'type'    => 'info',
+                'icon'    => '✅',
+                'message' => __( 'Registration is almost complete. Please check your email to confirm.', 'alfawzquran' ),
+            ];
+        } elseif ( 'password_reset' === $notice_key ) {
+            $notices[] = [
+                'type'    => 'success',
+                'icon'    => '🔑',
+                'message' => __( 'Your password has been reset. You can now log in with your new credentials.', 'alfawzquran' ),
+            ];
+        }
+    }
+}
+
+if ( isset( $_GET['loggedout'] ) ) {
+    $notices[] = [
+        'type'    => 'success',
+        'icon'    => '👋',
+        'message' => __( 'You have been signed out successfully.', 'alfawzquran' ),
+    ];
+}
+
 if ( $is_logged_in && $current_user instanceof WP_User ) {
     if ( user_can( $current_user, 'manage_options' ) || user_can( $current_user, 'alfawz_teacher' ) || in_array( 'teacher', (array) $current_user->roles, true ) ) {
         $role_label = __( 'Teacher', 'alfawzquran' );
@@ -49,7 +114,7 @@ if ( ! $is_logged_in ) {
             'id_password'    => 'alfawz-student-password',
             'id_remember'    => 'alfawz-student-remember',
             'id_submit'      => 'alfawz-student-submit',
-            'redirect'       => $student_dashboard_url,
+            'redirect'       => $student_redirect,
         ]
     );
 
@@ -66,12 +131,32 @@ if ( ! $is_logged_in ) {
             'id_password'    => 'alfawz-teacher-password',
             'id_remember'    => 'alfawz-teacher-remember',
             'id_submit'      => 'alfawz-teacher-submit',
-            'redirect'       => $teacher_dashboard_url,
+            'redirect'       => $teacher_redirect,
         ]
     );
 }
 ?>
 <div id="alfawz-account" class="alfawz-account-shell mx-auto max-w-5xl px-4 py-12 text-slate-900 sm:px-8 lg:px-0">
+    <?php if ( ! empty( $notices ) ) : ?>
+        <div class="alfawz-account-alerts" role="status">
+            <?php foreach ( $notices as $notice ) :
+                $type    = isset( $notice['type'] ) ? $notice['type'] : 'info';
+                $icon    = isset( $notice['icon'] ) ? $notice['icon'] : 'ℹ️';
+                $message = isset( $notice['message'] ) ? $notice['message'] : '';
+
+                if ( empty( $message ) ) {
+                    continue;
+                }
+
+                $class = 'alfawz-account-alert alfawz-account-alert--' . sanitize_html_class( $type );
+                ?>
+                <div class="<?php echo esc_attr( $class ); ?>" role="alert">
+                    <span class="alfawz-account-alert__icon" aria-hidden="true"><?php echo esc_html( $icon ); ?></span>
+                    <p class="alfawz-account-alert__message"><?php echo esc_html( $message ); ?></p>
+                </div>
+            <?php endforeach; ?>
+        </div>
+    <?php endif; ?>
     <div class="pointer-events-none absolute inset-x-6 -top-10 bottom-0 -z-10 rounded-[3rem] bg-gradient-to-br from-[#f8efe5]/70 via-[#fff4e6]/95 to-white/40 blur-3xl"></div>
 
     <section class="alfawz-account-hero" data-animate="fade">

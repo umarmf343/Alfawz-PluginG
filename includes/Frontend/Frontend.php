@@ -14,6 +14,13 @@ class Frontend {
      */
     private $active_view = null;
 
+    /**
+     * Cached account page URL.
+     *
+     * @var string|null
+     */
+    private $account_page_url = null;
+
     public function __construct() {
         add_action('init', [$this, 'register_shortcodes']);
         add_action('wp_enqueue_scripts', [$this, 'enqueue_assets']);
@@ -563,7 +570,18 @@ class Frontend {
     }
     
     private function login_required_message() {
-        $login_url  = wp_login_url(get_permalink());
+        $login_url = $this->get_account_page_url();
+
+        if (!empty($login_url)) {
+            $current_url = get_permalink();
+
+            if (!empty($current_url)) {
+                $login_url = add_query_arg('redirect_to', $current_url, $login_url);
+            }
+        } else {
+            $login_url = wp_login_url(get_permalink());
+        }
+
         $can_register = function_exists('wp_registration_enabled')
             ? wp_registration_enabled()
             : (bool) get_option('users_can_register');
@@ -590,6 +608,163 @@ class Frontend {
         </div>
         <?php
         return ob_get_clean();
+    }
+
+    public function redirect_wp_login_page() {
+        if ('GET' !== $_SERVER['REQUEST_METHOD'] || wp_doing_ajax()) {
+            return;
+        }
+
+        if (isset($_REQUEST['interim-login'])) {
+            return;
+        }
+
+        $action = isset($_REQUEST['action']) ? sanitize_key(wp_unslash($_REQUEST['action'])) : '';
+        $allowed_actions = apply_filters(
+            'alfawz_account_allowed_login_actions',
+            ['lostpassword', 'retrievepassword', 'resetpass', 'rp', 'logout', 'confirm_admin_email', 'postpass']
+        );
+
+        if (in_array($action, $allowed_actions, true)) {
+            return;
+        }
+
+        $account_url = $this->get_account_page_url();
+
+        if (empty($account_url)) {
+            return;
+        }
+
+        $notices = [];
+
+        if (isset($_GET['redirect_to'])) {
+            $redirect_to = wp_unslash($_GET['redirect_to']);
+            $redirect_to = is_string($redirect_to) ? rawurldecode($redirect_to) : '';
+            $redirect_to = wp_validate_redirect($redirect_to, '');
+
+            if (!empty($redirect_to)) {
+                $account_url = add_query_arg('redirect_to', $redirect_to, $account_url);
+            }
+        }
+
+        if (isset($_GET['reauth'])) {
+            $notices[] = 'reauth';
+        }
+
+        if (isset($_GET['checkemail'])) {
+            $checkemail = sanitize_key(wp_unslash($_GET['checkemail']));
+
+            if ('confirm' === $checkemail) {
+                $notices[] = 'check_email';
+            } elseif ('registered' === $checkemail) {
+                $notices[] = 'registration';
+            }
+        }
+
+        if (isset($_GET['resetpass'])) {
+            $notices[] = 'password_reset';
+        }
+
+        if (!empty($notices)) {
+            foreach ($notices as $notice) {
+                $account_url = add_query_arg('alfawz_notice[]', $notice, $account_url);
+            }
+        }
+
+        wp_safe_redirect($account_url);
+        exit;
+    }
+
+    public function handle_login_failure($username) {
+        if (wp_doing_ajax()) {
+            return;
+        }
+
+        $account_url = $this->get_account_page_url();
+
+        if (empty($account_url)) {
+            return;
+        }
+
+        $account_url = add_query_arg('alfawz_notice[]', 'login_failed', $account_url);
+
+        if (isset($_REQUEST['redirect_to'])) {
+            $redirect_to = wp_unslash($_REQUEST['redirect_to']);
+            $redirect_to = is_string($redirect_to) ? rawurldecode($redirect_to) : '';
+            $redirect_to = wp_validate_redirect($redirect_to, '');
+
+            if (!empty($redirect_to)) {
+                $account_url = add_query_arg('redirect_to', $redirect_to, $account_url);
+            }
+        }
+
+        wp_safe_redirect($account_url);
+        exit;
+    }
+
+    public function redirect_non_admin_dashboard() {
+        if (!is_admin() || wp_doing_ajax() || (defined('DOING_CRON') && DOING_CRON)) {
+            return;
+        }
+
+        if (!is_user_logged_in() || current_user_can('manage_options')) {
+            return;
+        }
+
+        $script = isset($_SERVER['PHP_SELF']) ? wp_basename(wp_unslash($_SERVER['PHP_SELF'])) : '';
+        $bypass_scripts = ['admin-ajax.php', 'admin-post.php', 'async-upload.php'];
+
+        if (in_array($script, $bypass_scripts, true)) {
+            return;
+        }
+
+        $account_url = $this->get_account_page_url();
+
+        if (empty($account_url)) {
+            return;
+        }
+
+        $account_url = add_query_arg('alfawz_notice[]', 'restricted', $account_url);
+
+        wp_safe_redirect($account_url);
+        exit;
+    }
+
+    private function get_account_page_url() {
+        if (null !== $this->account_page_url) {
+            return $this->account_page_url;
+        }
+
+        $page_id = (int) get_option('alfawz_account_page_id');
+
+        if ($page_id > 0) {
+            $url = get_permalink($page_id);
+
+            if (!empty($url)) {
+                $this->account_page_url = $url;
+                return $this->account_page_url;
+            }
+        }
+
+        $candidates = apply_filters('alfawz_account_page_slugs', ['alfawz-account', 'account', 'my-account']);
+
+        foreach ($candidates as $slug) {
+            $page = get_page_by_path($slug);
+
+            if ($page instanceof \WP_Post) {
+                $url = get_permalink($page);
+
+                if (!empty($url)) {
+                    $this->account_page_url = $url;
+                    return $this->account_page_url;
+                }
+            }
+        }
+
+        $default = home_url(trailingslashit('alfawz-account'));
+        $this->account_page_url = apply_filters('alfawz_account_page_url', $default);
+
+        return $this->account_page_url;
     }
 
 }
