@@ -4067,6 +4067,50 @@ body.alfawz-qaidah-modal-open {
   line-height: 1.6;
 }
 
+#alfawz-account .alfawz-account-alerts {
+  display: grid;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+#alfawz-account .alfawz-account-alert {
+  border-radius: 1rem;
+  padding: 1rem 1.25rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  font-weight: 500;
+}
+
+#alfawz-account .alfawz-account-alert--error {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+#alfawz-account .alfawz-account-alert--success {
+  background: #dcfce7;
+  color: #166534;
+}
+
+#alfawz-account .alfawz-account-alert--warning {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+#alfawz-account .alfawz-account-alert--info {
+  background: #e0f2fe;
+  color: #0c4a6e;
+}
+
+#alfawz-account .alfawz-account-alert__icon {
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+#alfawz-account .alfawz-account-alert__message {
+  margin: 0;
+}
+
 #alfawz-account .alfawz-account-card__list {
   display: grid;
   gap: 0.65rem;
