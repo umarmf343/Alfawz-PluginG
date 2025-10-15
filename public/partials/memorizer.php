@@ -11,6 +11,58 @@
             </div>
         </div>
 
+        <div class="alfawz-plan-launchpad" id="memorizer-plan-launchpad">
+            <div class="alfawz-plan-launchpad-header">
+                <h3><?php _e('Start Your Memorization Journey', 'alfawzquran'); ?></h3>
+                <p><?php _e('Set your intention, choose your verses, and begin a focused dhikr-inspired repetition ritual.', 'alfawzquran'); ?></p>
+            </div>
+            <form id="create-plan-form" class="alfawz-plan-launchpad-form" novalidate>
+                <div class="alfawz-plan-launchpad-grid">
+                    <div class="alfawz-plan-field">
+                        <label for="plan-name"><?php _e('Intention Title (optional)', 'alfawzquran'); ?></label>
+                        <input type="text" id="plan-name" name="plan_name" placeholder="<?php esc_attr_e('e.g., Dawn Revision – Surah Al-Mulk', 'alfawzquran'); ?>">
+                    </div>
+                    <div class="alfawz-plan-field">
+                        <label for="plan-surah-select"><?php _e('Select Surah', 'alfawzquran'); ?></label>
+                        <select id="plan-surah-select" name="surah_id" class="alfawz-surah-dropdown" required>
+                            <option value=""><?php _e('Loading Surahs...', 'alfawzquran'); ?></option>
+                        </select>
+                    </div>
+                    <div class="alfawz-plan-field-group">
+                        <div class="alfawz-plan-field">
+                            <label for="plan-start-verse"><?php _e('Verse From', 'alfawzquran'); ?></label>
+                            <select id="plan-start-verse" name="start_verse" class="alfawz-verse-dropdown" disabled required>
+                                <option value=""><?php _e('Select surah first', 'alfawzquran'); ?></option>
+                            </select>
+                        </div>
+                        <div class="alfawz-plan-field">
+                            <label for="plan-end-verse"><?php _e('Verse To', 'alfawzquran'); ?></label>
+                            <select id="plan-end-verse" name="end_verse" class="alfawz-verse-dropdown" disabled required>
+                                <option value=""><?php _e('Select surah first', 'alfawzquran'); ?></option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="alfawz-plan-field">
+                        <label for="plan-daily-goal"><?php _e('Daily Target (verses)', 'alfawzquran'); ?></label>
+                        <input type="number" id="plan-daily-goal" name="daily_goal" min="1" value="1" required>
+                    </div>
+                </div>
+                <div class="alfawz-plan-summary">
+                    <p id="plan-summary-text"><?php _e('Select your verses to craft a heartfelt memorization intention.', 'alfawzquran'); ?></p>
+                </div>
+                <div class="alfawz-plan-launchpad-actions">
+                    <button type="submit" id="create-plan-btn" class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md alfawz-btn alfawz-btn-primary alfawz-btn-large" disabled>
+                        <span class="alfawz-btn-icon">✨</span>
+                        <span class="alfawz-btn-label"><?php _e('Begin Memorizing', 'alfawzquran'); ?></span>
+                    </button>
+                    <span class="alfawz-plan-launchpad-feedback" id="plan-launchpad-feedback" aria-live="polite"></span>
+                </div>
+                <div id="plan-created-success-message" class="alfawz-notice alfawz-hidden alfawz-success-notification">
+                    <?php _e('Plan created! Your journey is now saved in the Memorizer.', 'alfawzquran'); ?>
+                </div>
+            </form>
+        </div>
+
         <div class="alfawz-memorization-stats alfawz-progress-grid">
             <div class="alfawz-progress-card alfawz-memorizer-card">
                 <div class="alfawz-card-icon">
@@ -39,9 +91,6 @@
                 <div class="alfawz-card-content">
                     <div class="alfawz-card-value" id="active-plans-count">0</div>
                     <div class="alfawz-card-label"><?php _e('Active Plans', 'alfawzquran'); ?></div>
-                    <a href="<?php echo esc_url(home_url('/memorizer/create-plan/')); ?>" role="button" class="alfawz-btn alfawz-btn-primary alfawz-create-plan-btn">
-                        <span aria-hidden="true" class="alfawz-btn-icon">+</span><?php _e('Create Memorization Plan', 'alfawzquran'); ?>
-                    </a>
                 </div>
                 <div class="alfawz-card-decoration"></div>
             </div>
@@ -167,9 +216,10 @@
                             aria-valuenow="0"
                             aria-valuemax="20"
                         ></div>
+                        <div class="alfawz-progress-check" id="repetition-progress-check" aria-hidden="true">✅</div>
                         <div class="alfawz-progress-markers"></div>
                     </div>
-                    <p class="alfawz-text-center alfawz-mb-0" id="session-progress-text" aria-live="polite" aria-atomic="true"><?php _e('Repetitions: 0 / 20', 'alfawzquran'); ?></p>
+                    <p class="alfawz-text-center alfawz-mb-0" id="session-progress-text" aria-live="polite" aria-atomic="true"><?php _e('0 / 20 Repetitions', 'alfawzquran'); ?></p>
                 </div>
                 <div class="alfawz-repeat-button-container">
                     <button
@@ -243,22 +293,23 @@
             <h3><?php _e('MashaAllah!', 'alfawzquran'); ?></h3>
         </div>
         <div class="alfawz-modal-body">
-            <p><?php _e('You have successfully memorized this verse!', 'alfawzquran'); ?></p>
+            <p class="alfawz-modal-dua"><?php _e('Barakallahu Feek — May Allah preserve it in your heart.', 'alfawzquran'); ?></p>
             <div class="alfawz-achievement-display">
                 <span class="alfawz-achievement-icon">⭐</span>
                 <div class="alfawz-achievement-text">
-                    <div class="alfawz-achievement-title"><?php _e('Verse Memorized!', 'alfawzquran'); ?></div>
+                    <div class="alfawz-achievement-title"><?php _e('Verse Sealed Through 20x Repetition', 'alfawzquran'); ?></div>
                     <div class="alfawz-achievement-subtitle" id="achievement-details"></div>
                 </div>
             </div>
+            <p class="alfawz-modal-status" id="celebration-status"></p>
         </div>
         <div class="alfawz-modal-actions">
             <button id="continue-memorization" class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md alfawz-btn alfawz-btn-primary alfawz-btn-large">
-                <?php _e('Continue Memorizing', 'alfawzquran'); ?>
+                <?php _e('Continue to Next Verse', 'alfawzquran'); ?>
             </button>
-            <a href="<?php echo esc_url(ALFAWZQURAN_PLUGIN_URL . 'profile/'); ?>" class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md alfawz-btn alfawz-btn-secondary alfawz-btn-large" role="button">
-                <?php _e('View Profile', 'alfawzquran'); ?>
-            </a>
+            <button id="review-verse-later" class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md alfawz-btn alfawz-btn-secondary alfawz-btn-large">
+                <?php _e('Review This Verse Later', 'alfawzquran'); ?>
+            </button>
         </div>
     </div>
 </div>

@@ -696,7 +696,145 @@
 }
 
 /* ========================================
-   5. MEMORIZATION STATS CONTAINERS
+   5. MEMORIZATION INTENTION LAUNCHPAD
+   ======================================== */
+.alfawz-plan-launchpad {
+  background: linear-gradient(140deg, rgba(255, 249, 242, 0.95), rgba(255, 244, 229, 0.95));
+  border: 1px solid #f1dfd5;
+  border-radius: var(--radius-xl);
+  padding: var(--spacing-xl);
+  box-shadow: var(--shadow-md);
+  margin-bottom: var(--spacing-xl);
+  position: relative;
+  overflow: hidden;
+}
+
+.alfawz-plan-launchpad::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at top right, rgba(253, 230, 138, 0.35), transparent 55%);
+  pointer-events: none;
+}
+
+.alfawz-plan-launchpad-header {
+  position: relative;
+  margin-bottom: var(--spacing-lg);
+}
+
+.alfawz-plan-launchpad-header h3 {
+  margin: 0 0 var(--spacing-sm);
+  font-size: 1.45rem;
+  color: #2d3748;
+  font-weight: 700;
+}
+
+.alfawz-plan-launchpad-header p {
+  margin: 0;
+  color: #6b7280;
+  font-size: 0.95rem;
+  max-width: 56ch;
+}
+
+.alfawz-plan-launchpad-form {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+.alfawz-plan-launchpad-grid {
+  display: grid;
+  gap: var(--spacing-lg);
+}
+
+.alfawz-plan-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+@media (min-width: 768px) {
+  .alfawz-plan-launchpad-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .alfawz-plan-field-group {
+    grid-column: span 2;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--spacing-lg);
+  }
+}
+
+.alfawz-plan-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.alfawz-plan-field label {
+  font-weight: 600;
+  color: #374151;
+  font-size: 0.9rem;
+}
+
+.alfawz-plan-field input,
+.alfawz-plan-field select {
+  width: 100%;
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-radius: var(--radius-md);
+  border: 2px solid #f1dfd5;
+  background: #fff;
+  font-size: 0.95rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.alfawz-plan-field input:focus,
+.alfawz-plan-field select:focus {
+  outline: none;
+  border-color: #fbbf24;
+  box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.25);
+}
+
+.alfawz-plan-launchpad-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-md);
+  align-items: center;
+}
+
+.alfawz-plan-launchpad-feedback {
+  font-size: 0.9rem;
+  font-weight: 600;
+  min-height: 1.5em;
+  color: #6b7280;
+}
+
+.alfawz-plan-launchpad-feedback.is-success {
+  color: #047857;
+}
+
+.alfawz-plan-launchpad-feedback.is-error {
+  color: #c2410c;
+}
+
+.alfawz-plan-launchpad-feedback.is-info {
+  color: #6b7280;
+}
+
+.alfawz-plan-summary {
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid #f1dfd5;
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+  color: #4a5568;
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+/* ========================================
+   6. MEMORIZATION STATS CONTAINERS
    ======================================== */
 .alfawz-memorization-stats {
   margin-bottom: var(--spacing-lg);
@@ -716,12 +854,6 @@
   flex-direction: column;
   align-items: center;
   gap: var(--spacing-sm);
-}
-
-.alfawz-memorizer-card .alfawz-create-plan-btn {
-  margin-top: var(--spacing-sm);
-  width: 100%;
-  justify-content: center;
 }
 
 .alfawz-memorized-icon {
@@ -1505,6 +1637,21 @@
   font-weight: 600;
 }
 
+.alfawz-session-navigation .alfawz-mobile-nav-btn.alfawz-nav-locked {
+  opacity: 0.55;
+  cursor: not-allowed;
+  position: relative;
+}
+
+.alfawz-session-navigation .alfawz-mobile-nav-btn.alfawz-nav-locked::after {
+  content: "🔒";
+  position: absolute;
+  top: 8px;
+  right: 12px;
+  font-size: 0.9rem;
+  opacity: 0.7;
+}
+
 #memo-mark-memorized {
   width: 100%;
   justify-content: center;
@@ -1639,15 +1786,41 @@
 
 .alfawz-progress-fill {
   height: 100%;
-  background: var(--success-gradient);
+  background: linear-gradient(90deg, #d1d5db, #cbd5f5);
   border-radius: var(--radius-sm);
   transition: width 0.5s ease;
   position: relative;
 }
 
+.alfawz-progress-fill.alfawz-stage-early {
+  background: linear-gradient(90deg, #d1d5db, #cbd5f5);
+}
+
+.alfawz-progress-fill.alfawz-stage-momentum {
+  background: linear-gradient(90deg, #86efac, #34d399);
+}
+
+.alfawz-progress-fill.alfawz-stage-complete,
 .alfawz-progress-fill.alfawz-progress-complete {
-  background: var(--warning-gradient);
-  box-shadow: 0 0 12px rgba(251, 191, 36, 0.45);
+  background: linear-gradient(90deg, #fcd34d, #f97316);
+  box-shadow: 0 0 18px rgba(250, 204, 21, 0.55);
+}
+
+.alfawz-progress-check {
+  position: absolute;
+  top: 50%;
+  right: var(--spacing-md);
+  transform: translateY(-50%);
+  font-size: 0.95rem;
+  color: #047857;
+  opacity: 0;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  pointer-events: none;
+}
+
+.alfawz-progress-check.is-visible {
+  opacity: 1;
+  transform: translateY(-50%) scale(1.05);
 }
 
 .alfawz-progress-glow {
@@ -2175,6 +2348,22 @@
   font-size: 1.1em;
   margin-bottom: var(--spacing-xl);
   line-height: 1.5;
+}
+
+.alfawz-modal-status {
+  margin-top: var(--spacing-lg);
+  text-align: center;
+  font-size: 0.95em;
+  font-weight: 600;
+  color: #047857;
+}
+
+.alfawz-modal-status.is-success {
+  color: #047857;
+}
+
+.alfawz-modal-status.is-warning {
+  color: #b7791f;
 }
 
 .alfawz-achievement-display {

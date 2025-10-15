@@ -643,6 +643,7 @@
   let currentMemorizationVerse = null
   let repetitionCount = 0
   const REPETITION_TARGET = 20 // Default repetition target
+  const REPEAT_BUTTON_LOCK_DURATION = 300
   let memorizationSessionActive = false
   let reviewStatusDefaultText = ""
   let markMemorizedDefaultLabel = ""
@@ -650,9 +651,12 @@
   let playAudioDefaultLabel = ""
   let currentReviewState = { rating: null, notes: "" }
   let completionCelebrationShown = false
+  const REVIEW_QUEUE_STORAGE_KEY = "alfawzMemoReviewQueue"
+  let repetitionChimeContext = null
 
   function initializeMemorizer() {
     if ($(".alfawz-memorizer").length) {
+      setupPlanCreationForm()
       loadSurahsIntoDropdown("#memo-surah-select")
       $("#memo-surah-select").on("change", handleMemoSurahSelectChange)
       $("#memo-verse-select").on("change", handleMemoVerseSelectChange)
@@ -664,6 +668,7 @@
       $("#memo-mark-memorized").on("click", markVerseAsMemorized)
       $("#memo-select-another").on("click", resetMemorizationSession)
       $("#continue-memorization").on("click", continueMemorizationAfterCelebration)
+      $("#review-verse-later").on("click", handleReviewLaterSelection)
 
       hideCongratulationsModal({ immediate: true })
 
@@ -733,7 +738,9 @@
   }
 
   function loadMemorizationVerse(event) {
-    event?.preventDefault?.()
+    if (event && typeof event.preventDefault === "function") {
+      event.preventDefault()
+    }
     const verseId = $("#memo-verse-select").val()
     startMemorizationForVerse(verseId)
   }
@@ -750,12 +757,16 @@
     memorizationSessionActive = true
     completionCelebrationShown = false
     repetitionCount = 0
-    $("#repetition-progress-bar").removeClass("alfawz-progress-complete")
+    $("#repetition-progress-bar")
+      .removeClass("alfawz-progress-complete alfawz-stage-early alfawz-stage-momentum alfawz-stage-complete")
+      .css("width", "0%")
+    $("#repetition-progress-check").removeClass("is-visible")
     updateRepetitionDisplay()
     hideCongratulationsModal({ immediate: true })
     $("#repeat-verse-btn").removeClass("alfawz-repeat-completed").prop("disabled", false)
     disableMarkAsMemorizedButton()
     $("#memo-mark-memorized .alfawz-btn-text").text(markMemorizedDefaultLabel || $("#memo-mark-memorized").text())
+    $("#memo-mark-memorized").data("needs-save", false)
 
     stopCurrentAudioPlayback()
 
@@ -884,10 +895,8 @@
     updateRepetitionDisplay()
     showRepetitionFeedback()
 
-    $("#repeat-verse-btn").addClass("alfawz-repeat-clicked")
-    setTimeout(() => {
-      $("#repeat-verse-btn").removeClass("alfawz-repeat-clicked")
-    }, 180)
+    playRepetitionChime()
+    lockRepeatButtonTemporarily(repetitionCount >= REPETITION_TARGET)
 
     if (repetitionCount >= REPETITION_TARGET) {
       repetitionCount = REPETITION_TARGET
@@ -895,38 +904,100 @@
     }
   }
 
+  function lockRepeatButtonTemporarily(permanentlyLocked = false) {
+    const repeatButton = $("#repeat-verse-btn")
+    repeatButton.addClass("alfawz-repeat-clicked").prop("disabled", true)
+
+    setTimeout(() => {
+      if (!permanentlyLocked && repetitionCount < REPETITION_TARGET) {
+        repeatButton.prop("disabled", false)
+      }
+      repeatButton.removeClass("alfawz-repeat-clicked")
+    }, REPEAT_BUTTON_LOCK_DURATION)
+  }
+
+  function playRepetitionChime() {
+    try {
+      const AudioContext = window.AudioContext || window.webkitAudioContext
+      if (!AudioContext) {
+        return
+      }
+
+      if (!repetitionChimeContext) {
+        repetitionChimeContext = new AudioContext()
+      }
+
+      const context = repetitionChimeContext
+      if (context.state === "suspended") {
+        context.resume().catch(() => {})
+      }
+
+      const oscillator = context.createOscillator()
+      const gainNode = context.createGain()
+
+      oscillator.type = "sine"
+      oscillator.frequency.setValueAtTime(880, context.currentTime)
+
+      gainNode.gain.setValueAtTime(0.0001, context.currentTime)
+      gainNode.gain.exponentialRampToValueAtTime(0.18, context.currentTime + 0.02)
+      gainNode.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + 0.28)
+
+      oscillator.connect(gainNode)
+      gainNode.connect(context.destination)
+
+      oscillator.start()
+      oscillator.stop(context.currentTime + 0.3)
+    } catch (error) {
+      console.warn("Unable to play repetition chime:", error)
+    }
+  }
+
   function updateRepetitionDisplay() {
     $("#repetition-count").text(repetitionCount)
     $("#repetition-target").text(REPETITION_TARGET)
-    $("#session-progress-text").text(`Repetitions: ${repetitionCount} / ${REPETITION_TARGET}`)
+    $("#session-progress-text").text(`${repetitionCount} / ${REPETITION_TARGET} Repetitions`)
 
     const percentage = (repetitionCount / REPETITION_TARGET) * 100
-    $("#repetition-progress-bar")
+    const progressBar = $("#repetition-progress-bar")
+    progressBar
       .css("width", `${percentage}%`)
       .attr("aria-valuenow", repetitionCount)
       .attr("aria-valuemax", REPETITION_TARGET)
+      .removeClass("alfawz-stage-early alfawz-stage-momentum alfawz-stage-complete")
 
-    // Update progress markers
+    const progressCheck = $("#repetition-progress-check")
+    progressCheck.removeClass("is-visible")
+
+    if (repetitionCount >= REPETITION_TARGET) {
+      progressBar.addClass("alfawz-stage-complete")
+      progressCheck.addClass("is-visible")
+    } else if (repetitionCount >= 10) {
+      progressBar.addClass("alfawz-stage-momentum")
+    } else {
+      progressBar.addClass("alfawz-stage-early")
+    }
+
     const markersContainer = $(".alfawz-progress-markers")
     markersContainer.empty()
     for (let i = 1; i <= REPETITION_TARGET; i++) {
       const markerClass = i <= repetitionCount ? "alfawz-marker-completed" : ""
       markersContainer.append(`<div class="alfawz-progress-marker ${markerClass}"></div>`)
     }
+
+    updateNavigationButtons()
   }
 
   function handleRepetitionTargetReached() {
-    if (completionCelebrationShown) {
+    if (completionCelebrationShown || !currentMemorizationVerse) {
       return
     }
 
-    completionCelebrationShown = true
-    $("#repeat-verse-btn").addClass("alfawz-repeat-completed").prop("disabled", true)
-    enableMarkAsMemorizedButton()
+    const repeatButton = $("#repeat-verse-btn")
+    repeatButton.addClass("alfawz-repeat-completed").prop("disabled", true)
     $("#repetition-progress-bar").addClass("alfawz-progress-complete")
+    $("#repetition-progress-check").addClass("is-visible")
 
-    const hasanatEarned = currentMemorizationVerse?.hasanat || 0
-    showCongratulationsModal(hasanatEarned)
+    markVerseAsMemorized(null, { triggeredAutomatically: true, repeatButton })
   }
 
   function disableMarkAsMemorizedButton() {
@@ -963,22 +1034,59 @@
     }, 1000)
   }
 
-  function markVerseAsMemorized() {
-    if (!alfawzData.isLoggedIn) {
-      showNotification("Please log in to mark verses as memorized.", "error")
-      return
+  function markVerseAsMemorized(event, options = {}) {
+    if (event && typeof event.preventDefault === "function") {
+      event.preventDefault()
     }
+
+    const { triggeredAutomatically = false, repeatButton = null } = options
+
+    let button = $(this)
+    if (!button.length || !button.is("#memo-mark-memorized")) {
+      button = $("#memo-mark-memorized")
+    }
+
+    const buttonLabel = button.find(".alfawz-btn-text")
+
     if (!currentMemorizationVerse) {
       showNotification("No verse loaded to mark as memorized.", "error")
-      return
-    }
-    if (!completionCelebrationShown && repetitionCount < REPETITION_TARGET) {
-      showNotification(`Please complete ${REPETITION_TARGET} repetitions before marking as memorized.`, "error")
+      if (repeatButton && repeatButton.length) {
+        repeatButton.removeClass("alfawz-repeat-completed").prop("disabled", false)
+      }
       return
     }
 
-    const button = $(this)
-    button.prop("disabled", true).text("Marking...")
+    if (!memorizationSessionActive) {
+      showNotification("Please load a verse to start repetitions.", "error")
+      if (repeatButton && repeatButton.length) {
+        repeatButton.removeClass("alfawz-repeat-completed").prop("disabled", false)
+      }
+      return
+    }
+
+    if (!alfawzData.isLoggedIn) {
+      if (triggeredAutomatically) {
+        showNotification("Log in to preserve this memorization in your account.", "warning")
+        finalizeMemorizationCompletion(false)
+      } else {
+        showNotification("Please log in to mark verses as memorized.", "error")
+      }
+      return
+    }
+
+    if (!completionCelebrationShown && repetitionCount < REPETITION_TARGET) {
+      showNotification(`Please complete ${REPETITION_TARGET} repetitions before marking as memorized.`, "error")
+      button.prop("disabled", false)
+      buttonLabel.length ? buttonLabel.text(markMemorizedDefaultLabel || "Mark as Memorized") : button.text(markMemorizedDefaultLabel || "Mark as Memorized")
+      return
+    }
+
+    if (!triggeredAutomatically) {
+      button.prop("disabled", true).addClass("alfawz-btn-disabled").attr("aria-disabled", "true")
+      buttonLabel.length ? buttonLabel.text("Marking...") : button.text("Marking...")
+    } else {
+      button.attr("aria-disabled", "true").prop("disabled", true)
+    }
 
     $.ajax({
       url: alfawzData.apiUrl + "progress",
@@ -995,33 +1103,99 @@
       },
       success: (response) => {
         if (response.success) {
-          if (!completionCelebrationShown) {
-            showCongratulationsModal(currentMemorizationVerse.hasanat)
-          }
-          loadUserStats() // Update overall stats
-          // Update plan progress if a plan is active
+          loadUserStats()
           const selectedPlanId = $("#memorization-plan-select").val()
           if (selectedPlanId) {
             loadMemorizationPlanProgress(selectedPlanId)
           }
-          button.text(markMemorizedDefaultLabel || "Mark as Memorized")
+          finalizeMemorizationCompletion(true)
         } else {
-          showNotification(response.message || "Failed to mark verse as memorized.", "error")
-          button.prop("disabled", false).text(markMemorizedDefaultLabel || "Mark as Memorized")
+          handleMemorizationSaveFailure(response.message)
         }
       },
       error: (xhr, status, error) => {
         console.error("Error marking verse as memorized:", error)
-        showNotification("Error marking verse as memorized. Please try again.", "error")
-        button.prop("disabled", false).text(markMemorizedDefaultLabel || "Mark as Memorized")
+        handleMemorizationSaveFailure()
       },
     })
+
+    function handleMemorizationSaveFailure(customMessage) {
+      const message = customMessage || "Failed to mark verse as memorized."
+      showNotification(message, "error")
+      if (repeatButton && repeatButton.length) {
+        repeatButton.removeClass("alfawz-repeat-completed").prop("disabled", false)
+      }
+      enableMarkAsMemorizedButton()
+      button.removeClass("alfawz-btn-disabled").attr("aria-disabled", "false")
+      const needsSave = button.data("needs-save")
+      if (needsSave) {
+        buttonLabel.length ? buttonLabel.text("Save to Account") : button.text("Save to Account")
+      } else {
+        buttonLabel.length ? buttonLabel.text(markMemorizedDefaultLabel || "Mark as Memorized") : button.text(markMemorizedDefaultLabel || "Mark as Memorized")
+      }
+    }
   }
 
-  function showCongratulationsModal(hasanatEarned) {
+  function finalizeMemorizationCompletion(savedToAccount = true) {
+    if (completionCelebrationShown) {
+      updateNavigationButtons()
+      return
+    }
+
     completionCelebrationShown = true
+
+    const markButton = $("#memo-mark-memorized")
+    const label = markButton.find(".alfawz-btn-text")
+    if (savedToAccount) {
+      markButton.data("needs-save", false)
+      if (label.length) {
+        label.text("Memorized • 20x")
+      } else {
+        markButton.text("Memorized • 20x")
+      }
+      markButton.prop("disabled", true).attr("aria-disabled", "true").addClass("alfawz-btn-disabled")
+    } else {
+      markButton.data("needs-save", true)
+      if (label.length) {
+        label.text("Save to Account")
+      } else {
+        markButton.text("Save to Account")
+      }
+      enableMarkAsMemorizedButton()
+    }
+
+    const verseDisplay = $("#selected-memo-verse-name").text() ||
+      (currentMemorizationVerse ? `Surah ${currentMemorizationVerse.surah_id}, Verse ${currentMemorizationVerse.verse_id}` : "")
+    const hasanatEarned = currentMemorizationVerse ? currentMemorizationVerse.hasanat : 0
+
+    showCongratulationsModal({
+      hasanatEarned,
+      savedToAccount,
+      verseInfo: verseDisplay,
+    })
+
+    updateNavigationButtons()
+  }
+
+  function showCongratulationsModal({ hasanatEarned = 0, savedToAccount = true, verseInfo = "" } = {}) {
     const modal = $("#congratulations-modal")
-    $("#achievement-details").text(`+${hasanatEarned} Hasanat earned`)
+    const detailParts = ["20 Repetitions Complete"]
+    if (hasanatEarned) {
+      detailParts.push(`+${hasanatEarned} Hasanat`)
+    }
+    if (verseInfo) {
+      detailParts.push(verseInfo)
+    }
+    $("#achievement-details").text(detailParts.join(" • "))
+
+    const celebrationStatus = savedToAccount
+      ? "Progress saved to your memorization plan."
+      : "Progress saved locally. Log in to keep it synced."
+    $("#celebration-status")
+      .text(celebrationStatus)
+      .removeClass("is-success is-warning")
+      .addClass(savedToAccount ? "is-success" : "is-warning")
+
     modal
       .removeClass("alfawz-hidden")
       .attr("aria-hidden", "false")
@@ -1058,10 +1232,14 @@
     repetitionCount = 0
     updateRepetitionDisplay()
     $("#repeat-verse-btn").removeClass("alfawz-repeat-completed").prop("disabled", false)
-    $("#repetition-progress-bar").removeClass("alfawz-progress-complete")
+    $("#repetition-progress-bar")
+      .removeClass("alfawz-progress-complete alfawz-stage-early alfawz-stage-momentum alfawz-stage-complete")
+      .css("width", "0%")
+    $("#repetition-progress-check").removeClass("is-visible")
     completionCelebrationShown = false
     disableMarkAsMemorizedButton()
     $("#memo-mark-memorized .alfawz-btn-text").text(markMemorizedDefaultLabel || $("#memo-mark-memorized").text())
+    $("#memo-mark-memorized").data("needs-save", false)
     memorizationSessionActive = false
     stopCurrentAudioPlayback()
     resetReviewUI()
@@ -1104,12 +1282,23 @@
       return
     }
 
+    const canAdvance = repetitionCount >= REPETITION_TARGET
+
     prevButton.prop("disabled", index <= 0)
-    nextButton.prop("disabled", index >= options.length - 1)
+    nextButton
+      .prop("disabled", index >= options.length - 1 || !canAdvance)
+      .attr("aria-disabled", index >= options.length - 1 || !canAdvance)
+      .toggleClass("alfawz-nav-locked", !canAdvance)
   }
 
   function navigateMemorizationVerse(step, triggeredByAuto = false) {
     if (!memorizationSessionActive) {
+      return false
+    }
+
+    if (step > 0 && !triggeredByAuto && repetitionCount < REPETITION_TARGET) {
+      const remaining = REPETITION_TARGET - repetitionCount
+      showNotification(`Complete ${remaining} more repetitions to unlock the next verse.`, "warning")
       return false
     }
 
@@ -1140,13 +1329,55 @@
   }
 
   function continueMemorizationAfterCelebration(event) {
-    event?.preventDefault?.()
+    if (event && typeof event.preventDefault === "function") {
+      event.preventDefault()
+    }
 
     hideCongratulationsModal()
 
     const advanced = navigateMemorizationVerse(1, true)
     if (!advanced) {
       $("#repeat-verse-btn").removeClass("alfawz-repeat-completed").prop("disabled", false)
+    }
+  }
+
+  function handleReviewLaterSelection(event) {
+    if (event && typeof event.preventDefault === "function") {
+      event.preventDefault()
+    }
+
+    if (!memorizationSessionActive) {
+      showNotification("Load a verse before adding it to your review queue.", "error")
+      return
+    }
+
+    const identifiers = getActiveMemorizationIdentifiers()
+    if (!identifiers) {
+      showNotification("Load a verse before adding it to your review queue.", "error")
+      return
+    }
+
+    const queueEntry = {
+      surahId: identifiers.surahId,
+      verseId: identifiers.verseId,
+      addedAt: Date.now(),
+    }
+
+    try {
+      const existing = window.localStorage.getItem(REVIEW_QUEUE_STORAGE_KEY)
+      const parsed = existing ? JSON.parse(existing) : []
+      const queue = Array.isArray(parsed) ? parsed : []
+
+      const filteredQueue = queue.filter(item => !(
+        item && item.surahId === queueEntry.surahId && item.verseId === queueEntry.verseId
+      ))
+      filteredQueue.push(queueEntry)
+
+      window.localStorage.setItem(REVIEW_QUEUE_STORAGE_KEY, JSON.stringify(filteredQueue))
+      showNotification("Verse added to your review queue. Return soon to revisit it.", "success")
+    } catch (error) {
+      console.error("Failed to update review queue:", error)
+      showNotification("Unable to save review reminder on this device.", "error")
     }
   }
 
@@ -1272,6 +1503,52 @@
   }
 
   // Memorization Plan Revision Functions
+  function setPlanLaunchpadFeedback(message = "", tone = "info") {
+    const feedback = $("#plan-launchpad-feedback")
+    if (!feedback.length) {
+      return
+    }
+
+    feedback
+      .text(message || "")
+      .removeClass("is-info is-success is-error")
+
+    if (message) {
+      const toneClass = tone === "error" ? "is-error" : tone === "success" ? "is-success" : "is-info"
+      feedback.addClass(toneClass)
+    }
+  }
+
+  function setupPlanCreationForm() {
+    const form = $("#create-plan-form")
+    if (!form.length) {
+      return
+    }
+
+    loadSurahsIntoDropdown("#plan-surah-select")
+    $("#plan-surah-select")
+      .off("change.planCreation")
+      .on("change.planCreation", handlePlanSurahSelectChange)
+    form.off("submit.planCreation").on("submit.planCreation", createMemorizationPlan)
+    $("#plan-name, #plan-surah-select, #plan-start-verse, #plan-end-verse, #plan-daily-goal")
+      .off("input.planCreation change.planCreation")
+      .on("input.planCreation change.planCreation", updatePlanSummary)
+
+    setPlanLaunchpadFeedback("")
+    updatePlanSummary()
+  }
+
+  function generateDefaultPlanName(surahName, startLocal, endLocal) {
+    const trimmedSurah = surahName ? surahName.trim() : ""
+    if (trimmedSurah && startLocal && endLocal) {
+      return `${trimmedSurah} ${startLocal}-${endLocal}`
+    }
+    if (trimmedSurah) {
+      return `${trimmedSurah} Memorization`
+    }
+    return `Memorization Plan ${new Date().toISOString().split('T')[0]}`
+  }
+
   function loadMemorizationPlans() {
     if (!alfawzData.isLoggedIn) {
       $("#memorization-plan-select").empty().append('<option value="">Login to see plans</option>')
@@ -1525,12 +1802,7 @@
   // ========================================
   function initializeSettings() {
     if ($(".alfawz-settings").length) {
-      loadSurahsIntoDropdown("#plan-surah-select")
-      $("#plan-surah-select").on("change", handlePlanSurahSelectChange)
-      $("#create-plan-form").on("submit", createMemorizationPlan)
-      $("#plan-name, #plan-surah-select, #plan-start-verse, #plan-end-verse, #plan-daily-goal").on("input change", updatePlanSummary)
-      
-      // Load existing plans on settings page
+      setupPlanCreationForm()
       loadExistingMemorizationPlans()
     }
   }
@@ -1542,6 +1814,7 @@
     
     startVerseDropdown.empty().append('<option value="">Start Verse</option>').prop("disabled", true)
     endVerseDropdown.empty().append('<option value="">End Verse</option>').prop("disabled", true)
+    setPlanLaunchpadFeedback("")
 
     if (surahId) {
       fetch(`${ALQURAN_API_BASE}surah/${surahId}`)
@@ -1549,8 +1822,8 @@
         .then(data => {
           if (data.status === "OK" && data.data.ayahs) {
             data.data.ayahs.forEach(ayah => {
-              startVerseDropdown.append(`<option value="${ayah.number}">Verse ${ayah.number}</option>`)
-              endVerseDropdown.append(`<option value="${ayah.number}">Verse ${ayah.number}</option>`)
+              startVerseDropdown.append(`<option value="${ayah.number}" data-local="${ayah.numberInSurah}">Verse ${ayah.numberInSurah}</option>`)
+              endVerseDropdown.append(`<option value="${ayah.number}" data-local="${ayah.numberInSurah}">Verse ${ayah.numberInSurah}</option>`)
             })
             startVerseDropdown.prop("disabled", false)
             endVerseDropdown.prop("disabled", false)
@@ -1570,24 +1843,38 @@
   }
 
   function updatePlanSummary() {
-    const planName = $("#plan-name").val()
+    const planNameRaw = $("#plan-name").val()
+    const planName = planNameRaw ? planNameRaw.trim() : ""
     const surahId = $("#plan-surah-select").val()
     const startVerse = $("#plan-start-verse").val()
     const endVerse = $("#plan-end-verse").val()
     const dailyGoal = $("#plan-daily-goal").val()
 
-    const surahName = surahId ? $("#plan-surah-select option:selected").text().split('(')[0].trim() : "N/A"
-    const totalVerses = (startVerse && endVerse) ? (parseInt(endVerse) - parseInt(startVerse) + 1) : 0
+    const surahName = surahId ? $("#plan-surah-select option:selected").text().split('(')[0].trim() : ""
+    const startLocal = parseInt($("#plan-start-verse option:selected").data("local")) || parseInt(startVerse) || null
+    const endLocal = parseInt($("#plan-end-verse option:selected").data("local")) || parseInt(endVerse) || null
 
-    let summaryText = ""
-    if (planName && surahId && startVerse && endVerse && dailyGoal) {
-      summaryText = `You are creating a plan "${planName}" to memorize Surah ${surahName} (Verses ${startVerse}-${endVerse}). This plan covers ${totalVerses} verses with a daily goal of ${dailyGoal} verses.`
-      $("#create-plan-btn").prop("disabled", false)
+    let summaryText = "Select your verses to craft a heartfelt memorization intention."
+    let disableButton = true
+
+    if (surahId && startVerse && endVerse && dailyGoal) {
+      if (startLocal !== null && endLocal !== null && startLocal > endLocal) {
+        summaryText = "Adjust your verse range so the ending verse comes after the starting verse."
+        setPlanLaunchpadFeedback("Adjust your verse range so it flows forward.", "error")
+      } else {
+        const totalVerses = endLocal !== null && startLocal !== null ? endLocal - startLocal + 1 : 0
+        const versesText = totalVerses > 1 ? `${totalVerses} verses` : "1 verse"
+        const goalText = dailyGoal === "1" ? "1 verse" : `${dailyGoal} verses`
+        const planFocus = planName ? `"${planName}"` : `Surah ${surahName}`
+        summaryText = `${planFocus} focuses on Surah ${surahName} verses ${startLocal}-${endLocal}. Commit to ${goalText} each day to complete ${versesText}.`
+        disableButton = false
+        setPlanLaunchpadFeedback("")
+      }
     } else {
-      summaryText = "Fill in all fields to see a summary of your memorization plan."
-      $("#create-plan-btn").prop("disabled", true)
+      setPlanLaunchpadFeedback("")
     }
 
+    $("#create-plan-btn").prop("disabled", disableButton)
     $("#plan-summary-text").text(summaryText)
   }
 
@@ -1596,27 +1883,44 @@
 
     if (!alfawzData.isLoggedIn) {
       showNotification("Please log in to create memorization plans.", "error")
+      setPlanLaunchpadFeedback("Please log in to create and sync memorization plans.", "error")
       return
     }
 
-    const planName = $("#plan-name").val()
+    const planNameValue = $("#plan-name").val()
+    const planNameInput = planNameValue ? planNameValue.trim() : ""
     const surahId = $("#plan-surah-select").val()
     const startVerse = $("#plan-start-verse").val()
     const endVerse = $("#plan-end-verse").val()
     const dailyGoal = $("#plan-daily-goal").val()
 
-    if (!planName || !surahId || !startVerse || !endVerse || dailyGoal) {
+    if (!surahId || !startVerse || !endVerse || !dailyGoal) {
       showNotification("Please fill in all plan details.", "error")
+      setPlanLaunchpadFeedback("Complete each field to anchor your memorization plan.", "error")
       return
     }
 
-    if (parseInt(startVerse) > parseInt(endVerse)) {
+    const startLocal = parseInt($("#plan-start-verse option:selected").data("local")) || parseInt(startVerse)
+    const endLocal = parseInt($("#plan-end-verse option:selected").data("local")) || parseInt(endVerse)
+
+    if (startLocal > endLocal) {
       showNotification("Start verse cannot be greater than end verse.", "error")
+      setPlanLaunchpadFeedback("Start verse cannot be greater than end verse.", "error")
       return
     }
+
+    const surahName = $("#plan-surah-select option:selected").text().split('(')[0].trim()
+    const resolvedPlanName = planNameInput || generateDefaultPlanName(surahName, startLocal, endLocal)
 
     const button = $("#create-plan-btn")
-    button.prop("disabled", true).text("Creating...")
+    const buttonLabel = button.find(".alfawz-btn-label")
+    button.prop("disabled", true).addClass("alfawz-btn-disabled")
+    if (buttonLabel.length) {
+      buttonLabel.text("Locking in...")
+    } else {
+      button.text("Locking in...")
+    }
+    setPlanLaunchpadFeedback("Anchoring your intention...", "info")
 
     $.ajax({
       url: alfawzData.apiUrl + "memorization-plans",
@@ -1625,7 +1929,7 @@
         xhr.setRequestHeader("X-WP-Nonce", alfawzData.nonce)
       },
       data: {
-        plan_name: planName,
+        plan_name: resolvedPlanName,
         surah_id: surahId,
         start_verse: startVerse,
         end_verse: endVerse,
@@ -1634,20 +1938,42 @@
       success: (response) => {
         if (response.success) {
           showNotification("Memorization plan created successfully!", "success")
-          $("#create-plan-form")[0].reset() // Reset form
-          updatePlanSummary() // Clear summary
-          loadExistingMemorizationPlans() // Reload existing plans list
-          loadMemorizationPlans() // Reload plans in memorizer dropdown
-          $("#plan-created-success-message").fadeIn().delay(3000).fadeOut()
+          const formElement = $("#create-plan-form")[0]
+          if (formElement) {
+            formElement.reset()
+          }
+          updatePlanSummary()
+          loadExistingMemorizationPlans()
+          loadMemorizationPlans()
+          setPlanLaunchpadFeedback("Journey anchored. Bismillah!", "success")
+          const successMessage = $("#plan-created-success-message")
+          successMessage
+            .removeClass("alfawz-hidden")
+            .stop(true, true)
+            .fadeIn()
+            .delay(3000)
+            .fadeOut(() => successMessage.addClass("alfawz-hidden"))
         } else {
           showNotification(response.message || "Failed to create plan.", "error")
+          setPlanLaunchpadFeedback(response.message || "Unable to create plan.", "error")
         }
-        button.prop("disabled", false).text("Create Plan")
+        button.prop("disabled", false).removeClass("alfawz-btn-disabled")
+        if (buttonLabel.length) {
+          buttonLabel.text("Begin Memorizing")
+        } else {
+          button.text("Begin Memorizing")
+        }
       },
       error: (xhr, status, error) => {
         console.error("Error creating plan:", error)
         showNotification("Error creating plan. Please try again.", "error")
-        button.prop("disabled", false).text("Create Plan")
+        setPlanLaunchpadFeedback("Unable to create plan. Please try again.", "error")
+        button.prop("disabled", false).removeClass("alfawz-btn-disabled")
+        if (buttonLabel.length) {
+          buttonLabel.text("Begin Memorizing")
+        } else {
+          button.text("Begin Memorizing")
+        }
       },
     })
   }

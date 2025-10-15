@@ -6,47 +6,14 @@
         </div>
     </div>
 
-    <div id="create-plan" class="alfawz-settings-section">
-        <h3><?php _e('Create New Memorization Plan', 'alfawzquran'); ?></h3>
-        <form id="create-plan-form" class="alfawz-form">
-            <div class="alfawz-form-group">
-                <label for="plan-name"><?php _e('Plan Name:', 'alfawzquran'); ?></label>
-                <input type="text" id="plan-name" name="plan_name" required placeholder="e.g., Surah Al-Baqarah Part 1">
-            </div>
-            <div class="alfawz-form-group">
-                <label for="plan-surah-select"><?php _e('Select Surah:', 'alfawzquran'); ?></label>
-                <select id="plan-surah-select" name="surah_id" class="alfawz-surah-dropdown" required>
-                    <option value=""><?php _e('Loading Surahs...', 'alfawzquran'); ?></option>
-                </select>
-            </div>
-            <div class="alfawz-form-group alfawz-flex-group">
-                <div class="alfawz-flex-item">
-                    <label for="plan-start-verse"><?php _e('Start Verse:', 'alfawzquran'); ?></label>
-                    <select id="plan-start-verse" name="start_verse" class="alfawz-verse-dropdown" disabled required>
-                        <option value=""><?php _e('Select surah first', 'alfawzquran'); ?></option>
-                    </select>
-                </div>
-                <div class="alfawz-flex-item">
-                    <label for="plan-end-verse"><?php _e('End Verse:', 'alfawzquran'); ?></label>
-                    <select id="plan-end-verse" name="end_verse" class="alfawz-verse-dropdown" disabled required>
-                        <option value=""><?php _e('Select surah first', 'alfawzquran'); ?></option>
-                    </select>
-                </div>
-            </div>
-            <div class="alfawz-form-group">
-                <label for="plan-daily-goal"><?php _e('Daily Goal (verses):', 'alfawzquran'); ?></label>
-                <input type="number" id="plan-daily-goal" name="daily_goal" min="1" value="5" required>
-            </div>
-            <div class="alfawz-plan-summary">
-                <p id="plan-summary-text"><?php _e('Fill in all fields to see a summary of your memorization plan.', 'alfawzquran'); ?></p>
-            </div>
-            <button type="submit" id="create-plan-btn" class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md alfawz-btn alfawz-btn-primary alfawz-btn-large" disabled>
-                <?php _e('Create Plan', 'alfawzquran'); ?>
-            </button>
-            <div id="plan-created-success-message" class="alfawz-notice alfawz-hidden alfawz-success-notification">
-                <?php _e('Plan created successfully! You can now find it in the Memorizer section.', 'alfawzquran'); ?>
-            </div>
-        </form>
+    <div class="alfawz-settings-section">
+        <h3><?php _e('Memorization Plan Creation', 'alfawzquran'); ?></h3>
+        <div class="alfawz-settings-info-block">
+            <p><?php _e('Plan creation now lives directly inside the Memorizer so your intention begins beside the verses you will recite. Visit the Memorizer to start a new journey and craft your daily targets.', 'alfawzquran'); ?></p>
+            <a href="<?php echo esc_url(ALFAWZQURAN_PLUGIN_URL . 'memorizer/'); ?>" class="alfawz-btn alfawz-btn-secondary alfawz-btn-small" role="button">
+                <?php _e('Open Memorizer', 'alfawzquran'); ?>
+            </a>
+        </div>
     </div>
 
     <div class="alfawz-settings-section">
@@ -133,6 +100,22 @@ include ALFAWZQURAN_PLUGIN_PATH . 'public/partials/mobile-nav.php';
     font-weight: 700;
     padding-bottom: var(--spacing-sm);
     border-bottom: 1px solid #f7fafc;
+}
+
+.alfawz-settings-info-block {
+    background: linear-gradient(135deg, #f8fafc, #edf2f7);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-lg);
+    border: 1px solid #e2e8f0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+}
+
+.alfawz-settings-info-block p {
+    margin: 0;
+    color: #4a5568;
+    line-height: 1.6;
 }
 
 .alfawz-form-group {
