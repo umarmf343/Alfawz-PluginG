@@ -1,7 +1,8 @@
 (() => {
   const wpData = window.alfawzData || {};
   const API_BASE = (wpData.apiUrl || '/wp-json/alfawzquran/v1/').replace(/\/+$/, '/');
-  const QURAN_AUDIO_API_BASE = 'https://api.alquran.cloud/v1/';
+  const AL_QURAN_API_BASE = 'https://api.alquran.cloud/v1/';
+  const QURAN_AUDIO_CDN_BASE = 'https://cdn.islamic.network/quran/audio/128/';
   const RECITER_EDITION = wpData.defaultReciter || 'ar.alafasy';
   let currentReciter = wpData.userPreferences?.default_reciter || RECITER_EDITION;
   const TRANSLATION_EDITION = wpData.defaultTranslation || 'en.sahih';
@@ -186,6 +187,133 @@
     return response.json();
   };
 
+  const buildAyahEditionUrl = (surahId, verseId, edition) => {
+    const safeSurah = Number(surahId || 0);
+    const safeVerse = Number(verseId || 0);
+    if (!safeSurah || !safeVerse) {
+      return '';
+    }
+    return `${AL_QURAN_API_BASE}ayah/${safeSurah}:${safeVerse}/editions/${edition}`;
+  };
+
+  const extractAyahPayload = (response) => {
+    if (!response) {
+      return null;
+    }
+    if (Array.isArray(response.data)) {
+      return response.data[0] || null;
+    }
+    if (response.data && typeof response.data === 'object') {
+      return response.data;
+    }
+    return null;
+  };
+
+  const buildAudioCdnUrl = (reciter, surahId, verseId) => {
+    const safeReciter = reciter || 'ar.alafasy';
+    const paddedSurah = String(Number(surahId || 0)).padStart(3, '0');
+    const paddedVerse = String(Number(verseId || 0)).padStart(3, '0');
+    if (!Number(surahId) || !Number(verseId)) {
+      return '';
+    }
+    return `${QURAN_AUDIO_CDN_BASE}${safeReciter}/${paddedSurah}${paddedVerse}.mp3`;
+  };
+
+  const normaliseAlQuranVerse = (
+    arabicPayload,
+    translationPayload,
+    transliterationPayload,
+    fallbackSurahId,
+    fallbackVerseId,
+    audioUrl,
+  ) => {
+    if (!arabicPayload && !translationPayload && !transliterationPayload) {
+      return null;
+    }
+
+    const surahMeta =
+      (arabicPayload && typeof arabicPayload.surah === 'object' && arabicPayload.surah) ||
+      (translationPayload && typeof translationPayload.surah === 'object' && translationPayload.surah) ||
+      (transliterationPayload && typeof transliterationPayload.surah === 'object' && transliterationPayload.surah) ||
+      {};
+
+    const resolvedSurahId = Number(
+      (arabicPayload && (arabicPayload.surah_id || arabicPayload.surahId || arabicPayload?.surah?.number)) ||
+        (translationPayload && (translationPayload.surah_id || translationPayload.surahId || translationPayload?.surah?.number)) ||
+        (transliterationPayload &&
+          (transliterationPayload.surah_id ||
+            transliterationPayload.surahId ||
+            transliterationPayload?.surah?.number)) ||
+        surahMeta.number ||
+        fallbackSurahId ||
+        0,
+    );
+
+    const resolvedVerseId = Number(
+      (arabicPayload && (arabicPayload.verse_id || arabicPayload.verseId || arabicPayload.numberInSurah || arabicPayload.number)) ||
+        (translationPayload &&
+          (translationPayload.verse_id ||
+            translationPayload.verseId ||
+            translationPayload.numberInSurah ||
+            translationPayload.number)) ||
+        (transliterationPayload &&
+          (transliterationPayload.verse_id ||
+            transliterationPayload.verseId ||
+            transliterationPayload.numberInSurah ||
+            transliterationPayload.number)) ||
+        fallbackVerseId ||
+        0,
+    );
+
+    if (!resolvedSurahId || !resolvedVerseId) {
+      return null;
+    }
+
+    const totalVerses = Number(
+      arabicPayload?.total_verses ||
+        arabicPayload?.totalVerses ||
+        translationPayload?.total_verses ||
+        translationPayload?.totalVerses ||
+        transliterationPayload?.total_verses ||
+        transliterationPayload?.totalVerses ||
+        surahMeta.numberOfAyahs ||
+        surahMeta.ayahs ||
+        0,
+    );
+
+    const verse = {
+      surahId: resolvedSurahId,
+      verseId: resolvedVerseId,
+      arabic: arabicPayload?.arabic ?? arabicPayload?.text ?? '',
+      translation: translationPayload?.translation ?? translationPayload?.text ?? '',
+      transliteration:
+        transliterationPayload?.transliteration ??
+        transliterationPayload?.text ??
+        translationPayload?.transliteration ??
+        '',
+      surahName: surahMeta.englishName || '',
+      surahNameAr: surahMeta.name || '',
+      juz: arabicPayload?.juz ?? translationPayload?.juz ?? transliterationPayload?.juz ?? null,
+      totalVerses: totalVerses ? Number(totalVerses) : 0,
+      verseKey:
+        arabicPayload?.verseKey ||
+        arabicPayload?.verse_key ||
+        translationPayload?.verseKey ||
+        translationPayload?.verse_key ||
+        transliterationPayload?.verseKey ||
+        transliterationPayload?.verse_key ||
+        `${resolvedSurahId}:${resolvedVerseId}`,
+      audio: audioUrl || '',
+      audioSecondary: audioUrl ? [audioUrl] : [],
+    };
+
+    if (!verse.totalVerses && Array.isArray(arabicPayload?.ayahs)) {
+      verse.totalVerses = arabicPayload.ayahs.length;
+    }
+
+    return verse;
+  };
+
   const verseCacheKey = (surahId, verseId) => {
     const translationKey = TRANSLATION_EDITION || 'default';
     const transliterationKey = TRANSLITERATION_EDITION || 'none';
@@ -196,47 +324,6 @@
     const translationKey = TRANSLATION_EDITION || 'default';
     const transliterationKey = TRANSLITERATION_EDITION || 'none';
     return `${surahId}:${translationKey}:${transliterationKey}`;
-  };
-
-  const normaliseVersePayload = (payload, fallbackSurahId, fallbackVerseId) => {
-    if (!payload || typeof payload !== 'object') {
-      return null;
-    }
-    const surahMeta = payload.surah && typeof payload.surah === 'object' ? payload.surah : {};
-    const resolvedSurahId = Number(
-      payload.surah_id ?? payload.surahId ?? surahMeta.number ?? fallbackSurahId ?? 0,
-    );
-    const resolvedVerseId = Number(
-      payload.verse_id ?? payload.verseId ?? payload.numberInSurah ?? payload.number ?? fallbackVerseId ?? 0,
-    );
-    if (!resolvedSurahId || !resolvedVerseId) {
-      return null;
-    }
-    const totalVerses = Number(
-      payload.total_verses ?? payload.totalVerses ?? surahMeta.numberOfAyahs ?? surahMeta.ayahs ?? 0,
-    ) || 0;
-    const normalised = {
-      surahId: resolvedSurahId,
-      verseId: resolvedVerseId,
-      arabic: payload.arabic ?? payload.text ?? '',
-      translation: payload.translation ?? payload.translation_text ?? '',
-      transliteration: payload.transliteration ?? payload.transliteration_text ?? '',
-      surahName: payload.surahName ?? payload.surah_name ?? surahMeta.englishName ?? '',
-      surahNameAr: payload.surahNameAr ?? payload.surah_name_ar ?? surahMeta.name ?? '',
-      juz: payload.juz ?? payload.juzNumber ?? null,
-      totalVerses,
-      verseKey: payload.verseKey ?? payload.verse_key ?? `${resolvedSurahId}:${resolvedVerseId}`,
-      audio: payload.audio ?? '',
-      audioSecondary: Array.isArray(payload.audio_secondary)
-        ? payload.audio_secondary
-        : Array.isArray(payload.audioSecondary)
-          ? payload.audioSecondary
-          : [],
-    };
-    if (!normalised.totalVerses && surahMeta && surahMeta.numberOfAyahs) {
-      normalised.totalVerses = Number(surahMeta.numberOfAyahs) || 0;
-    }
-    return normalised;
   };
 
   const storeVerseInCache = (verse) => {
@@ -261,18 +348,31 @@
       return state.verseCache.get(cacheKey);
     }
 
-    const params = new URLSearchParams();
-    if (TRANSLATION_EDITION) {
-      params.append('translation', TRANSLATION_EDITION);
-    }
-    if (TRANSLITERATION_EDITION) {
-      params.append('transliteration', TRANSLITERATION_EDITION);
-    }
+    const arabicUrl = buildAyahEditionUrl(surahId, verseId, 'quran-uthmani');
+    const translationUrl = buildAyahEditionUrl(surahId, verseId, TRANSLATION_EDITION || 'en.sahih');
+    const transliterationUrl = TRANSLITERATION_EDITION
+      ? buildAyahEditionUrl(surahId, verseId, TRANSLITERATION_EDITION)
+      : '';
 
-    const query = params.toString();
-    const endpoint = query ? `surahs/${surahId}/verses/${verseId}?${query}` : `surahs/${surahId}/verses/${verseId}`;
-    const verseResponse = await apiRequest(endpoint);
-    const verse = normaliseVersePayload({ ...verseResponse }, surahId, verseId);
+    const [arabicResponse, translationResponse, transliterationResponse] = await Promise.all([
+      arabicUrl ? fetchJson(arabicUrl) : Promise.resolve(null),
+      translationUrl ? fetchJson(translationUrl) : Promise.resolve(null),
+      transliterationUrl ? fetchJson(transliterationUrl) : Promise.resolve(null),
+    ]);
+
+    const arabicPayload = extractAyahPayload(arabicResponse);
+    const translationPayload = extractAyahPayload(translationResponse);
+    const transliterationPayload = extractAyahPayload(transliterationResponse);
+    const audioUrl = buildAudioCdnUrl(currentReciter || RECITER_EDITION, surahId, verseId);
+
+    const verse = normaliseAlQuranVerse(
+      arabicPayload,
+      translationPayload,
+      transliterationPayload,
+      surahId,
+      verseId,
+      audioUrl,
+    );
     if (!verse) {
       throw new Error('Invalid verse response');
     }
@@ -292,23 +392,57 @@
       return state.surahPromises.get(cacheKey);
     }
 
-    const params = new URLSearchParams();
-    if (TRANSLATION_EDITION) {
-      params.append('translation', TRANSLATION_EDITION);
-    }
-    if (TRANSLITERATION_EDITION) {
-      params.append('transliteration', TRANSLITERATION_EDITION);
-    }
-
-    const query = params.toString();
-    const endpoint = query ? `surahs/${surahId}/verses?${query}` : `surahs/${surahId}/verses`;
-
     const request = (async () => {
       try {
-        const response = await apiRequest(endpoint);
-        const rawVerses = Array.isArray(response) ? response : [];
-        const verses = rawVerses
-          .map((entry) => normaliseVersePayload(entry, surahId, entry?.verse_id ?? entry?.numberInSurah ?? entry?.number))
+        const editionIdentifiers = ['quran-uthmani', TRANSLATION_EDITION || 'en.sahih'];
+        if (TRANSLITERATION_EDITION) {
+          editionIdentifiers.push(TRANSLITERATION_EDITION);
+        }
+        const editionsUrl = `${AL_QURAN_API_BASE}surah/${surahId}/editions/${editionIdentifiers.join(',')}`;
+        const response = await fetchJson(editionsUrl);
+        const editionPayloads = Array.isArray(response?.data) ? response.data : [];
+        const arabicEdition =
+          editionPayloads.find((entry) => entry?.edition?.identifier === 'quran-uthmani') || editionPayloads[0] || {};
+        const translationEdition =
+          editionPayloads.find((entry) => entry?.edition?.identifier === (TRANSLATION_EDITION || 'en.sahih')) ||
+          editionPayloads[1] ||
+          {};
+        const transliterationEdition =
+          (TRANSLITERATION_EDITION &&
+            editionPayloads.find((entry) => entry?.edition?.identifier === TRANSLITERATION_EDITION)) ||
+          {};
+
+        const arabicAyahs = Array.isArray(arabicEdition?.ayahs) ? arabicEdition.ayahs : [];
+        const translationAyahs = Array.isArray(translationEdition?.ayahs) ? translationEdition.ayahs : [];
+        const transliterationAyahs = Array.isArray(transliterationEdition?.ayahs) ? transliterationEdition.ayahs : [];
+        const translationMap = new Map();
+        const transliterationMap = new Map();
+
+        translationAyahs.forEach((ayah) => {
+          const key = Number(ayah?.numberInSurah ?? ayah?.number ?? 0);
+          if (key) {
+            translationMap.set(key, ayah);
+          }
+        });
+
+        transliterationAyahs.forEach((ayah) => {
+          const key = Number(ayah?.numberInSurah ?? ayah?.number ?? 0);
+          if (key) {
+            transliterationMap.set(key, ayah);
+          }
+        });
+
+        const verses = arabicAyahs
+          .map((ayah) => {
+            const verseId = Number(ayah?.numberInSurah ?? ayah?.number ?? 0);
+            if (!verseId) {
+              return null;
+            }
+            const translationAyah = translationMap.get(verseId) || null;
+            const transliterationAyah = transliterationMap.get(verseId) || null;
+            const audioUrl = buildAudioCdnUrl(currentReciter || RECITER_EDITION, surahId, verseId);
+            return normaliseAlQuranVerse(ayah, translationAyah, transliterationAyah, surahId, verseId, audioUrl);
+          })
           .filter(Boolean);
         if (verses.length) {
           const total = verses.length;
@@ -333,29 +467,14 @@
     return request;
   };
 
-  const selectCdnAudio = (payload) => {
-    if (!payload || typeof payload !== 'object') {
-      return '';
-    }
-
-    const secondary = Array.isArray(payload.audioSecondary) ? payload.audioSecondary : [];
-    const cdnSource = secondary.find((url) => typeof url === 'string' && /cdn\.islamic\.network/i.test(url));
-
-    if (cdnSource) {
-      return cdnSource;
-    }
-
-    return typeof payload.audio === 'string' ? payload.audio : '';
-  };
-
   const loadAudio = async (surahId, verseId) => {
-    const reciter = currentReciter || RECITER_EDITION;
+    const reciter = currentReciter || RECITER_EDITION || 'ar.alafasy';
     const cacheKey = `${reciter}:${surahId}:${verseId}`;
     if (state.audioCache.has(cacheKey)) {
       return state.audioCache.get(cacheKey);
     }
-    const response = await fetchJson(`${QURAN_AUDIO_API_BASE}ayah/${surahId}:${verseId}/${reciter}`);
-    const audioUrl = selectCdnAudio(response?.data) || '';
+
+    const audioUrl = buildAudioCdnUrl(reciter, surahId, verseId);
     state.audioCache.set(cacheKey, audioUrl);
     return audioUrl;
   };
