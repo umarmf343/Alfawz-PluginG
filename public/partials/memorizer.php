@@ -5,6 +5,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 ?>
 <div id="alfawz-memorization" class="bg-amber-50 pb-[120px]">
     <div class="mx-auto max-w-5xl space-y-10 px-4 py-10 sm:px-6 lg:px-8">
+        <div class="flex justify-end">
+            <div class="rounded-2xl bg-white/80 px-4 py-3 text-right shadow-sm ring-1 ring-emerald-100">
+                <p class="text-[11px] font-semibold uppercase tracking-[0.3em] text-emerald-500"><?php esc_html_e( 'Hasanat earned', 'alfawzquran' ); ?></p>
+                <p class="text-lg font-bold text-emerald-700" data-hasanat-total>0</p>
+            </div>
+        </div>
         <section aria-labelledby="alfawz-memorization-start-title" class="space-y-6 text-center">
             <header class="mx-auto max-w-3xl space-y-2">
                 <p class="text-xs font-semibold uppercase tracking-[0.4em] text-emerald-600"><?php esc_html_e( 'Sacred Repetition Practice', 'alfawzquran' ); ?></p>

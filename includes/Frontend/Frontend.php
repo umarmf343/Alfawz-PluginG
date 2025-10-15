@@ -1,6 +1,8 @@
 <?php
 namespace AlfawzQuran\Frontend;
 
+use AlfawzQuran\Models\UserProgress;
+
 /**
  * Frontend functionality and shortcodes
  */
@@ -70,6 +72,12 @@ class Frontend {
                 true
             );
 
+            $hasanat_total = 0;
+            if ( $is_logged_in ) {
+                $progress_model = new UserProgress();
+                $hasanat_total = $progress_model->ensure_total_hasanat_meta( $current_user_id );
+            }
+
             wp_localize_script('alfawz-frontend', 'alfawzData', [
                 'apiUrl' => rest_url('alfawzquran/v1/'),
                 'nonce' => $rest_nonce,
@@ -84,6 +92,7 @@ class Frontend {
                 'defaultTransliteration' => get_option('alfawz_default_transliteration', 'en.transliteration'),
                 'enableLeaderboard' => (bool) get_option('alfawz_enable_leaderboard', 1),
                 'userPreferences' => $this->get_user_preferences_for_script(),
+                'hasanatTotal' => $hasanat_total,
                 'strings' => [
                     'settingsSaved' => __('Preferences updated!', 'alfawzquran'),
                     'settingsError' => __('Unable to save preferences. Please try again.', 'alfawzquran'),
@@ -94,6 +103,7 @@ class Frontend {
                 'apiUrl' => rest_url('alfawzquran/v1/'),
                 'nonce' => $rest_nonce,
                 'isLoggedIn' => $is_logged_in,
+                'hasanatTotal' => $hasanat_total,
                 'defaultTranslation' => get_option('alfawz_default_translation', 'en.sahih'),
                 'selectSurahLabel' => __('Select a surah', 'alfawzquran'),
                 'surahErrorMessage' => __('Unable to load surahs right now.', 'alfawzquran'),

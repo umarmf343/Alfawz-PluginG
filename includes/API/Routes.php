@@ -196,6 +196,16 @@ class Routes {
 
         register_rest_route(
             $namespace,
+            '/hasanat',
+            [
+                'methods'             => WP_REST_Server::CREATABLE,
+                'callback'            => [ $this, 'award_hasanat' ],
+                'permission_callback' => [ $this, 'check_permission' ],
+            ]
+        );
+
+        register_rest_route(
+            $namespace,
             '/recitation-goal',
             [
                 'methods'             => 'GET',
@@ -500,6 +510,59 @@ class Routes {
         } else {
             return new \WP_REST_Response( [ 'success' => false, 'message' => 'Failed to update progress.' ], 500 );
         }
+    }
+
+    public function award_hasanat( \WP_REST_Request $request ) {
+        $user_id = get_current_user_id();
+
+        if ( ! $user_id ) {
+            return new WP_REST_Response( [ 'success' => false, 'message' => 'User not logged in.' ], 401 );
+        }
+
+        $params = $request->get_json_params();
+        if ( empty( $params ) ) {
+            $params = $request->get_params();
+        }
+
+        $amount           = isset( $params['amount'] ) ? (int) $params['amount'] : 0;
+        $surah_id         = isset( $params['surah_id'] ) ? (int) $params['surah_id'] : 0;
+        $verse_id         = isset( $params['verse_id'] ) ? (int) $params['verse_id'] : 0;
+        $letter_count     = isset( $params['letter_count'] ) ? (int) $params['letter_count'] : 0;
+        $repetition_count = isset( $params['repetition_count'] ) ? (int) $params['repetition_count'] : 0;
+        $progress_type    = isset( $params['progress_type'] ) && in_array( $params['progress_type'], [ 'read', 'memorized' ], true )
+            ? $params['progress_type']
+            : 'read';
+
+        if ( $amount <= 0 ) {
+            return new WP_REST_Response( [ 'success' => false, 'message' => 'Amount must be greater than zero.' ], 400 );
+        }
+
+        $verse_key = $surah_id && $verse_id ? sprintf( '%d:%d', $surah_id, $verse_id ) : '';
+        $progress_model = new UserProgress();
+
+        if ( $surah_id && $verse_id ) {
+            $result = $progress_model->add_progress( $user_id, $surah_id, $verse_id, $progress_type, $amount, $repetition_count );
+            if ( ! $result ) {
+                return new WP_REST_Response( [ 'success' => false, 'message' => 'Unable to record hasanat.' ], 500 );
+            }
+        } else {
+            $current_total = (int) get_user_meta( $user_id, UserProgress::TOTAL_HASANAT_META_KEY, true );
+            update_user_meta( $user_id, UserProgress::TOTAL_HASANAT_META_KEY, $current_total + $amount );
+        }
+
+        $total = $progress_model->ensure_total_hasanat_meta( $user_id );
+
+        return new WP_REST_Response(
+            [
+                'success'       => true,
+                'awarded'       => $amount,
+                'total'         => $total,
+                'verse_key'     => $verse_key,
+                'letter_count'  => $letter_count,
+                'progress_type' => $progress_type,
+            ],
+            200
+        );
     }
 
     /**

@@ -36,7 +36,7 @@ if ( ! defined( 'ABSPATH' ) ) {
         </article>
         <article class="alfawz-card" data-stat="hasanat">
             <p class="text-xs font-semibold uppercase tracking-wide text-slate-500"><?php esc_html_e( 'Hasanat earned', 'alfawzquran' ); ?></p>
-            <p class="mt-3 text-3xl font-semibold text-slate-900" id="alfawz-hasanat-total">0</p>
+            <p class="mt-3 text-3xl font-semibold text-slate-900" id="alfawz-hasanat-total" data-hasanat-total>0</p>
             <p class="text-xs text-slate-500"><?php esc_html_e( 'Based on your recitation logs', 'alfawzquran' ); ?></p>
         </article>
     </section>

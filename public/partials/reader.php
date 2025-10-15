@@ -6,6 +6,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 <div id="alfawz-reader" class="alfawz-reader-shell alfawz-no-scrollbar bg-amber-50 min-h-screen px-4 pt-8 sm:px-6">
     <div class="relative mx-auto max-w-2xl rounded-xl bg-white bg-opacity-90 px-4 py-8 shadow-sm sm:px-6 alfawz-glass" aria-live="polite" aria-busy="true">
         <div id="alfawz-confetti-host" class="pointer-events-none absolute inset-0 overflow-visible" aria-hidden="true"></div>
+        <div class="pointer-events-none absolute right-4 top-4 text-right">
+            <p class="text-[11px] font-semibold uppercase tracking-[0.3em] text-emerald-500"><?php esc_html_e( 'Hasanat earned', 'alfawzquran' ); ?></p>
+            <p class="text-xl font-bold text-emerald-700 drop-shadow-sm" data-hasanat-total>0</p>
+        </div>
         <div id="alfawz-verse-loader" class="rounded-xl border border-dashed border-emerald-200 bg-emerald-50 bg-opacity-80 px-4 py-16 text-center text-base text-emerald-700">
             <?php esc_html_e( 'Select a surah and verse to begin your recitation.', 'alfawzquran' ); ?>
         </div>

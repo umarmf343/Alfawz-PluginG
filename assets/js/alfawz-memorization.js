@@ -5,6 +5,29 @@
     return;
   }
 
+  const HASANAT_PER_LETTER = 10;
+  const hasanatBridge = window.AlfawzHasanat || null;
+
+  const countArabicLetters = (arabicText) => {
+    if (!arabicText) {
+      return 0;
+    }
+    const cleaned = arabicText
+      .normalize('NFC')
+      .replace(/[\u064B-\u065F\u0670]/g, '')
+      .replace(/[^\u0621-\u064A\u066E-\u06D3]/g, '');
+    return cleaned.length;
+  };
+
+  if (
+    hasanatBridge &&
+    typeof hasanatBridge.setTotal === 'function' &&
+    typeof wpData.hasanatTotal !== 'undefined'
+  ) {
+    const initialTotal = Number(wpData.hasanatTotal || 0);
+    hasanatBridge.setTotal(Number.isFinite(initialTotal) ? initialTotal : 0);
+  }
+
   const API_BASE = (wpData.apiUrl || '/wp-json/alfawzquran/v1/').replace(/\/+$/, '/');
   const QURAN_API_BASE = 'https://api.alquran.cloud/v1/';
   const ARABIC_EDITION = 'quran-uthmani';
@@ -53,6 +76,10 @@
     planDetail: null,
     repetitionCount: 0,
     currentVerse: null,
+    currentVerseLetters: 0,
+    currentVerseHasanat: 0,
+    hasAwardedCurrentVerse: false,
+    awardingInFlight: false,
     translationVisible: true,
     modalOpen: false,
   };
@@ -315,6 +342,9 @@
           ? wpData.progressIntro || 'Tap repeat to begin your twenty-fold focus session.'
           : `${remaining} ${wpData.remainingLabel || 'repetitions remaining.'}`;
     }
+    if (count >= 20 && !state.hasAwardedCurrentVerse) {
+      void maybeAwardCurrentVerse();
+    }
     if (count >= 20 && !state.modalOpen) {
       openModal();
     }
@@ -324,6 +354,40 @@
   const resetRepetition = () => {
     state.repetitionCount = 0;
     updateProgressUI();
+  };
+
+  const maybeAwardCurrentVerse = async () => {
+    if (!hasanatBridge || typeof hasanatBridge.award !== 'function') {
+      return;
+    }
+    const surahId = Number(state.planDetail?.surah_id || 0);
+    const verseId = Number(state.currentVerse || 0);
+    const amount = Number(state.currentVerseHasanat || 0);
+    const letterCount = Number(state.currentVerseLetters || 0);
+    if (!surahId || !verseId || !amount || state.hasAwardedCurrentVerse || state.awardingInFlight) {
+      return;
+    }
+    const verseKey = `${surahId}:${verseId}`;
+    try {
+      state.awardingInFlight = true;
+      const awarded = await hasanatBridge.award({
+        amount,
+        surahId,
+        verseId,
+        progressType: 'memorized',
+        repetitionCount: 20,
+        letterCount,
+        anchor: el.repeatButton,
+        verseKey,
+      });
+      if (awarded) {
+        state.hasAwardedCurrentVerse = true;
+      }
+    } catch (error) {
+      console.warn('[Alfawz Memorization] Unable to award hasanat', error);
+    } finally {
+      state.awardingInFlight = false;
+    }
   };
 
   const openModal = () => {
@@ -366,6 +430,11 @@
       el.verseArabic.textContent = verse.arabic;
       el.verseTranslation.textContent = verse.translation;
       el.verseTranslation.classList.toggle('hidden', !state.translationVisible);
+      const letterCount = countArabicLetters(verse.arabic);
+      state.currentVerseLetters = letterCount;
+      state.currentVerseHasanat = letterCount * HASANAT_PER_LETTER;
+      state.hasAwardedCurrentVerse = false;
+      state.awardingInFlight = false;
       if (el.progressNote) {
         el.progressNote.textContent = wpData.progressIntro || 'Tap repeat to begin your twenty-fold focus session.';
       }

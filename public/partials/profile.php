@@ -33,7 +33,7 @@ if ( ! defined( 'ABSPATH' ) ) {
         </article>
         <article class="alfawz-card">
             <p class="text-xs font-semibold uppercase tracking-wide text-slate-500"><?php esc_html_e( 'Hasanat earned', 'alfawzquran' ); ?></p>
-            <p class="mt-3 text-3xl font-semibold text-slate-900" id="alfawz-profile-hasanat">0</p>
+            <p class="mt-3 text-3xl font-semibold text-slate-900" id="alfawz-profile-hasanat" data-hasanat-total>0</p>
             <p class="text-xs text-slate-500"><?php esc_html_e( 'Calculated with configured rate', 'alfawzquran' ); ?></p>
         </article>
         <article class="alfawz-card">

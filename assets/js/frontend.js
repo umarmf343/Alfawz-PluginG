@@ -6,7 +6,7 @@
   let currentReciter = wpData.userPreferences?.default_reciter || RECITER_EDITION;
   const TRANSLATION_EDITION = wpData.defaultTranslation || 'en.sahih';
   const TRANSLITERATION_EDITION = wpData.defaultTransliteration || 'en.transliteration';
-  const HASANAT_PER_LETTER = Number(wpData.hasanatPerLetter || 10);
+  const HASANAT_PER_LETTER = 10;
 
   const headers = {};
   if (wpData.nonce) {
@@ -182,15 +182,143 @@
     return span;
   };
 
-  const computeHasanat = (arabicText) => {
+  const countArabicLetters = (arabicText) => {
     if (!arabicText) {
       return 0;
     }
-    const letters = arabicText.replace(/[^\u0600-\u06FF]/g, '').length;
-    return letters * HASANAT_PER_LETTER;
+    const cleaned = arabicText
+      .normalize('NFC')
+      .replace(/[\u064B-\u065F\u0670]/g, '')
+      .replace(/[^\u0621-\u064A\u066E-\u06D3]/g, '');
+    return cleaned.length;
   };
 
+  const computeHasanat = (arabicText) => countArabicLetters(arabicText) * HASANAT_PER_LETTER;
+
   const buildVerseKey = (surahId, verseId) => `${surahId}:${verseId}`;
+
+  const hasanatState = {
+    total: Number(wpData.hasanatTotal || 0),
+    sessionAwarded: new Set(),
+    listeners: new Set(),
+  };
+
+  const updateHasanatDisplays = () => {
+    const formatted = formatNumber(hasanatState.total);
+    document.querySelectorAll('[data-hasanat-total]').forEach((node) => {
+      node.textContent = formatted;
+    });
+  };
+
+  const setHasanatTotal = (value) => {
+    let numeric = Number(value || 0);
+    if (!Number.isFinite(numeric) || numeric < 0) {
+      numeric = 0;
+    }
+    hasanatState.total = numeric;
+    wpData.hasanatTotal = numeric;
+    updateHasanatDisplays();
+    hasanatState.listeners.forEach((listener) => {
+      try {
+        listener(numeric);
+      } catch (error) {
+        console.warn('[AlfawzQuran] Hasanat listener error', error);
+      }
+    });
+  };
+
+  const showHasanatSplash = (amount, anchor, message) => {
+    if (!amount || amount <= 0) {
+      return;
+    }
+    const splash = document.createElement('div');
+    splash.className = 'alfawz-hasanat-splash';
+    splash.textContent = message || `+${formatNumber(amount)} Hasanat!`;
+    document.body.appendChild(splash);
+
+    const rect = anchor?.getBoundingClientRect();
+    const left = rect ? rect.left + rect.width / 2 + window.scrollX : window.innerWidth - 120;
+    const top = rect ? rect.top + window.scrollY - 12 : window.innerHeight / 2;
+    splash.style.setProperty('--alfawz-hasanat-left', `${left}px`);
+    splash.style.setProperty('--alfawz-hasanat-top', `${top}px`);
+
+    requestAnimationFrame(() => splash.classList.add('alfawz-hasanat-splash--animate'));
+    window.setTimeout(() => splash.remove(), 1500);
+  };
+
+  const awardHasanat = async ({
+    amount,
+    surahId,
+    verseId,
+    progressType = 'read',
+    repetitionCount = 0,
+    letterCount,
+    anchor,
+    message,
+    verseKey,
+  }) => {
+    if (!wpData.isLoggedIn || !amount || amount <= 0) {
+      return false;
+    }
+
+    const key = verseKey || (surahId && verseId ? buildVerseKey(surahId, verseId) : null);
+    if (key && hasanatState.sessionAwarded.has(key)) {
+      return false;
+    }
+
+    showHasanatSplash(amount, anchor, message);
+
+    const payload = {
+      amount,
+      progress_type: progressType,
+    };
+
+    if (surahId) {
+      payload.surah_id = surahId;
+    }
+    if (verseId) {
+      payload.verse_id = verseId;
+    }
+    if (letterCount) {
+      payload.letter_count = letterCount;
+    }
+    if (repetitionCount) {
+      payload.repetition_count = repetitionCount;
+    }
+
+    try {
+      const response = await apiRequest('hasanat', { method: 'POST', body: payload });
+      if (key) {
+        hasanatState.sessionAwarded.add(key);
+      }
+      const resolvedTotal = Number(response?.total ?? hasanatState.total + amount);
+      setHasanatTotal(resolvedTotal);
+      return true;
+    } catch (error) {
+      console.warn('[AlfawzQuran] Unable to award hasanat', error);
+      return false;
+    }
+  };
+
+  const onHasanatUpdate = (listener) => {
+    if (typeof listener !== 'function') {
+      return () => {};
+    }
+    hasanatState.listeners.add(listener);
+    return () => hasanatState.listeners.delete(listener);
+  };
+
+  window.AlfawzHasanat = {
+    countLetters: countArabicLetters,
+    calculate: computeHasanat,
+    award: awardHasanat,
+    getTotal: () => hasanatState.total,
+    setTotal: setHasanatTotal,
+    onUpdate: onHasanatUpdate,
+    hasAwarded: (key) => (key ? hasanatState.sessionAwarded.has(key) : false),
+  };
+
+  setHasanatTotal(hasanatState.total);
 
 
   const initDashboard = async () => {
@@ -216,7 +344,9 @@
       }
       setText(qs('#alfawz-memorised-today', root), formatNumber(stats?.verses_memorized || 0));
       setText(qs('#alfawz-current-streak', root), formatNumber(stats?.current_streak || 0));
-      setText(qs('#alfawz-hasanat-total', root), formatNumber(stats?.total_hasanat || 0));
+      if (typeof stats?.total_hasanat !== 'undefined') {
+        setHasanatTotal(stats.total_hasanat);
+      }
 
       const dailyProgressBar = qs('#alfawz-daily-progress-bar', root);
       const dailyProgressLabel = qs('#alfawz-daily-progress-label', root);
@@ -599,11 +729,13 @@
         }
         updateNavigationButtons();
         finishVerseTransition();
+        return verse;
       } catch (error) {
         isLoading = false;
         console.warn('[AlfawzQuran] Unable to load verse', error);
         setLoadingState(true, 'Unable to load verse. Please try again.');
         finishVerseTransition();
+        return null;
       }
     };
 
@@ -686,7 +818,21 @@
       if (verseSelect) {
         verseSelect.value = String(nextVerse);
       }
-      await renderVerse(currentSurahId, nextVerse);
+      const verse = await renderVerse(currentSurahId, nextVerse);
+      if (verse?.arabic) {
+        const letterCount = countArabicLetters(verse.arabic);
+        const amount = letterCount * HASANAT_PER_LETTER;
+        const verseKey = buildVerseKey(currentSurahId, nextVerse);
+        await awardHasanat({
+          amount,
+          surahId: currentSurahId,
+          verseId: nextVerse,
+          progressType: 'read',
+          letterCount,
+          anchor: nextBtn,
+          verseKey,
+        });
+      }
       await logVerseProgress(currentSurahId, nextVerse);
     };
 
@@ -1054,7 +1200,9 @@
     try {
       const stats = state.dashboardStats || await apiRequest('user-stats');
       setText(qs('#alfawz-profile-verses', root), formatNumber(stats?.verses_read || 0));
-      setText(qs('#alfawz-profile-hasanat', root), formatNumber(stats?.total_hasanat || 0));
+      if (typeof stats?.total_hasanat !== 'undefined') {
+        setHasanatTotal(stats.total_hasanat);
+      }
       setText(qs('#alfawz-profile-memorised', root), formatNumber(stats?.verses_memorized || 0));
       setText(qs('#alfawz-profile-streak', root), formatNumber(stats?.current_streak || 0));
       setText(qs('#alfawz-profile-since', root), stats?.member_since ? `Member since ${stats.member_since}` : '');
