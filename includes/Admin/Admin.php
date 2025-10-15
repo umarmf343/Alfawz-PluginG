@@ -13,6 +13,17 @@ class Admin {
     }
 
     /**
+     * Ensure the administrator role is granted the custom Alfawz admin capability.
+     */
+    public function ensure_admin_capability() {
+        $admin_role = get_role( 'administrator' );
+
+        if ( $admin_role && ! $admin_role->has_cap( 'alfawz_admin' ) ) {
+            $admin_role->add_cap( 'alfawz_admin' );
+        }
+    }
+
+    /**
      * Display admin notices that inform the site owner about connectivity issues.
      */
     public function display_api_connection_notice() {
@@ -60,33 +71,37 @@ class Admin {
      * Add admin menu pages.
      */
     public function add_admin_menu() {
-        add_menu_page(
-            __( 'AlfawzQuran Dashboard', 'alfawzquran' ),
-            __( 'AlfawzQuran', 'alfawzquran' ),
-            'manage_options',
-            'alfawz-quran',
-            [ $this, 'display_admin_dashboard' ],
-            'dashicons-book-alt',
-            20
-        );
+        if ( $this->user_can_access_admin() ) {
+            $capability = current_user_can( 'manage_options' ) ? 'manage_options' : 'alfawz_admin';
 
-        add_submenu_page(
-            'alfawz-quran',
-            __( 'Settings', 'alfawzquran' ),
-            __( 'Settings', 'alfawzquran' ),
-            'manage_options',
-            'alfawz-quran-settings',
-            [ $this, 'display_admin_settings' ]
-        );
+            add_menu_page(
+                __( 'AlfawzQuran Dashboard', 'alfawzquran' ),
+                __( 'AlfawzQuran', 'alfawzquran' ),
+                $capability,
+                'alfawz-quran',
+                [ $this, 'display_admin_dashboard' ],
+                'dashicons-book-alt',
+                20
+            );
 
-        add_submenu_page(
-            'alfawz-quran',
-            __( 'Insights', 'alfawzquran' ),
-            __( 'Insights', 'alfawzquran' ),
-            'manage_options',
-            'alfawz-quran-stats',
-            [ $this, 'display_admin_stats' ]
-        );
+            add_submenu_page(
+                'alfawz-quran',
+                __( 'Settings', 'alfawzquran' ),
+                __( 'Settings', 'alfawzquran' ),
+                $capability,
+                'alfawz-quran-settings',
+                [ $this, 'display_admin_settings' ]
+            );
+
+            add_submenu_page(
+                'alfawz-quran',
+                __( 'Insights', 'alfawzquran' ),
+                __( 'Insights', 'alfawzquran' ),
+                $capability,
+                'alfawz-quran-stats',
+                [ $this, 'display_admin_stats' ]
+            );
+        }
 
         if ( $this->user_can_manage_boards() ) {
             add_submenu_page(
@@ -187,10 +202,20 @@ class Admin {
                 'nonce'            => wp_create_nonce('wp_rest'),
                 'currentUserId'    => get_current_user_id(),
                 'canManageBoards'  => $this->user_can_manage_boards(),
+                'canManageAdmin'   => $this->user_can_access_admin(),
+                'currentPage'      => isset( $_GET['page'] ) ? sanitize_key( wp_unslash( $_GET['page'] ) ) : '',
+                'nonces'           => [
+                    'classes'  => wp_create_nonce( 'alfawz_admin_classes' ),
+                    'users'    => wp_create_nonce( 'alfawz_admin_users' ),
+                    'settings' => wp_create_nonce( 'alfawz_admin_settings' ),
+                ],
                 'strings'          => [
-                    'boardSaved'    => __( 'Qa\'idah assignment saved successfully.', 'alfawzquran' ),
-                    'boardDeleted'  => __( 'Qa\'idah assignment deleted successfully.', 'alfawzquran' ),
-                    'confirmDelete' => __( 'Are you sure you want to delete this assignment?', 'alfawzquran' ),
+                    'boardSaved'      => __( 'Qa\'idah assignment saved successfully.', 'alfawzquran' ),
+                    'boardDeleted'    => __( 'Qa\'idah assignment deleted successfully.', 'alfawzquran' ),
+                    'confirmDelete'   => __( 'Are you sure you want to delete this assignment?', 'alfawzquran' ),
+                    'confirmClass'    => __( 'Are you sure you want to delete this class? This will unassign all students.', 'alfawzquran' ),
+                    'roleUpdate'      => __( 'Role updated successfully.', 'alfawzquran' ),
+                    'roleUpdateError' => __( 'Unable to update role.', 'alfawzquran' ),
                 ],
             ]);
         }
@@ -217,5 +242,14 @@ class Admin {
         }
 
         return current_user_can( 'edit_posts' );
+    }
+
+    /**
+     * Determine whether the current user can access the main Alfawz admin dashboard.
+     *
+     * @return bool
+     */
+    private function user_can_access_admin() {
+        return current_user_can( 'manage_options' ) || current_user_can( 'alfawz_admin' );
     }
 }

@@ -35,6 +35,7 @@ delete_option( 'alfawz_daily_verse_target' );
 delete_option( 'alfawz_default_reciter' );
 delete_option( 'alfawz_default_translation' );
 delete_option( 'alfawz_enable_leaderboard' );
+delete_option( 'alfawz_enable_egg_challenge' );
 
 // Delete user meta data associated with the plugin
 $users = get_users( [ 'fields' => 'ID' ] );
