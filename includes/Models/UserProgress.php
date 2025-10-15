@@ -111,6 +111,66 @@ class UserProgress {
     }
 
     /**
+     * Summarise the user's progress within a given UTC date range.
+     */
+    public function get_daily_progress_summary( $user_id, $start_gmt, $end_gmt ) {
+        if ( empty( $user_id ) || empty( $start_gmt ) || empty( $end_gmt ) ) {
+            return [
+                'verses_read'               => 0,
+                'verses_memorized'          => 0,
+                'memorization_repetitions'  => 0,
+                'hasanat'                   => 0,
+            ];
+        }
+
+        $start = gmdate( 'Y-m-d H:i:s', strtotime( $start_gmt ) );
+        $end   = gmdate( 'Y-m-d H:i:s', strtotime( $end_gmt ) );
+
+        $verses_read = (int) $this->wpdb->get_var(
+            $this->wpdb->prepare(
+                "SELECT COUNT(DISTINCT CONCAT(surah_id, '-', verse_id)) FROM {$this->table_progress} WHERE user_id = %d AND progress_type = 'read' AND timestamp >= %s AND timestamp < %s",
+                $user_id,
+                $start,
+                $end
+            )
+        );
+
+        $verses_memorized = (int) $this->wpdb->get_var(
+            $this->wpdb->prepare(
+                "SELECT COUNT(DISTINCT CONCAT(surah_id, '-', verse_id)) FROM {$this->table_progress} WHERE user_id = %d AND progress_type = 'memorized' AND timestamp >= %s AND timestamp < %s",
+                $user_id,
+                $start,
+                $end
+            )
+        );
+
+        $memorization_repetitions = (int) $this->wpdb->get_var(
+            $this->wpdb->prepare(
+                "SELECT SUM(repetition_count) FROM {$this->table_progress} WHERE user_id = %d AND progress_type = 'memorized' AND timestamp >= %s AND timestamp < %s",
+                $user_id,
+                $start,
+                $end
+            )
+        );
+
+        $hasanat = (int) $this->wpdb->get_var(
+            $this->wpdb->prepare(
+                "SELECT SUM(hasanat) FROM {$this->table_progress} WHERE user_id = %d AND timestamp >= %s AND timestamp < %s",
+                $user_id,
+                $start,
+                $end
+            )
+        );
+
+        return [
+            'verses_read'              => $verses_read,
+            'verses_memorized'         => $verses_memorized,
+            'memorization_repetitions' => $memorization_repetitions,
+            'hasanat'                  => $hasanat,
+        ];
+    }
+
+    /**
      * Get overall statistics for admin dashboard.
      *
      * @return array

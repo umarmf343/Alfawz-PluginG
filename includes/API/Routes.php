@@ -3,6 +3,8 @@ namespace AlfawzQuran\API;
 
 use AlfawzQuran\Models\QaidahBoard;
 use AlfawzQuran\Models\UserProgress;
+use DateTimeImmutable;
+use DateTimeZone;
 use WP_REST_Server;
 use WP_Error;
 use WP_REST_Request;
@@ -113,7 +115,33 @@ class Routes {
                     },
                 ],
             ],
-        ]);
+        ] );
+
+        register_rest_route( 'alfawzquran/v1', '/achievements', [
+            'methods'             => WP_REST_Server::READABLE,
+            'callback'            => [ $this, 'get_achievements' ],
+            'permission_callback' => [ $this, 'check_permission' ],
+            'args'                => [
+                'timezone_offset' => [
+                    'validate_callback' => function( $param ) {
+                        return is_numeric( $param ) || '' === $param || null === $param;
+                    },
+                ],
+            ],
+        ] );
+
+        register_rest_route( 'alfawzquran/v1', '/daily-quests', [
+            'methods'             => WP_REST_Server::READABLE,
+            'callback'            => [ $this, 'get_daily_quests' ],
+            'permission_callback' => [ $this, 'check_permission' ],
+            'args'                => [
+                'timezone_offset' => [
+                    'validate_callback' => function( $param ) {
+                        return is_numeric( $param ) || '' === $param || null === $param;
+                    },
+                ],
+            ],
+        ] );
 
         register_rest_route( 'alfawzquran/v1', '/leaderboard', [
             'methods'             => 'GET',
@@ -564,6 +592,139 @@ class Routes {
         $stats['daily_goal'] = $this->prepare_daily_goal_state( $user_id, $timezone_offset );
 
         return new \WP_REST_Response( $stats, 200 );
+    }
+
+    /**
+     * Return progress-based achievement states for the authenticated user.
+     */
+    public function get_achievements( \WP_REST_Request $request ) {
+        $user_id = get_current_user_id();
+
+        if ( ! $user_id ) {
+            return new \WP_REST_Response( [ 'success' => false, 'message' => 'User not logged in.' ], 401 );
+        }
+
+        $progress_model = new UserProgress();
+        $stats          = $progress_model->get_user_stats( $user_id );
+
+        $achievements = [];
+
+        $verses_read = (int) ( $stats['verses_read'] ?? 0 );
+        $verses_memorized = (int) ( $stats['verses_memorized'] ?? 0 );
+        $current_streak = (int) ( $stats['current_streak'] ?? 0 );
+        $longest_streak = (int) ( $stats['longest_streak'] ?? 0 );
+
+        $achievements[] = [
+            'id'          => 'first-verse',
+            'title'       => __( 'First Verse!', 'alfawzquran' ),
+            'description' => __( 'Recite your very first verse to begin the journey.', 'alfawzquran' ),
+            'reward'      => 50,
+            'progress'    => min( 1, $verses_read ),
+            'target'      => 1,
+            'unlocked'    => $verses_read >= 1,
+            'icon'        => '✅',
+        ];
+
+        $achievements[] = [
+            'id'          => 'streak-10',
+            'title'       => __( '10-Day Flame', 'alfawzquran' ),
+            'description' => __( 'Sustain a ten day recitation streak.', 'alfawzquran' ),
+            'reward'      => 150,
+            'progress'    => min( 10, max( $current_streak, $longest_streak ) ),
+            'target'      => 10,
+            'unlocked'    => max( $current_streak, $longest_streak ) >= 10,
+            'icon'        => '🔥',
+        ];
+
+        $achievements[] = [
+            'id'          => 'verses-100',
+            'title'       => __( 'Century Reader', 'alfawzquran' ),
+            'description' => __( 'Read one hundred unique verses.', 'alfawzquran' ),
+            'reward'      => 220,
+            'progress'    => min( 100, $verses_read ),
+            'target'      => 100,
+            'unlocked'    => $verses_read >= 100,
+            'icon'        => '🌟',
+        ];
+
+        $achievements[] = [
+            'id'          => 'memory-5',
+            'title'       => __( 'Heartscribe', 'alfawzquran' ),
+            'description' => __( 'Commit five verses to memory.', 'alfawzquran' ),
+            'reward'      => 300,
+            'progress'    => min( 5, $verses_memorized ),
+            'target'      => 5,
+            'unlocked'    => $verses_memorized >= 5,
+            'icon'        => '🧠',
+        ];
+
+        return new \WP_REST_Response(
+            [
+                'achievements' => $achievements,
+            ],
+            200
+        );
+    }
+
+    /**
+     * Provide the current daily quests and their progress state for the user.
+     */
+    public function get_daily_quests( \WP_REST_Request $request ) {
+        $user_id = get_current_user_id();
+
+        if ( ! $user_id ) {
+            return new \WP_REST_Response( [ 'success' => false, 'message' => 'User not logged in.' ], 401 );
+        }
+
+        $timezone_offset = $request->get_param( 'timezone_offset' );
+        $progress_model  = new UserProgress();
+
+        $daily_goal = $this->prepare_daily_goal_state( $user_id, $timezone_offset );
+        list( $day_start, $day_end ) = $this->get_local_day_bounds( $timezone_offset );
+        $daily_summary = $progress_model->get_daily_progress_summary( $user_id, $day_start, $day_end );
+
+        $quests = [];
+
+        $daily_count  = (int) ( $daily_goal['count'] ?? 0 );
+        $daily_target = (int) ( $daily_goal['target'] ?? self::DAILY_GOAL_TARGET );
+        $quests[]     = [
+            'id'          => 'daily-recitation',
+            'title'       => sprintf( __( 'Recite %d Verses', 'alfawzquran' ), $daily_target ),
+            'description' => __( 'Complete today\'s nourishment of recitation to keep the blessings flowing.', 'alfawzquran' ),
+            'reward'      => 120,
+            'progress'    => $daily_count,
+            'target'      => $daily_target,
+            'status'      => $daily_count >= $daily_target ? 'completed' : 'in_progress',
+        ];
+
+        $memorisation_reps = (int) ( $daily_summary['memorization_repetitions'] ?? 0 );
+        $quests[]          = [
+            'id'          => 'memorize-verse',
+            'title'       => __( 'Memorize 1 Verse (20x)', 'alfawzquran' ),
+            'description' => __( 'Repeat any ayah twenty times to lock it into your heart.', 'alfawzquran' ),
+            'reward'      => 200,
+            'progress'    => $memorisation_reps,
+            'target'      => 20,
+            'status'      => $memorisation_reps >= 20 ? 'completed' : 'in_progress',
+        ];
+
+        $hasanat_today = (int) ( $daily_summary['hasanat'] ?? 0 );
+        $quests[]      = [
+            'id'          => 'hasanat-burst',
+            'title'       => __( 'Earn 500 Hasanat', 'alfawzquran' ),
+            'description' => __( 'Let every letter shine—gather five hundred hasanat today.', 'alfawzquran' ),
+            'reward'      => 180,
+            'progress'    => $hasanat_today,
+            'target'      => 500,
+            'status'      => $hasanat_today >= 500 ? 'completed' : 'in_progress',
+        ];
+
+        return new \WP_REST_Response(
+            [
+                'quests' => $quests,
+            ],
+            200
+        );
     }
 
     public function get_user_profile( WP_REST_Request $request ) {
@@ -2344,6 +2505,33 @@ class Routes {
             'percentage' => min( 100, $percentage ),
             'remaining'  => $remaining,
             'last_reset' => $last_reset,
+        ];
+    }
+
+    /**
+     * Calculate the UTC bounds for the current local day based on offset or WordPress timezone.
+     */
+    private function get_local_day_bounds( $timezone_offset = null ) {
+        if ( null !== $timezone_offset && '' !== $timezone_offset && is_numeric( $timezone_offset ) ) {
+            $offset_minutes = (int) $timezone_offset;
+            $now_utc        = new DateTimeImmutable( 'now', new DateTimeZone( 'UTC' ) );
+            $local_now      = $now_utc->modify( sprintf( '%+d minutes', $offset_minutes ) );
+            $start_local    = $local_now->setTime( 0, 0, 0 );
+            $end_local      = $start_local->modify( '+1 day' );
+            $start_utc      = $start_local->modify( sprintf( '%+d minutes', -$offset_minutes ) );
+            $end_utc        = $end_local->modify( sprintf( '%+d minutes', -$offset_minutes ) );
+        } else {
+            $timezone   = wp_timezone();
+            $local_now  = new DateTimeImmutable( 'now', $timezone );
+            $start_local = $local_now->setTime( 0, 0, 0 );
+            $end_local   = $start_local->modify( '+1 day' );
+            $start_utc   = $start_local->setTimezone( new DateTimeZone( 'UTC' ) );
+            $end_utc     = $end_local->setTimezone( new DateTimeZone( 'UTC' ) );
+        }
+
+        return [
+            $start_utc->format( 'Y-m-d H:i:s' ),
+            $end_utc->format( 'Y-m-d H:i:s' ),
         ];
     }
 

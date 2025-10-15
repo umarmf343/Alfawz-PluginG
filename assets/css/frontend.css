@@ -199,6 +199,131 @@ body .alfawz-surface {
   box-shadow: 0 18px 42px rgba(15, 118, 110, 0.12);
 }
 
+.animate-soft-fade {
+  opacity: 0;
+  transform: translateY(18px);
+  animation: alfawz-soft-fade 520ms ease-out forwards;
+  animation-delay: var(--alfawz-delay, 0ms);
+}
+
+@keyframes alfawz-soft-fade {
+  0% {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-pop-in {
+  opacity: 0;
+  transform: scale(0.92);
+  animation: alfawz-pop-in 420ms cubic-bezier(0.22, 0.68, 0, 1.22) forwards;
+  animation-delay: var(--alfawz-delay, 0ms);
+}
+
+@keyframes alfawz-pop-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.06);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.alfawz-value-pulse {
+  animation: alfawz-value-flash 620ms ease-out;
+}
+
+@keyframes alfawz-value-flash {
+  0% {
+    transform: scale(1);
+    text-shadow: none;
+  }
+  40% {
+    transform: scale(1.08);
+    text-shadow: 0 12px 24px rgba(16, 185, 129, 0.45);
+  }
+  100% {
+    transform: scale(1);
+    text-shadow: none;
+  }
+}
+
+.alfawz-confetti-container {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  overflow: visible;
+}
+
+.alfawz-confetti-piece {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 8px;
+  height: 12px;
+  border-radius: 2px;
+  background: var(--alfawz-confetti-color, #34d399);
+  transform: translateX(var(--alfawz-confetti-x, 0)) rotate(var(--alfawz-confetti-rotation, 0deg));
+  animation: alfawz-confetti-fall 900ms ease-out forwards;
+  animation-delay: var(--alfawz-confetti-delay, 0s);
+}
+
+@keyframes alfawz-confetti-fall {
+  0% {
+    opacity: 0;
+    transform: translateX(var(--alfawz-confetti-x, 0)) translateY(-10px) scale(0.9) rotate(0deg);
+  }
+  40% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(calc(var(--alfawz-confetti-x, 0) * 1.2)) translateY(140px) scale(1) rotate(180deg);
+  }
+}
+
+.alfawz-quest-item {
+  position: relative;
+  transition: transform 220ms ease, box-shadow 220ms ease;
+}
+
+.alfawz-quest-item:hover,
+.alfawz-quest-item:focus-within {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 38px rgba(129, 140, 248, 0.18);
+}
+
+.alfawz-quest-complete {
+  border-color: rgba(139, 92, 246, 0.35);
+  box-shadow: 0 18px 36px rgba(139, 92, 246, 0.22);
+}
+
+.alfawz-egg-hatched {
+  animation: alfawz-egg-glow 760ms ease-out;
+}
+
+@keyframes alfawz-egg-glow {
+  0% {
+    box-shadow: 0 0 0 rgba(245, 158, 11, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 32px rgba(245, 158, 11, 0.45);
+  }
+  100% {
+    box-shadow: 0 0 0 rgba(245, 158, 11, 0.2);
+  }
+}
+
 .alfawz-reader-shell {
   min-height: 100vh;
   padding-top: 2rem;
