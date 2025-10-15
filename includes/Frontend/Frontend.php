@@ -79,7 +79,8 @@ class Frontend {
                 'hasanatPerLetter' => get_option('alfawz_hasanat_per_letter', 10),
                 'dailyTarget' => get_option('alfawz_daily_verse_target', 10),
                 'defaultReciter' => get_option('alfawz_default_reciter', 'ar.alafasy'),
-                'defaultTranslation' => get_option('alfawz_default_translation', 'en.sahih')
+                'defaultTranslation' => get_option('alfawz_default_translation', 'en.sahih'),
+                'defaultTransliteration' => get_option('alfawz_default_transliteration', 'en.transliteration')
             ]);
 
             wp_localize_script('alfawz-memorization', 'alfawzMemoData', [

@@ -24,6 +24,18 @@ body .alfawz-surface {
   backdrop-filter: blur(14px);
 }
 
+.screen-reader-text {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 .alfawz-card {
   border-radius: var(--alfawz-radius-md);
   border: 1px solid var(--alfawz-border);
@@ -37,6 +49,338 @@ body .alfawz-surface {
 .alfawz-card:focus-within {
   transform: translateY(-2px);
   box-shadow: 0 18px 42px rgba(15, 118, 110, 0.12);
+}
+
+.alfawz-reader-shell {
+  padding-top: 1.5rem;
+  padding-bottom: calc(1.75rem + env(safe-area-inset-bottom, 0px));
+}
+
+.alfawz-reader-surface {
+  position: relative;
+  border-radius: var(--alfawz-radius-lg);
+  background: linear-gradient(135deg, rgba(236, 253, 245, 0.88), rgba(209, 250, 229, 0.92));
+  padding: clamp(1.5rem, 4vw, 2.5rem);
+  box-shadow: 0 24px 48px rgba(16, 185, 129, 0.18);
+  backdrop-filter: blur(14px);
+}
+
+.alfawz-verse-loader {
+  text-align: center;
+  font-size: 0.95rem;
+  color: var(--alfawz-muted);
+  border: 1px dashed rgba(16, 185, 129, 0.4);
+  border-radius: var(--alfawz-radius-md);
+  padding: 1.5rem;
+  background: rgba(236, 253, 245, 0.6);
+}
+
+.alfawz-verse-card {
+  position: relative;
+  border-radius: var(--alfawz-radius-lg);
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 28px 55px rgba(15, 118, 110, 0.18);
+  padding: clamp(2.5rem, 5vw, 3rem) clamp(1.25rem, 4vw, 2.75rem);
+  overflow: hidden;
+}
+
+.alfawz-confetti-host {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.alfawz-egg-widget {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.25rem;
+  background: rgba(253, 230, 138, 0.25);
+  border-radius: var(--alfawz-radius-md);
+  padding: 1rem 1.5rem;
+  margin-bottom: 2rem;
+  border: 1px solid rgba(245, 158, 11, 0.35);
+}
+
+.alfawz-egg-icon {
+  font-size: clamp(2.25rem, 6vw, 3rem);
+}
+
+.alfawz-egg-progress {
+  text-align: left;
+}
+
+.alfawz-egg-heading {
+  margin: 0;
+  font-size: 0.85rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #92400e;
+}
+
+.alfawz-egg-count {
+  margin: 0.25rem 0 0.5rem;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #b45309;
+}
+
+.alfawz-progress-track {
+  position: relative;
+  width: 100%;
+  height: 0.6rem;
+  border-radius: 999px;
+  background: rgba(15, 118, 110, 0.15);
+  overflow: hidden;
+}
+
+.alfawz-progress-fill {
+  position: absolute;
+  inset: 0;
+  width: 0;
+  border-radius: inherit;
+  background: linear-gradient(135deg, #10b981, #047857);
+  transition: width 280ms ease;
+}
+
+.alfawz-verse-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3.1rem;
+  height: 3.1rem;
+  border-radius: 999px;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.35rem;
+  font-weight: 600;
+  background: rgba(16, 185, 129, 0.16);
+  color: var(--alfawz-text);
+  transition: transform 180ms ease, box-shadow 180ms ease, background 180ms ease;
+}
+
+#alfawz-prev-verse {
+  left: 0.75rem;
+}
+
+#alfawz-next-verse {
+  right: 0.75rem;
+}
+
+.alfawz-verse-nav:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.alfawz-verse-nav:not(:disabled):hover,
+.alfawz-verse-nav:not(:disabled):focus {
+  transform: translateY(-50%) scale(1.05);
+  background: rgba(16, 185, 129, 0.25);
+  box-shadow: 0 16px 35px rgba(16, 185, 129, 0.25);
+}
+
+.alfawz-verse-header {
+  margin-bottom: 1.5rem;
+}
+
+.alfawz-verse-meta {
+  margin: 0;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: rgba(15, 118, 110, 0.7);
+}
+
+.alfawz-verse-heading {
+  margin: 0.35rem 0 0;
+  font-size: clamp(1.25rem, 4vw, 1.6rem);
+  font-weight: 700;
+  color: var(--alfawz-text);
+}
+
+.alfawz-verse-text {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+
+.alfawz-arabic {
+  font-size: clamp(2.15rem, 6vw, 2.85rem);
+  line-height: 1.65;
+  font-weight: 600;
+  color: #0f172a;
+  letter-spacing: 0.04em;
+}
+
+.alfawz-transliteration,
+.alfawz-translation {
+  font-size: clamp(1rem, 3.5vw, 1.1rem);
+  line-height: 1.7;
+  color: var(--alfawz-muted);
+}
+
+.alfawz-daily-widget {
+  margin-top: 2.25rem;
+  padding: 1.5rem;
+  border-radius: var(--alfawz-radius-md);
+  background: rgba(224, 242, 254, 0.55);
+  border: 1px solid rgba(14, 165, 233, 0.25);
+  text-align: center;
+}
+
+.alfawz-daily-widget header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-bottom: 0.9rem;
+}
+
+.alfawz-daily-title {
+  margin: 0;
+  font-size: 0.9rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #0f766e;
+}
+
+.alfawz-daily-count {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #0c4a6e;
+}
+
+.alfawz-daily-note {
+  margin-top: 0.75rem;
+  font-size: 0.9rem;
+  color: rgba(15, 23, 42, 0.7);
+}
+
+.alfawz-reader-controls {
+  display: grid;
+  gap: 1.25rem;
+  margin-top: 2rem;
+}
+
+@media (min-width: 640px) {
+  .alfawz-reader-controls {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.alfawz-daily-modal {
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  z-index: 1000;
+}
+
+.alfawz-daily-modal:not(.hidden) {
+  display: flex;
+}
+
+.alfawz-daily-modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(6px);
+}
+
+.alfawz-daily-modal__card {
+  position: relative;
+  z-index: 1;
+  background: #fff;
+  border-radius: var(--alfawz-radius-lg);
+  padding: 2.25rem 2rem;
+  max-width: 420px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 32px 55px rgba(16, 185, 129, 0.28);
+  overflow: hidden;
+}
+
+.alfawz-daily-modal__title {
+  margin: 0;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--alfawz-text);
+}
+
+.alfawz-daily-modal__message {
+  margin: 0.85rem 0 1.5rem;
+  font-size: 1rem;
+  color: var(--alfawz-muted);
+}
+
+.alfawz-daily-modal__confetti {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.alfawz-confetti-piece {
+  position: absolute;
+  left: var(--alfawz-confetti-x, 50%);
+  top: -10%;
+  width: 0.45rem;
+  height: 1.2rem;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #f472b6, #22d3ee);
+  animation: alfawz-confetti var(--alfawz-confetti-duration, 1600ms) ease-out forwards;
+  animation-delay: var(--alfawz-confetti-delay, 0ms);
+  opacity: 0;
+}
+
+.alfawz-egg-celebrate {
+  animation: alfawz-pop 600ms ease-out;
+}
+
+@keyframes alfawz-confetti {
+  0% {
+    transform: translate(-50%, -10%) rotate(0deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, 140%) rotate(320deg);
+    opacity: 0;
+  }
+}
+
+@keyframes alfawz-pop {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.06);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .alfawz-confetti-piece {
+    display: none;
+  }
+  .alfawz-egg-celebrate {
+    animation: none;
+  }
+  .alfawz-progress-fill {
+    transition: none;
+  }
 }
 
 .alfawz-button {

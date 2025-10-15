@@ -76,7 +76,25 @@ class Routes {
                 ]
             ]
         ]);
-        
+
+        register_rest_route($namespace, '/surahs/(?P<id>\d+)/verses/(?P<num>\d+)', [
+            'methods'  => 'GET',
+            'callback' => [$this, 'get_single_verse'],
+            'permission_callback' => '__return_true',
+            'args'     => [
+                'id'  => [
+                    'validate_callback' => function($param) {
+                        return is_numeric($param);
+                    },
+                ],
+                'num' => [
+                    'validate_callback' => function($param) {
+                        return is_numeric($param);
+                    },
+                ],
+            ],
+        ]);
+
         register_rest_route( 'alfawzquran/v1', '/progress', [
             'methods'             => 'POST',
             'callback'            => [ $this, 'update_user_progress' ],
@@ -87,6 +105,13 @@ class Routes {
             'methods'             => 'GET',
             'callback'            => [ $this, 'get_user_stats' ],
             'permission_callback' => [ $this, 'check_permission' ],
+            'args'                => [
+                'timezone_offset' => [
+                    'validate_callback' => function( $param ) {
+                        return is_numeric( $param ) || '' === $param || null === $param;
+                    },
+                ],
+            ],
         ]);
 
         register_rest_route( 'alfawzquran/v1', '/leaderboard', [
@@ -366,6 +391,7 @@ class Routes {
             return new \WP_REST_Response( [ 'success' => false, 'message' => 'User not logged in.' ], 401 );
         }
 
+        $timezone_offset = $request->get_param( 'timezone_offset' );
         $progress_model = new UserProgress();
         $stats = $progress_model->get_user_stats( $user_id );
 
@@ -374,6 +400,7 @@ class Routes {
         $stats['display_name'] = $user_data ? $user_data->display_name : 'Guest';
         $stats['avatar_url'] = get_avatar_url( $user_id );
         $stats['member_since'] = $user_data ? date( 'M Y', strtotime( $user_data->user_registered ) ) : 'N/A';
+        $stats['daily_goal'] = $this->prepare_daily_goal_state( $user_id, $timezone_offset );
 
         return new \WP_REST_Response( $stats, 200 );
     }
@@ -1948,6 +1975,100 @@ class Routes {
         }
 
         return rest_ensure_response($verses);
+    }
+
+    public function get_single_verse( \WP_REST_Request $request ) {
+        $surah_id   = (int) $request->get_param( 'id' );
+        $verse_num  = (int) $request->get_param( 'num' );
+        $translation = $request->get_param( 'translation' );
+        $transliteration = $request->get_param( 'transliteration' );
+
+        if ( $surah_id <= 0 || $verse_num <= 0 ) {
+            return new \WP_REST_Response( [ 'message' => __( 'Invalid verse reference provided.', 'alfawzquran' ) ], 400 );
+        }
+
+        $translation_edition     = $translation ? sanitize_text_field( $translation ) : get_option( 'alfawz_default_translation', 'en.sahih' );
+        $transliteration_edition = $transliteration ? sanitize_text_field( $transliteration ) : get_option( 'alfawz_default_transliteration', 'en.transliteration' );
+
+        $arabic_data = $this->fetch_ayah_data( $surah_id, $verse_num, 'quran-uthmani' );
+
+        if ( is_wp_error( $arabic_data ) ) {
+            return $arabic_data;
+        }
+
+        $translation_text = '';
+        if ( ! empty( $translation_edition ) ) {
+            $translation_data = $this->fetch_ayah_data( $surah_id, $verse_num, $translation_edition );
+            if ( ! is_wp_error( $translation_data ) ) {
+                $translation_text = isset( $translation_data['text'] ) ? wp_strip_all_tags( $translation_data['text'] ) : '';
+            }
+        }
+
+        $transliteration_text = '';
+        if ( ! empty( $transliteration_edition ) ) {
+            $transliteration_data = $this->fetch_ayah_data( $surah_id, $verse_num, $transliteration_edition );
+            if ( ! is_wp_error( $transliteration_data ) ) {
+                $transliteration_text = isset( $transliteration_data['text'] ) ? wp_strip_all_tags( $transliteration_data['text'] ) : '';
+            }
+        }
+
+        $surah_meta = isset( $arabic_data['surah'] ) && is_array( $arabic_data['surah'] ) ? $arabic_data['surah'] : [];
+
+        $response = [
+            'surah_id'            => $surah_id,
+            'verse_id'            => $verse_num,
+            'verse_key'           => sprintf( '%d:%d', $surah_id, $verse_num ),
+            'surah_name'          => $surah_meta['englishName'] ?? '',
+            'surah_name_ar'       => $surah_meta['name'] ?? '',
+            'total_verses'        => isset( $surah_meta['numberOfAyahs'] ) ? (int) $surah_meta['numberOfAyahs'] : 0,
+            'juz'                 => isset( $arabic_data['juz'] ) ? (int) $arabic_data['juz'] : null,
+            'arabic'              => isset( $arabic_data['text'] ) ? $arabic_data['text'] : '',
+            'translation'         => $translation_text,
+            'transliteration'     => $transliteration_text,
+            'audio'               => $arabic_data['audio'] ?? '',
+            'audio_secondary'     => isset( $arabic_data['audioSecondary'] ) ? $arabic_data['audioSecondary'] : [],
+        ];
+
+        return rest_ensure_response( $response );
+    }
+
+    private function fetch_ayah_data( int $surah_id, int $verse_num, string $edition ) {
+        $edition_key = sanitize_key( str_replace( '.', '_', strtolower( $edition ) ) );
+        $cache_key   = sprintf( 'alfawz_ayah_%d_%d_%s', $surah_id, $verse_num, $edition_key );
+
+        $cached = get_transient( $cache_key );
+        if ( false !== $cached ) {
+            return $cached;
+        }
+
+        $url      = sprintf( '%s/ayah/%d:%d/%s', self::API_BASE, $surah_id, $verse_num, rawurlencode( $edition ) );
+        $response = wp_remote_get(
+            $url,
+            [
+                'timeout' => 20,
+                'headers' => [
+                    'Accept' => 'application/json',
+                ],
+            ]
+        );
+
+        if ( is_wp_error( $response ) ) {
+            return $this->record_api_failure( $response );
+        }
+
+        $body = wp_remote_retrieve_body( $response );
+        $data = json_decode( $body, true );
+
+        if ( empty( $data ) || 200 !== (int) ( $data['code'] ?? 0 ) || empty( $data['data'] ) ) {
+            return $this->record_api_failure( new \WP_Error( 'api_error', __( 'Invalid response received from the Quran API.', 'alfawzquran' ) ) );
+        }
+
+        $ayah = $data['data'];
+
+        set_transient( $cache_key, $ayah, HOUR_IN_SECONDS * 6 );
+        $this->clear_api_failure_notice();
+
+        return $ayah;
     }
 
     /**
