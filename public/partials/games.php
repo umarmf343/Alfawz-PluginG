@@ -3,94 +3,100 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 ?>
-<div id="alfawz-games" class="alfawz-surface mx-auto max-w-6xl space-y-10 rounded-3xl bg-white/95 p-6 shadow-xl shadow-emerald-100/70 backdrop-blur">
-    <header class="space-y-2 text-slate-900">
-        <p class="text-sm font-medium uppercase tracking-wide text-emerald-600"><?php esc_html_e( 'Ayah puzzle builder', 'alfawzquran' ); ?></p>
-        <h2 class="text-2xl font-semibold leading-tight"><?php esc_html_e( 'Rebuild luminous verses tile by tile.', 'alfawzquran' ); ?></h2>
-        <p class="max-w-3xl text-sm text-slate-600"><?php esc_html_e( 'Every round serves a new ayah from the live API. Arrange the tiles in order, race the timer, and unlock themed reflections as you progress.', 'alfawzquran' ); ?></p>
-    </header>
+<div id="alfawz-game-panel" class="mx-auto max-w-5xl space-y-8 rounded-3xl bg-stone-50/95 p-6 pb-16 shadow-xl shadow-emerald-200/70 backdrop-blur">
+    <div class="space-y-6">
+        <div id="alfawz-game-loading" class="rounded-2xl border border-emerald-200/70 bg-white px-4 py-5 text-center text-base font-medium text-emerald-700 shadow-sm">
+            <?php esc_html_e( 'Loading your joyful progress…', 'alfawzquran' ); ?>
+        </div>
 
-    <div class="alfawz-game-layout" aria-live="polite">
-        <section class="alfawz-game-primary" aria-labelledby="alfawz-game-heading">
-            <div class="alfawz-game-theme" id="alfawz-game-theme">
-                <span class="alfawz-game-theme__icon" aria-hidden="true">✨</span>
-                <span class="alfawz-game-theme__text" id="alfawz-theme-chip"><?php esc_html_e( 'Loading today\'s theme…', 'alfawzquran' ); ?></span>
-            </div>
+        <div id="alfawz-game-error" class="hidden rounded-2xl border border-rose-200 bg-rose-50 px-4 py-5 text-center text-base font-semibold text-rose-700 shadow-sm"></div>
 
-            <div id="alfawz-game-loader" class="alfawz-game-loader"><?php esc_html_e( 'Fetching a fresh ayah puzzle…', 'alfawzquran' ); ?></div>
+        <div id="alfawz-game-content" class="hidden space-y-8">
+            <header class="text-center">
+                <div class="animate-soft-fade rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 p-6 text-white shadow-lg">
+                    <div class="text-5xl" aria-hidden="true">🎮</div>
+                    <h1 class="mt-2 text-3xl font-bold tracking-tight">
+                        <?php esc_html_e( 'Your Quranic Quest', 'alfawzquran' ); ?>
+                    </h1>
+                    <p class="mt-3 text-base text-emerald-50">
+                        <?php esc_html_e( 'Every verse you recite ripples with barakah—watch your divine rewards bloom.', 'alfawzquran' ); ?>
+                    </p>
+                </div>
+            </header>
 
-            <article id="alfawz-game-card" class="alfawz-game-card hidden">
-                <header class="alfawz-game-card__header">
-                    <div>
-                        <h3 id="alfawz-game-heading" class="alfawz-game-card__title"><?php esc_html_e( 'Reconstruct the ayah', 'alfawzquran' ); ?></h3>
-                        <p id="alfawz-game-subtitle" class="alfawz-game-card__subtitle"></p>
+            <section aria-label="<?php esc_attr_e( 'Your live progress stats', 'alfawzquran' ); ?>" class="space-y-4">
+                <h2 class="text-lg font-semibold text-emerald-800">
+                    <?php esc_html_e( 'Live Blessing Totals', 'alfawzquran' ); ?>
+                </h2>
+                <div class="grid grid-cols-1 gap-3 sm:grid-cols-3" id="alfawz-stat-cards">
+                    <div class="alfawz-card-hud flex flex-col items-center justify-center rounded-xl border-2 border-emerald-300 bg-white p-5 text-center shadow-md">
+                        <div class="text-3xl" aria-hidden="true">⭐</div>
+                        <p class="mt-1 text-2xl font-bold text-emerald-700" data-stat="hasanat">0</p>
+                        <p class="text-sm font-semibold uppercase tracking-wide text-emerald-600">
+                            <?php esc_html_e( 'Hasanat', 'alfawzquran' ); ?>
+                        </p>
                     </div>
-                    <div class="alfawz-game-meta">
-                        <p id="alfawz-game-reference" class="alfawz-game-meta__reference"></p>
-                        <p id="alfawz-game-translation" class="alfawz-game-meta__translation"></p>
+                    <div class="alfawz-card-hud flex flex-col items-center justify-center rounded-xl border-2 border-blue-300 bg-white p-5 text-center shadow-md">
+                        <div class="text-3xl" aria-hidden="true">📖</div>
+                        <p class="mt-1 text-2xl font-bold text-blue-700" data-stat="verses">0</p>
+                        <p class="text-sm font-semibold uppercase tracking-wide text-blue-600">
+                            <?php esc_html_e( 'Verses Read', 'alfawzquran' ); ?>
+                        </p>
                     </div>
-                </header>
-
-                <div class="alfawz-game-board" role="group" aria-label="<?php esc_attr_e( 'Arrange tiles into the correct ayah order', 'alfawzquran' ); ?>">
-                    <div class="alfawz-game-bank" id="alfawz-game-bank" aria-label="<?php esc_attr_e( 'Available tiles', 'alfawzquran' ); ?>" aria-live="polite"></div>
-                    <div class="alfawz-game-slots" id="alfawz-game-slots" aria-label="<?php esc_attr_e( 'Arrange tiles here', 'alfawzquran' ); ?>"></div>
-                </div>
-
-                <div class="alfawz-game-progress">
-                    <div class="alfawz-progress-track" role="presentation">
-                        <div id="alfawz-game-progress" class="alfawz-progress-fill" style="width:0%"></div>
+                    <div class="alfawz-card-hud flex flex-col items-center justify-center rounded-xl border-2 border-amber-300 bg-white p-5 text-center shadow-md">
+                        <div class="text-3xl" aria-hidden="true">🔥</div>
+                        <p class="mt-1 text-2xl font-bold text-amber-700" data-stat="streak">0</p>
+                        <p class="text-sm font-semibold uppercase tracking-wide text-amber-600">
+                            <?php esc_html_e( 'Day Streak', 'alfawzquran' ); ?>
+                        </p>
                     </div>
-                    <p id="alfawz-game-progress-label" class="alfawz-game-progress__label"></p>
                 </div>
+            </section>
 
-                <div class="alfawz-game-actions">
-                    <button type="button" id="alfawz-game-shuffle" class="alfawz-button alfawz-button--ghost">
-                        <span>🔀</span>
-                        <span><?php esc_html_e( 'Shuffle tiles', 'alfawzquran' ); ?></span>
-                    </button>
-                    <button type="button" id="alfawz-game-reset" class="alfawz-link text-sm font-semibold text-slate-600">
-                        <?php esc_html_e( 'Reset board', 'alfawzquran' ); ?>
-                    </button>
-                    <button type="button" id="alfawz-game-check" class="alfawz-button">
-                        <span>✅</span>
-                        <span><?php esc_html_e( 'Check order', 'alfawzquran' ); ?></span>
-                    </button>
+            <section aria-label="<?php esc_attr_e( 'Your unlocked achievements', 'alfawzquran' ); ?>" class="space-y-4">
+                <div class="flex items-center justify-between">
+                    <h2 class="flex items-center text-lg font-semibold text-slate-800">
+                        <span class="mr-2 text-2xl" aria-hidden="true">🏆</span>
+                        <?php esc_html_e( 'Your Achievements', 'alfawzquran' ); ?>
+                    </h2>
+                    <span id="alfawz-achievement-summary" class="text-sm font-medium text-emerald-600"></span>
                 </div>
+                <div id="alfawz-achievement-grid" class="grid grid-cols-1 gap-4 sm:grid-cols-2"></div>
+                <p id="alfawz-achievement-empty" class="hidden rounded-xl border border-dashed border-emerald-200 bg-white p-4 text-center text-base text-emerald-700">
+                    <?php esc_html_e( 'Keep reciting to unlock your first badge!', 'alfawzquran' ); ?>
+                </p>
+            </section>
 
-                <p id="alfawz-game-status" class="alfawz-game-status"></p>
-                <div id="alfawz-game-confetti" class="alfawz-confetti-host" aria-hidden="true"></div>
-            </article>
-        </section>
-
-        <aside class="alfawz-game-sidebar" aria-labelledby="alfawz-game-sidebar-heading">
-            <div class="space-y-3">
-                <h3 id="alfawz-game-sidebar-heading" class="text-sm font-semibold uppercase tracking-wide text-slate-500"><?php esc_html_e( 'Session pulse', 'alfawzquran' ); ?></h3>
-                <div class="alfawz-game-stat">
-                    <span><?php esc_html_e( 'Puzzles solved', 'alfawzquran' ); ?></span>
-                    <strong id="alfawz-game-completed">0</strong>
+            <section aria-label="<?php esc_attr_e( 'Egg challenge progress', 'alfawzquran' ); ?>" class="space-y-4">
+                <div id="alfawz-egg-card" class="relative overflow-hidden rounded-2xl border-2 border-amber-400 bg-gradient-to-br from-amber-100 to-amber-200 p-6 text-center shadow-md">
+                    <div class="absolute right-4 top-4 rounded-full bg-amber-500 px-3 py-1 text-sm font-semibold uppercase tracking-wide text-white" id="alfawz-egg-level">
+                        <?php esc_html_e( 'Level 1', 'alfawzquran' ); ?>
+                    </div>
+                    <div class="text-6xl" id="alfawz-egg-emoji" aria-hidden="true">🥚</div>
+                    <h3 class="mt-3 text-xl font-bold text-amber-800">
+                        <?php esc_html_e( 'Hatch the Knowledge Egg!', 'alfawzquran' ); ?>
+                    </h3>
+                    <p id="alfawz-egg-message" class="mt-2 text-base text-amber-700">
+                        <?php esc_html_e( 'Recite verses to crack it open.', 'alfawzquran' ); ?>
+                    </p>
+                    <div class="mt-4 h-3 w-full rounded-full bg-amber-300">
+                        <div id="alfawz-egg-progress" class="h-3 rounded-full bg-amber-600" style="width:0%"></div>
+                    </div>
+                    <p id="alfawz-egg-label" class="mt-2 text-base font-semibold text-amber-800">0 / 0</p>
                 </div>
-                <div class="alfawz-game-stat">
-                    <span><?php esc_html_e( 'Daily streak', 'alfawzquran' ); ?></span>
-                    <strong id="alfawz-game-streak">0</strong>
-                </div>
-                <div class="alfawz-game-stat">
-                    <span><?php esc_html_e( 'Best time', 'alfawzquran' ); ?></span>
-                    <strong id="alfawz-game-best">--:--</strong>
-                </div>
-            </div>
+            </section>
 
-            <div class="alfawz-game-timer" aria-live="polite">
-                <p class="alfawz-game-timer__label"><?php esc_html_e( 'Current round', 'alfawzquran' ); ?></p>
-                <p id="alfawz-game-timer" class="alfawz-game-timer__value">00:00</p>
-                <p id="alfawz-game-timer-note" class="alfawz-game-timer__note"><?php esc_html_e( 'Tiles begin to glow when they rest in the right slot.', 'alfawzquran' ); ?></p>
-            </div>
-
-            <div class="alfawz-game-habit" aria-live="polite">
-                <h4 class="text-sm font-semibold text-slate-900"><?php esc_html_e( 'Habit hook', 'alfawzquran' ); ?></h4>
-                <p id="alfawz-habit-copy" class="text-sm text-slate-600"><?php esc_html_e( 'Show up daily to unlock themed reflections and extra challenges.', 'alfawzquran' ); ?></p>
-                <div id="alfawz-unlock-status" class="alfawz-game-unlock"></div>
-            </div>
-        </aside>
+            <section aria-label="<?php esc_attr_e( 'Daily quests', 'alfawzquran' ); ?>" class="space-y-4">
+                <h2 class="flex items-center text-lg font-semibold text-slate-800">
+                    <span class="mr-2 text-2xl" aria-hidden="true">📜</span>
+                    <?php esc_html_e( 'Daily Quests', 'alfawzquran' ); ?>
+                </h2>
+                <div id="alfawz-quest-list" class="space-y-3"></div>
+                <p id="alfawz-quest-empty" class="hidden rounded-xl border border-dashed border-purple-200 bg-white p-4 text-center text-base text-purple-600">
+                    <?php esc_html_e( 'No quests available right now. Come back soon for new challenges!', 'alfawzquran' ); ?>
+                </p>
+            </section>
+        </div>
     </div>
 </div>
 <?php

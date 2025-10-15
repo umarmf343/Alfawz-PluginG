@@ -6,578 +6,390 @@
     headers['X-WP-Nonce'] = wpData.nonce;
   }
 
-  const root = document.querySelector('#alfawz-games');
+  const strings = {
+    loadError: wpData.strings?.gamePanelLoadError || 'We could not load your quest data. Please refresh to try again.',
+    completed: wpData.strings?.gamePanelCompletedLabel || 'Completed',
+    verses: wpData.strings?.gamePanelVersesLabel || 'Verses',
+    eggComplete: wpData.strings?.gamePanelEggComplete || 'Takbir! The egg is hatching—keep soaring!',
+    eggInProgress: wpData.strings?.gamePanelEggInProgress || 'Recite to fill the egg with radiant knowledge.',
+    rewardAwaiting: wpData.strings?.gamePanelRewardAwaiting || 'Divine Reward Awaiting',
+    levelLabel: wpData.strings?.gamePanelLevelLabel || 'Level',
+    badgeSingular: wpData.strings?.gamePanelBadgeSingular || 'badge unlocked',
+    badgePlural: wpData.strings?.gamePanelBadgePlural || 'badges unlocked',
+  };
+
+  const root = document.querySelector('#alfawz-game-panel');
   if (!root) {
     return;
   }
 
-  const themeText = root.querySelector('#alfawz-theme-chip');
-  const loader = root.querySelector('#alfawz-game-loader');
-  const card = root.querySelector('#alfawz-game-card');
-  const bank = root.querySelector('#alfawz-game-bank');
-  const slotsContainer = root.querySelector('#alfawz-game-slots');
-  const progressBar = root.querySelector('#alfawz-game-progress');
-  const progressLabel = root.querySelector('#alfawz-game-progress-label');
-  const shuffleBtn = root.querySelector('#alfawz-game-shuffle');
-  const resetBtn = root.querySelector('#alfawz-game-reset');
-  const checkBtn = root.querySelector('#alfawz-game-check');
-  const statusEl = root.querySelector('#alfawz-game-status');
-  const referenceEl = root.querySelector('#alfawz-game-reference');
-  const translationEl = root.querySelector('#alfawz-game-translation');
-  const subtitleEl = root.querySelector('#alfawz-game-subtitle');
-  const timerEl = root.querySelector('#alfawz-game-timer');
-  const timerNote = root.querySelector('#alfawz-game-timer-note');
-  const completedEl = root.querySelector('#alfawz-game-completed');
-  const streakEl = root.querySelector('#alfawz-game-streak');
-  const bestEl = root.querySelector('#alfawz-game-best');
-  const habitCopy = root.querySelector('#alfawz-habit-copy');
-  const unlockStatus = root.querySelector('#alfawz-unlock-status');
-  const confettiHost = root.querySelector('#alfawz-game-confetti');
-
-  if (!bank || !slotsContainer) {
-    return;
-  }
-
-  const localStorageKey = 'alfawzPuzzleStats';
-  let surahCache = null;
-  let currentPuzzle = null;
-  let timerInterval = null;
-  let timerStart = null;
-  let draggedTile = null;
-
-  const themes = [
-    { label: 'Emerald focus', note: 'Let every tile remind you of sincerity.' },
-    { label: 'Night reciter', note: 'Match the rhythm of tahajjud in quiet focus.' },
-    { label: 'Tajwid tempo', note: 'Recite with precision then rebuild the ayah.' },
-    { label: 'Hifdh energy', note: 'Repeat until the order becomes second nature.' },
-    { label: 'Meaning first', note: 'Reflect on the translation before arranging.' },
-  ];
-
-  const defaultStats = () => ({ completed: 0, streak: 0, bestTime: null, lastCompletion: null });
-
-  const loadStats = () => {
-    try {
-      const raw = localStorage.getItem(localStorageKey);
-      if (!raw) {
-        return defaultStats();
-      }
-      const parsed = JSON.parse(raw);
-      return {
-        completed: Number(parsed.completed || 0),
-        streak: Number(parsed.streak || 0),
-        bestTime: parsed.bestTime ? Number(parsed.bestTime) : null,
-        lastCompletion: parsed.lastCompletion || null,
-      };
-    } catch (error) {
-      console.warn('[AlfawzQuran] Unable to parse puzzle stats', error);
-      return defaultStats();
-    }
+  const elements = {
+    loading: root.querySelector('#alfawz-game-loading'),
+    content: root.querySelector('#alfawz-game-content'),
+    error: root.querySelector('#alfawz-game-error'),
+    statCards: root.querySelector('#alfawz-stat-cards'),
+    stats: {
+      hasanat: root.querySelector('[data-stat="hasanat"]'),
+      verses: root.querySelector('[data-stat="verses"]'),
+      streak: root.querySelector('[data-stat="streak"]'),
+    },
+    achievementSummary: root.querySelector('#alfawz-achievement-summary'),
+    achievementGrid: root.querySelector('#alfawz-achievement-grid'),
+    achievementEmpty: root.querySelector('#alfawz-achievement-empty'),
+    questList: root.querySelector('#alfawz-quest-list'),
+    questEmpty: root.querySelector('#alfawz-quest-empty'),
+    egg: {
+      card: root.querySelector('#alfawz-egg-card'),
+      emoji: root.querySelector('#alfawz-egg-emoji'),
+      level: root.querySelector('#alfawz-egg-level'),
+      message: root.querySelector('#alfawz-egg-message'),
+      progress: root.querySelector('#alfawz-egg-progress'),
+      label: root.querySelector('#alfawz-egg-label'),
+    },
   };
 
-  let stats = loadStats();
+  const timezoneOffset = () => -new Date().getTimezoneOffset();
+  const formatNumber = (value) => new Intl.NumberFormat().format(Number(value || 0));
+  const clampPercent = (value) => Math.max(0, Math.min(100, Number(value || 0)));
 
-  const saveStats = () => {
-    try {
-      localStorage.setItem(localStorageKey, JSON.stringify(stats));
-    } catch (error) {
-      console.warn('[AlfawzQuran] Unable to persist puzzle stats', error);
-    }
-  };
-
-  const formatDuration = (milliseconds) => {
-    if (!milliseconds || Number.isNaN(milliseconds)) {
-      return '--:--';
-    }
-    const totalSeconds = Math.max(0, Math.round(milliseconds / 1000));
-    const minutes = Math.floor(totalSeconds / 60)
-      .toString()
-      .padStart(2, '0');
-    const seconds = (totalSeconds % 60).toString().padStart(2, '0');
-    return `${minutes}:${seconds}`;
-  };
-
-  const updateStatsUI = () => {
-    if (completedEl) {
-      completedEl.textContent = String(stats.completed || 0);
-    }
-    if (streakEl) {
-      streakEl.textContent = String(stats.streak || 0);
-    }
-    if (bestEl) {
-      bestEl.textContent = stats.bestTime ? formatDuration(stats.bestTime) : '--:--';
-    }
-    updateHabitCopy();
-  };
-
-  const updateHabitCopy = () => {
-    if (!habitCopy || !unlockStatus) {
-      return;
-    }
-    const streak = Number(stats.streak || 0);
-    if (streak === 0) {
-      habitCopy.textContent = 'Show up daily to unlock themed reflections and extra challenges.';
-      unlockStatus.textContent = 'Complete one puzzle to start your streak.';
-    } else if (streak < 3) {
-      habitCopy.textContent = 'Beautiful start! Keep the momentum for three straight days.';
-      unlockStatus.textContent = `Streak: ${streak} day${streak === 1 ? '' : 's'} in a row.`;
-    } else if (streak < 7) {
-      habitCopy.textContent = 'The habit is taking root—aim for a full week of puzzles.';
-      unlockStatus.textContent = `Only ${7 - streak} day(s) left to unlock the weekly reflection.`;
-    } else {
-      habitCopy.textContent = 'Legendary consistency! Enjoy the bonus reflections and challenge rounds.';
-      unlockStatus.textContent = 'Weekly reflection unlocked. Maintain the streak for ongoing insights.';
-    }
-  };
-
-  const setStatus = (message, state = '') => {
-    if (!statusEl) {
-      return;
-    }
-    statusEl.textContent = message || '';
-    if (state) {
-      statusEl.dataset.state = state;
-    } else {
-      statusEl.removeAttribute('data-state');
-    }
-  };
-
-  const setProgress = (placed, total) => {
-    if (progressBar) {
-      const percentage = total ? Math.min(100, (placed / total) * 100) : 0;
-      progressBar.style.width = `${percentage}%`;
-    }
-    if (progressLabel) {
-      progressLabel.textContent = total ? `Tiles placed ${placed} / ${total}` : '';
-    }
-  };
-
-  const shuffleArray = (array) => {
-    const copy = [...array];
-    for (let i = copy.length - 1; i > 0; i -= 1) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [copy[i], copy[j]] = [copy[j], copy[i]];
-    }
-    return copy;
-  };
+  const buildApiUrl = (path) => `${API_BASE}${path.replace(/^\//, '')}`;
 
   const apiRequest = async (path) => {
-    const clean = path.replace(/^\//, '');
-    const url = `${API_BASE}${clean}`;
+    const url = buildApiUrl(path);
     const response = await fetch(url, { headers });
     if (!response.ok) {
-      throw new Error(`Request failed with status ${response.status}`);
+      const text = await response.text();
+      throw new Error(text || `Request failed with status ${response.status}`);
+    }
+    if (response.status === 204) {
+      return null;
     }
     return response.json();
   };
 
-  const loadSurahs = async () => {
-    if (surahCache) {
-      return surahCache;
+  const toggleView = ({ loading = false, error = null } = {}) => {
+    if (elements.loading) {
+      elements.loading.classList.toggle('hidden', !loading);
     }
-    const response = await apiRequest('surahs');
-    surahCache = Array.isArray(response?.data) ? response.data : Array.isArray(response) ? response : [];
-    return surahCache;
-  };
-
-  const cleanWords = (text) => {
-    return text
-      .replace(/[\u060C\u061B\u061F،؛؟“”"'()\[\]{}*_—–-]/g, ' ')
-      .replace(/[.,!:;]/g, ' ')
-      .split(/\s+/)
-      .map((word) => word.trim())
-      .filter(Boolean);
-  };
-
-  const fetchPuzzleVerse = async () => {
-    const surahs = await loadSurahs();
-    if (!surahs.length) {
-      throw new Error('No surahs available');
-    }
-    const attempts = 10;
-    for (let i = 0; i < attempts; i += 1) {
-      const surah = surahs[Math.floor(Math.random() * surahs.length)];
-      const surahId = Number(surah.number || surah.id || surah.surah_id || surah.surahId);
-      const totalAyahs = Number(surah.numberOfAyahs || surah.ayahs || surah.total_verses || 0);
-      if (!surahId || !totalAyahs) {
-        continue;
-      }
-      const verseId = Math.floor(Math.random() * totalAyahs) + 1;
-      const params = new URLSearchParams();
-      if (wpData.defaultTranslation) {
-        params.append('translation', wpData.defaultTranslation);
-      }
-      const query = params.toString();
-      const endpoint = query
-        ? `surahs/${surahId}/verses/${verseId}?${query}`
-        : `surahs/${surahId}/verses/${verseId}`;
-      try {
-        const verseResponse = await apiRequest(endpoint);
-        const translation = verseResponse?.translation || verseResponse?.data?.translation || '';
-        const words = cleanWords(translation);
-        if (words.length < 4 || words.length > 14) {
-          continue;
-        }
-        return {
-          surahId,
-          verseId,
-          surahName: verseResponse?.surah_name || surah.englishName || surah.name || `Surah ${surahId}`,
-          surahNameAr: verseResponse?.surah_name_ar || '',
-          verseKey: verseResponse?.verse_key || `${surahId}:${verseId}`,
-          translation,
-          words,
-        };
-      } catch (error) {
-        console.warn('[AlfawzQuran] Unable to fetch verse for puzzle', error);
+    if (elements.error) {
+      if (error) {
+        elements.error.textContent = error;
+        elements.error.classList.remove('hidden');
+      } else {
+        elements.error.classList.add('hidden');
+        elements.error.textContent = '';
       }
     }
-    throw new Error('Unable to find suitable verse');
+    if (elements.content) {
+      elements.content.classList.toggle('hidden', Boolean(loading || error));
+    }
   };
 
-  const resetSlots = () => {
-    Array.from(slotsContainer.children).forEach((slot) => {
-      slot.classList.remove('filled', 'correct', 'incorrect', 'is-active');
+  const pulseValue = (element) => {
+    if (!element) {
+      return;
+    }
+    element.classList.remove('alfawz-value-pulse');
+    void element.offsetWidth; // Force reflow
+    element.classList.add('alfawz-value-pulse');
+  };
+
+  const applyStagger = (nodes) => {
+    if (!nodes) {
+      return;
+    }
+    Array.from(nodes).forEach((node, index) => {
+      const delay = index * 90;
+      node.style.setProperty('--alfawz-delay', `${delay}ms`);
+      requestAnimationFrame(() => {
+        node.classList.add('animate-soft-fade');
+      });
     });
   };
 
-  const firstEmptySlot = () => {
-    return Array.from(slotsContainer.children).find((slot) => !slot.firstElementChild);
-  };
-
-  const updateProgressState = () => {
-    const slots = Array.from(slotsContainer.children);
-    const placed = slots.filter((slot) => slot.firstElementChild).length;
-    setProgress(placed, slots.length);
-    if (placed === 0) {
-      setStatus('Drag or tap tiles to place them into the glowing board.');
-    } else if (placed < slots.length) {
-      setStatus('Keep arranging until every slot is filled.');
-    } else {
-      setStatus('All tiles placed — check your order when ready.');
-    }
-  };
-
-  const placeTileInSlot = (tile, slot) => {
-    if (!tile || !slot) {
-      return;
-    }
-    const previousParent = tile.parentElement;
-    if (slot.firstElementChild) {
-      bank.appendChild(slot.firstElementChild);
-    }
-    slot.appendChild(tile);
-    slot.classList.add('filled');
-    slot.classList.remove('correct', 'incorrect');
-    if (previousParent && previousParent !== bank && previousParent.classList) {
-      previousParent.classList.remove('filled', 'correct', 'incorrect');
-    }
-    updateProgressState();
-  };
-
-  const moveTileToBank = (tile) => {
-    if (!tile) {
-      return;
-    }
-    const previousParent = tile.parentElement;
-    bank.appendChild(tile);
-    if (previousParent && previousParent !== bank && previousParent.classList) {
-      previousParent.classList.remove('filled', 'correct', 'incorrect');
-    }
-    updateProgressState();
-  };
-
-  const handleTileClick = (event) => {
-    const tile = event.currentTarget;
-    if (!tile) {
-      return;
-    }
-    if (tile.parentElement === bank) {
-      const empty = firstEmptySlot();
-      if (empty) {
-        placeTileInSlot(tile, empty);
-      }
-    } else {
-      moveTileToBank(tile);
-    }
-  };
-
-  const handleDragStart = (event) => {
-    draggedTile = event.currentTarget;
-    event.dataTransfer.effectAllowed = 'move';
-    event.dataTransfer.setData('text/plain', draggedTile.dataset.correctIndex || '');
-    draggedTile.classList.add('is-dragging');
-  };
-
-  const handleDragEnd = (event) => {
-    event.currentTarget.classList.remove('is-dragging');
-    draggedTile = null;
-  };
-
-  const attachTileInteractions = (tile) => {
-    tile.addEventListener('click', handleTileClick);
-    tile.addEventListener('dragstart', handleDragStart);
-    tile.addEventListener('dragend', handleDragEnd);
-    tile.addEventListener('keydown', (event) => {
-      if (event.key === 'Enter' || event.key === ' ') {
-        event.preventDefault();
-        if (tile.parentElement === bank) {
-          const empty = firstEmptySlot();
-          if (empty) {
-            placeTileInSlot(tile, empty);
-          }
-        } else {
-          moveTileToBank(tile);
-        }
-      }
-    });
-  };
-
-  const handleSlotDragOver = (event) => {
-    event.preventDefault();
-    event.dataTransfer.dropEffect = 'move';
-    event.currentTarget.classList.add('is-active');
-  };
-
-  const handleSlotDragLeave = (event) => {
-    event.currentTarget.classList.remove('is-active');
-  };
-
-  const handleSlotDrop = (event) => {
-    event.preventDefault();
-    const slot = event.currentTarget;
-    slot.classList.remove('is-active');
-    if (draggedTile) {
-      placeTileInSlot(draggedTile, slot);
-    }
-  };
-
-  const handleBankDragOver = (event) => {
-    event.preventDefault();
-    event.dataTransfer.dropEffect = 'move';
-  };
-
-  const handleBankDrop = (event) => {
-    event.preventDefault();
-    if (draggedTile) {
-      moveTileToBank(draggedTile);
-    }
-  };
-
-  const clearBoard = () => {
-    bank.innerHTML = '';
-    slotsContainer.innerHTML = '';
-  };
-
-  const spawnConfetti = (host, count = 28) => {
+  const spawnConfetti = (host) => {
     if (!host) {
       return;
     }
-    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (prefersReducedMotion) {
-      return;
-    }
-    for (let i = 0; i < count; i += 1) {
+    const colors = ['#34d399', '#f97316', '#60a5fa', '#f59e0b', '#8b5cf6'];
+    const container = document.createElement('div');
+    container.className = 'alfawz-confetti-container';
+    host.appendChild(container);
+
+    for (let i = 0; i < 14; i += 1) {
       const piece = document.createElement('span');
       piece.className = 'alfawz-confetti-piece';
-      piece.style.setProperty('--x', `${Math.random() * 100}%`);
-      piece.style.setProperty('--y', `${Math.random() * 100}%`);
-      piece.style.animationDelay = `${Math.random() * 0.2}s`;
-      host.appendChild(piece);
-      window.setTimeout(() => piece.remove(), 1600);
+      piece.style.setProperty('--alfawz-confetti-color', colors[i % colors.length]);
+      piece.style.setProperty('--alfawz-confetti-x', `${Math.random() * 120 - 60}%`);
+      piece.style.setProperty('--alfawz-confetti-delay', `${Math.random() * 0.35}s`);
+      piece.style.setProperty('--alfawz-confetti-rotation', `${Math.random() * 360}deg`);
+      container.appendChild(piece);
+      piece.addEventListener('animationend', () => {
+        piece.remove();
+        if (!container.childElementCount) {
+          container.remove();
+        }
+      });
     }
   };
 
-  const stopTimer = () => {
-    if (timerInterval) {
-      window.clearInterval(timerInterval);
-      timerInterval = null;
-    }
-  };
-
-  const startTimer = () => {
-    stopTimer();
-    timerStart = Date.now();
-    if (timerEl) {
-      timerEl.textContent = '00:00';
-    }
-    timerInterval = window.setInterval(() => {
-      if (!timerStart || !timerEl) {
-        return;
-      }
-      const diff = Date.now() - timerStart;
-      timerEl.textContent = formatDuration(diff);
-    }, 500);
-  };
-
-  const updateTheme = () => {
-    if (!themeText) {
+  const renderStats = (stats) => {
+    if (!stats) {
       return;
     }
-    const theme = themes[Math.floor(Math.random() * themes.length)];
-    themeText.textContent = `${theme.label} · ${theme.note}`;
+    if (elements.stats.hasanat) {
+      elements.stats.hasanat.textContent = formatNumber(stats.total_hasanat);
+      pulseValue(elements.stats.hasanat);
+    }
+    if (elements.stats.verses) {
+      elements.stats.verses.textContent = formatNumber(stats.verses_read);
+      pulseValue(elements.stats.verses);
+    }
+    if (elements.stats.streak) {
+      elements.stats.streak.textContent = formatNumber(stats.current_streak);
+      pulseValue(elements.stats.streak);
+    }
   };
 
-  const checkPuzzle = () => {
-    if (!currentPuzzle) {
+  const buildProgressBar = (progress, target) => {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'mt-3 h-2 w-full overflow-hidden rounded-full bg-slate-100';
+
+    const bar = document.createElement('div');
+    bar.className = 'h-2 rounded-full bg-emerald-400 transition-all duration-500';
+    const percentage = target > 0 ? clampPercent((progress / target) * 100) : 0;
+    bar.style.width = `${percentage}%`;
+    wrapper.appendChild(bar);
+
+    return { wrapper, percentage };
+  };
+
+  const renderAchievements = (payload) => {
+    if (!elements.achievementGrid) {
       return;
     }
-    const slots = Array.from(slotsContainer.children);
-    if (!slots.every((slot) => slot.firstElementChild)) {
-      setStatus('Place all tiles before checking the answer.', 'error');
+    const achievements = Array.isArray(payload?.achievements) ? payload.achievements : Array.isArray(payload) ? payload : [];
+    elements.achievementGrid.innerHTML = '';
+
+    if (!achievements.length) {
+      elements.achievementEmpty?.classList.remove('hidden');
+      if (elements.achievementSummary) {
+        elements.achievementSummary.textContent = '';
+      }
       return;
     }
-    let allCorrect = true;
-    slots.forEach((slot, index) => {
-      slot.classList.remove('correct', 'incorrect');
-      const tile = slot.firstElementChild;
-      if (!tile) {
-        return;
+
+    const unlockedCount = achievements.filter((item) => item.unlocked).length;
+    if (elements.achievementSummary) {
+      const suffix = unlockedCount === 1 ? strings.badgeSingular : strings.badgePlural;
+      elements.achievementSummary.textContent = `${unlockedCount} / ${achievements.length} ${suffix}`;
+    }
+    elements.achievementEmpty?.classList.add('hidden');
+
+    achievements.forEach((achievement, index) => {
+      const unlocked = Boolean(achievement.unlocked);
+      const card = document.createElement('div');
+      card.className = `relative flex flex-col items-center rounded-xl border-2 p-4 text-center shadow-sm transition-transform duration-300 ${
+        unlocked ? 'border-emerald-300 bg-emerald-50 text-emerald-900' : 'border-slate-200 bg-white text-slate-700'
+      }`;
+      card.dataset.status = unlocked ? 'unlocked' : 'locked';
+      card.style.setProperty('--alfawz-delay', `${index * 100}ms`);
+      requestAnimationFrame(() => {
+        card.classList.add('animate-pop-in');
+      });
+
+      const icon = document.createElement('div');
+      icon.className = 'text-4xl';
+      icon.setAttribute('aria-hidden', 'true');
+      icon.textContent = achievement.icon || (unlocked ? '✨' : '🔒');
+      card.appendChild(icon);
+
+      const title = document.createElement('p');
+      title.className = 'mt-2 text-lg font-semibold';
+      title.textContent = achievement.title || '';
+      card.appendChild(title);
+
+      if (achievement.description) {
+        const description = document.createElement('p');
+        description.className = 'mt-1 text-base text-emerald-800/80';
+        description.textContent = achievement.description;
+        card.appendChild(description);
       }
-      const correctIndex = Number(tile.dataset.correctIndex || '-1');
-      if (correctIndex === index) {
-        slot.classList.add('correct');
-      } else {
-        slot.classList.add('incorrect');
-        allCorrect = false;
+
+      if (Number.isFinite(achievement.reward)) {
+        const reward = document.createElement('p');
+        reward.className = 'mt-3 inline-flex items-center rounded-full bg-white/70 px-3 py-1 text-sm font-semibold text-emerald-700 shadow-sm';
+        reward.textContent = `+${formatNumber(achievement.reward)} Hasanat`;
+        card.appendChild(reward);
       }
+
+      if (achievement.target) {
+        const { wrapper, percentage } = buildProgressBar(achievement.progress || 0, achievement.target);
+        wrapper.classList.add('mt-4');
+        card.appendChild(wrapper);
+
+        const caption = document.createElement('p');
+        caption.className = 'mt-2 text-sm font-medium';
+        const progressValue = `${formatNumber(Math.min(achievement.progress || 0, achievement.target))} / ${formatNumber(
+          achievement.target
+        )}`;
+        caption.textContent = unlocked
+          ? `${strings.completed} • ${progressValue}`
+          : `${progressValue} • ${percentage.toFixed(0)}%`;
+        card.appendChild(caption);
+      }
+
+      elements.achievementGrid.appendChild(card);
     });
-    if (allCorrect) {
-      handleSuccess();
+  };
+
+  const renderEgg = (state) => {
+    if (!elements.egg.card) {
+      return;
+    }
+    const count = Number(state?.count || 0);
+    const target = Math.max(1, Number(state?.target || 20));
+    const percentage = clampPercent(state?.percentage || (count / target) * 100);
+    const completed = percentage >= 100 || count >= target;
+
+    if (elements.egg.progress) {
+      elements.egg.progress.style.width = `${percentage}%`;
+    }
+    if (elements.egg.label) {
+      elements.egg.label.textContent = `${formatNumber(Math.min(count, target))} / ${formatNumber(target)} ${strings.verses}`;
+    }
+    if (elements.egg.message) {
+      elements.egg.message.textContent = completed ? strings.eggComplete : strings.eggInProgress;
+    }
+    if (elements.egg.emoji) {
+      elements.egg.emoji.textContent = completed ? '🐣' : '🥚';
+    }
+    if (elements.egg.card) {
+      elements.egg.card.classList.toggle('alfawz-egg-hatched', completed);
+    }
+    if (elements.egg.level) {
+      const level = Math.max(1, Math.ceil(target / 20));
+      elements.egg.level.textContent = `${strings.levelLabel} ${formatNumber(level)}`;
+    }
+  };
+
+  const renderQuest = (quest) => {
+    const item = document.createElement('div');
+    item.className = 'alfawz-quest-item relative overflow-hidden rounded-xl border border-purple-100 bg-white p-4 shadow-sm';
+    item.dataset.questId = quest.id || '';
+
+    const status = quest.status || 'in_progress';
+    const isCompleted = status === 'completed' || status === 'complete';
+
+    const header = document.createElement('div');
+    header.className = 'flex items-center';
+    item.appendChild(header);
+
+    const badge = document.createElement('div');
+    badge.className = `mr-3 flex h-12 w-12 flex-none items-center justify-center rounded-full text-2xl ${
+      isCompleted ? 'bg-purple-500 text-white' : 'bg-purple-100 text-purple-600'
+    }`;
+    badge.textContent = isCompleted ? '✓' : quest.icon || '☆';
+    header.appendChild(badge);
+
+    const info = document.createElement('div');
+    info.className = 'flex-1';
+    header.appendChild(info);
+
+    const title = document.createElement('p');
+    title.className = 'text-lg font-semibold text-slate-900';
+    title.textContent = quest.title || '';
+    info.appendChild(title);
+
+    if (quest.description) {
+      const description = document.createElement('p');
+      description.className = 'text-base text-purple-600';
+      description.textContent = quest.description;
+      info.appendChild(description);
+    }
+
+    const reward = document.createElement('div');
+    reward.className = 'mt-3 inline-flex items-center rounded-full bg-purple-50 px-3 py-1 text-sm font-semibold text-purple-700';
+    if (Number.isFinite(quest.reward)) {
+      reward.textContent = `+${formatNumber(quest.reward)} Hasanat`;
     } else {
-      setStatus('Not quite yet—adjust tiles with a red glow.', 'error');
-      window.setTimeout(() => {
-        Array.from(slotsContainer.children).forEach((slot) => {
-          slot.classList.remove('incorrect');
-        });
-      }, 1200);
+      reward.textContent = quest.reward_label || strings.rewardAwaiting;
     }
-  };
+    item.appendChild(reward);
 
-  const handleSuccess = () => {
-    stopTimer();
-    setStatus('Takbir! You rebuilt the ayah perfectly.', 'success');
-    const elapsed = timerStart ? Date.now() - timerStart : null;
-    stats.completed = (stats.completed || 0) + 1;
-    if (elapsed && (!stats.bestTime || elapsed < stats.bestTime)) {
-      stats.bestTime = elapsed;
-    }
-    const today = new Date();
-    const todayKey = today.toISOString().slice(0, 10);
-    const yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
-    const yesterdayKey = yesterday.toISOString().slice(0, 10);
-    if (stats.lastCompletion === todayKey) {
-      // streak unchanged
-    } else if (stats.lastCompletion === yesterdayKey) {
-      stats.streak = (stats.streak || 0) + 1;
-    } else {
-      stats.streak = 1;
-    }
-    stats.lastCompletion = todayKey;
-    saveStats();
-    updateStatsUI();
-    spawnConfetti(confettiHost);
-    if (timerNote && elapsed) {
-      timerNote.textContent = `Solved in ${formatDuration(elapsed)} — next puzzle loading…`;
-    }
-    window.setTimeout(() => {
-      loadPuzzle();
-    }, 1800);
-  };
+    if (quest.target) {
+      const { wrapper, percentage } = buildProgressBar(quest.progress || 0, quest.target);
+      wrapper.classList.add('mt-4');
+      item.appendChild(wrapper);
 
-  const resetBoard = () => {
-    Array.from(slotsContainer.children).forEach((slot) => {
-      if (slot.firstElementChild) {
-        bank.appendChild(slot.firstElementChild);
+      const caption = document.createElement('p');
+      caption.className = 'mt-2 text-sm font-medium text-slate-700';
+      const value = `${formatNumber(Math.min(quest.progress || 0, quest.target))} / ${formatNumber(quest.target)}`;
+      caption.textContent = isCompleted ? `${strings.completed} • ${value}` : `${value} • ${percentage.toFixed(0)}%`;
+      item.appendChild(caption);
+    }
+
+    if (isCompleted) {
+      item.classList.add('alfawz-quest-complete');
+      if (item.dataset.state !== 'completed') {
+        spawnConfetti(item);
       }
-      slot.classList.remove('filled', 'correct', 'incorrect', 'is-active');
-    });
-    updateProgressState();
-    setStatus('Tiles returned to the bank. Try a new arrangement.');
+      item.dataset.state = 'completed';
+    } else {
+      item.dataset.state = status;
+    }
+
+    return item;
   };
 
-  const shuffleBank = () => {
-    const tiles = Array.from(bank.children);
-    const shuffled = shuffleArray(tiles);
-    shuffled.forEach((tile) => {
-      bank.appendChild(tile);
+  const renderQuests = (payload) => {
+    if (!elements.questList) {
+      return;
+    }
+    const quests = Array.isArray(payload?.quests) ? payload.quests : Array.isArray(payload) ? payload : [];
+    elements.questList.innerHTML = '';
+
+    if (!quests.length) {
+      elements.questEmpty?.classList.remove('hidden');
+      return;
+    }
+
+    elements.questEmpty?.classList.add('hidden');
+    quests.forEach((quest, index) => {
+      const node = renderQuest(quest);
+      node.style.setProperty('--alfawz-delay', `${index * 80}ms`);
+      requestAnimationFrame(() => {
+        node.classList.add('animate-soft-fade');
+      });
+      elements.questList.appendChild(node);
     });
-    updateProgressState();
   };
 
-  const renderPuzzle = (puzzle) => {
-    clearBoard();
-    currentPuzzle = puzzle;
-    if (referenceEl) {
-      const surahName = puzzle.surahName || `Surah ${puzzle.surahId}`;
-      referenceEl.textContent = `${surahName} · Ayah ${puzzle.verseId}`;
-    }
-    if (translationEl) {
-      translationEl.textContent = puzzle.translation || '';
-    }
-    if (subtitleEl) {
-      subtitleEl.textContent = `Arrange ${puzzle.words.length} luminous tiles to reveal the ayah.`;
-    }
-    const slotCount = puzzle.words.length;
-    for (let i = 0; i < slotCount; i += 1) {
-      const slot = document.createElement('div');
-      slot.className = 'alfawz-game-slot';
-      slot.dataset.index = String(i);
-      slot.textContent = 'Drop tile';
-      slot.addEventListener('dragover', handleSlotDragOver);
-      slot.addEventListener('dragleave', handleSlotDragLeave);
-      slot.addEventListener('drop', handleSlotDrop);
-      slotsContainer.appendChild(slot);
-    }
-    const tiles = shuffleArray(puzzle.words.map((word, index) => ({ word, index })));
-    tiles.forEach(({ word, index }) => {
-      const tile = document.createElement('button');
-      tile.type = 'button';
-      tile.className = 'alfawz-game-tile';
-      tile.draggable = true;
-      tile.dataset.correctIndex = String(index);
-      tile.textContent = word;
-      attachTileInteractions(tile);
-      bank.appendChild(tile);
-    });
-    updateProgressState();
-    updateTheme();
-    startTimer();
-    setStatus('Tiles ready — build the ayah from right to left meaning.');
-  };
-
-  bank.addEventListener('dragover', handleBankDragOver);
-  bank.addEventListener('drop', handleBankDrop);
-
-  const loadPuzzle = async () => {
-    loader?.classList.remove('hidden');
-    card?.classList.add('hidden');
-    setStatus('Preparing a new ayah…');
-    resetSlots();
-    stopTimer();
+  const loadData = async () => {
+    toggleView({ loading: true });
     try {
-      const puzzle = await fetchPuzzleVerse();
-      renderPuzzle(puzzle);
-      loader?.classList.add('hidden');
-      card?.classList.remove('hidden');
-      if (timerNote) {
-        timerNote.textContent = 'Tiles begin to glow when they rest in the right slot.';
+      const query = `?timezone_offset=${timezoneOffset()}`;
+      const [stats, achievements, quests, egg] = await Promise.all([
+        apiRequest(`user-stats${query}`),
+        apiRequest(`achievements${query}`),
+        apiRequest(`daily-quests${query}`),
+        apiRequest('egg-challenge'),
+      ]);
+
+      renderStats(stats);
+      renderAchievements(achievements);
+      renderQuests(quests);
+      renderEgg(egg);
+
+      toggleView({ loading: false });
+      if (elements.statCards) {
+        applyStagger(elements.statCards.children);
       }
     } catch (error) {
-      console.warn('[AlfawzQuran] Unable to load puzzle', error);
-      setStatus('Unable to load a puzzle right now. Please try again.', 'error');
-      loader?.classList.add('hidden');
-      card?.classList.add('hidden');
+      console.error('[AlfawzQuran] Unable to load game panel:', error);
+      toggleView({ loading: false, error: strings.loadError });
     }
   };
 
-  shuffleBtn?.addEventListener('click', () => {
-    shuffleBank();
-    setStatus('Tiles shuffled. Follow your intuition.');
-  });
-
-  resetBtn?.addEventListener('click', resetBoard);
-  checkBtn?.addEventListener('click', checkPuzzle);
-
-  updateStatsUI();
-  loadPuzzle();
+  loadData();
 })();

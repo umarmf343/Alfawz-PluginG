@@ -28,6 +28,7 @@ class Frontend {
         add_shortcode('alfawz_leaderboard', [$this, 'leaderboard_shortcode']);
         add_shortcode('alfawz_profile', [$this, 'profile_shortcode']);
         add_shortcode('alfawz_settings', [$this, 'settings_shortcode']);
+        add_shortcode('alfawz_game', [$this, 'games_shortcode']);
         add_shortcode('alfawz_games', [$this, 'games_shortcode']);
         add_shortcode('alfawz_qaidah', [$this, 'qaidah_shortcode']);
         add_shortcode('alfawz_teacher_dashboard', [$this, 'teacher_dashboard_shortcode']);
@@ -99,6 +100,15 @@ class Frontend {
                     'profileSaved' => __('Profile updated!', 'alfawzquran'),
                     'profileError' => __('Unable to update profile. Please try again.', 'alfawzquran'),
                     'profileNameMissing' => __('Please add your full name before saving.', 'alfawzquran'),
+                    'gamePanelLoadError' => __('We could not load your quest data. Please refresh to try again.', 'alfawzquran'),
+                    'gamePanelCompletedLabel' => __('Completed', 'alfawzquran'),
+                    'gamePanelVersesLabel' => __('Verses', 'alfawzquran'),
+                    'gamePanelEggComplete' => __('Takbir! The egg is hatching—keep soaring!', 'alfawzquran'),
+                    'gamePanelEggInProgress' => __('Recite to fill the egg with radiant knowledge.', 'alfawzquran'),
+                    'gamePanelRewardAwaiting' => __('Divine Reward Awaiting', 'alfawzquran'),
+                    'gamePanelLevelLabel' => __('Level', 'alfawzquran'),
+                    'gamePanelBadgeSingular' => __('badge unlocked', 'alfawzquran'),
+                    'gamePanelBadgePlural' => __('badges unlocked', 'alfawzquran'),
                 ],
             ]);
 
@@ -190,7 +200,10 @@ class Frontend {
             ]);
         }
 
-        if ($this->current_page_uses_shortcode('alfawz_games')) {
+        if (
+            $this->current_page_uses_shortcode('alfawz_game')
+            || $this->current_page_uses_shortcode('alfawz_games')
+        ) {
             wp_enqueue_script(
                 'alfawz-games',
                 ALFAWZQURAN_PLUGIN_URL . 'assets/js/alfawz-games.js',
@@ -323,6 +336,7 @@ class Frontend {
             'alfawz_leaderboard',
             'alfawz_profile',
             'alfawz_settings',
+            'alfawz_game',
             'alfawz_games',
             'alfawz_qaidah',
             'alfawz_teacher_dashboard'
