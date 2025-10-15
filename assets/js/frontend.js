@@ -360,12 +360,125 @@
 
   const buildVerseKey = (surahId, verseId) => `${surahId}:${verseId}`;
 
+  const animateDashboard = (root) => {
+    if (!root || root.dataset.animated === 'true') {
+      return;
+    }
+
+    let accumulatedDelay = 0;
+    const applyAnimation = (element, type, delay) => {
+      if (!element) {
+        return;
+      }
+      element.style.setProperty('--alfawz-delay', `${delay}ms`);
+      if (type === 'pop') {
+        element.classList.add('animate-pop-in');
+      } else {
+        element.classList.add('animate-soft-fade');
+      }
+    };
+
+    const animatedGroups = root.querySelectorAll('[data-animate]');
+    animatedGroups.forEach((group) => {
+      const type = group.dataset.animate;
+      if (type === 'stagger') {
+        const children = Array.from(group.children || []);
+        children.forEach((child, index) => {
+          applyAnimation(child, 'pop', accumulatedDelay + index * 90);
+        });
+        accumulatedDelay += children.length * 70;
+      } else {
+        applyAnimation(group, 'fade', accumulatedDelay);
+        accumulatedDelay += 120;
+      }
+    });
+
+    root.dataset.animated = 'true';
+  };
+
+  const formatReflectionMessage = (stats, goal) => {
+    const versesToday = Number(goal?.count || stats?.verses_read || 0);
+    const streak = Number(stats?.current_streak || 0);
+    const verseLabel = versesToday === 1 ? 'verse' : 'verses';
+    let streakMessage = 'Begin a fresh streak today and let the Qur\'an illuminate your heart.';
+    if (streak > 2) {
+      streakMessage = `You\'re on a ${formatNumber(streak)}-day streak — keep the rhythm alive!`;
+    } else if (streak > 0) {
+      streakMessage = `A ${formatNumber(streak)}-day streak is a beautiful start — nurture it today.`;
+    }
+    return `Alhamdulillah! You recited ${formatNumber(versesToday)} ${verseLabel} today. ${streakMessage}`;
+  };
+
+  const attachShareHandler = (root, stats, goal) => {
+    const shareButton = qs('[data-action="share-progress"]', root);
+    if (!shareButton || shareButton.dataset.bound === 'true') {
+      return;
+    }
+
+    shareButton.dataset.bound = 'true';
+    const spans = shareButton.querySelectorAll('span');
+    const labelSpan = spans.length > 1 ? spans[1] : null;
+    const defaultLabel = labelSpan ? labelSpan.textContent : shareButton.textContent.trim();
+    shareButton.dataset.label = defaultLabel;
+
+    shareButton.addEventListener('click', async () => {
+      const versesToday = Number(goal?.count || stats?.verses_read || 0);
+      const streak = Number(stats?.current_streak || 0);
+      const shareText = `Alhamdulillah! I\'ve recited ${formatNumber(versesToday)} verse${versesToday === 1 ? '' : 's'} today on Alfawz Quran and kept a ${formatNumber(streak)}-day streak.`;
+      const sharePayload = {
+        title: 'Alfawz Quran progress',
+        text: shareText,
+        url: window.location.href,
+      };
+
+      const resetLabel = () => {
+        if (labelSpan) {
+          labelSpan.textContent = shareButton.dataset.label || defaultLabel;
+        }
+        shareButton.dataset.state = 'ready';
+      };
+
+      try {
+        if (navigator.share) {
+          await navigator.share(sharePayload);
+          return;
+        }
+      } catch (error) {
+        // Ignore share cancellation
+      }
+
+      const clipboardText = `${shareText} ${window.location.href}`.trim();
+      let copied = false;
+      if (navigator.clipboard?.writeText) {
+        try {
+          await navigator.clipboard.writeText(clipboardText);
+          copied = true;
+        } catch (error) {
+          copied = false;
+        }
+      }
+
+      if (!copied) {
+        copied = window.prompt(wpData.strings?.sharePrompt || 'Copy and share your progress link:', clipboardText) !== null;
+      }
+
+      if (copied) {
+        if (labelSpan) {
+          labelSpan.textContent = wpData.strings?.shareCopied || 'Link copied!';
+        }
+        shareButton.dataset.state = 'copied';
+        window.setTimeout(resetLabel, 2400);
+      }
+    });
+  };
 
   const initDashboard = async () => {
     const root = qs('#alfawz-dashboard');
     if (!root || !wpData.isLoggedIn) {
       return;
     }
+
+    root.setAttribute('aria-busy', 'true');
 
     try {
       const [stats, goal, egg, leaderboard] = await Promise.all([
@@ -412,20 +525,27 @@
       const leaderboardPreview = qs('#alfawz-leaderboard-preview', root);
       if (leaderboardPreview && Array.isArray(leaderboard)) {
         renderList(leaderboardPreview, leaderboard.slice(0, 5), (item, index) => {
-          const li = createListItem('flex items-center justify-between rounded-2xl border border-slate-100 bg-white/70 px-4 py-3 shadow-sm');
+          const li = createListItem('alfawz-leaderboard-item');
           li.innerHTML = `
-            <div class="flex items-center gap-3">
-              <span class="text-lg font-semibold text-emerald-600">${index + 1}</span>
+            <div class="alfawz-leaderboard-user">
+              <span class="alfawz-leaderboard-rank">${index + 1}</span>
               <div>
-                <p class="font-semibold text-slate-900">${item.display_name || '—'}</p>
-                <p class="text-xs text-slate-500">${formatNumber(item.verses_read || 0)} verses</p>
+                <p class="alfawz-leaderboard-name">${item.display_name || '—'}</p>
+                <p class="alfawz-leaderboard-meta">${formatNumber(item.verses_read || 0)} verses</p>
               </div>
             </div>
-            <span class="text-sm font-semibold text-emerald-600">⭐ ${formatNumber(item.total_hasanat || 0)}</span>
+            <span class="alfawz-leaderboard-score">⭐ ${formatNumber(item.total_hasanat || 0)}</span>
           `;
           return li;
         });
       }
+
+      const reflectionNote = qs('#alfawz-daily-progress-note-secondary', root);
+      if (reflectionNote) {
+        reflectionNote.textContent = formatReflectionMessage(stats, goal);
+      }
+
+      attachShareHandler(root, stats, goal);
 
       const planList = await apiRequest('memorization-plans');
       const planName = qs('#alfawz-plan-name', root);
@@ -468,6 +588,10 @@
       }
     } catch (error) {
       console.warn('[AlfawzQuran] Unable to load dashboard data', error);
+    } finally {
+      root.classList.add('is-ready');
+      animateDashboard(root);
+      root.setAttribute('aria-busy', 'false');
     }
   };
 
@@ -1047,15 +1171,15 @@
       try {
         const plans = await apiRequest('memorization-plans');
         renderList(planList, Array.isArray(plans) ? plans : [], (plan) => {
-          const li = createListItem('flex items-start justify-between gap-3 rounded-2xl border border-slate-100 bg-white/80 p-4 shadow-sm');
+          const li = createListItem('alfawz-plan-item');
           li.innerHTML = `
             <div>
-              <p class="font-semibold text-slate-900">${plan.plan_name || 'Plan'}</p>
-              <p class="text-xs text-slate-500">Surah ${plan.surah_id} · Ayah ${plan.start_verse} – ${plan.end_verse}</p>
+              <p class="alfawz-plan-item__name">${plan.plan_name || 'Plan'}</p>
+              <p class="alfawz-plan-item__meta">Surah ${plan.surah_id} · Ayah ${plan.start_verse} – ${plan.end_verse}</p>
             </div>
             <div class="text-right">
-              <p class="text-sm font-semibold text-emerald-600">${formatNumber(plan.completed_verses || 0)} / ${formatNumber(plan.total_verses || 0)}</p>
-              <p class="text-xs text-slate-500">${formatPercent(plan.completion_percentage || 0)} complete</p>
+              <p class="alfawz-plan-item__progress">${formatNumber(plan.completed_verses || 0)} / ${formatNumber(plan.total_verses || 0)}</p>
+              <p class="alfawz-plan-item__progress-note">${formatPercent(plan.completion_percentage || 0)} complete</p>
             </div>
           `;
           return li;
