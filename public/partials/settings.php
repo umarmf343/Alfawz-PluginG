@@ -78,7 +78,6 @@
 
 <?php
 $current_page = 'settings';
-include ALFAWZQURAN_PLUGIN_PATH . 'public/partials/mobile-nav.php';
 ?>
 
 <style>

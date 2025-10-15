@@ -85,5 +85,4 @@
 
 <?php
 $current_page = 'games';
-include ALFAWZQURAN_PLUGIN_PATH . 'public/partials/mobile-nav.php';
 ?>

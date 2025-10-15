@@ -5,7 +5,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 if ( ! function_exists( 'alfawz_get_mobile_nav_items' ) ) {
     function alfawz_get_mobile_nav_items() {
-        return [
+        $items = [
             [
                 'slug'  => 'dashboard',
                 'icon'  => '📊',
@@ -37,6 +37,27 @@ if ( ! function_exists( 'alfawz_get_mobile_nav_items' ) ) {
                 'label' => __( 'Profile', 'alfawzquran' ),
             ],
         ];
+
+        if ( is_user_logged_in() ) {
+            $qaidah_index = 3;
+            $teacher_roles = apply_filters( 'alfawz_teacher_roles', [ 'teacher', 'editor', 'administrator' ] );
+            $user          = wp_get_current_user();
+            $is_teacher    = false;
+
+            if ( current_user_can( 'manage_options' ) || current_user_can( 'edit_posts' ) ) {
+                $is_teacher = true;
+            }
+
+            if ( ! $is_teacher && $user instanceof \WP_User ) {
+                $is_teacher = (bool) array_intersect( $teacher_roles, (array) $user->roles );
+            }
+
+            $items[ $qaidah_index ]['url'] = $is_teacher
+                ? apply_filters( 'alfawz_mobile_nav_url', '', 'qaidah-teacher' )
+                : apply_filters( 'alfawz_mobile_nav_url', '', 'qaidah-student' );
+        }
+
+        return $items;
     }
 }
 

@@ -1,166 +1,102 @@
-<div class="alfawz-reader">
-    <div class="alfawz-page-stack">
-        <div class="alfawz-reader-header">
-            <div class="alfawz-header-content">
-                <h2><?php _e('Quran Reader', 'alfawzquran'); ?></h2>
-                <p><?php _e('Select a Surah and Verse to start reading.', 'alfawzquran'); ?></p>
-                <div class="alfawz-selected-surah alfawz-hidden" id="selected-surah-display">
-                    <span class="alfawz-surah-icon">📖</span>
-                    <span id="selected-surah-name"></span>
-                </div>
-            </div>
-        </div>
-
-        <div class="alfawz-reader-controls">
-        <div class="alfawz-selection-controls">
-            <div class="alfawz-surah-selection">
-                <label for="reader-surah-select" class="alfawz-control-label">
-                    <span class="alfawz-label-icon">📚</span>
-                    <?php _e('Select Surah:', 'alfawzquran'); ?>
-                </label>
-                <select id="reader-surah-select" class="alfawz-surah-dropdown">
-                    <option value=""><?php _e('Loading Surahs...', 'alfawzquran'); ?></option>
-                </select>
-            </div>
-            <div class="alfawz-verse-selection">
-                <label for="reader-verse-select" class="alfawz-control-label">
-                    <span class="alfawz-label-icon">📜</span>
-                    <?php _e('Select Verse:', 'alfawzquran'); ?>
-                </label>
-                <select id="reader-verse-select" class="alfawz-verse-dropdown" disabled>
-                    <option value=""><?php _e('Select surah first', 'alfawzquran'); ?></option>
-                </select>
-            </div>
-            <div class="alfawz-reading-options">
-                <label class="alfawz-toggle-label">
-                    <input type="checkbox" id="show-translation" checked>
-                    <span class="alfawz-toggle-slider"></span>
-                    <span class="alfawz-label-icon">🌐</span>
-                    <span class="alfawz-toggle-text alfawz-switch off"><?php _e('Show Translation', 'alfawzquran'); ?></span>
-                </label>
-                <div class="alfawz-verse-counter-display alfawz-hidden">
-                    <span class="alfawz-counter-label"><?php _e('Current Verse:', 'alfawzquran'); ?></span>
-                    <span class="alfawz-verse-counter" id="current-surah-verse"></span>
-                </div>
-            </div>
-        </div>
-        </div>
-
-        <div class="alfawz-verse-display">
-            <div class="alfawz-loading-message" id="reader-loading-message">
-                <span class="alfawz-loading-icon">⏳</span>
-                <h3><?php _e('Select a verse to begin', 'alfawzquran'); ?></h3>
-                <p><?php _e('Choose a Surah and Verse from the dropdowns above.', 'alfawzquran'); ?></p>
-            </div>
-
-            <div class="alfawz-verse-card alfawz-hidden" id="reader-verse-card" role="group" aria-live="polite">
-                <button
-                    id="prev-verse-btn"
-                    type="button"
-                    class="alfawz-verse-nav-button alfawz-verse-nav-button--prev"
-                    aria-label="<?php esc_attr_e('Previous verse', 'alfawzquran'); ?>"
-                    disabled
-                >
-                    <span class="alfawz-verse-nav-icon" aria-hidden="true">◀️</span>
-                    <span class="alfawz-sr-only"><?php _e('Previous verse', 'alfawzquran'); ?></span>
-                </button>
-
-                <div class="alfawz-focus-card alfawz-verse-focus-card alfawz-reader-verse-content" tabindex="0">
-                    <div class="alfawz-verse-arabic" id="reader-quran-text" dir="rtl" lang="ar"></div>
-                    <div class="alfawz-verse-translation" id="reader-quran-translation"></div>
-                </div>
-
-                <button
-                    id="next-verse-btn"
-                    type="button"
-                    class="alfawz-verse-nav-button alfawz-verse-nav-button--next"
-                    aria-label="<?php esc_attr_e('Next verse', 'alfawzquran'); ?>"
-                    disabled
-                >
-                    <span class="alfawz-verse-nav-icon" aria-hidden="true">▶️</span>
-                    <span class="alfawz-sr-only"><?php _e('Next verse', 'alfawzquran'); ?></span>
-                </button>
-            </div>
-        </div>
-
-        <div class="alfawz-reader-actions alfawz-hidden">
-        <div class="alfawz-primary-actions">
-            <button id="reader-play-audio" class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md alfawz-btn alfawz-beautiful-btn">
-                <span class="alfawz-btn-icon-wrapper"><span class="alfawz-btn-icon">🔊</span></span>
-                <span class="alfawz-btn-text alfawz-audio-text"><?php _e('Play Audio', 'alfawzquran'); ?></span>
-                <span class="alfawz-btn-glow"></span>
-            </button>
-            <button id="reader-mark-read" class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md alfawz-btn alfawz-beautiful-btn">
-                <span class="alfawz-btn-icon-wrapper"><span class="alfawz-btn-icon">✅</span></span>
-                <span class="alfawz-btn-text"><?php _e('Mark as Read', 'alfawzquran'); ?></span>
-                <span class="alfawz-btn-glow"></span>
-            </button>
-            <button id="reader-bookmark" class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md alfawz-btn alfawz-beautiful-btn">
-                <span class="alfawz-btn-icon-wrapper"><span class="alfawz-btn-icon">🔖</span></span>
-                <span class="alfawz-btn-text"><?php _e('Bookmark', 'alfawzquran'); ?></span>
-                <span class="alfawz-btn-glow"></span>
-            </button>
-        </div>
-        <div class="alfawz-hasanat-display">
-            <span class="alfawz-hasanat-icon-wrapper"><span class="alfawz-hasanat-icon">⭐</span></span>
-            <div class="alfawz-hasanat-content">
-                <span class="alfawz-hasanat-value" id="current-verse-hasanat">0</span>
-                <span class="alfawz-hasanat-label"><?php _e('Hasanat for this verse', 'alfawzquran'); ?></span>
-            </div>
-            <span class="alfawz-hasanat-sparkle"></span>
-            <span class="alfawz-hasanat-glow"></span>
-        </div>
-        </div>
-
-        <div class="alfawz-live-progress">
-            <h3><?php _e('Your Session Progress', 'alfawzquran'); ?></h3>
-            <div class="alfawz-progress-grid">
-                <div class="alfawz-progress-card">
-                    <div class="alfawz-card-icon">
-                        <div class="alfawz-icon-circle alfawz-hasanat-icon"><span class="alfawz-icon">⭐</span></div>
-                    </div>
-                    <div class="alfawz-card-content">
-                        <div class="alfawz-card-value" id="session-hasanat">0</div>
-                        <div class="alfawz-card-label"><?php _e('Hasanat Earned', 'alfawzquran'); ?></div>
-                    </div>
-                    <div class="alfawz-card-decoration"></div>
-                </div>
-                <div class="alfawz-progress-card">
-                    <div class="alfawz-card-icon">
-                        <div class="alfawz-icon-circle alfawz-verses-icon"><span class="alfawz-icon">📜</span></div>
-                    </div>
-                    <div class="alfawz-card-content">
-                        <div class="alfawz-card-value" id="verses-read-session">0</div>
-                        <div class="alfawz-card-label"><?php _e('Verses Read', 'alfawzquran'); ?></div>
-                    </div>
-                    <div class="alfawz-card-decoration"></div>
-                </div>
-                <div class="alfawz-progress-card">
-                    <div class="alfawz-card-icon">
-                        <div class="alfawz-icon-circle alfawz-time-icon"><span class="alfawz-icon">⏱️</span></div>
-                    </div>
-                    <div class="alfawz-card-content">
-                        <div class="alfawz-card-value" id="session-time">0m 0s</div>
-                        <div class="alfawz-card-label"><?php _e('Session Time', 'alfawzquran'); ?></div>
-                    </div>
-                    <div class="alfawz-card-decoration"></div>
-                </div>
-                <div class="alfawz-progress-card">
-                    <div class="alfawz-card-icon">
-                        <div class="alfawz-icon-circle alfawz-streak-icon"><span class="alfawz-icon">🔥</span></div>
-                    </div>
-                    <div class="alfawz-card-content">
-                        <div class="alfawz-card-value" id="current-streak-display">0</div>
-                        <div class="alfawz-card-label"><?php _e('Current Streak', 'alfawzquran'); ?></div>
-                    </div>
-                    <div class="alfawz-card-decoration"></div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
 <?php
-$current_page = 'reader';
-include ALFAWZQURAN_PLUGIN_PATH . 'public/partials/mobile-nav.php';
+if ( ! defined( 'ABSPATH' ) ) {
+    exit;
+}
 ?>
+<div id="alfawz-reader" class="alfawz-surface mx-auto max-w-4xl space-y-6 rounded-3xl bg-white/90 p-6 shadow-xl shadow-emerald-100/70 backdrop-blur">
+    <header class="space-y-1 text-slate-900">
+        <p class="text-sm font-medium tracking-wide text-emerald-600"><?php esc_html_e( 'Immersive Quran Reader', 'alfawzquran' ); ?></p>
+        <h2 class="text-2xl font-semibold leading-tight"><?php esc_html_e( 'Navigate ayat with a tap', 'alfawzquran' ); ?></h2>
+        <p class="text-sm text-slate-600"><?php esc_html_e( 'Use the controls below to step through verses, listen to recitation, and log your progress instantly.', 'alfawzquran' ); ?></p>
+    </header>
+
+    <section class="grid gap-4 md:grid-cols-2" aria-labelledby="alfawz-reader-controls">
+        <h3 id="alfawz-reader-controls" class="sr-only"><?php esc_html_e( 'Surah and verse selection', 'alfawzquran' ); ?></h3>
+        <label class="alfawz-field">
+            <span class="alfawz-field-label"><?php esc_html_e( 'Choose a surah', 'alfawzquran' ); ?></span>
+            <select id="alfawz-reader-surah" class="alfawz-select">
+                <option value=""><?php esc_html_e( 'Loading surahs…', 'alfawzquran' ); ?></option>
+            </select>
+        </label>
+        <label class="alfawz-field">
+            <span class="alfawz-field-label"><?php esc_html_e( 'Choose a verse', 'alfawzquran' ); ?></span>
+            <select id="alfawz-reader-verse" class="alfawz-select" disabled>
+                <option value=""><?php esc_html_e( 'Select a surah first', 'alfawzquran' ); ?></option>
+            </select>
+        </label>
+        <label class="alfawz-switch md:col-span-2">
+            <input type="checkbox" id="alfawz-toggle-translation" checked>
+            <span class="alfawz-switch-control" aria-hidden="true"></span>
+            <span class="alfawz-switch-label"><?php esc_html_e( 'Show translation', 'alfawzquran' ); ?></span>
+        </label>
+    </section>
+
+    <section class="space-y-4" aria-live="polite" aria-busy="true">
+        <div id="alfawz-reader-loading" class="rounded-2xl border border-dashed border-emerald-200 bg-emerald-50/60 p-6 text-center text-sm text-emerald-700">
+            <?php esc_html_e( 'Select a surah and verse to begin reading.', 'alfawzquran' ); ?>
+        </div>
+        <article id="alfawz-reader-card" class="hidden rounded-3xl bg-white p-6 shadow-lg shadow-emerald-100/60">
+            <header class="flex flex-wrap items-center justify-between gap-2">
+                <h3 class="text-lg font-semibold text-slate-900" id="alfawz-reader-heading"></h3>
+                <span class="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700" id="alfawz-reader-session"></span>
+            </header>
+            <div class="mt-4 flex flex-col gap-4">
+                <p id="alfawz-reader-arabic" class="text-right text-2xl leading-relaxed tracking-wide text-slate-900" dir="rtl" lang="ar"></p>
+                <p id="alfawz-reader-translation" class="text-base leading-relaxed text-slate-600"></p>
+            </div>
+            <footer class="mt-6 flex flex-wrap items-center justify-between gap-3">
+                <div class="flex gap-2">
+                    <button type="button" class="alfawz-circle" id="alfawz-reader-prev" aria-label="<?php esc_attr_e( 'Previous verse', 'alfawzquran' ); ?>" disabled>◀</button>
+                    <button type="button" class="alfawz-circle" id="alfawz-reader-next" aria-label="<?php esc_attr_e( 'Next verse', 'alfawzquran' ); ?>" disabled>▶</button>
+                </div>
+                <div class="flex flex-wrap gap-3">
+                    <button type="button" class="alfawz-button" id="alfawz-reader-audio">
+                        <span>🔊</span>
+                        <span><?php esc_html_e( 'Play audio', 'alfawzquran' ); ?></span>
+                    </button>
+                    <button type="button" class="alfawz-button" id="alfawz-reader-mark">
+                        <span>✅</span>
+                        <span><?php esc_html_e( 'Mark as read', 'alfawzquran' ); ?></span>
+                    </button>
+                    <button type="button" class="alfawz-button" id="alfawz-reader-bookmark">
+                        <span>🔖</span>
+                        <span><?php esc_html_e( 'Bookmark', 'alfawzquran' ); ?></span>
+                    </button>
+                </div>
+            </footer>
+        </article>
+    </section>
+
+    <section class="grid gap-4 md:grid-cols-2" aria-labelledby="alfawz-reader-metrics">
+        <h3 id="alfawz-reader-metrics" class="sr-only"><?php esc_html_e( 'Reader metrics', 'alfawzquran' ); ?></h3>
+        <article class="alfawz-card" id="alfawz-hasanat-card">
+            <p class="text-xs font-semibold uppercase tracking-wide text-slate-500"><?php esc_html_e( 'Hasanat for this verse', 'alfawzquran' ); ?></p>
+            <p class="mt-3 text-3xl font-semibold text-slate-900" id="alfawz-reader-hasanat">0</p>
+            <p class="text-xs text-slate-500" id="alfawz-reader-hasanat-note"></p>
+        </article>
+        <article class="alfawz-card" id="alfawz-verse-goal">
+            <p class="text-xs font-semibold uppercase tracking-wide text-slate-500"><?php esc_html_e( '10 verse goal', 'alfawzquran' ); ?></p>
+            <div class="mt-3 h-2 rounded-full bg-slate-200">
+                <div id="alfawz-goal-progress" class="h-2 rounded-full bg-emerald-500 transition-all" style="width:0%"></div>
+            </div>
+            <p class="mt-3 text-xs text-slate-500" id="alfawz-goal-note"></p>
+        </article>
+    </section>
+
+    <section class="rounded-3xl border border-amber-100 bg-amber-50/70 p-5" aria-labelledby="alfawz-egg-heading">
+        <div class="flex items-center justify-between">
+            <div>
+                <h3 id="alfawz-egg-heading" class="text-lg font-semibold text-amber-800"><?php esc_html_e( 'Egg challenge', 'alfawzquran' ); ?></h3>
+                <p class="text-sm text-amber-700" id="alfawz-egg-description"><?php esc_html_e( 'Read together as a family or class to hatch the golden egg.', 'alfawzquran' ); ?></p>
+            </div>
+            <span class="text-3xl" role="img" aria-hidden="true">🥚</span>
+        </div>
+        <div class="mt-4 h-2 rounded-full bg-white/80">
+            <div id="alfawz-egg-progress" class="h-2 rounded-full bg-amber-500 transition-all" style="width:0%"></div>
+        </div>
+        <p class="mt-2 text-xs font-medium uppercase tracking-wide text-amber-700" id="alfawz-egg-status"></p>
+        <button type="button" class="alfawz-link mt-3 text-sm font-semibold text-amber-700" id="alfawz-egg-cheer">
+            <?php esc_html_e( 'Celebrate the latest milestone', 'alfawzquran' ); ?>
+        </button>
+    </section>
+</div>
