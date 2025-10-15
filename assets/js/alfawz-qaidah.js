@@ -1023,32 +1023,40 @@
 
       studentState.assignments.forEach((assignment) => {
         const item = document.createElement('li');
-        item.className = 'rounded-xl border border-gray-200 bg-white p-5 shadow-sm transition animate-fade-in-up hover:-translate-y-1';
+        item.className = 'qaidah-assignment-card group relative overflow-hidden rounded-[26px] border border-[#f2d6c3] bg-white/85 p-6 shadow-lg transition-all duration-200 animate-fade-in-up hover:-translate-y-1 hover:shadow-2xl focus-within:ring-2 focus-within:ring-[#7a1a31]/50';
+
+        const accent = document.createElement('span');
+        accent.className = 'qaidah-assignment-card__accent';
+        accent.setAttribute('aria-hidden', 'true');
+        item.appendChild(accent);
+
+        const content = document.createElement('div');
+        content.className = 'relative z-10 flex flex-col gap-4';
 
         const header = document.createElement('div');
-        header.className = 'flex items-start justify-between';
+        header.className = 'flex items-start justify-between gap-4';
 
         const info = document.createElement('div');
         const teacherName = assignment.teacher?.name || '';
         const formattedDate = formatDate(assignment.updated);
         const metaParts = [];
         if (teacherName) {
-          metaParts.push(`From: ${teacherName}`);
+          metaParts.push(`${strings.fromLabel || 'From'}: ${teacherName}`);
         }
         if (formattedDate) {
           metaParts.push(formattedDate);
         }
         info.innerHTML = `
-          <h3 class="text-lg font-bold text-gray-800">${assignment.title || 'Qa’idah lesson'}</h3>
-          <p class="text-sm text-[16px] text-gray-600">${metaParts.join(' • ')}</p>
+          <h3 class="text-xl font-semibold text-[#3f1d29]">${assignment.title || 'Qa’idah lesson'}</h3>
+          <p class="text-sm text-[16px] font-medium text-[#7b6459]">${metaParts.join(' • ')}</p>
         `;
 
         const badge = document.createElement('span');
-        badge.className = 'rounded-full bg-emerald-100 px-3 py-1 text-sm text-[16px] font-semibold uppercase tracking-wide text-emerald-800';
+        badge.className = 'qaidah-assignment-card__badge';
         badge.textContent = strings.newBadge || 'New';
         const isNew = Boolean(assignment?.is_new ?? assignment?.status === 'new');
         if (!isNew) {
-          badge.classList.add('hidden');
+          badge.classList.add('is-hidden');
         }
 
         header.appendChild(info);
@@ -1056,17 +1064,18 @@
 
         const button = document.createElement('button');
         button.type = 'button';
-        button.className = 'mt-3 inline-flex items-center gap-2 text-base font-medium text-emerald-600 transition hover:translate-x-1 hover:text-emerald-700';
+        button.className = 'qaidah-assignment-card__cta inline-flex items-center gap-3 self-start rounded-full bg-gradient-to-r from-[#7a1a31] to-[#a43246] px-5 py-2 text-base font-semibold text-[#fdeee2] shadow-md transition-all duration-200 hover:from-[#8d243d] hover:to-[#bc3c4e] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#7a1a31]';
         const openLessonLabel = strings.openLesson || 'Open Lesson';
-        button.innerHTML = `<span>${openLessonLabel}</span> <span class="text-lg">▶</span>`;
+        button.innerHTML = `<span class="transition-transform duration-200 group-hover:translate-x-1">${openLessonLabel}</span> <span class="text-xl">▶</span>`;
         const accessibleTitle = assignment.title || 'Qa’idah lesson';
         button.setAttribute('aria-label', `${openLessonLabel} ${accessibleTitle}`);
         button.addEventListener('click', () => {
           openAssignmentModal(assignment);
         });
 
-        item.appendChild(header);
-        item.appendChild(button);
+        content.appendChild(header);
+        content.appendChild(button);
+        item.appendChild(content);
         assignmentList.appendChild(item);
       });
     };
