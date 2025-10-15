@@ -29,19 +29,21 @@
     planProgress: root.querySelector('#alfawz-memorization-plan-progress'),
     verseArabic: root.querySelector('#alfawz-memorization-ayah-ar'),
     verseTranslation: root.querySelector('#alfawz-memorization-ayah-translation'),
+    verseTransliteration: root.querySelector('#alfawz-memorization-ayah-transliteration'),
     translationToggle: root.querySelector('#alfawz-memorization-toggle-translation'),
     repetitionsLabel: root.querySelector('#alfawz-memorization-repetitions'),
-    progressBar: root.querySelector('#alfawz-memorization-progress'),
-    progressNote: root.querySelector('#alfawz-memorization-progress-note'),
-    repeatButton: root.querySelector('#alfawz-memorization-repeat'),
+    progressBar: root.querySelector('#progress-bar'),
+    progressNote: root.querySelector('#progress-note'),
+    counter: root.querySelector('#counter'),
+    repeatButton: root.querySelector('#repeat-btn'),
     statsTotal: root.querySelector('#alfawz-memorization-stat-total'),
     statsMemorized: root.querySelector('#alfawz-memorization-stat-memorized'),
     statsRemaining: root.querySelector('#alfawz-memorization-stat-remaining'),
     statsCompletion: root.querySelector('#alfawz-memorization-stat-completion'),
     activeStatus: root.querySelector('#alfawz-memorization-active-status'),
-    modal: root.querySelector('#alfawz-memorization-modal'),
-    continueButton: root.querySelector('#alfawz-memorization-continue'),
-    reviewButton: root.querySelector('#alfawz-memorization-review'),
+    modal: root.querySelector('#celebration-modal'),
+    continueButton: root.querySelector('#next-verse-btn'),
+    reviewButton: root.querySelector('#review-later'),
   };
 
   const state = {
@@ -276,21 +278,43 @@
   };
 
   const setRepeatButtonState = () => {
+    if (!el.repeatButton) {
+      return;
+    }
     el.repeatButton.disabled = !state.currentVerse || state.modalOpen;
+  };
+
+  const updateTranslationToggleLabel = () => {
+    if (!el.translationToggle) {
+      return;
+    }
+    const label = state.translationVisible
+      ? wpData.hideTranslationLabel || 'Hide translation'
+      : wpData.showTranslationLabel || 'Show translation';
+    el.translationToggle.innerHTML = `🔁 ${label}`;
   };
 
   const updateProgressUI = () => {
     const count = state.repetitionCount;
     el.repetitionsLabel.textContent = `${count} / 20 ${wpData.repetitionLabel || 'Repetitions'}${count >= 20 ? ' ✅' : ''}`;
     const width = Math.min(100, (count / 20) * 100);
-    el.progressBar.style.width = `${width}%`;
-    el.progressBar.classList.toggle('ring-4', count >= 20);
-    el.progressBar.classList.toggle('ring-emerald-300', count >= 20);
-    el.progressBar.classList.toggle('animate-pulse', count >= 20);
-    el.progressNote.textContent =
-      count >= 20
-        ? wpData.readyMessage || 'Takbir! You may progress to the next ayah.'
-        : `${20 - count} ${wpData.remainingLabel || 'repetitions remaining.'}`;
+    if (el.progressBar) {
+      el.progressBar.style.width = `${width}%`;
+      el.progressBar.classList.toggle('alfawz-progress-celebrate', count >= 20);
+      el.progressBar.classList.toggle('animate-pulse', count >= 20);
+    }
+    if (el.counter) {
+      el.counter.textContent = `${count} / 20 ${wpData.repetitionLabel || 'Repetitions'}`;
+    }
+    if (el.progressNote) {
+      const remaining = 20 - count;
+      el.progressNote.textContent =
+        count >= 20
+          ? wpData.readyMessage || 'Takbir! You may progress to the next ayah.'
+          : count === 0
+          ? wpData.progressIntro || 'Tap repeat to begin your twenty-fold focus session.'
+          : `${remaining} ${wpData.remainingLabel || 'repetitions remaining.'}`;
+    }
     if (count >= 20 && !state.modalOpen) {
       openModal();
     }
@@ -309,6 +333,13 @@
     state.modalOpen = true;
     el.modal.classList.remove('hidden');
     el.modal.classList.add('flex');
+    const modalCard = el.modal.querySelector('.celebration-card');
+    if (modalCard) {
+      modalCard.classList.remove('animate-pop-in');
+      // Force reflow to restart animation
+      void modalCard.offsetWidth;
+      modalCard.classList.add('animate-pop-in');
+    }
     setRepeatButtonState();
   };
 
@@ -335,6 +366,10 @@
       el.verseArabic.textContent = verse.arabic;
       el.verseTranslation.textContent = verse.translation;
       el.verseTranslation.classList.toggle('hidden', !state.translationVisible);
+      if (el.progressNote) {
+        el.progressNote.textContent = wpData.progressIntro || 'Tap repeat to begin your twenty-fold focus session.';
+      }
+      updateTranslationToggleLabel();
       el.repetitionsLabel.textContent = `0 / 20 ${wpData.repetitionLabel || 'Repetitions'}`;
       resetRepetition();
     } catch (error) {
@@ -374,8 +409,19 @@
     if (!nextVerse) {
       el.activeStatus.textContent = wpData.planCompleteMessage || 'All verses in this plan are memorized. Create a new plan to continue.';
       toggleElement(el.repeatButton, false);
-      el.progressBar.style.width = '100%';
-      el.progressNote.textContent = wpData.planCompleteMessage || 'All verses in this plan are memorized. Create a new plan to continue.';
+      if (el.progressBar) {
+        el.progressBar.style.width = '100%';
+        el.progressBar.classList.add('alfawz-progress-celebrate', 'animate-pulse');
+      }
+      if (el.repetitionsLabel) {
+        el.repetitionsLabel.textContent = `20 / 20 ${wpData.repetitionLabel || 'Repetitions'} ✅`;
+      }
+      if (el.counter) {
+        el.counter.textContent = `20 / 20 ${wpData.repetitionLabel || 'Repetitions'}`;
+      }
+      if (el.progressNote) {
+        el.progressNote.textContent = wpData.planCompleteMessage || 'All verses in this plan are memorized. Create a new plan to continue.';
+      }
       setRepeatButtonState();
       return;
     }
@@ -419,8 +465,19 @@
       if (!nextVerse) {
         el.activeStatus.textContent = wpData.planCompleteMessage || 'All verses in this plan are memorized. Create a new plan to continue.';
         toggleElement(el.repeatButton, false);
-        el.progressBar.style.width = '100%';
-        el.progressNote.textContent = wpData.planCompleteMessage || 'All verses in this plan are memorized. Create a new plan to continue.';
+        if (el.progressBar) {
+          el.progressBar.style.width = '100%';
+          el.progressBar.classList.add('alfawz-progress-celebrate', 'animate-pulse');
+        }
+        if (el.repetitionsLabel) {
+          el.repetitionsLabel.textContent = `20 / 20 ${wpData.repetitionLabel || 'Repetitions'} ✅`;
+        }
+        if (el.counter) {
+          el.counter.textContent = `20 / 20 ${wpData.repetitionLabel || 'Repetitions'}`;
+        }
+        if (el.progressNote) {
+          el.progressNote.textContent = wpData.planCompleteMessage || 'All verses in this plan are memorized. Create a new plan to continue.';
+        }
         setPlanHeader(state.planDetail);
         return;
       }
@@ -493,7 +550,9 @@
       playChime();
       updateProgressUI();
       el.repeatButton.disabled = true;
+      el.repeatButton.classList.add('animate-pulse');
       window.setTimeout(() => {
+        el.repeatButton.classList.remove('animate-pulse');
         if (!state.modalOpen) {
           el.repeatButton.disabled = false;
         }
@@ -503,9 +562,7 @@
     el.translationToggle?.addEventListener('click', () => {
       state.translationVisible = !state.translationVisible;
       el.verseTranslation.classList.toggle('hidden', !state.translationVisible);
-      el.translationToggle.textContent = state.translationVisible
-        ? wpData.hideTranslationLabel || 'Hide translation'
-        : wpData.showTranslationLabel || 'Show translation';
+      updateTranslationToggleLabel();
     });
 
     el.continueButton?.addEventListener('click', handleContinue);
