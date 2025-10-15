@@ -42,9 +42,9 @@ class Frontend {
             // Tailwind via CDN keeps the plugin lightweight and avoids build tooling.
             wp_enqueue_style(
                 'alfawz-tailwind',
-                'https://cdn.jsdelivr.net/npm/tailwindcss@3.4.13/dist/tailwind.min.css',
+                'https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css',
                 [],
-                '3.4.13'
+                '2.2.19'
             );
 
             wp_enqueue_style(
@@ -247,6 +247,15 @@ class Frontend {
                     'modalTitle'           => __('Assignment preview', 'alfawzquran'),
                     'builderOpening'       => __('Opening assignment builder…', 'alfawzquran'),
                     'builderReady'         => __('Assignment builder ready.', 'alfawzquran'),
+                    'classesLabel'         => __('classes', 'alfawzquran'),
+                    'studentsUnit'         => __('students', 'alfawzquran'),
+                    'assignmentCountLabel' => __('assignments sent', 'alfawzquran'),
+                    'memoCountLabel'       => __('students tracked', 'alfawzquran'),
+                    'classActiveLabel'     => __('Active', 'alfawzquran'),
+                    'recentActivityEmpty'  => __('No recent activity yet. Student updates will appear here.', 'alfawzquran'),
+                    'assignmentFallback'   => __('Qa’idah assignment', 'alfawzquran'),
+                    'memorizedVersesUnit'  => __('verses memorised', 'alfawzquran'),
+                    'activePlansUnit'      => __('active memorisation plans', 'alfawzquran'),
                 ],
             ]);
         }

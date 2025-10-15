@@ -22,9 +22,9 @@ function alfawz_enqueue_bottom_nav_assets() {
 
     wp_enqueue_style(
         'alfawz-tailwind',
-        'https://cdn.jsdelivr.net/npm/tailwindcss@3.4.13/dist/tailwind.min.css',
+        'https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css',
         [],
-        '3.4.13'
+        '2.2.19'
     );
 
     wp_enqueue_style(
