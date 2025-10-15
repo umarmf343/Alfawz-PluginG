@@ -26,6 +26,13 @@
     firstHotspot: 'Click the image to add your first hotspot.',
     hotspotRequired: 'Add at least one hotspot before sending.',
     playbackError: 'Unable to play this audio clip.',
+    recordButton: 'Record Audio',
+    playButton: 'Play',
+    uploadButton: 'Upload Audio',
+    hotspotTitle: 'Hotspot',
+    openLesson: 'Open Lesson',
+    stopRecording: 'Stop',
+    newBadge: 'New',
     ...(settings.strings || {}),
   };
 
@@ -97,6 +104,7 @@
     assignments: [],
     currentAudio: null,
     playingHotspot: null,
+    audioStatusEl: null,
   };
 
   const resetRecordingUI = () => {
@@ -108,9 +116,10 @@
     const { recordButton, status } = controls;
     if (recordButton) {
       recordButton.classList.remove('is-recording');
-      const label = recordButton.querySelector('span');
+      recordButton.classList.add('animate-pulse');
+      const label = recordButton.querySelector('span:last-child');
       if (label) {
-        label.textContent = 'Record audio';
+        label.textContent = strings.recordButton || 'Record Audio';
       }
     }
     if (status && status.textContent === strings.recording) {
@@ -163,6 +172,7 @@
     const studentFilter = document.getElementById('alfawz-qaidah-student-filter');
     const statusEl = document.getElementById('alfawz-qaidah-status');
     const selectImageButton = document.getElementById('alfawz-qaidah-select-image');
+    const imageCanvas = document.getElementById('image-canvas');
     const imagePreview = document.getElementById('alfawz-qaidah-image-preview');
     const imageElement = document.getElementById('alfawz-qaidah-image');
     const imageIdInput = document.getElementById('alfawz-qaidah-image-id');
@@ -170,6 +180,8 @@
     const hotspotList = document.getElementById('alfawz-qaidah-hotspot-list');
     const resetButton = document.getElementById('alfawz-qaidah-reset');
     const submitButton = document.getElementById('alfawz-qaidah-submit');
+    const studentSection = document.getElementById('alfawz-qaidah-student-section');
+    const scopeRadios = form ? form.querySelectorAll('input[name="alfawz-qaidah-scope"]') : null;
     const submitLabel = submitButton ? submitButton.querySelector('span:last-child') : null;
     const defaultSubmitLabel = submitLabel ? submitLabel.textContent : '';
 
@@ -183,6 +195,22 @@
         const toneClass = tone === 'error' ? 'is-error' : tone === 'success' ? 'is-success' : 'is-info';
         statusEl.classList.add(toneClass);
       }
+    };
+
+    const getSelectedScope = () => {
+      if (!scopeRadios) {
+        return 'all';
+      }
+      const checked = Array.from(scopeRadios).find((input) => input.checked);
+      return checked ? checked.value : 'all';
+    };
+
+    const updateStudentScopeVisibility = () => {
+      if (!studentSection) {
+        return;
+      }
+      const scope = getSelectedScope();
+      studentSection.classList.toggle('hidden', scope !== 'selected');
     };
 
     const populateClasses = async () => {
@@ -223,7 +251,7 @@
       render(studentFilter, () => {
         if (!teacherState.students.length) {
           const empty = document.createElement('p');
-          empty.className = 'text-xs text-slate-500';
+          empty.className = 'text-sm text-[16px] text-gray-500';
           empty.textContent = strings.noStudents;
           studentFilter.appendChild(empty);
           return;
@@ -232,25 +260,27 @@
         teacherState.students.forEach((student) => {
           const id = `qaidah-student-${student.id}`;
           const wrapper = document.createElement('label');
-          wrapper.className = 'alfawz-qaidah-student';
+          wrapper.className = 'qaidah-student-option group flex items-center gap-3 rounded-xl border border-gray-200 bg-white/90 p-3 shadow-sm transition hover:-translate-y-0.5 hover:border-emerald-500 focus-within:ring-2 focus-within:ring-emerald-500';
           wrapper.setAttribute('for', id);
 
           const checkbox = document.createElement('input');
           checkbox.type = 'checkbox';
           checkbox.id = id;
           checkbox.value = student.id;
-          checkbox.className = 'alfawz-qaidah-student__checkbox';
+          checkbox.className = 'h-5 w-5 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500';
 
           const avatar = document.createElement('span');
-          avatar.className = 'alfawz-qaidah-student__avatar';
+          avatar.className = 'flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100 text-base font-semibold text-emerald-700 shadow-sm';
           if (student.avatar) {
             avatar.style.backgroundImage = `url(${student.avatar})`;
+            avatar.style.backgroundSize = 'cover';
+            avatar.style.backgroundPosition = 'center';
           } else {
             avatar.textContent = student.name ? student.name.charAt(0).toUpperCase() : 'S';
           }
 
           const info = document.createElement('span');
-          info.className = 'alfawz-qaidah-student__name';
+          info.className = 'text-base font-medium text-gray-700';
           info.textContent = student.name || `ID ${student.id}`;
 
           wrapper.appendChild(checkbox);
@@ -310,6 +340,14 @@
         form.reset();
       }
 
+      if (scopeRadios) {
+        scopeRadios.forEach((radio) => {
+          radio.checked = radio.value === 'all';
+        });
+      }
+
+      updateStudentScopeVisibility();
+
       if (titleInput) {
         titleInput.value = assignment.title || '';
       }
@@ -325,7 +363,16 @@
 
       await loadStudents(classId);
 
-      if (Array.isArray(assignment.students) && assignment.students.length) {
+      const hasSpecificStudents = Array.isArray(assignment.students) && assignment.students.length;
+      if (scopeRadios) {
+        scopeRadios.forEach((radio) => {
+          radio.checked = radio.value === (hasSpecificStudents ? 'selected' : 'all');
+        });
+      }
+
+      updateStudentScopeVisibility();
+
+      if (hasSpecificStudents) {
         requestAnimationFrame(() => markSelectedStudents(assignment.students));
       }
 
@@ -343,6 +390,9 @@
         if (imagePreview) {
           imagePreview.classList.remove('hidden');
         }
+        if (imageCanvas) {
+          imageCanvas.classList.remove('hidden');
+        }
         if (imageIdInput) {
           imageIdInput.value = assignment.image.id || '';
         }
@@ -350,6 +400,9 @@
         teacherState.image = null;
         if (imagePreview) {
           imagePreview.classList.add('hidden');
+        }
+        if (imageCanvas) {
+          imageCanvas.classList.add('hidden');
         }
         if (imageElement) {
           imageElement.src = '';
@@ -403,11 +456,13 @@
         const students = await apiRequest(`qaidah/students${params}`);
         teacherState.students = Array.isArray(students) ? students : [];
         renderStudentFilter();
+        updateStudentScopeVisibility();
         return teacherState.students;
       } catch (error) {
         console.error('[AlfawzQuran] Failed to load students', error);
         teacherState.students = [];
         renderStudentFilter();
+        updateStudentScopeVisibility();
         return teacherState.students;
       }
     };
@@ -424,8 +479,12 @@
       if (form) {
         form.reset();
       }
+      updateStudentScopeVisibility();
       if (imagePreview) {
         imagePreview.classList.add('hidden');
+      }
+      if (imageCanvas) {
+        imageCanvas.classList.add('hidden');
       }
       if (imageElement) {
         imageElement.src = '';
@@ -473,6 +532,9 @@
         if (imagePreview) {
           imagePreview.classList.remove('hidden');
         }
+        if (imageCanvas) {
+          imageCanvas.classList.remove('hidden');
+        }
         if (imageIdInput) {
           imageIdInput.value = teacherState.image.id;
         }
@@ -501,7 +563,7 @@
 
       if (!teacherState.hotspots.length) {
         const hint = document.createElement('li');
-        hint.className = 'alfawz-qaidah-hotspot-empty';
+        hint.className = 'rounded-xl border border-dashed border-emerald-200 bg-emerald-50 p-4 text-center text-sm text-[16px] font-medium text-emerald-700';
         hint.textContent = strings.firstHotspot;
         hotspotList.appendChild(hint);
         return;
@@ -510,11 +572,13 @@
       teacherState.hotspots.forEach((hotspot, index) => {
         const marker = document.createElement('button');
         marker.type = 'button';
-        marker.className = 'alfawz-qaidah-hotspot';
+        marker.className = 'alfawz-qaidah-hotspot absolute flex h-12 w-12 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-amber-500 text-xl text-white shadow-md transition hover:scale-110 hover:bg-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-400';
         marker.style.left = formatPercent(hotspot.x);
         marker.style.top = formatPercent(hotspot.y);
         marker.dataset.id = hotspot.id;
-        marker.setAttribute('aria-label', hotspot.label || `Hotspot ${index + 1}`);
+        const fallbackMarkerTitle = `${strings.hotspotTitle || 'Hotspot'} ${index + 1}`;
+        const hotspotName = hotspot.label || fallbackMarkerTitle;
+        marker.setAttribute('aria-label', hotspotName);
         marker.addEventListener('click', (event) => {
           event.stopPropagation();
           const item = hotspotList.querySelector(`[data-id="${hotspot.id}"]`);
@@ -525,38 +589,49 @@
         hotspotLayer.appendChild(marker);
 
         const item = document.createElement('li');
-        item.className = 'alfawz-qaidah-hotspot-item';
+        item.className = 'space-y-4 rounded-xl border border-amber-100 bg-white p-5 shadow-sm animate-fade-in-up';
         item.dataset.id = hotspot.id;
+        const hotspotLabelText = `${strings.hotspotTitle || 'Hotspot'} #${index + 1}`;
+        const recordButtonText = strings.recordButton || 'Record Audio';
+        const playButtonText = strings.playButton || 'Play';
+        const uploadButtonText = strings.uploadButton || 'Upload Audio';
         item.innerHTML = `
-          <div class="alfawz-qaidah-hotspot-item__header">
-            <span class="alfawz-qaidah-hotspot-item__badge">${index + 1}</span>
-            <div class="alfawz-qaidah-hotspot-item__title">${hotspot.label || `Marker ${index + 1}`}</div>
+          <div class="flex items-start justify-between gap-3">
+            <div class="flex items-center gap-3">
+              <span class="flex h-10 w-10 items-center justify-center rounded-full bg-amber-100 text-base font-semibold text-amber-700">${index + 1}</span>
+              <div>
+                <p class="text-base font-semibold text-gray-800 alfawz-qaidah-hotspot-item__title">${hotspot.label || fallbackMarkerTitle}</p>
+                <p class="text-sm text-[16px] text-gray-500">${hotspotLabelText}</p>
+              </div>
+            </div>
+            <button type="button" class="text-base font-semibold text-red-500 transition hover:text-red-600" data-action="remove">×</button>
           </div>
-          <div class="alfawz-qaidah-hotspot-item__body">
-            <label class="alfawz-field">
-              <span class="alfawz-field-label">Label</span>
-              <input type="text" class="alfawz-input" value="${hotspot.label || ''}" />
+          <div class="space-y-3">
+            <label class="block">
+              <span class="mb-1 block text-sm text-[16px] font-medium text-gray-700">Label</span>
+              <input type="text" class="w-full rounded-lg border border-gray-300 p-3 text-base text-gray-800 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500" value="${hotspot.label || ''}" />
             </label>
-            <div class="alfawz-qaidah-hotspot-item__coords">
-              <label class="alfawz-field">
-                <span class="alfawz-field-label">X (%)</span>
-                <input type="number" class="alfawz-input" min="0" max="100" step="0.1" value="${Number(hotspot.x).toFixed(1)}" />
+            <div class="grid grid-cols-2 gap-3">
+              <label class="block">
+                <span class="mb-1 block text-sm text-[16px] font-medium text-gray-700">X (%)</span>
+                <input type="number" class="w-full rounded-lg border border-gray-300 p-3 text-base text-gray-800 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500" min="0" max="100" step="0.1" value="${Number(hotspot.x).toFixed(1)}" />
               </label>
-              <label class="alfawz-field">
-                <span class="alfawz-field-label">Y (%)</span>
-                <input type="number" class="alfawz-input" min="0" max="100" step="0.1" value="${Number(hotspot.y).toFixed(1)}" />
+              <label class="block">
+                <span class="mb-1 block text-sm text-[16px] font-medium text-gray-700">Y (%)</span>
+                <input type="number" class="w-full rounded-lg border border-gray-300 p-3 text-base text-gray-800 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500" min="0" max="100" step="0.1" value="${Number(hotspot.y).toFixed(1)}" />
               </label>
             </div>
           </div>
-          <div class="alfawz-qaidah-hotspot-item__actions">
-            <button type="button" class="alfawz-button alfawz-button--ghost" data-action="record">🎙️ <span>Record audio</span></button>
-            <button type="button" class="alfawz-button alfawz-button--ghost" data-action="play" ${hotspot.audioUrl ? '' : 'disabled'}>▶️ <span>Play</span></button>
-            <label class="alfawz-qaidah-hotspot-item__upload">📁
-              <input type="file" accept="audio/*" data-action="upload" />
+          <div class="flex flex-wrap items-center gap-3">
+            <button type="button" class="qaidah-record-button inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-base font-semibold text-white shadow-sm transition hover:bg-blue-700 animate-pulse" data-action="record"><span class="text-lg">🎤</span> <span>${recordButtonText}</span></button>
+            <button type="button" class="qaidah-play-button inline-flex items-center gap-2 rounded-lg bg-gray-200 px-4 py-2 text-base font-semibold text-gray-700 transition hover:scale-105 disabled:cursor-not-allowed disabled:opacity-60" data-action="play" ${hotspot.audioUrl ? '' : 'disabled'}><span class="qaidah-play-icon text-lg font-semibold">▶</span><span>${playButtonText}</span></button>
+            <label class="qaidah-upload-button inline-flex cursor-pointer items-center gap-2 rounded-lg bg-amber-100 px-4 py-2 text-base font-semibold text-amber-700 shadow-sm transition hover:bg-amber-200">
+              📁
+              <span>${uploadButtonText}</span>
+              <input type="file" accept="audio/*" data-action="upload" class="hidden" />
             </label>
-            <button type="button" class="alfawz-link" data-action="remove">Delete</button>
           </div>
-          <p class="alfawz-qaidah-hotspot-item__status" aria-live="polite"></p>
+          <p class="alfawz-qaidah-hotspot-item__status text-sm text-[16px] font-medium text-gray-500" aria-live="polite"></p>
         `;
 
         const [labelInput] = item.querySelectorAll('input[type="text"]');
@@ -572,9 +647,9 @@
             hotspot.label = event.target.value;
             const title = item.querySelector('.alfawz-qaidah-hotspot-item__title');
             if (title) {
-              title.textContent = hotspot.label || `Marker ${index + 1}`;
+              title.textContent = hotspot.label || fallbackMarkerTitle;
             }
-            marker.setAttribute('aria-label', hotspot.label || `Hotspot ${index + 1}`);
+            marker.setAttribute('aria-label', hotspot.label || fallbackMarkerTitle);
           });
         }
 
@@ -687,9 +762,10 @@
 
         if (recordButton) {
           recordButton.classList.add('is-recording');
-          const label = recordButton.querySelector('span');
+          recordButton.classList.remove('animate-pulse');
+          const label = recordButton.querySelector('span:last-child');
           if (label) {
-            label.textContent = 'Stop';
+            label.textContent = strings.stopRecording || 'Stop';
           }
         }
         if (status) {
@@ -768,7 +844,7 @@
     };
 
     const collectSelectedStudents = () => {
-      if (!studentFilter) {
+      if (!studentFilter || getSelectedScope() !== 'selected') {
         return [];
       }
       const selected = Array.from(studentFilter.querySelectorAll('input[type="checkbox"]:checked'));
@@ -850,6 +926,12 @@
       loadStudents(classId);
     });
 
+    scopeRadios?.forEach((radio) => {
+      radio.addEventListener('change', () => {
+        updateStudentScopeVisibility();
+      });
+    });
+
     hotspotLayer?.addEventListener('click', handleHotspotCreation);
     selectImageButton?.addEventListener('click', openMediaLibrary);
     form?.addEventListener('submit', handleSubmit);
@@ -878,6 +960,7 @@
       })
     );
 
+    updateStudentScopeVisibility();
     ensureClassesLoaded();
     loadStudents('');
   };
@@ -901,6 +984,9 @@
       studentState.playingHotspot.classList.remove('is-playing');
       studentState.playingHotspot = null;
     }
+    if (studentState.audioStatusEl) {
+      studentState.audioStatusEl.classList.add('hidden');
+    }
   };
 
   const initStudentView = () => {
@@ -913,6 +999,9 @@
     const modalMeta = document.getElementById('alfawz-qaidah-modal-meta');
     const modalImage = document.getElementById('alfawz-qaidah-modal-image');
     const modalHotspots = document.getElementById('alfawz-qaidah-modal-hotspots');
+    const audioStatus = document.getElementById('alfawz-qaidah-audio-status');
+
+    studentState.audioStatusEl = audioStatus;
 
     const renderAssignments = () => {
       if (!assignmentList) {
@@ -934,19 +1023,49 @@
 
       studentState.assignments.forEach((assignment) => {
         const item = document.createElement('li');
-        item.className = 'alfawz-qaidah-assignment';
+        item.className = 'rounded-xl border border-gray-200 bg-white p-5 shadow-sm transition animate-fade-in-up hover:-translate-y-1';
+
+        const header = document.createElement('div');
+        header.className = 'flex items-start justify-between';
+
+        const info = document.createElement('div');
+        const teacherName = assignment.teacher?.name || '';
+        const formattedDate = formatDate(assignment.updated);
+        const metaParts = [];
+        if (teacherName) {
+          metaParts.push(`From: ${teacherName}`);
+        }
+        if (formattedDate) {
+          metaParts.push(formattedDate);
+        }
+        info.innerHTML = `
+          <h3 class="text-lg font-bold text-gray-800">${assignment.title || 'Qa’idah lesson'}</h3>
+          <p class="text-sm text-[16px] text-gray-600">${metaParts.join(' • ')}</p>
+        `;
+
+        const badge = document.createElement('span');
+        badge.className = 'rounded-full bg-emerald-100 px-3 py-1 text-sm text-[16px] font-semibold uppercase tracking-wide text-emerald-800';
+        badge.textContent = strings.newBadge || 'New';
+        const isNew = Boolean(assignment?.is_new ?? assignment?.status === 'new');
+        if (!isNew) {
+          badge.classList.add('hidden');
+        }
+
+        header.appendChild(info);
+        header.appendChild(badge);
 
         const button = document.createElement('button');
         button.type = 'button';
-        button.className = 'alfawz-qaidah-assignment__button';
-        button.innerHTML = `
-          <div class="alfawz-qaidah-assignment__title">${assignment.title || 'Qa’idah lesson'}</div>
-          <div class="alfawz-qaidah-assignment__meta">${assignment.teacher?.name || ''} • ${formatDate(assignment.updated)}</div>
-        `;
+        button.className = 'mt-3 inline-flex items-center gap-2 text-base font-medium text-emerald-600 transition hover:translate-x-1 hover:text-emerald-700';
+        const openLessonLabel = strings.openLesson || 'Open Lesson';
+        button.innerHTML = `<span>${openLessonLabel}</span> <span class="text-lg">▶</span>`;
+        const accessibleTitle = assignment.title || 'Qa’idah lesson';
+        button.setAttribute('aria-label', `${openLessonLabel} ${accessibleTitle}`);
         button.addEventListener('click', () => {
           openAssignmentModal(assignment);
         });
 
+        item.appendChild(header);
         item.appendChild(button);
         assignmentList.appendChild(item);
       });
@@ -959,6 +1078,7 @@
       stopStudentAudio();
       modalImage.src = assignment.image?.url || '';
       modalHotspots.innerHTML = '';
+      studentState.audioStatusEl?.classList.add('hidden');
 
       if (modalTitle) {
         modalTitle.textContent = assignment.title || '';
@@ -976,26 +1096,37 @@
           }
           const button = document.createElement('button');
           button.type = 'button';
-          button.className = 'alfawz-qaidah-hotspot is-student';
+          button.className = 'alfawz-qaidah-hotspot is-student absolute flex h-12 w-12 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-emerald-500 text-xl text-white shadow-lg transition hover:bg-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-400 animate-bounce-slow';
           button.style.left = hotspot.x || '0%';
           button.style.top = hotspot.y || '0%';
           button.setAttribute('aria-label', hotspot.label || `Hotspot ${index + 1}`);
-          button.innerHTML = '<span>▶️</span>';
+          button.innerHTML = `
+            <span class="pointer-events-none text-2xl">▶</span>
+            <span class="qaidah-hotspot-check pointer-events-none absolute -bottom-1 -right-1 hidden h-6 w-6 rounded-full bg-emerald-500 text-sm text-[16px] font-bold text-white shadow-sm">✔</span>
+          `;
           button.addEventListener('click', () => {
             stopStudentAudio();
             const audio = new Audio(hotspot.audio_url);
             studentState.currentAudio = audio;
             studentState.playingHotspot = button;
             button.classList.add('is-playing');
+            studentState.audioStatusEl?.classList.remove('hidden');
+            button.classList.remove('animate-bounce-slow');
             audio.play().catch((error) => {
               console.error('[AlfawzQuran] Audio playback failed', error);
               button.classList.remove('is-playing');
+              studentState.audioStatusEl?.classList.add('hidden');
+              button.classList.add('animate-bounce-slow');
             });
             audio.onended = () => {
               button.classList.remove('is-playing');
               if (studentState.currentAudio === audio) {
                 studentState.currentAudio = null;
                 studentState.playingHotspot = null;
+              }
+              const check = button.querySelector('.qaidah-hotspot-check');
+              if (check) {
+                check.classList.remove('hidden');
               }
             };
           });

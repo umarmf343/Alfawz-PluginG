@@ -42,9 +42,9 @@ class Frontend {
             // Tailwind via CDN keeps the plugin lightweight and avoids build tooling.
             wp_enqueue_style(
                 'alfawz-tailwind',
-                'https://cdn.jsdelivr.net/npm/tailwindcss@3.4.13/dist/tailwind.min.css',
+                'https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css',
                 [],
-                '3.4.13'
+                '2.2.19'
             );
 
             wp_enqueue_style(
@@ -148,6 +148,13 @@ class Frontend {
                     'editing'        => __('Editing existing assignment.', 'alfawzquran'),
                     'editError'      => __('Unable to load assignment. Please try again.', 'alfawzquran'),
                     'updateAssignment' => __('Update assignment', 'alfawzquran'),
+                    'recordButton'   => __('Record Audio', 'alfawzquran'),
+                    'playButton'     => __('Play', 'alfawzquran'),
+                    'uploadButton'   => __('Upload Audio', 'alfawzquran'),
+                    'hotspotTitle'   => __('Hotspot', 'alfawzquran'),
+                    'openLesson'     => __('Open Lesson', 'alfawzquran'),
+                    'stopRecording'  => __('Stop', 'alfawzquran'),
+                    'newBadge'       => __('New', 'alfawzquran'),
                 ],
                 'mediaSettings' => [
                     'title'  => __('Select Qa’idah Image', 'alfawzquran'),
@@ -198,6 +205,13 @@ class Frontend {
                     'editing'        => __('Editing existing assignment.', 'alfawzquran'),
                     'editError'      => __('Unable to load assignment. Please try again.', 'alfawzquran'),
                     'updateAssignment' => __('Update assignment', 'alfawzquran'),
+                    'recordButton'   => __('Record Audio', 'alfawzquran'),
+                    'playButton'     => __('Play', 'alfawzquran'),
+                    'uploadButton'   => __('Upload Audio', 'alfawzquran'),
+                    'hotspotTitle'   => __('Hotspot', 'alfawzquran'),
+                    'openLesson'     => __('Open Lesson', 'alfawzquran'),
+                    'stopRecording'  => __('Stop', 'alfawzquran'),
+                    'newBadge'       => __('New', 'alfawzquran'),
                 ],
                 'mediaSettings' => [
                     'title'  => __('Select Qa’idah Image', 'alfawzquran'),

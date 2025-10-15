@@ -592,285 +592,6 @@ body .alfawz-surface {
 }
 
 /* Qa'idah assignment builder */
-.alfawz-qaidah-student-grid {
-  display: grid;
-  gap: 0.75rem;
-  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
-}
-
-.alfawz-qaidah-student {
-  display: flex;
-  align-items: center;
-  gap: 0.65rem;
-  padding: 0.55rem 0.75rem;
-  border-radius: var(--alfawz-radius-sm);
-  border: 1px solid rgba(15, 118, 110, 0.16);
-  background: rgba(255, 255, 255, 0.9);
-  cursor: pointer;
-  transition: var(--alfawz-transition);
-}
-
-.alfawz-qaidah-student:hover,
-.alfawz-qaidah-student:focus-within {
-  border-color: rgba(16, 185, 129, 0.45);
-  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
-}
-
-.alfawz-qaidah-student__checkbox {
-  width: 1.1rem;
-  height: 1.1rem;
-  accent-color: #10b981;
-}
-
-.alfawz-qaidah-student__avatar {
-  width: 2.5rem;
-  height: 2.5rem;
-  border-radius: 9999px;
-  background: rgba(16, 185, 129, 0.12);
-  background-size: cover;
-  background-position: center;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  color: var(--alfawz-emerald);
-}
-
-.alfawz-qaidah-student__name {
-  font-weight: 600;
-  color: var(--alfawz-text);
-}
-
-.alfawz-qaidah-image-wrapper {
-  position: relative;
-  margin-top: 1.5rem;
-  border-radius: var(--alfawz-radius-md);
-  overflow: hidden;
-  border: 1px solid rgba(15, 118, 110, 0.12);
-}
-
-.alfawz-qaidah-image-wrapper img {
-  display: block;
-  width: 100%;
-  height: auto;
-}
-
-.alfawz-qaidah-hotspot-layer {
-  position: absolute;
-  inset: 0;
-  pointer-events: auto;
-  cursor: crosshair;
-}
-
-.alfawz-qaidah-hotspot {
-  position: absolute;
-  width: 3rem;
-  height: 3rem;
-  min-width: 3rem;
-  min-height: 3rem;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 9999px;
-  transform: translate(-50%, -50%);
-  border: 3px solid #fff;
-  background: radial-gradient(circle at 30% 30%, #f97316, #dc2626);
-  color: #fff;
-  font-size: 1.25rem;
-  font-weight: 700;
-  box-shadow: 0 12px 24px rgba(220, 38, 38, 0.35);
-  transition: transform 120ms ease, box-shadow 120ms ease;
-  pointer-events: auto;
-}
-
-.alfawz-qaidah-hotspot:hover,
-.alfawz-qaidah-hotspot:focus {
-  transform: translate(-50%, -50%) scale(1.05);
-  box-shadow: 0 16px 32px rgba(220, 38, 38, 0.45);
-}
-
-.alfawz-qaidah-hotspot.is-student {
-  background: radial-gradient(circle at 30% 30%, #10b981, #047857);
-  box-shadow: 0 12px 24px rgba(4, 120, 87, 0.35);
-  font-size: 1.1rem;
-}
-
-.alfawz-qaidah-hotspot.is-student span {
-  pointer-events: none;
-}
-
-@keyframes alfawzHotspotPulse {
-  0% {
-    box-shadow: 0 0 0 0 rgba(4, 120, 87, 0.35);
-  }
-  70% {
-    box-shadow: 0 0 0 18px rgba(4, 120, 87, 0);
-  }
-  100% {
-    box-shadow: 0 0 0 0 rgba(4, 120, 87, 0);
-  }
-}
-
-.alfawz-qaidah-hotspot.is-playing {
-  animation: alfawzHotspotPulse 1.6s ease infinite;
-}
-
-.alfawz-button--ghost {
-  background: rgba(15, 118, 110, 0.08);
-  color: var(--alfawz-emerald);
-  box-shadow: none;
-}
-
-.alfawz-button--ghost:hover,
-.alfawz-button--ghost:focus {
-  background: rgba(16, 185, 129, 0.18);
-  box-shadow: none;
-}
-
-.alfawz-qaidah-hotspot-item {
-  border: 1px solid rgba(15, 118, 110, 0.16);
-  border-radius: var(--alfawz-radius-md);
-  padding: 1rem;
-  background: rgba(255, 255, 255, 0.92);
-  transition: box-shadow 150ms ease, border-color 150ms ease;
-}
-
-.alfawz-qaidah-hotspot-item.is-focused {
-  border-color: rgba(16, 185, 129, 0.55);
-  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.18);
-}
-
-.alfawz-qaidah-hotspot-item__header {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 0.75rem;
-}
-
-.alfawz-qaidah-hotspot-item__badge {
-  width: 2rem;
-  height: 2rem;
-  border-radius: 9999px;
-  background: rgba(16, 185, 129, 0.12);
-  color: var(--alfawz-emerald);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-}
-
-.alfawz-qaidah-hotspot-item__title {
-  font-weight: 600;
-  color: var(--alfawz-text);
-}
-
-.alfawz-qaidah-hotspot-item__body {
-  display: grid;
-  gap: 0.75rem;
-}
-
-.alfawz-qaidah-hotspot-item__coords {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
-  gap: 0.75rem;
-}
-
-.alfawz-qaidah-hotspot-item__actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-top: 1rem;
-  align-items: center;
-}
-
-.alfawz-qaidah-hotspot-item__upload {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 3rem;
-  height: 3rem;
-  border-radius: 9999px;
-  background: rgba(16, 185, 129, 0.12);
-  font-size: 1.2rem;
-  cursor: pointer;
-  position: relative;
-  transition: var(--alfawz-transition);
-}
-
-.alfawz-qaidah-hotspot-item__upload:hover,
-.alfawz-qaidah-hotspot-item__upload:focus-within {
-  background: rgba(16, 185, 129, 0.24);
-}
-
-.alfawz-qaidah-hotspot-item__upload input {
-  position: absolute;
-  inset: 0;
-  opacity: 0;
-  cursor: pointer;
-}
-
-.alfawz-qaidah-hotspot-item__status {
-  margin-top: 0.65rem;
-  font-size: 0.85rem;
-  color: var(--alfawz-muted);
-}
-
-.alfawz-qaidah-hotspot-item__status.is-error,
-#alfawz-qaidah-status.is-error {
-  color: #dc2626;
-}
-
-.alfawz-qaidah-hotspot-item__status.is-success,
-#alfawz-qaidah-status.is-success {
-  color: #047857;
-}
-
-.alfawz-qaidah-hotspot-item__status.is-info,
-#alfawz-qaidah-status.is-info {
-  color: #0f172a;
-}
-
-.alfawz-qaidah-hotspot-empty {
-  padding: 1rem;
-  border-radius: var(--alfawz-radius-md);
-  border: 1px dashed rgba(15, 118, 110, 0.2);
-  color: var(--alfawz-muted);
-  font-size: 0.9rem;
-}
-
-.alfawz-qaidah-assignment {
-  border: 1px solid rgba(15, 118, 110, 0.15);
-  border-radius: var(--alfawz-radius-md);
-  background: rgba(255, 255, 255, 0.92);
-  transition: var(--alfawz-transition);
-}
-
-.alfawz-qaidah-assignment__button {
-  width: 100%;
-  border: none;
-  background: transparent;
-  text-align: left;
-  padding: 1rem 1.1rem;
-  display: grid;
-  gap: 0.35rem;
-  cursor: pointer;
-}
-
-.alfawz-qaidah-assignment__button:hover,
-.alfawz-qaidah-assignment__button:focus {
-  background: rgba(16, 185, 129, 0.08);
-}
-
-.alfawz-qaidah-assignment__title {
-  font-weight: 600;
-  color: var(--alfawz-text);
-}
-
-.alfawz-qaidah-assignment__meta {
-  font-size: 0.8rem;
-  color: var(--alfawz-muted);
-}
-
 .alfawz-qaidah-modal {
   position: fixed;
   inset: 0;
@@ -932,6 +653,143 @@ body .alfawz-surface {
 
 body.alfawz-qaidah-modal-open {
   overflow: hidden;
+}
+
+/* Qa'idah redesign enhancements */
+#alfawz-qaidah,
+#alfawz-qaidah * {
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+#alfawz-qaidah .animate-fade-in-up {
+  animation: qaidahFadeInUp 0.45s ease forwards;
+  opacity: 0;
+}
+
+@keyframes qaidahFadeInUp {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+#alfawz-qaidah .animate-bounce-slow {
+  animation: qaidahBounceSlow 2.4s ease-in-out infinite;
+  transform-origin: center;
+}
+
+@keyframes qaidahBounceSlow {
+  0%,
+  100% {
+    transform: translate(-50%, -50%) translateY(0);
+  }
+  50% {
+    transform: translate(-50%, -50%) translateY(-6px);
+  }
+}
+
+#alfawz-qaidah .alfawz-qaidah-hotspot {
+  border: 3px solid rgba(255, 255, 255, 0.55);
+  box-shadow: 0 14px 32px rgba(217, 119, 6, 0.3);
+  pointer-events: auto;
+}
+
+#alfawz-qaidah .alfawz-qaidah-hotspot:hover,
+#alfawz-qaidah .alfawz-qaidah-hotspot:focus {
+  box-shadow: 0 18px 40px rgba(217, 119, 6, 0.4);
+}
+
+#alfawz-qaidah .alfawz-qaidah-hotspot.is-student {
+  box-shadow: 0 14px 36px rgba(5, 150, 105, 0.38);
+}
+
+#alfawz-qaidah .alfawz-qaidah-hotspot.is-student.is-playing {
+  animation: qaidahAudioPulse 1.4s ease-in-out infinite;
+}
+
+@keyframes qaidahAudioPulse {
+  0%,
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+    box-shadow: 0 14px 36px rgba(5, 150, 105, 0.38);
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.08);
+    box-shadow: 0 20px 44px rgba(5, 150, 105, 0.48);
+  }
+}
+
+#alfawz-qaidah .qaidah-record-button.is-recording {
+  background-color: #dc2626;
+  box-shadow: 0 0 0 4px rgba(248, 113, 113, 0.22), 0 18px 40px rgba(220, 38, 38, 0.35);
+  animation: qaidahPulseGlow 1.15s ease-in-out infinite;
+}
+
+@keyframes qaidahPulseGlow {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.04);
+  }
+}
+
+#alfawz-qaidah .qaidah-play-button.is-playing {
+  background-color: #d1fae5;
+  color: #047857;
+  transform: scale(1.05);
+}
+
+#alfawz-qaidah .qaidah-play-button.is-playing .qaidah-play-icon {
+  transform: rotate(90deg);
+}
+
+#alfawz-qaidah li.is-focused {
+  outline: 3px solid rgba(251, 191, 36, 0.5);
+  box-shadow: 0 12px 28px rgba(251, 191, 36, 0.25);
+  transition: outline 0.2s ease, box-shadow 0.2s ease;
+}
+
+#alfawz-qaidah .qaidah-student-option:hover,
+#alfawz-qaidah .qaidah-student-option:focus-within {
+  transform: translateY(-2px);
+  border-color: rgba(16, 185, 129, 0.45);
+  box-shadow: 0 12px 28px rgba(16, 185, 129, 0.18);
+}
+
+#alfawz-qaidah .qaidah-student-option input[type='checkbox'] {
+  accent-color: #059669;
+}
+
+#alfawz-qaidah .alfawz-qaidah-hotspot-item__status,
+#alfawz-qaidah-status {
+  transition: color 0.2s ease;
+}
+
+#alfawz-qaidah .alfawz-qaidah-hotspot-item__status.is-error,
+#alfawz-qaidah-status.is-error {
+  color: #dc2626 !important;
+}
+
+#alfawz-qaidah .alfawz-qaidah-hotspot-item__status.is-success,
+#alfawz-qaidah-status.is-success {
+  color: #16a34a !important;
+}
+
+#alfawz-qaidah .alfawz-qaidah-hotspot-item__status.is-info,
+#alfawz-qaidah-status.is-info {
+  color: #2563eb !important;
+}
+
+#alfawz-qaidah .qaidah-hotspot-check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .alfawz-settings-grid {
