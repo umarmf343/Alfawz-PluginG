@@ -30,6 +30,104 @@
   const formatPercent = (value) => `${Math.min(100, Math.max(0, Number(value || 0))).toFixed(0)}%`;
   const timezoneOffset = () => -new Date().getTimezoneOffset();
 
+  const reduceMotionQuery =
+    typeof window !== 'undefined' && window.matchMedia
+      ? window.matchMedia('(prefers-reduced-motion: reduce)')
+      : null;
+
+  const prefersReducedMotion = () => Boolean(reduceMotionQuery?.matches);
+
+  const easeOutCubic = (t) => 1 - (1 - t) ** 3;
+
+  const parseNumeric = (value) => {
+    if (value === undefined || value === null) {
+      return 0;
+    }
+    return Number(String(value).replace(/[^0-9.-]+/g, '')) || 0;
+  };
+
+  const animateNumber = (element, targetValue, { duration = 1200 } = {}) => {
+    if (!element) {
+      return;
+    }
+    const finalValue = Number(targetValue) || 0;
+    if (prefersReducedMotion()) {
+      element.textContent = formatNumber(finalValue);
+      element.dataset.counterValue = finalValue;
+      return;
+    }
+
+    const initialValue = parseNumeric(element.dataset.counterValue ?? element.textContent ?? 0);
+    if (initialValue === finalValue) {
+      element.textContent = formatNumber(finalValue);
+      element.dataset.counterValue = finalValue;
+      return;
+    }
+
+    const startTime = performance.now();
+
+    const tick = (now) => {
+      const elapsed = now - startTime;
+      const progress = Math.min(1, elapsed / duration);
+      const eased = easeOutCubic(progress);
+      const current = initialValue + (finalValue - initialValue) * eased;
+      element.textContent = formatNumber(Math.round(current));
+      if (progress < 1) {
+        requestAnimationFrame(tick);
+      } else {
+        element.textContent = formatNumber(finalValue);
+        element.dataset.counterValue = finalValue;
+      }
+    };
+
+    requestAnimationFrame(tick);
+  };
+
+  const updateAnimatedNumber = (element, value, options) => {
+    if (!element) {
+      return;
+    }
+    animateNumber(element, value, options);
+  };
+
+  const animateProgressBar = (element, value, { duration = 900 } = {}) => {
+    if (!element) {
+      return;
+    }
+
+    const finalWidth = Math.max(0, Math.min(100, Number(value) || 0));
+    if (prefersReducedMotion()) {
+      element.style.width = `${finalWidth}%`;
+      element.dataset.progressValue = finalWidth;
+      return;
+    }
+
+    const initialWidth = Number(element.dataset.progressValue ?? parseFloat(element.style.width) || 0);
+    if (Math.abs(finalWidth - initialWidth) < 0.5) {
+      element.style.width = `${finalWidth}%`;
+      element.dataset.progressValue = finalWidth;
+      return;
+    }
+
+    const startTime = performance.now();
+
+    const tick = (now) => {
+      const elapsed = now - startTime;
+      const progress = Math.min(1, elapsed / duration);
+      const eased = easeOutCubic(progress);
+      const current = initialWidth + (finalWidth - initialWidth) * eased;
+      element.style.width = `${current.toFixed(1)}%`;
+      if (progress < 1) {
+        requestAnimationFrame(tick);
+      } else {
+        element.style.width = `${finalWidth}%`;
+        element.dataset.progressValue = finalWidth;
+      }
+    };
+
+    requestAnimationFrame(tick);
+  };
+
   const countArabicLetters = (arabicText = '') => {
     if (!arabicText) {
       return 0;
@@ -377,15 +475,17 @@
 
       state.dashboardStats = stats;
 
-      setText(qs('#alfawz-verses-today', root), formatNumber(goal?.count || stats?.verses_read || 0));
+      const versesTodayValue = Number(goal?.count || stats?.verses_read || 0);
+      updateAnimatedNumber(qs('#alfawz-verses-today', root), versesTodayValue);
       const goalLabel = qs('#alfawz-daily-goal-text', root);
       if (goalLabel) {
         goalLabel.textContent = goal?.last_reset ? `Goal resets at ${goal.last_reset}` : '';
       }
-      setText(qs('#alfawz-memorised-today', root), formatNumber(stats?.verses_memorized || 0));
-      setText(qs('#alfawz-current-streak', root), formatNumber(stats?.current_streak || 0));
+      updateAnimatedNumber(qs('#alfawz-memorised-today', root), stats?.verses_memorized || 0);
+      updateAnimatedNumber(qs('#alfawz-current-streak', root), stats?.current_streak || 0);
+      updateAnimatedNumber(qs('#alfawz-dashboard-streak-highlight', root), stats?.current_streak || 0);
       const totalHasanat = Number(stats?.total_hasanat || 0);
-      setText(qs('#alfawz-hasanat-total', root), formatNumber(totalHasanat));
+      updateAnimatedNumber(qs('#alfawz-hasanat-total', root), totalHasanat);
       updateHasanatDisplays(totalHasanat);
 
       const dailyProgressBar = qs('#alfawz-daily-progress-bar', root);
@@ -393,9 +493,7 @@
       const dailyProgressNote = qs('#alfawz-daily-progress-note', root);
 
       if (goal) {
-        if (dailyProgressBar) {
-          dailyProgressBar.style.width = `${goal.percentage || 0}%`;
-        }
+        animateProgressBar(dailyProgressBar, goal.percentage || 0);
         setText(dailyProgressLabel, `${goal.count || 0} / ${goal.target || 10}`);
         setText(dailyProgressNote, goal.remaining === 0 ? wpData.strings?.goalComplete || 'Goal completed for today!' : `${goal.remaining} verses left to reach today\'s target.`);
       }
@@ -406,22 +504,22 @@
         eggStatus.textContent = `${egg.count} / ${egg.target} ${egg.count === 1 ? 'recitation' : 'recitations'}`;
       }
       if (eggProgress && egg) {
-        eggProgress.style.width = `${egg.percentage || 0}%`;
+        animateProgressBar(eggProgress, egg.percentage || 0);
       }
 
       const leaderboardPreview = qs('#alfawz-leaderboard-preview', root);
       if (leaderboardPreview && Array.isArray(leaderboard)) {
         renderList(leaderboardPreview, leaderboard.slice(0, 5), (item, index) => {
-          const li = createListItem('flex items-center justify-between rounded-2xl border border-slate-100 bg-white/70 px-4 py-3 shadow-sm');
+          const li = createListItem('alfawz-dashboard-list-item');
           li.innerHTML = `
-            <div class="flex items-center gap-3">
-              <span class="text-lg font-semibold text-emerald-600">${index + 1}</span>
-              <div>
-                <p class="font-semibold text-slate-900">${item.display_name || '—'}</p>
-                <p class="text-xs text-slate-500">${formatNumber(item.verses_read || 0)} verses</p>
+            <div class="alfawz-dashboard-list-user">
+              <span class="alfawz-dashboard-rank">${index + 1}</span>
+              <div class="alfawz-dashboard-list-details">
+                <p class="alfawz-dashboard-list-name">${item.display_name || '—'}</p>
+                <p class="alfawz-dashboard-list-meta">${formatNumber(item.verses_read || 0)} verses</p>
               </div>
             </div>
-            <span class="text-sm font-semibold text-emerald-600">⭐ ${formatNumber(item.total_hasanat || 0)}</span>
+            <span class="alfawz-dashboard-list-score">⭐ ${formatNumber(item.total_hasanat || 0)}</span>
           `;
           return li;
         });
@@ -438,17 +536,13 @@
         if (planMeta) {
           planMeta.textContent = `${activePlan.completed_verses || 0} / ${activePlan.total_verses || 0} verses`;
         }
-        if (planProgress) {
-          planProgress.style.width = `${activePlan.completion_percentage || 0}%`;
-        }
+        animateProgressBar(planProgress, activePlan.completion_percentage || 0);
       } else {
         setText(planName, 'Create your first plan to get started');
         if (planMeta) {
           planMeta.textContent = '';
         }
-        if (planProgress) {
-          planProgress.style.width = '0%';
-        }
+        animateProgressBar(planProgress, 0);
       }
 
       const lastVerseHeading = qs('#alfawz-last-verse-title', root);
