@@ -63,6 +63,54 @@ if ( ! defined( 'ABSPATH' ) ) {
         </div>
     </div>
 
+    <div id="alfawz-audio-panel" class="alfawz-audio-panel mx-auto mt-8 max-w-2xl overflow-hidden rounded-2xl border border-emerald-100/60 bg-white/90 shadow-lg" aria-live="polite">
+        <span class="alfawz-audio-rainbow" aria-hidden="true"></span>
+        <div class="relative z-10 space-y-5 p-4 sm:p-6">
+            <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div class="flex items-center gap-4">
+                    <span class="alfawz-audio-bloom">
+                        <span class="inline-flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-emerald-400 via-rose-400 to-amber-400 text-2xl text-white shadow-lg">🎧</span>
+                    </span>
+                    <div>
+                        <p id="alfawz-audio-label" class="text-base font-semibold text-emerald-900">
+                            <?php esc_html_e( 'Recitation player', 'alfawzquran' ); ?>
+                        </p>
+                        <p id="alfawz-audio-status" class="text-sm text-emerald-700">
+                            <?php esc_html_e( 'Select a verse to load the recitation.', 'alfawzquran' ); ?>
+                        </p>
+                    </div>
+                </div>
+                <button type="button" id="alfawz-audio-toggle" class="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-emerald-500 via-rose-500 to-amber-500 px-5 py-2 text-sm font-semibold text-white shadow-lg transition hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:ring-offset-2 focus:ring-offset-emerald-50" disabled>
+                    <span class="text-lg" aria-hidden="true">▶️</span>
+                    <span class="sr-only"><?php esc_html_e( 'Toggle audio playback', 'alfawzquran' ); ?></span>
+                    <span id="alfawz-audio-toggle-label"><?php esc_html_e( 'Play', 'alfawzquran' ); ?></span>
+                </button>
+            </div>
+
+            <div>
+                <div class="relative h-2 w-full overflow-hidden rounded-full bg-emerald-100">
+                    <div id="alfawz-audio-progress" class="absolute inset-y-0 left-0 h-full w-0 bg-gradient-to-r from-emerald-400 via-rose-400 to-amber-400 transition-all duration-300 ease-out"></div>
+                    <div id="alfawz-audio-visualizer" class="alfawz-audio-visualizer" aria-hidden="true"></div>
+                </div>
+                <input type="range" id="alfawz-audio-seek" class="mt-3 w-full" min="0" max="100" value="0" aria-label="<?php esc_attr_e( 'Seek through the recitation', 'alfawzquran' ); ?>" disabled>
+                <div class="mt-2 flex items-center justify-between text-xs font-medium text-emerald-800">
+                    <span id="alfawz-audio-current">0:00</span>
+                    <span id="alfawz-audio-source" class="rounded-full bg-emerald-100 px-3 py-1 text-[0.7rem] font-semibold uppercase tracking-widest text-emerald-700">
+                        <?php esc_html_e( 'Archive · waiting', 'alfawzquran' ); ?>
+                    </span>
+                    <span id="alfawz-audio-duration">0:00</span>
+                </div>
+            </div>
+
+            <p class="text-xs text-emerald-700/80">
+                <?php esc_html_e( 'Audio sourced from the Moshaf Gwani Dahir collection hosted on the Internet Archive.', 'alfawzquran' ); ?>
+                <a href="https://archive.org/details/MoshafGwaniDahir" class="font-semibold text-emerald-900 underline-offset-2 hover:underline" target="_blank" rel="noopener">
+                    <?php esc_html_e( 'Explore the archive', 'alfawzquran' ); ?>
+                </a>
+            </p>
+        </div>
+    </div>
+
     <div id="alfawz-daily-modal" class="alfawz-daily-modal hidden fixed inset-0 z-50 flex items-end justify-center px-4 pb-8 sm:items-center" role="dialog" aria-modal="true" aria-labelledby="alfawz-daily-modal-title" aria-describedby="alfawz-daily-modal-message">
         <div class="alfawz-daily-modal__backdrop absolute inset-0 bg-gray-900 bg-opacity-60" data-dismiss-daily></div>
         <div class="alfawz-daily-modal__card relative z-10 w-full max-w-md translate-y-6 rounded-2xl bg-white px-6 py-8 text-center shadow-xl transition sm:translate-y-0">
