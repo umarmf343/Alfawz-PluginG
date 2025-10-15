@@ -261,6 +261,15 @@ class Frontend {
                     'modalTitle'           => __('Assignment preview', 'alfawzquran'),
                     'builderOpening'       => __('Opening assignment builder…', 'alfawzquran'),
                     'builderReady'         => __('Assignment builder ready.', 'alfawzquran'),
+                    'classesLabel'         => __('classes', 'alfawzquran'),
+                    'studentsUnit'         => __('students', 'alfawzquran'),
+                    'assignmentCountLabel' => __('assignments sent', 'alfawzquran'),
+                    'memoCountLabel'       => __('students tracked', 'alfawzquran'),
+                    'classActiveLabel'     => __('Active', 'alfawzquran'),
+                    'recentActivityEmpty'  => __('No recent activity yet. Student updates will appear here.', 'alfawzquran'),
+                    'assignmentFallback'   => __('Qa’idah assignment', 'alfawzquran'),
+                    'memorizedVersesUnit'  => __('verses memorised', 'alfawzquran'),
+                    'activePlansUnit'      => __('active memorisation plans', 'alfawzquran'),
                 ],
             ]);
         }
