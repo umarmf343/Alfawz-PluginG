@@ -104,6 +104,34 @@ class Routes {
             'permission_callback' => [ $this, 'check_permission' ],
         ]);
 
+        register_rest_route( 'alfawzquran/v1', '/hasanat', [
+            'methods'             => WP_REST_Server::CREATABLE,
+            'callback'            => [ $this, 'award_hasanat' ],
+            'permission_callback' => [ $this, 'check_permission' ],
+            'args'                => [
+                'surah_id'        => [
+                    'required'          => true,
+                    'validate_callback' => 'is_numeric',
+                ],
+                'verse_id'        => [
+                    'required'          => true,
+                    'validate_callback' => 'is_numeric',
+                ],
+                'hasanat'         => [
+                    'required'          => true,
+                    'validate_callback' => 'is_numeric',
+                ],
+                'progress_type'   => [
+                    'required'          => false,
+                    'sanitize_callback' => 'sanitize_key',
+                ],
+                'repetition_count' => [
+                    'required'          => false,
+                    'validate_callback' => 'is_numeric',
+                ],
+            ],
+        ] );
+
         register_rest_route( 'alfawzquran/v1', '/user-stats', [
             'methods'             => 'GET',
             'callback'            => [ $this, 'get_user_stats' ],
@@ -558,14 +586,148 @@ class Routes {
             return new \WP_REST_Response( [ 'success' => false, 'message' => 'Missing required parameters.' ], 400 );
         }
 
-        $progress_model = new UserProgress();
-        $result = $progress_model->add_progress( $user_id, $surah_id, $verse_id, $progress_type, $hasanat, $repetition_count );
+        $result = $this->record_progress_award( $user_id, $surah_id, $verse_id, $progress_type, $hasanat, $repetition_count );
 
-        if ( $result ) {
-            return new \WP_REST_Response( [ 'success' => true, 'message' => 'Progress updated successfully.' ], 200 );
-        } else {
-            return new \WP_REST_Response( [ 'success' => false, 'message' => 'Failed to update progress.' ], 500 );
+        if ( is_wp_error( $result ) ) {
+            $status = (int) $result->get_error_data( 'status' );
+            if ( ! $status ) {
+                $status = 500;
+            }
+
+            return new \WP_REST_Response(
+                [
+                    'success' => false,
+                    'message' => $result->get_error_message(),
+                ],
+                $status
+            );
         }
+
+        return new \WP_REST_Response(
+            array_merge(
+                [
+                    'success' => true,
+                    'message' => __( 'Progress updated successfully.', 'alfawzquran' ),
+                ],
+                $result
+            ),
+            200
+        );
+    }
+
+    /**
+     * Record a hasanat award from the reader or memorizer interface.
+     */
+    public function award_hasanat( WP_REST_Request $request ) {
+        $user_id = get_current_user_id();
+
+        if ( ! $user_id ) {
+            return new WP_REST_Response( [ 'success' => false, 'message' => __( 'User not logged in.', 'alfawzquran' ) ], 401 );
+        }
+
+        $surah_id         = $request->get_param( 'surah_id' );
+        $verse_id         = $request->get_param( 'verse_id' );
+        $hasanat          = $request->get_param( 'hasanat' );
+        $progress_type    = $request->get_param( 'progress_type' );
+        $repetition_count = $request->get_param( 'repetition_count' );
+
+        $result = $this->record_progress_award( $user_id, $surah_id, $verse_id, $progress_type, $hasanat, $repetition_count );
+
+        if ( is_wp_error( $result ) ) {
+            $status = (int) $result->get_error_data( 'status' );
+            if ( ! $status ) {
+                $status = 500;
+            }
+
+            return new WP_REST_Response(
+                [
+                    'success' => false,
+                    'message' => $result->get_error_message(),
+                ],
+                $status
+            );
+        }
+
+        return new WP_REST_Response(
+            array_merge(
+                [ 'success' => true ],
+                $result
+            ),
+            200
+        );
+    }
+
+    /**
+     * Persist a hasanat award and keep the running total in user meta.
+     */
+    private function record_progress_award( $user_id, $surah_id, $verse_id, $progress_type, $hasanat, $repetition_count = 0 ) {
+        $surah_id         = absint( $surah_id );
+        $verse_id         = absint( $verse_id );
+        $hasanat          = (int) $hasanat;
+        $repetition_count = (int) $repetition_count;
+
+        if ( $surah_id <= 0 || $verse_id <= 0 ) {
+            return new WP_Error(
+                'alfawz_invalid_reference',
+                __( 'A valid surah and verse are required.', 'alfawzquran' ),
+                [ 'status' => 400 ]
+            );
+        }
+
+        if ( $hasanat <= 0 ) {
+            return new WP_Error(
+                'alfawz_invalid_hasanat',
+                __( 'Hasanat must be greater than zero.', 'alfawzquran' ),
+                [ 'status' => 400 ]
+            );
+        }
+
+        $progress_type = $progress_type ? sanitize_key( (string) $progress_type ) : 'read';
+        $allowed_types = [ 'read', 'memorized' ];
+        if ( ! in_array( $progress_type, $allowed_types, true ) ) {
+            $progress_type = 'read';
+        }
+
+        $progress_model = new UserProgress();
+        $result         = $progress_model->add_progress( $user_id, $surah_id, $verse_id, $progress_type, $hasanat, $repetition_count );
+
+        if ( ! is_array( $result ) ) {
+            $result = [
+                'success'          => (bool) $result,
+                'hasanat_awarded'  => $result ? $hasanat : 0,
+                'already_recorded' => false,
+                'progress_id'      => 0,
+            ];
+        }
+
+        if ( empty( $result['success'] ) ) {
+            return new WP_Error(
+                'alfawz_progress_error',
+                __( 'Unable to record progress at this time.', 'alfawzquran' ),
+                [ 'status' => 500 ]
+            );
+        }
+
+        $awarded = isset( $result['hasanat_awarded'] ) ? (int) $result['hasanat_awarded'] : 0;
+
+        $current_total = (int) get_user_meta( $user_id, 'total_hasanat', true );
+        if ( $current_total < 0 ) {
+            $current_total = 0;
+        }
+
+        if ( $awarded > 0 ) {
+            $current_total += $awarded;
+        }
+
+        update_user_meta( $user_id, 'total_hasanat', $current_total );
+
+        return [
+            'total_hasanat'   => $current_total,
+            'hasanat_awarded' => $awarded,
+            'already_counted' => $awarded === 0,
+            'progress_type'   => $progress_type,
+            'progress_id'     => isset( $result['progress_id'] ) ? (int) $result['progress_id'] : 0,
+        ];
     }
 
     /**

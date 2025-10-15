@@ -53,8 +53,11 @@
     planDetail: null,
     repetitionCount: 0,
     currentVerse: null,
+    currentVerseData: null,
     translationVisible: true,
     modalOpen: false,
+    hasAwardedCurrentVerse: false,
+    awardInFlight: false,
   };
 
   const softChimeSrc =
@@ -71,6 +74,22 @@
 
   const formatNumber = (value) => new Intl.NumberFormat().format(Number(value || 0));
   const formatPercent = (value) => `${Math.min(100, Math.max(0, Number(value || 0))).toFixed(0)}%`;
+
+  const fallbackCountLetters = (text = '') =>
+    String(text)
+      .replace(/[\u064B-\u065F\u0670]/g, '')
+      .replace(/[^\u0621-\u064A\u066E-\u06D3]/g, '')
+      .length;
+
+  const getHasanatBridge = () => window.AlfawzHasanat || {};
+
+  const computeVerseHasanat = (arabicText = '') => {
+    const bridge = getHasanatBridge();
+    if (bridge && typeof bridge.computeHasanat === 'function') {
+      return bridge.computeHasanat(arabicText);
+    }
+    return fallbackCountLetters(arabicText) * 10;
+  };
 
   const toggleElement = (element, show) => {
     if (!element) {
@@ -284,6 +303,46 @@
     el.repeatButton.disabled = !state.currentVerse || state.modalOpen;
   };
 
+  const triggerMemorizationHasanat = async () => {
+    if (state.hasAwardedCurrentVerse || state.awardInFlight) {
+      return;
+    }
+    if (!state.planDetail || !state.currentVerse) {
+      return;
+    }
+    const verseData = state.currentVerseData;
+    if (!verseData || !verseData.arabic) {
+      return;
+    }
+    const hasanat = computeVerseHasanat(verseData.arabic);
+    if (!hasanat || hasanat <= 0) {
+      return;
+    }
+    const bridge = getHasanatBridge();
+    if (!bridge || typeof bridge.award !== 'function') {
+      return;
+    }
+
+    state.awardInFlight = true;
+    try {
+      const result = await bridge.award({
+        surahId: state.planDetail.surah_id,
+        verseId: state.currentVerse,
+        hasanat,
+        progressType: 'memorized',
+        repetitionCount: Math.max(20, state.repetitionCount || 20),
+        anchorEl: el.repeatButton,
+      });
+      if (result !== null) {
+        state.hasAwardedCurrentVerse = true;
+      }
+    } catch (error) {
+      console.warn('[Alfawz Memorization] Unable to award hasanat', error);
+    } finally {
+      state.awardInFlight = false;
+    }
+  };
+
   const updateTranslationToggleLabel = () => {
     if (!el.translationToggle) {
       return;
@@ -315,6 +374,9 @@
           ? wpData.progressIntro || 'Tap repeat to begin your twenty-fold focus session.'
           : `${remaining} ${wpData.remainingLabel || 'repetitions remaining.'}`;
     }
+    if (count >= 20 && !state.hasAwardedCurrentVerse) {
+      triggerMemorizationHasanat();
+    }
     if (count >= 20 && !state.modalOpen) {
       openModal();
     }
@@ -323,6 +385,8 @@
 
   const resetRepetition = () => {
     state.repetitionCount = 0;
+    state.hasAwardedCurrentVerse = false;
+    state.awardInFlight = false;
     updateProgressUI();
   };
 
@@ -363,6 +427,13 @@
       if (!verse) {
         throw new Error('Empty verse payload');
       }
+      state.currentVerseData = {
+        ...verse,
+        surahId: state.planDetail?.surah_id || null,
+        verseId: state.currentVerse,
+      };
+      state.hasAwardedCurrentVerse = false;
+      state.awardInFlight = false;
       el.verseArabic.textContent = verse.arabic;
       el.verseTranslation.textContent = verse.translation;
       el.verseTranslation.classList.toggle('hidden', !state.translationVisible);
@@ -374,6 +445,9 @@
       resetRepetition();
     } catch (error) {
       console.error('[Alfawz Memorization] Failed to render verse', error);
+      state.currentVerseData = null;
+      state.hasAwardedCurrentVerse = false;
+      state.awardInFlight = false;
       el.activeStatus.textContent = wpData.verseErrorMessage || 'Unable to load verse details right now.';
     }
   };
@@ -389,6 +463,9 @@
     if (!state.planSummary) {
       state.planDetail = null;
       state.currentVerse = null;
+      state.currentVerseData = null;
+      state.hasAwardedCurrentVerse = false;
+      state.awardInFlight = false;
       setActiveState(false);
       setStatus(wpData.noPlanMessage || 'Create your first plan to begin memorizing.', 'muted');
       setRepeatButtonState();
@@ -398,6 +475,9 @@
     if (!state.planDetail) {
       setActiveState(false);
       setStatus(wpData.planLoadError || 'Unable to load your memorization plan.', 'error');
+      state.currentVerseData = null;
+      state.hasAwardedCurrentVerse = false;
+      state.awardInFlight = false;
       return;
     }
     await fetchSurahs();

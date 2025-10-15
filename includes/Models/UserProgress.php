@@ -32,7 +32,9 @@ class UserProgress {
      * @return bool
      */
     public function add_progress( $user_id, $surah_id, $verse_id, $progress_type, $hasanat = 0, $repetition_count = 0 ) {
-        // Check if progress already exists for this user, surah, verse, and type today
+        $hasanat = max( 0, (int) $hasanat );
+        $repetition_count = max( 0, (int) $repetition_count );
+
         $today = gmdate( 'Y-m-d' );
         $existing_progress = $this->wpdb->get_row(
             $this->wpdb->prepare(
@@ -46,36 +48,51 @@ class UserProgress {
         );
 
         if ( $existing_progress ) {
-            // Update existing progress (e.g., add more hasanat, update repetition count)
+            $existing_hasanat   = (int) $existing_progress->hasanat;
+            $new_hasanat        = max( $existing_hasanat, $hasanat );
+            $awarded_difference = max( 0, $new_hasanat - $existing_hasanat );
+            $new_repetitions    = max( (int) $existing_progress->repetition_count, $repetition_count );
+
             $updated = $this->wpdb->update(
                 $this->table_progress,
                 [
-                    'hasanat'          => $existing_progress->hasanat + $hasanat,
-                    'repetition_count' => $repetition_count > $existing_progress->repetition_count ? $repetition_count : $existing_progress->repetition_count,
+                    'hasanat'          => $new_hasanat,
+                    'repetition_count' => $new_repetitions,
                     'timestamp'        => current_time( 'mysql', true ),
                 ],
                 [ 'id' => $existing_progress->id ],
                 [ '%d', '%d', '%s' ],
                 [ '%d' ]
             );
-            return $updated !== false;
-        } else {
-            // Insert new progress
-            $inserted = $this->wpdb->insert(
-                $this->table_progress,
-                [
-                    'user_id'          => $user_id,
-                    'surah_id'         => $surah_id,
-                    'verse_id'         => $verse_id,
-                    'progress_type'    => $progress_type,
-                    'hasanat'          => $hasanat,
-                    'repetition_count' => $repetition_count,
-                    'timestamp'        => current_time( 'mysql', true ),
-                ],
-                [ '%d', '%d', '%d', '%s', '%d', '%d', '%s' ]
-            );
-            return $inserted !== false;
+
+            return [
+                'success'          => $updated !== false,
+                'hasanat_awarded'  => $updated !== false ? $awarded_difference : 0,
+                'already_recorded' => $updated !== false ? $awarded_difference === 0 && $existing_hasanat > 0 : false,
+                'progress_id'      => (int) $existing_progress->id,
+            ];
         }
+
+        $inserted = $this->wpdb->insert(
+            $this->table_progress,
+            [
+                'user_id'          => $user_id,
+                'surah_id'         => $surah_id,
+                'verse_id'         => $verse_id,
+                'progress_type'    => $progress_type,
+                'hasanat'          => $hasanat,
+                'repetition_count' => $repetition_count,
+                'timestamp'        => current_time( 'mysql', true ),
+            ],
+            [ '%d', '%d', '%d', '%s', '%d', '%d', '%s' ]
+        );
+
+        return [
+            'success'          => $inserted !== false,
+            'hasanat_awarded'  => $inserted !== false ? $hasanat : 0,
+            'already_recorded' => false,
+            'progress_id'      => $inserted ? (int) $this->wpdb->insert_id : 0,
+        ];
     }
 
     /**
@@ -85,7 +102,8 @@ class UserProgress {
      * @return array
      */
     public function get_user_stats( $user_id ) {
-        $total_hasanat = $this->wpdb->get_var(
+        $meta_total    = get_user_meta( $user_id, 'total_hasanat', true );
+        $total_hasanat = is_numeric( $meta_total ) ? (int) $meta_total : $this->wpdb->get_var(
             $this->wpdb->prepare( "SELECT SUM(hasanat) FROM {$this->table_progress} WHERE user_id = %d", $user_id )
         );
 
