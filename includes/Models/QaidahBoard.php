@@ -46,10 +46,10 @@ class QaidahBoard {
             $sanitized_hotspots[] = [
                 'id'       => $hotspot_id,
                 'label'    => isset( $hotspot['label'] ) ? \sanitize_text_field( $hotspot['label'] ) : '',
-                'x'        => isset( $hotspot['x'] ) ? (float) $hotspot['x'] : 0,
-                'y'        => isset( $hotspot['y'] ) ? (float) $hotspot['y'] : 0,
-                'width'    => isset( $hotspot['width'] ) ? (float) $hotspot['width'] : 0,
-                'height'   => isset( $hotspot['height'] ) ? (float) $hotspot['height'] : 0,
+                'x'        => $this->sanitize_percentage( $hotspot['x'] ?? 0 ),
+                'y'        => $this->sanitize_percentage( $hotspot['y'] ?? 0 ),
+                'width'    => $this->sanitize_percentage( $hotspot['width'] ?? 0 ),
+                'height'   => $this->sanitize_percentage( $hotspot['height'] ?? 0 ),
                 'audio_id' => isset( $hotspot['audio_id'] ) ? \absint( $hotspot['audio_id'] ) : 0,
             ];
         }
@@ -192,10 +192,10 @@ class QaidahBoard {
             $prepared_hotspots[] = [
                 'id'        => isset( $hotspot['id'] ) ? \sanitize_key( $hotspot['id'] ) : \uniqid( 'hotspot_', true ),
                 'label'     => isset( $hotspot['label'] ) ? \sanitize_text_field( $hotspot['label'] ) : '',
-                'x'         => isset( $hotspot['x'] ) ? (float) $hotspot['x'] : 0,
-                'y'         => isset( $hotspot['y'] ) ? (float) $hotspot['y'] : 0,
-                'width'     => isset( $hotspot['width'] ) ? (float) $hotspot['width'] : 0,
-                'height'    => isset( $hotspot['height'] ) ? (float) $hotspot['height'] : 0,
+                'x'         => $this->format_percentage( $hotspot['x'] ?? 0 ),
+                'y'         => $this->format_percentage( $hotspot['y'] ?? 0 ),
+                'width'     => $this->format_percentage( $hotspot['width'] ?? 0 ),
+                'height'    => $this->format_percentage( $hotspot['height'] ?? 0 ),
                 'audio_id'  => $audio_id,
                 'audio_url' => $audio_id ? \wp_get_attachment_url( $audio_id ) : '',
             ];
@@ -332,5 +332,58 @@ class QaidahBoard {
         }
 
         return \sprintf( \__( 'Class %s', 'alfawzquran' ), $class_id );
+    }
+
+    private function sanitize_percentage( $value ) {
+        $number = $this->normalize_percentage_value( $value );
+
+        return $this->format_percentage_value( $number );
+    }
+
+    private function format_percentage( $value ) {
+        if ( is_string( $value ) && strpos( $value, '%' ) !== false ) {
+            return $this->sanitize_percentage( $value );
+        }
+
+        $number = $this->normalize_percentage_value( $value );
+
+        return $this->format_percentage_value( $number );
+    }
+
+    private function normalize_percentage_value( $value ) {
+        if ( is_array( $value ) ) {
+            $value = reset( $value );
+        }
+
+        if ( is_string( $value ) ) {
+            $value = trim( str_replace( '%', '', $value ) );
+        }
+
+        if ( ! is_numeric( $value ) ) {
+            return 0.0;
+        }
+
+        $number = (float) $value;
+
+        if ( $number < 0 ) {
+            $number = 0;
+        }
+
+        if ( $number > 100 ) {
+            $number = 100;
+        }
+
+        return $number;
+    }
+
+    private function format_percentage_value( $number ) {
+        $formatted = number_format( (float) $number, 2, '.', '' );
+        $formatted = rtrim( rtrim( $formatted, '0' ), '.' );
+
+        if ( '' === $formatted ) {
+            $formatted = '0';
+        }
+
+        return $formatted . '%';
     }
 }
