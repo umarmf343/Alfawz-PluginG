@@ -73,9 +73,7 @@ class Routes {
             'permission_callback' => '__return_true',
             'args' => [
                 'id' => [
-                    'validate_callback' => function($param) {
-                        return is_numeric($param);
-                    }
+                    'validate_callback' => [ $this, 'validate_numeric_param' ],
                 ],
                 'translation' => [
                     'sanitize_callback' => 'sanitize_text_field',
@@ -92,14 +90,10 @@ class Routes {
             'permission_callback' => '__return_true',
             'args'     => [
                 'id'  => [
-                    'validate_callback' => function($param) {
-                        return is_numeric($param);
-                    },
+                    'validate_callback' => [ $this, 'validate_numeric_param' ],
                 ],
                 'num' => [
-                    'validate_callback' => function($param) {
-                        return is_numeric($param);
-                    },
+                    'validate_callback' => [ $this, 'validate_numeric_param' ],
                 ],
             ],
         ]);
@@ -117,15 +111,15 @@ class Routes {
             'args'                => [
                 'surah_id'        => [
                     'required'          => true,
-                    'validate_callback' => 'is_numeric',
+                    'validate_callback' => [ $this, 'validate_numeric_param' ],
                 ],
                 'verse_id'        => [
                     'required'          => true,
-                    'validate_callback' => 'is_numeric',
+                    'validate_callback' => [ $this, 'validate_numeric_param' ],
                 ],
                 'hasanat'         => [
                     'required'          => true,
-                    'validate_callback' => 'is_numeric',
+                    'validate_callback' => [ $this, 'validate_numeric_param' ],
                 ],
                 'progress_type'   => [
                     'required'          => false,
@@ -133,7 +127,7 @@ class Routes {
                 ],
                 'repetition_count' => [
                     'required'          => false,
-                    'validate_callback' => 'is_numeric',
+                    'validate_callback' => [ $this, 'validate_numeric_param' ],
                 ],
             ],
         ] );
@@ -144,7 +138,7 @@ class Routes {
             'permission_callback' => [ $this, 'check_permission' ],
             'args'                => [
                 'timezone_offset' => [
-                    'validate_callback' => function( $param ) {
+                    'validate_callback' => function( $param, $request = null, $param_name = '' ) {
                         return is_numeric( $param ) || '' === $param || null === $param;
                     },
                 ],
@@ -157,7 +151,7 @@ class Routes {
             'permission_callback' => [ $this, 'check_permission' ],
             'args'                => [
                 'timezone_offset' => [
-                    'validate_callback' => function( $param ) {
+                    'validate_callback' => function( $param, $request = null, $param_name = '' ) {
                         return is_numeric( $param ) || '' === $param || null === $param;
                     },
                 ],
@@ -170,7 +164,7 @@ class Routes {
             'permission_callback' => [ $this, 'check_permission' ],
             'args'                => [
                 'timezone_offset' => [
-                    'validate_callback' => function( $param ) {
+                    'validate_callback' => function( $param, $request = null, $param_name = '' ) {
                         return is_numeric( $param ) || '' === $param || null === $param;
                     },
                 ],
@@ -286,7 +280,7 @@ class Routes {
                 'permission_callback' => [ $this, 'check_permission' ],
                 'args'                => [
                     'timezone_offset' => [
-                        'validate_callback' => function( $param ) {
+                        'validate_callback' => function( $param, $request = null, $param_name = '' ) {
                             return is_numeric( $param ) || '' === $param || null === $param;
                         },
                     ],
@@ -303,7 +297,7 @@ class Routes {
                 'permission_callback' => [ $this, 'check_permission' ],
                 'args'                => [
                     'timezone_offset' => [
-                        'validate_callback' => function( $param ) {
+                        'validate_callback' => function( $param, $request = null, $param_name = '' ) {
                             return is_numeric( $param ) || '' === $param || null === $param;
                         },
                     ],
@@ -321,12 +315,12 @@ class Routes {
                 'args'                => [
                     'verse_key'       => [
                         'required'          => true,
-                        'validate_callback' => function( $param ) {
+                        'validate_callback' => function( $param, $request = null, $param_name = '' ) {
                             return is_string( $param ) && '' !== trim( $param );
                         },
                     ],
                     'timezone_offset' => [
-                        'validate_callback' => function( $param ) {
+                        'validate_callback' => function( $param, $request = null, $param_name = '' ) {
                             return is_numeric( $param ) || '' === $param || null === $param;
                         },
                     ],
@@ -551,6 +545,19 @@ class Routes {
                 ],
             ]
         );
+    }
+
+    /**
+     * Validate that a REST request parameter contains a numeric value.
+     *
+     * @param mixed             $value       The value being validated.
+     * @param \WP_REST_Request $request     Optional. The current request instance.
+     * @param string            $param_name Optional. Parameter name.
+     *
+     * @return bool Whether the value represents a number.
+     */
+    public function validate_numeric_param( $value, $request = null, $param_name = '' ) {
+        return is_numeric( $value );
     }
 
     /**
