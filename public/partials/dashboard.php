@@ -41,6 +41,14 @@ if ( ! defined( 'ABSPATH' ) ) {
         </article>
     </section>
 
+    <section id="alfawz-routine-section" class="hidden rounded-3xl border border-emerald-100 bg-emerald-50/60 p-6" aria-labelledby="alfawz-routine-heading" aria-live="polite" aria-hidden="true">
+        <div class="mb-6 text-center">
+            <h2 id="alfawz-routine-heading" class="text-xl font-bold text-gray-800"><?php esc_html_e( 'Your Daily Quranic Routine', 'alfawzquran' ); ?></h2>
+            <p class="text-base text-gray-600"><?php esc_html_e( 'Aligned with the Sunnah — may Allah accept your devotion.', 'alfawzquran' ); ?></p>
+        </div>
+        <div data-routine-cards class="space-y-4" role="list"></div>
+    </section>
+
     <section class="grid gap-6 lg:grid-cols-2" aria-labelledby="alfawz-continue">
         <h3 id="alfawz-continue" class="sr-only"><?php esc_html_e( 'Continue where you left off', 'alfawzquran' ); ?></h3>
         <article class="alfawz-card flex flex-col gap-4" id="alfawz-last-verse-card">
