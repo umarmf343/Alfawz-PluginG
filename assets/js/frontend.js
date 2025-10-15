@@ -1109,29 +1109,77 @@
       return;
     }
 
-    const form = qs('#alfawz-settings-form', root);
-    const reciterSelect = qs('#alfawz-settings-reciter', form);
-    const translationSelect = qs('#alfawz-settings-translation', form);
-    const transliterationSelect = qs('#alfawz-settings-transliteration', form);
-    const hasanatField = qs('#alfawz-settings-hasanat', form);
-    const dailySlider = qs('#alfawz-settings-daily', form);
-    const dailyLabel = qs('#alfawz-settings-daily-label', root);
-    const dailyNote = qs('#alfawz-settings-daily-note', root);
-    const leaderboardToggle = qs('#alfawz-settings-leaderboard', form);
-    const toggleCopy = qs('[data-toggle-copy]', form);
-    const resetBtn = qs('#alfawz-settings-reset', root);
-    const saveBtn = qs('#alfawz-settings-save', root);
-    const feedback = qs('#alfawz-settings-feedback', root);
-    const plansMetric = qs('#alfawz-settings-metric-plans', root);
-    const versesMetric = qs('#alfawz-settings-metric-verses', root);
-    const streakMetric = qs('#alfawz-settings-metric-streak', root);
-    const highlightTitle = qs('#alfawz-settings-highlight-title', root);
-    const highlightNote = qs('#alfawz-settings-highlight-note', root);
-    const planList = qs('#alfawz-settings-plan-list', root);
-    const planEmpty = qs('#alfawz-settings-plan-empty', root);
-    const tipParagraph = qs('#alfawz-settings-quote p', root);
-    const tipSource = qs('#alfawz-settings-quote-source', root);
-    const refreshTip = qs('#alfawz-settings-refresh-tip', root);
+    const profileForm = qs('#alfawz-settings-profile-form', root);
+    const fullNameField = qs('#alfawz-settings-full-name', profileForm);
+    const emailField = qs('#alfawz-settings-email', profileForm);
+    const profileSaveBtn = qs('#alfawz-settings-profile-save', profileForm);
+    const profileStatus = qs('#alfawz-profile-status', root);
+    const profileMessage = qs('#alfawz-profile-message', profileForm);
+
+    const planSection = root.querySelector('[data-plan-url]');
+    const planName = qs('#alfawz-current-plan-name', root);
+    const planRange = qs('#alfawz-current-plan-range', root);
+    const planNote = qs('#alfawz-current-plan-note', root);
+    const planProgress = qs('#alfawz-plan-progress', root);
+    const planEmpty = qs('#alfawz-plan-empty', root);
+    const planButton = qs('#alfawz-settings-plan-button', root);
+    const changePasswordBtn = qs('#alfawz-change-password', root);
+
+    const preferencesForm = qs('#alfawz-preferences-form', root);
+    const audioToggle = qs('#alfawz-pref-audio', preferencesForm);
+    const textSizeButtons = Array.from(preferencesForm?.querySelectorAll('[data-text-size]') || []);
+    const languageSelect = qs('#alfawz-pref-language', preferencesForm);
+    const prefStatus = qs('#alfawz-preferences-status', preferencesForm);
+    const prefMessage = qs('#alfawz-preferences-message', preferencesForm);
+    const prefSaveBtn = qs('#alfawz-preferences-save', preferencesForm);
+
+    const indicatorTimers = new WeakMap();
+
+    const flashIndicator = (indicator) => {
+      if (!indicator) {
+        return;
+      }
+      const existing = indicatorTimers.get(indicator);
+      if (existing) {
+        clearTimeout(existing);
+      }
+      indicator.classList.remove('hidden');
+      indicator.classList.add('flex', 'is-visible');
+      const timeout = setTimeout(() => {
+        indicator.classList.remove('is-visible', 'flex');
+        indicator.classList.add('hidden');
+      }, 2200);
+      indicatorTimers.set(indicator, timeout);
+    };
+
+    const showMessage = (element, message, status = 'success') => {
+      if (!element) {
+        return;
+      }
+      if (!message) {
+        element.textContent = '';
+        element.classList.add('hidden');
+        element.classList.remove('text-emerald-600', 'text-red-600');
+        return;
+      }
+      element.textContent = message;
+      element.classList.remove('hidden');
+      element.classList.remove('text-emerald-600', 'text-red-600');
+      element.classList.add(status === 'error' ? 'text-red-600' : 'text-emerald-600');
+    };
+
+    const setActiveTextSize = (size) => {
+      textSizeButtons.forEach((button) => {
+        const { textSize } = button.dataset;
+        const isActive = textSize === size;
+        button.classList.toggle('border-emerald-500', isActive);
+        button.classList.toggle('bg-emerald-50', isActive);
+        button.classList.toggle('text-emerald-700', isActive);
+        button.classList.toggle('font-medium', isActive);
+        button.classList.toggle('border-gray-300', !isActive);
+        button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+      });
+    };
 
     const fallbackPreferences = {
       default_reciter: wpData.defaultReciter || 'ar.alafasy',
@@ -1139,94 +1187,40 @@
       default_transliteration: wpData.defaultTransliteration ?? 'en.transliteration',
       hasanat_per_letter: Number(wpData.hasanatPerLetter || 10),
       daily_verse_target: Number(wpData.dailyTarget || 10),
-      enable_leaderboard: wpData.userPreferences?.enable_leaderboard ?? true,
+      enable_leaderboard: Boolean(
+        wpData.userPreferences?.enable_leaderboard ?? wpData.enableLeaderboard ?? true
+      ),
+      audio_feedback: true,
+      text_size: 'medium',
+      interface_language: 'en',
     };
 
-    const statePrefs = { ...fallbackPreferences, ...(wpData.userPreferences || {}) };
-
-    const tips = [
-      {
-        text: '“The most beloved deed to Allah is the most regular and constant even if it were little.”',
-        source: 'Prophet Muhammad ﷺ – Sahih al-Bukhari',
-      },
-      {
-        text: '“Your heart finds rest when the Quran is recited, so keep it luminous with daily verses.”',
-        source: 'Al-Ghazali – Ihya Ulum ad-Din',
-      },
-      {
-        text: '“Tie your memorisation with review, for knowledge leaves when neglected.”',
-        source: 'Imam Shafi’i – Adab al-Shafi’i',
-      },
-      {
-        text: '“Let each verse you recite be a conversation with your Lord that softens the heart.”',
-        source: 'Ibn al-Qayyim – Al-Fawaid',
-      },
-    ];
-
-    const setFeedback = (message, status = '') => {
-      if (!feedback) {
-        return;
-      }
-      feedback.textContent = message || '';
-      if (status) {
-        feedback.dataset.status = status;
-      } else {
-        delete feedback.dataset.status;
-      }
-    };
-
-    const updateDailySliderCopy = (value) => {
-      if (dailyLabel) {
-        dailyLabel.textContent = `${value}`;
-      }
-      if (dailyNote) {
-        if (value < 10) {
-          dailyNote.textContent = 'Gentle steps build unshakeable habits—keep it steady.';
-        } else if (value < 20) {
-          dailyNote.textContent = 'A balanced challenge that keeps recitation flowing every day.';
-        } else {
-          dailyNote.textContent = 'Aim high and remember to review—consistency crowns the journey.';
-        }
-      }
-    };
+    let preferenceState = { ...fallbackPreferences, ...(wpData.userPreferences || {}) };
 
     const applyPreferences = (preferences = {}) => {
-      const merged = { ...fallbackPreferences, ...preferences };
-      statePrefs.default_reciter = merged.default_reciter;
-      statePrefs.default_translation = merged.default_translation;
-      statePrefs.default_transliteration = merged.default_transliteration;
-      statePrefs.hasanat_per_letter = Number(merged.hasanat_per_letter || fallbackPreferences.hasanat_per_letter);
-      statePrefs.daily_verse_target = Number(merged.daily_verse_target || fallbackPreferences.daily_verse_target);
-      statePrefs.enable_leaderboard = Boolean(
-        merged.enable_leaderboard ?? fallbackPreferences.enable_leaderboard
-      );
+      preferenceState = { ...preferenceState, ...preferences };
+      if (audioToggle) {
+        audioToggle.checked = Boolean(preferenceState.audio_feedback);
+      }
+      setActiveTextSize(preferenceState.text_size || 'medium');
+      if (languageSelect) {
+        languageSelect.value = preferenceState.interface_language || 'en';
+      }
+    };
 
-      currentReciter = statePrefs.default_reciter || RECITER_EDITION;
-      state.audioCache.clear();
+    applyPreferences(preferenceState);
 
-      if (reciterSelect) {
-        reciterSelect.value = statePrefs.default_reciter;
-      }
-      if (translationSelect) {
-        translationSelect.value = statePrefs.default_translation;
-      }
-      if (transliterationSelect) {
-        transliterationSelect.value = statePrefs.default_transliteration ?? '';
-      }
-      if (hasanatField) {
-        hasanatField.value = statePrefs.hasanat_per_letter;
-      }
-      if (dailySlider) {
-        dailySlider.value = statePrefs.daily_verse_target;
-        updateDailySliderCopy(statePrefs.daily_verse_target);
-      }
-      if (leaderboardToggle) {
-        leaderboardToggle.checked = Boolean(statePrefs.enable_leaderboard);
-      }
-      if (toggleCopy) {
-        toggleCopy.textContent = leaderboardToggle?.checked
-          ? 'Show me on the community leaderboard'
-          : 'Keep my progress private';
+    const loadProfile = async () => {
+      try {
+        const profile = await apiRequest('user-profile');
+        if (profile?.display_name && fullNameField) {
+          fullNameField.value = profile.display_name;
+        }
+        if (profile?.email && emailField) {
+          emailField.value = profile.email;
+        }
+      } catch (error) {
+        console.warn('[AlfawzQuran] Unable to load profile data', error);
       }
     };
 
@@ -1234,152 +1228,231 @@
       try {
         const response = await apiRequest('user-preferences');
         if (response && typeof response === 'object') {
-          applyPreferences(response);
-        } else {
-          applyPreferences(statePrefs);
+          applyPreferences({ ...fallbackPreferences, ...response });
         }
       } catch (error) {
         console.warn('[AlfawzQuran] Unable to load user preferences', error);
-        applyPreferences(statePrefs);
       }
     };
 
-    const loadMetrics = async () => {
-      try {
-        const stats = state.dashboardStats || await apiRequest('user-stats');
-        if (plansMetric) {
-          plansMetric.textContent = formatNumber(stats?.active_plans || 0);
-        }
-        if (versesMetric) {
-          versesMetric.textContent = formatNumber(stats?.verses_memorized || 0);
-        }
-        if (streakMetric) {
-          streakMetric.textContent = formatNumber(stats?.current_streak || 0);
-        }
-        if (highlightTitle) {
-          if ((stats?.current_streak || 0) > 0) {
-            highlightTitle.textContent = `Keep nurturing your ${formatNumber(stats.current_streak)} day streak!`;
-            highlightNote.textContent = 'Log a quick recitation session today to protect the momentum.';
-          } else {
-            highlightTitle.textContent = 'Begin a new streak today';
-            highlightNote.textContent = 'Even one ayah brings you closer—set a gentle target and press play.';
-          }
-        }
-      } catch (error) {
-        console.warn('[AlfawzQuran] Unable to load settings metrics', error);
-      }
-    };
-
-    const renderPlans = async () => {
-      if (!planList) {
+    const renderPlan = async () => {
+      if (!planName || !planProgress) {
         return;
       }
-      planList.innerHTML = '';
-      planList.setAttribute('aria-busy', 'true');
       try {
         const plans = await apiRequest('memorization-plans');
-        planList.innerHTML = '';
         const collection = Array.isArray(plans) ? plans : [];
         if (!collection.length) {
-          planList.setAttribute('aria-busy', 'false');
+          planName.textContent = 'No memorization plan yet.';
+          if (planRange) {
+            planRange.textContent = '';
+          }
+          if (planNote) {
+            planNote.textContent = 'Tap "Start New Memorization Plan" to begin a gentle path.';
+          }
+          if (planProgress) {
+            planProgress.style.width = '0%';
+          }
           planEmpty?.classList.remove('hidden');
           return;
         }
+
+        const activePlan = collection.find((plan) => plan.status === 'active') || collection[0];
+        const completion = Math.max(0, Math.min(100, Number(activePlan?.completion_percentage || 0)));
+        const totalVerses = Number(activePlan?.total_verses || 0);
+        const completedVerses = Number(activePlan?.completed_verses || 0);
+
         planEmpty?.classList.add('hidden');
-        collection.slice(0, 4).forEach((plan) => {
-          const li = document.createElement('li');
-          li.className = 'alfawz-settings-plan-item';
-          const completion = Number(plan.completion_percentage || 0);
-          li.innerHTML = `
-            <div class="flex items-center justify-between gap-3">
-              <p class="text-sm font-semibold text-slate-900">${plan.plan_name || 'Memorisation plan'}</p>
-              <span class="text-xs font-semibold text-emerald-600">${formatPercent(completion)}</span>
-            </div>
-            <div class="alfawz-settings-plan-item__meta">
-              <span>Surah ${plan.surah_id}</span>
-              <span>Ayah ${plan.start_verse} – ${plan.end_verse}</span>
-            </div>
-            <div class="alfawz-settings-plan-item__progress"><span style="width:${Math.min(100, completion)}%"></span></div>
-          `;
-          planList.appendChild(li);
-        });
-        planList.setAttribute('aria-busy', 'false');
+        if (activePlan?.plan_name) {
+          planName.textContent = activePlan.plan_name;
+        } else if (activePlan?.surah_id) {
+          planName.textContent = `Surah ${activePlan.surah_id}`;
+        } else {
+          planName.textContent = 'Memorization plan';
+        }
+        if (planRange) {
+          const rangeParts = [];
+          if (activePlan?.surah_id) {
+            rangeParts.push(`Surah ${activePlan.surah_id}`);
+          }
+          if (activePlan?.start_verse && activePlan?.end_verse) {
+            rangeParts.push(`Ayah ${activePlan.start_verse} – ${activePlan.end_verse}`);
+          }
+          planRange.textContent = rangeParts.join(' · ');
+        }
+        if (planNote) {
+          if (completion >= 100) {
+            planNote.textContent = 'This plan is complete. Begin a new plan to continue your journey.';
+          } else {
+            const completedCopy = totalVerses
+              ? `${formatNumber(completedVerses)} of ${formatNumber(totalVerses)} verses complete.`
+              : '';
+            planNote.textContent = `${completedCopy} Complete 20 gentle repetitions to unlock your next verse.`.trim();
+          }
+        }
+        if (planProgress) {
+          planProgress.style.width = `${completion}%`;
+        }
       } catch (error) {
-        console.warn('[AlfawzQuran] Unable to load memorisation plans', error);
-        planList.innerHTML = '<li class="text-sm text-slate-500">Unable to load plans right now.</li>';
-        planList.setAttribute('aria-busy', 'false');
+        console.warn('[AlfawzQuran] Unable to load memorization plan', error);
+        planName.textContent = 'Unable to load your memorization plan right now.';
+        if (planRange) {
+          planRange.textContent = '';
+        }
+        if (planNote) {
+          planNote.textContent = 'Please refresh the page or try again shortly.';
+        }
+        if (planProgress) {
+          planProgress.style.width = '0%';
+        }
       }
     };
 
-    const rotateTip = () => {
-      const choice = tips[Math.floor(Math.random() * tips.length)];
-      if (tipParagraph) {
-        tipParagraph.textContent = choice.text;
-      }
-      if (tipSource) {
-        tipSource.textContent = choice.source;
-      }
-    };
+    if (planButton) {
+      planButton.addEventListener('click', () => {
+        const targetUrl = planSection?.dataset.planUrl || wpData.memorizerUrl;
+        if (targetUrl) {
+          window.location.href = targetUrl;
+        }
+      });
+    }
 
-    form?.addEventListener('submit', async (event) => {
-      event.preventDefault();
-      if (!saveBtn) {
+    changePasswordBtn?.addEventListener('click', () => {
+      const targetUrl = changePasswordBtn.dataset.passwordUrl;
+      if (targetUrl) {
+        window.location.href = targetUrl;
+      }
+    });
+
+    let saveTimeout;
+    let isSavingPreferences = false;
+    let pendingSave = false;
+
+    const savePreferences = async (manual = false) => {
+      if (isSavingPreferences) {
+        pendingSave = manual || pendingSave;
         return;
       }
-      saveBtn.disabled = true;
-      saveBtn.classList.add('is-loading');
-      setFeedback('Saving preferences…');
+
+      clearTimeout(saveTimeout);
+      isSavingPreferences = true;
+      if (prefSaveBtn) {
+        prefSaveBtn.disabled = true;
+      }
+      showMessage(prefMessage, manual ? 'Saving preferences…' : 'Saving…', 'success');
+
       const payload = {
-        default_reciter: reciterSelect?.value || fallbackPreferences.default_reciter,
-        default_translation: translationSelect?.value || fallbackPreferences.default_translation,
-        default_transliteration: transliterationSelect?.value || '',
-        hasanat_per_letter: Number(hasanatField?.value || fallbackPreferences.hasanat_per_letter),
-        daily_verse_target: Number(dailySlider?.value || fallbackPreferences.daily_verse_target),
-        enable_leaderboard: leaderboardToggle?.checked ? 1 : 0,
+        ...preferenceState,
+        enable_leaderboard: preferenceState.enable_leaderboard ? 1 : 0,
+        audio_feedback: preferenceState.audio_feedback ? 1 : 0,
       };
+
       try {
         const response = await apiRequest('user-preferences', {
           method: 'POST',
           body: payload,
         });
         applyPreferences(response || payload);
-        setFeedback(wpData.strings?.settingsSaved || 'Preferences updated!', 'success');
+        flashIndicator(prefStatus);
+        showMessage(prefMessage, wpData.strings?.settingsSaved || 'Preferences updated!', 'success');
       } catch (error) {
         console.warn('[AlfawzQuran] Unable to save user preferences', error);
-        setFeedback(wpData.strings?.settingsError || 'Unable to save preferences. Please try again.', 'error');
+        showMessage(
+          prefMessage,
+          wpData.strings?.settingsError || 'Unable to save preferences. Please try again.',
+          'error'
+        );
       } finally {
-        saveBtn.disabled = false;
-        saveBtn.classList.remove('is-loading');
+        isSavingPreferences = false;
+        if (prefSaveBtn) {
+          prefSaveBtn.disabled = false;
+        }
+        if (pendingSave) {
+          pendingSave = false;
+          savePreferences(false);
+        }
+      }
+    };
+
+    const schedulePreferenceSave = () => {
+      clearTimeout(saveTimeout);
+      saveTimeout = setTimeout(() => {
+        savePreferences(false);
+      }, 600);
+    };
+
+    audioToggle?.addEventListener('change', () => {
+      preferenceState.audio_feedback = audioToggle.checked;
+      schedulePreferenceSave();
+    });
+
+    textSizeButtons.forEach((button) => {
+      button.addEventListener('click', () => {
+        const { textSize } = button.dataset;
+        if (!textSize || textSize === preferenceState.text_size) {
+          return;
+        }
+        preferenceState.text_size = textSize;
+        setActiveTextSize(textSize);
+        schedulePreferenceSave();
+      });
+    });
+
+    languageSelect?.addEventListener('change', (event) => {
+      preferenceState.interface_language = event.target.value || 'en';
+      schedulePreferenceSave();
+    });
+
+    preferencesForm?.addEventListener('submit', (event) => {
+      event.preventDefault();
+      savePreferences(true);
+    });
+
+    profileForm?.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const fullName = (fullNameField?.value || '').trim();
+      if (!fullName) {
+        showMessage(
+          profileMessage,
+          wpData.strings?.profileNameMissing || 'Please add your full name before saving.',
+          'error'
+        );
+        return;
+      }
+
+      showMessage(profileMessage, 'Saving profile…', 'success');
+      if (profileSaveBtn) {
+        profileSaveBtn.disabled = true;
+      }
+
+      try {
+        const response = await apiRequest('user-profile', {
+          method: 'POST',
+          body: { full_name: fullName },
+        });
+        if (response?.display_name && fullNameField) {
+          fullNameField.value = response.display_name;
+        }
+        if (response?.email && emailField) {
+          emailField.value = response.email;
+        }
+        flashIndicator(profileStatus);
+        showMessage(profileMessage, wpData.strings?.profileSaved || 'Profile updated!', 'success');
+      } catch (error) {
+        console.warn('[AlfawzQuran] Unable to update profile', error);
+        showMessage(
+          profileMessage,
+          wpData.strings?.profileError || 'Unable to update profile. Please try again.',
+          'error'
+        );
+      } finally {
+        if (profileSaveBtn) {
+          profileSaveBtn.disabled = false;
+        }
       }
     });
 
-    dailySlider?.addEventListener('input', (event) => {
-      const value = Number(event.target.value || fallbackPreferences.daily_verse_target);
-      updateDailySliderCopy(value);
-    });
-
-    leaderboardToggle?.addEventListener('change', () => {
-      if (toggleCopy) {
-        toggleCopy.textContent = leaderboardToggle.checked
-          ? 'Show me on the community leaderboard'
-          : 'Keep my progress private';
-      }
-    });
-
-    reciterSelect?.addEventListener('change', (event) => {
-      currentReciter = event.target.value || RECITER_EDITION;
-      state.audioCache.clear();
-    });
-
-    resetBtn?.addEventListener('click', () => {
-      applyPreferences(fallbackPreferences);
-      setFeedback('Preferences reset to site defaults.', 'success');
-    });
-
-    refreshTip?.addEventListener('click', rotateTip);
-
-    rotateTip();
-    await Promise.all([loadPreferences(), loadMetrics(), renderPlans()]);
+    await Promise.all([loadProfile(), loadPreferences(), renderPlan()]);
   };
 
   document.addEventListener('DOMContentLoaded', () => {

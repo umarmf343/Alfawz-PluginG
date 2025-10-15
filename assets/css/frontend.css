@@ -1592,3 +1592,23 @@ body.alfawz-qaidah-modal-open {
     transform: translate(calc(-50% + 4rem), calc(-50% - 6rem)) scale(1.2) rotate(260deg);
   }
 }
+
+#alfawz-settings {
+  padding-top: max(2.5rem, env(safe-area-inset-top, 0px));
+  padding-bottom: max(2.5rem, env(safe-area-inset-bottom, 0px));
+  padding-left: max(1rem, env(safe-area-inset-left, 0px));
+  padding-right: max(1rem, env(safe-area-inset-right, 0px));
+}
+
+#alfawz-settings .alfawz-save-indicator {
+  align-items: center;
+  gap: 0.5rem;
+  opacity: 0;
+  transform: translateY(0.5rem);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+#alfawz-settings .alfawz-save-indicator.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}

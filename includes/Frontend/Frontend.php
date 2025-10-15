@@ -77,6 +77,7 @@ class Frontend {
                 'isLoggedIn' => $is_logged_in,
                 'ajaxUrl' => admin_url('admin-ajax.php'),
                 'pluginUrl' => ALFAWZQURAN_PLUGIN_URL,
+                'memorizerUrl' => home_url('/alfawz-memorizer/'),
                 'hasanatPerLetter' => get_option('alfawz_hasanat_per_letter', 10),
                 'dailyTarget' => get_option('alfawz_daily_verse_target', 10),
                 'defaultReciter' => get_option('alfawz_default_reciter', 'ar.alafasy'),
@@ -87,6 +88,9 @@ class Frontend {
                 'strings' => [
                     'settingsSaved' => __('Preferences updated!', 'alfawzquran'),
                     'settingsError' => __('Unable to save preferences. Please try again.', 'alfawzquran'),
+                    'profileSaved' => __('Profile updated!', 'alfawzquran'),
+                    'profileError' => __('Unable to update profile. Please try again.', 'alfawzquran'),
+                    'profileNameMissing' => __('Please add your full name before saving.', 'alfawzquran'),
                 ],
             ]);
 

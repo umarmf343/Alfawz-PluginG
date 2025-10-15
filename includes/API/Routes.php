@@ -7,6 +7,7 @@ use WP_REST_Server;
 use WP_Error;
 use WP_REST_Request;
 use WP_REST_Response;
+use function __;
 
 /**
  * Register REST API routes for the plugin.
@@ -190,6 +191,26 @@ class Routes {
             [
                 'methods'             => WP_REST_Server::CREATABLE,
                 'callback'            => [ $this, 'update_user_preferences' ],
+                'permission_callback' => [ $this, 'check_permission' ],
+            ]
+        );
+
+        register_rest_route(
+            $namespace,
+            '/user-profile',
+            [
+                'methods'             => WP_REST_Server::READABLE,
+                'callback'            => [ $this, 'get_user_profile' ],
+                'permission_callback' => [ $this, 'check_permission' ],
+            ]
+        );
+
+        register_rest_route(
+            $namespace,
+            '/user-profile',
+            [
+                'methods'             => WP_REST_Server::CREATABLE,
+                'callback'            => [ $this, 'update_user_profile' ],
                 'permission_callback' => [ $this, 'check_permission' ],
             ]
         );
@@ -528,6 +549,105 @@ class Routes {
         return new \WP_REST_Response( $stats, 200 );
     }
 
+    public function get_user_profile( WP_REST_Request $request ) {
+        $user_id = get_current_user_id();
+
+        if ( empty( $user_id ) ) {
+            return new WP_REST_Response(
+                [
+                    'success' => false,
+                    'message' => __( 'User not logged in.', 'alfawzquran' ),
+                ],
+                401
+            );
+        }
+
+        $user = get_userdata( $user_id );
+        if ( ! $user ) {
+            return new WP_REST_Response(
+                [
+                    'success' => false,
+                    'message' => __( 'Unable to load profile.', 'alfawzquran' ),
+                ],
+                404
+            );
+        }
+
+        return new WP_REST_Response(
+            [
+                'display_name' => $user->display_name,
+                'first_name'   => $user->first_name,
+                'last_name'    => $user->last_name,
+                'email'        => $user->user_email,
+            ],
+            200
+        );
+    }
+
+    public function update_user_profile( WP_REST_Request $request ) {
+        $user_id = get_current_user_id();
+
+        if ( empty( $user_id ) ) {
+            return new WP_REST_Response(
+                [
+                    'success' => false,
+                    'message' => __( 'User not logged in.', 'alfawzquran' ),
+                ],
+                401
+            );
+        }
+
+        $params    = $request->get_json_params();
+        if ( empty( $params ) ) {
+            $params = $request->get_params();
+        }
+
+        $full_name = isset( $params['full_name'] ) ? sanitize_text_field( $params['full_name'] ) : '';
+
+        if ( '' === $full_name ) {
+            return new WP_REST_Response(
+                [
+                    'success' => false,
+                    'message' => __( 'Please provide your full name.', 'alfawzquran' ),
+                ],
+                400
+            );
+        }
+
+        $name_parts = preg_split( '/\s+/', trim( $full_name ) );
+        $first_name = $name_parts ? array_shift( $name_parts ) : '';
+        $last_name  = $name_parts ? implode( ' ', $name_parts ) : '';
+
+        $user_update = [
+            'ID'           => $user_id,
+            'display_name' => $full_name,
+        ];
+
+        if ( $first_name ) {
+            $user_update['first_name'] = $first_name;
+        }
+
+        if ( $last_name ) {
+            $user_update['last_name'] = $last_name;
+        }
+
+        $result = wp_update_user( $user_update );
+
+        if ( is_wp_error( $result ) ) {
+            return new WP_REST_Response(
+                [
+                    'success' => false,
+                    'message' => __( 'Unable to update your profile right now.', 'alfawzquran' ),
+                ],
+                500
+            );
+        }
+
+        update_user_meta( $user_id, 'nickname', $full_name );
+
+        return $this->get_user_profile( $request );
+    }
+
     public function get_user_preferences( WP_REST_Request $request ) {
         $user_id = get_current_user_id();
         if ( empty( $user_id ) ) {
@@ -555,6 +675,9 @@ class Routes {
             'hasanat_per_letter'      => 'alfawz_pref_hasanat_per_letter',
             'daily_verse_target'      => 'alfawz_pref_daily_target',
             'enable_leaderboard'      => 'alfawz_pref_enable_leaderboard',
+            'audio_feedback'          => 'alfawz_pref_audio_feedback',
+            'text_size'               => 'alfawz_pref_text_size',
+            'interface_language'      => 'alfawz_pref_interface_language',
         ];
 
         foreach ( $map as $key => $meta_key ) {
@@ -580,6 +703,19 @@ class Routes {
                     break;
                 case 'enable_leaderboard':
                     update_user_meta( $user_id, $meta_key, $value ? 1 : 0 );
+                    break;
+                case 'audio_feedback':
+                    update_user_meta( $user_id, $meta_key, $value ? 1 : 0 );
+                    break;
+                case 'text_size':
+                    update_user_meta( $user_id, $meta_key, sanitize_text_field( $value ) );
+                    break;
+                case 'interface_language':
+                    $lang = substr( sanitize_key( (string) $value ), 0, 2 );
+                    if ( ! in_array( $lang, [ 'en', 'ar', 'ur' ], true ) ) {
+                        $lang = 'en';
+                    }
+                    update_user_meta( $user_id, $meta_key, $lang );
                     break;
             }
         }
@@ -2115,6 +2251,9 @@ class Routes {
             'hasanat_per_letter'      => (int) get_option( 'alfawz_hasanat_per_letter', 10 ),
             'daily_verse_target'      => (int) get_option( 'alfawz_daily_verse_target', 10 ),
             'enable_leaderboard'      => (bool) get_option( 'alfawz_enable_leaderboard', 1 ),
+            'audio_feedback'          => true,
+            'text_size'               => 'medium',
+            'interface_language'      => 'en',
         ];
 
         $map = [
@@ -2124,6 +2263,9 @@ class Routes {
             'hasanat_per_letter'      => 'alfawz_pref_hasanat_per_letter',
             'daily_verse_target'      => 'alfawz_pref_daily_target',
             'enable_leaderboard'      => 'alfawz_pref_enable_leaderboard',
+            'audio_feedback'          => 'alfawz_pref_audio_feedback',
+            'text_size'               => 'alfawz_pref_text_size',
+            'interface_language'      => 'alfawz_pref_interface_language',
         ];
 
         $preferences = [];
@@ -2136,10 +2278,13 @@ class Routes {
                 continue;
             }
 
-            if ( 'enable_leaderboard' === $key ) {
+            if ( in_array( $key, [ 'enable_leaderboard', 'audio_feedback' ], true ) ) {
                 $preferences[ $key ] = (bool) $value;
             } elseif ( in_array( $key, [ 'hasanat_per_letter', 'daily_verse_target' ], true ) ) {
                 $preferences[ $key ] = (int) $value;
+            } elseif ( 'interface_language' === $key ) {
+                $lang = substr( sanitize_key( (string) $value ), 0, 2 );
+                $preferences[ $key ] = in_array( $lang, [ 'en', 'ar', 'ur' ], true ) ? $lang : $defaults[ $key ];
             } else {
                 $preferences[ $key ] = $value;
             }
