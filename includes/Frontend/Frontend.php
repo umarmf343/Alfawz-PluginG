@@ -71,6 +71,37 @@ class Frontend {
                 'defaultReciter' => get_option('alfawz_default_reciter', 'ar.alafasy'),
                 'defaultTranslation' => get_option('alfawz_default_translation', 'en.sahih')
             ]);
+
+            if ($this->is_reader_page()) {
+                wp_enqueue_script(
+                    'alfawz-reader',
+                    ALFAWZQURAN_PLUGIN_URL . 'assets/js/reader.js',
+                    [],
+                    ALFAWZQURAN_VERSION,
+                    true
+                );
+
+                wp_localize_script('alfawz-reader', 'alfawzReaderData', [
+                    'apiUrl' => rest_url('alfawzquran/v1/'),
+                    'nonce' => wp_create_nonce('wp_rest'),
+                    'isLoggedIn' => is_user_logged_in(),
+                    'defaultTranslation' => get_option('alfawz_default_translation', 'en.sahih'),
+                    'transliterationEdition' => apply_filters('alfawz_reader_transliteration_edition', 'en.transliteration'),
+                    'hasanatPerLetter' => get_option('alfawz_hasanat_per_letter', 10),
+                    'dailyTarget' => get_option('alfawz_daily_verse_target', 10),
+                    'strings' => [
+                        'loading' => \__('Loading verse…', 'alfawzquran'),
+                        'selectPrompt' => \__('Select a surah to begin.', 'alfawzquran'),
+                        'loginRequired' => \__('Log in to track your progress.', 'alfawzquran'),
+                        'goalReady' => \__('Daily goal progress', 'alfawzquran'),
+                        'goalCompleted' => \__('Takbir! You reached today\'s 10-verse goal.', 'alfawzquran'),
+                        'goalRemaining' => \__('verses left today', 'alfawzquran'),
+                        'celebrationContinue' => \__('Continue reading', 'alfawzquran'),
+                        'eggTitle' => \__('Break the egg', 'alfawzquran'),
+                        'eggComplete' => \__('Egg hatched! Target increased.', 'alfawzquran'),
+                    ],
+                ]);
+            }
         }
     }
     
@@ -107,6 +138,16 @@ class Frontend {
         }
 
         return false;
+    }
+
+    private function is_reader_page() {
+        global $post;
+
+        if (!$post) {
+            return false;
+        }
+
+        return has_shortcode($post->post_content, 'alfawz_reader');
     }
 
     public function dashboard_shortcode($atts) {
