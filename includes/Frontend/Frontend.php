@@ -18,7 +18,6 @@ class Frontend {
         add_action('init', [$this, 'register_shortcodes']);
         add_action('wp_enqueue_scripts', [$this, 'enqueue_assets']);
         add_action('wp_head', [$this, 'add_meta_tags']);
-        add_action('wp_footer', [$this, 'render_bottom_navigation']);
     }
 
     public function register_shortcodes() {
@@ -336,12 +335,4 @@ class Frontend {
         return ob_get_clean();
     }
 
-    public function render_bottom_navigation() {
-        if (!$this->active_view) {
-            return;
-        }
-
-        $current_page = $this->active_view;
-        include ALFAWZQURAN_PLUGIN_PATH . 'public/partials/mobile-nav.php';
-    }
 }

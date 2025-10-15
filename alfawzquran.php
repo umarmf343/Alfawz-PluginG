@@ -90,6 +90,7 @@ function run_alfawz_quran() {
 
     // Load public-facing functionality
     require_once ALFAWZQURAN_PLUGIN_PATH . 'includes/Frontend/Frontend.php';
+    require_once ALFAWZQURAN_PLUGIN_PATH . 'includes/Frontend/BottomNav.php';
     $frontend = new AlfawzQuran\Frontend\Frontend();
     $loader->add_action( 'init', $frontend, 'register_shortcodes' );
     $loader->add_action( 'wp_enqueue_scripts', $frontend, 'enqueue_assets' );

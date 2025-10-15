@@ -166,21 +166,6 @@
 
   const buildVerseKey = (surahId, verseId) => `${surahId}:${verseId}`;
 
-  const attachNavigation = () => {
-    const nav = qs('.alfawz-bottom-navigation');
-    if (!nav) {
-      return;
-    }
-    nav.addEventListener('click', (event) => {
-      const link = event.target.closest('a[data-page]');
-      if (!link) {
-        return;
-      }
-      nav.querySelectorAll('a[data-page]').forEach((anchor) => {
-        anchor.classList.toggle('active', anchor === link);
-      });
-    });
-  };
 
   const initDashboard = async () => {
     const root = qs('#alfawz-dashboard');
@@ -955,6 +940,5 @@
     initMemorizer();
     initLeaderboard();
     initProfile();
-    attachNavigation();
   });
 })();

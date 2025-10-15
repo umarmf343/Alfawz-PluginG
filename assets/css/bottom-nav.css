@@ -1,0 +1,12 @@
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+#alfawz-bottom-nav {
+  padding-bottom: env(safe-area-inset-bottom);
+}
