@@ -3881,3 +3881,350 @@ body.alfawz-qaidah-modal-open {
 .animate-float-up {
   animation: alfawz-float-up 1.2s ease-out forwards;
 }
+
+#alfawz-account {
+  position: relative;
+  isolation: isolate;
+}
+
+#alfawz-account .alfawz-account-hero {
+  position: relative;
+  display: grid;
+  gap: 2.5rem;
+  padding: 3rem;
+  border-radius: var(--alfawz-radius-xl);
+  background: linear-gradient(135deg, rgba(47, 8, 17, 0.96), rgba(116, 31, 49, 0.92));
+  color: #fff7ee;
+  overflow: hidden;
+  box-shadow: var(--alfawz-shadow);
+}
+
+#alfawz-account .alfawz-account-hero::before,
+#alfawz-account .alfawz-account-hero::after {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(0);
+  pointer-events: none;
+}
+
+#alfawz-account .alfawz-account-hero::before {
+  inset: -40% auto auto -25%;
+  width: 55%;
+  height: 55%;
+  background: radial-gradient(circle at 35% 35%, rgba(255, 207, 153, 0.5), transparent 70%);
+  animation: alfawz-aurora 12s ease-in-out infinite;
+}
+
+#alfawz-account .alfawz-account-hero::after {
+  inset: auto -20% -35% auto;
+  width: 50%;
+  height: 50%;
+  background: radial-gradient(circle at 70% 40%, rgba(245, 159, 130, 0.45), transparent 75%);
+  animation: alfawz-aurora 14s ease-in-out infinite reverse;
+}
+
+#alfawz-account .alfawz-account-hero > * {
+  position: relative;
+  z-index: 1;
+}
+
+#alfawz-account .alfawz-account-hero__content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+#alfawz-account .alfawz-account-hero__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 1rem;
+  border-radius: 999px;
+  background: rgba(255, 244, 230, 0.15);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: rgba(255, 231, 214, 0.95);
+}
+
+#alfawz-account .alfawz-account-hero__title {
+  font-size: clamp(2.2rem, 4vw, 3.2rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+#alfawz-account .alfawz-account-hero__subtitle {
+  max-width: 32rem;
+  font-size: 1.05rem;
+  color: rgba(255, 231, 214, 0.9);
+  line-height: 1.7;
+}
+
+#alfawz-account .alfawz-account-hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+#alfawz-account .alfawz-account-hero__visual {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  position: relative;
+}
+
+#alfawz-account .alfawz-account-hero__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.65rem 1.25rem;
+  border-radius: 999px;
+  background: rgba(255, 244, 230, 0.22);
+  color: rgba(255, 244, 230, 0.98);
+  font-weight: 600;
+  box-shadow: 0 20px 45px rgba(47, 8, 17, 0.25);
+}
+
+#alfawz-account .alfawz-account-hero__badge-icon {
+  font-size: 1.25rem;
+}
+
+#alfawz-account .alfawz-account-hero__badge-text {
+  font-size: 0.9rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+#alfawz-account .alfawz-account-hero__pattern {
+  position: absolute;
+  inset: auto 0 -60% auto;
+  width: 420px;
+  height: 420px;
+  background: radial-gradient(circle at top, rgba(255, 231, 214, 0.28), transparent 70%);
+  filter: blur(0);
+  z-index: 0;
+}
+
+#alfawz-account .alfawz-account-grid {
+  display: grid;
+  gap: 2rem;
+  margin-top: 3rem;
+}
+
+@media (min-width: 768px) {
+  #alfawz-account .alfawz-account-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+#alfawz-account .alfawz-account-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 2rem;
+  border-radius: var(--alfawz-radius-lg);
+  background: rgba(255, 244, 230, 0.92);
+  border: 1px solid rgba(168, 50, 84, 0.14);
+  box-shadow: 0 25px 50px rgba(47, 8, 17, 0.08);
+}
+
+#alfawz-account .alfawz-account-card--compact {
+  justify-content: space-between;
+  padding: 1.75rem;
+}
+
+#alfawz-account .alfawz-account-card__header {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+#alfawz-account .alfawz-account-card__icon {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 0.9rem;
+  font-size: 1.65rem;
+  background: rgba(168, 50, 84, 0.12);
+}
+
+#alfawz-account .alfawz-account-card__title {
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+  color: var(--alfawz-maroon-800);
+}
+
+#alfawz-account .alfawz-account-card__description {
+  margin: 0;
+  color: var(--alfawz-muted);
+  line-height: 1.6;
+}
+
+#alfawz-account .alfawz-account-card__list {
+  display: grid;
+  gap: 0.65rem;
+  padding-left: 1.25rem;
+  margin: 0;
+  color: var(--alfawz-text);
+  font-size: 0.95rem;
+}
+
+#alfawz-account .alfawz-login-form form {
+  display: grid;
+  gap: 1rem;
+}
+
+#alfawz-account .alfawz-login-form p {
+  margin: 0;
+}
+
+#alfawz-account .alfawz-login-form .login-remember {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  color: var(--alfawz-muted);
+}
+
+#alfawz-account .alfawz-login-form label {
+  display: block;
+  font-weight: 600;
+  font-size: 0.92rem;
+  margin-bottom: 0.35rem;
+  color: var(--alfawz-maroon-800);
+}
+
+#alfawz-account .alfawz-login-form input[type='text'],
+#alfawz-account .alfawz-login-form input[type='password'] {
+  width: 100%;
+  padding: 0.75rem 0.9rem;
+  border-radius: 0.85rem;
+  border: 1px solid rgba(168, 50, 84, 0.18);
+  background: rgba(255, 255, 255, 0.92);
+  transition: var(--alfawz-transition);
+  font-size: 0.95rem;
+}
+
+#alfawz-account .alfawz-login-form input[type='text']:focus,
+#alfawz-account .alfawz-login-form input[type='password']:focus {
+  border-color: rgba(168, 50, 84, 0.45);
+  box-shadow: 0 0 0 3px rgba(168, 50, 84, 0.15);
+  outline: none;
+}
+
+#alfawz-account .alfawz-login-form input[type='checkbox'] {
+  width: 1rem;
+  height: 1rem;
+  border-radius: 0.35rem;
+  border: 1px solid rgba(168, 50, 84, 0.35);
+}
+
+#alfawz-account .alfawz-login-form input[type='submit'] {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.85rem 1rem;
+  border-radius: 0.95rem;
+  background: linear-gradient(135deg, rgba(47, 8, 17, 0.9), rgba(168, 50, 84, 0.85));
+  color: #fff7ee;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  transition: transform 180ms ease, box-shadow 200ms ease;
+  width: 100%;
+}
+
+#alfawz-account .alfawz-login-form input[type='submit']:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 18px 35px rgba(47, 8, 17, 0.18);
+}
+
+#alfawz-account .alfawz-account-card__footer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  font-size: 0.9rem;
+  color: var(--alfawz-muted);
+}
+
+#alfawz-account .alfawz-account-link {
+  color: var(--alfawz-maroon-700);
+  font-weight: 600;
+  text-decoration: none;
+  transition: color 180ms ease;
+}
+
+#alfawz-account .alfawz-account-link:hover {
+  color: var(--alfawz-maroon-500);
+}
+
+#alfawz-account .alfawz-account-note {
+  margin: 0;
+  font-size: 0.86rem;
+  color: var(--alfawz-muted);
+}
+
+#alfawz-account .alfawz-account-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1.2rem;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  text-decoration: none;
+  transition: transform 180ms ease, box-shadow 200ms ease, background-color 180ms ease, color 180ms ease;
+}
+
+#alfawz-account .alfawz-account-btn--primary {
+  background: linear-gradient(135deg, rgba(47, 8, 17, 0.92), rgba(168, 50, 84, 0.88));
+  color: #fff4e6;
+  box-shadow: 0 16px 30px rgba(47, 8, 17, 0.2);
+}
+
+#alfawz-account .alfawz-account-btn--primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 18px 35px rgba(47, 8, 17, 0.24);
+}
+
+#alfawz-account .alfawz-account-btn--outline {
+  border: 1px solid rgba(255, 244, 230, 0.75);
+  color: #fff4e6;
+  background: transparent;
+}
+
+#alfawz-account .alfawz-account-btn--outline:hover {
+  background: rgba(255, 244, 230, 0.2);
+}
+
+#alfawz-account .alfawz-account-btn--quiet {
+  color: rgba(255, 244, 230, 0.92);
+  background: rgba(255, 244, 230, 0.12);
+}
+
+#alfawz-account .alfawz-account-btn--quiet:hover {
+  background: rgba(255, 244, 230, 0.2);
+}
+
+@media (max-width: 640px) {
+  #alfawz-account .alfawz-account-hero {
+    padding: 2.25rem;
+  }
+
+  #alfawz-account .alfawz-account-hero__actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  #alfawz-account .alfawz-account-card {
+    padding: 1.5rem;
+  }
+}
