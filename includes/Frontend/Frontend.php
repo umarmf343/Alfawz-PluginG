@@ -6,43 +6,59 @@ namespace AlfawzQuran\Frontend;
  */
 class Frontend {
     
+    /**
+     * Tracks the last shortcode that rendered content so the footer
+     * navigation can highlight the active view.
+     *
+     * @var string|null
+     */
+    private $active_view = null;
+
     public function __construct() {
         add_action('init', [$this, 'register_shortcodes']);
         add_action('wp_enqueue_scripts', [$this, 'enqueue_assets']);
         add_action('wp_head', [$this, 'add_meta_tags']);
+        add_action('wp_footer', [$this, 'render_bottom_navigation']);
     }
-    
+
     public function register_shortcodes() {
         add_shortcode('alfawz_dashboard', [$this, 'dashboard_shortcode']);
         add_shortcode('alfawz_reader', [$this, 'reader_shortcode']);
         add_shortcode('alfawz_memorizer', [$this, 'memorizer_shortcode']);
+        add_shortcode('alfawz_memorization', [$this, 'memorizer_shortcode']);
         add_shortcode('alfawz_leaderboard', [$this, 'leaderboard_shortcode']);
         add_shortcode('alfawz_profile', [$this, 'profile_shortcode']);
         add_shortcode('alfawz_settings', [$this, 'settings_shortcode']);
         add_shortcode('alfawz_games', [$this, 'games_shortcode']);
-        add_shortcode('alfawz_qaidah', [$this, 'qaidah_shortcode']);
+        add_shortcode('alfawz_qaidah_teacher', [$this, 'qaidah_teacher_shortcode']);
+        add_shortcode('alfawz_qaidah_student', [$this, 'qaidah_student_shortcode']);
     }
     
     public function enqueue_assets() {
         if ($this->is_alfawz_page()) {
-            // Enqueue styles
+            // Tailwind via CDN keeps the plugin lightweight and avoids build tooling.
             wp_enqueue_style(
-                'alfawz-frontend', 
-                ALFAWZQURAN_PLUGIN_URL . 'assets/css/frontend.css', 
-                [], 
+                'alfawz-tailwind',
+                'https://cdn.jsdelivr.net/npm/tailwindcss@3.4.13/dist/tailwind.min.css',
+                [],
+                '3.4.13'
+            );
+
+            wp_enqueue_style(
+                'alfawz-frontend',
+                ALFAWZQURAN_PLUGIN_URL . 'assets/css/frontend.css',
+                ['alfawz-tailwind'],
                 ALFAWZQURAN_VERSION
             );
-            
-            // Enqueue scripts
+
             wp_enqueue_script(
-                'alfawz-frontend', 
-                ALFAWZQURAN_PLUGIN_URL . 'assets/js/frontend.js', 
-                ['jquery'], 
-                ALFAWZQURAN_VERSION, 
+                'alfawz-frontend',
+                ALFAWZQURAN_PLUGIN_URL . 'assets/js/frontend.js',
+                [],
+                ALFAWZQURAN_VERSION,
                 true
             );
-        
-            // Localize script with proper data
+
             wp_localize_script('alfawz-frontend', 'alfawzData', [
                 'apiUrl' => rest_url('alfawzquran/v1/'),
                 'nonce' => wp_create_nonce('wp_rest'),
@@ -67,50 +83,48 @@ class Frontend {
     
     private function is_alfawz_page() {
         global $post;
-        
+
         if (!$post) {
             return false;
         }
-        
+
         $alfawz_shortcodes = [
             'alfawz_dashboard',
-            'alfawz_reader', 
+            'alfawz_reader',
             'alfawz_memorizer',
             'alfawz_leaderboard',
             'alfawz_profile',
             'alfawz_settings',
             'alfawz_games',
-            'alfawz_qaidah'
+            'alfawz_qaidah_teacher',
+            'alfawz_qaidah_student'
         ];
-        
+
         foreach ($alfawz_shortcodes as $shortcode) {
             if (has_shortcode($post->post_content, $shortcode)) {
                 return true;
             }
         }
-        
+
         return false;
     }
-    
+
     public function dashboard_shortcode($atts) {
         if (!is_user_logged_in()) {
             return $this->login_required_message();
         }
-        
+
+        $this->active_view = 'dashboard';
+
         ob_start();
         include ALFAWZQURAN_PLUGIN_PATH . 'public/partials/dashboard.php';
         return ob_get_clean();
     }
-    
+
     public function reader_shortcode($atts) {
+        $this->active_view = 'reader';
         ob_start();
         include ALFAWZQURAN_PLUGIN_PATH . 'public/partials/reader.php';
-        return ob_get_clean();
-    }
-
-    public function qaidah_shortcode($atts) {
-        ob_start();
-        include ALFAWZQURAN_PLUGIN_PATH . 'public/partials/qaidah.php';
         return ob_get_clean();
     }
 
@@ -118,36 +132,44 @@ class Frontend {
         if (!is_user_logged_in()) {
             return $this->login_required_message();
         }
-        
+
+        $this->active_view = 'memorizer';
+
         ob_start();
         include ALFAWZQURAN_PLUGIN_PATH . 'public/partials/memorizer.php';
         return ob_get_clean();
     }
-    
+
     public function leaderboard_shortcode($atts) {
         if (!get_option('alfawz_enable_leaderboard')) {
             return '<div class="alfawz-notice">' . __('Leaderboard is currently disabled.', 'alfawzquran') . '</div>';
         }
-        
+
+        $this->active_view = 'leaderboard';
+
         ob_start();
         include ALFAWZQURAN_PLUGIN_PATH . 'public/partials/leaderboard.php';
         return ob_get_clean();
     }
-    
+
     public function profile_shortcode($atts) {
         if (!is_user_logged_in()) {
             return $this->login_required_message();
         }
-        
+
+        $this->active_view = 'profile';
+
         ob_start();
         include ALFAWZQURAN_PLUGIN_PATH . 'public/partials/profile.php';
         return ob_get_clean();
     }
-    
+
     public function settings_shortcode($atts) {
         if (!is_user_logged_in()) {
             return $this->login_required_message();
         }
+
+        $this->active_view = 'settings';
 
         ob_start();
         include ALFAWZQURAN_PLUGIN_PATH . 'public/partials/settings.php';
@@ -159,15 +181,43 @@ class Frontend {
             return $this->login_required_message();
         }
 
+        $this->active_view = 'games';
+
         ob_start();
         include ALFAWZQURAN_PLUGIN_PATH . 'public/partials/games.php';
+        return ob_get_clean();
+    }
+
+    public function qaidah_teacher_shortcode($atts) {
+        if (!is_user_logged_in()) {
+            return $this->login_required_message();
+        }
+
+        $this->active_view = 'qaidah';
+
+        ob_start();
+        $qaidah_role = 'teacher';
+        include ALFAWZQURAN_PLUGIN_PATH . 'public/partials/qaidah.php';
+        return ob_get_clean();
+    }
+
+    public function qaidah_student_shortcode($atts) {
+        if (!is_user_logged_in()) {
+            return $this->login_required_message();
+        }
+
+        $this->active_view = 'qaidah';
+
+        ob_start();
+        $qaidah_role = 'student';
+        include ALFAWZQURAN_PLUGIN_PATH . 'public/partials/qaidah.php';
         return ob_get_clean();
     }
     
     private function login_required_message() {
         $login_url = wp_login_url(get_permalink());
         $register_url = wp_registration_enabled() ? wp_registration_url() : '';
-        
+
         ob_start();
         ?>
         <div class="alfawz-login-required">
@@ -189,5 +239,14 @@ class Frontend {
         </div>
         <?php
         return ob_get_clean();
+    }
+
+    public function render_bottom_navigation() {
+        if (!$this->active_view) {
+            return;
+        }
+
+        $current_page = $this->active_view;
+        include ALFAWZQURAN_PLUGIN_PATH . 'public/partials/mobile-nav.php';
     }
 }

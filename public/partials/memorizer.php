@@ -1,320 +1,108 @@
-<div class="alfawz-memorizer">
-    <div class="alfawz-page-stack">
-        <div class="alfawz-memorizer-header">
-            <div class="alfawz-header-content">
-                <h2><?php _e('Quran Memorizer', 'alfawzquran'); ?></h2>
-                <p><?php _e('Select a verse to begin your memorization journey.', 'alfawzquran'); ?></p>
-                <div class="alfawz-selected-surah alfawz-hidden" id="selected-memo-verse-display">
-                    <span class="alfawz-surah-icon">📖</span>
-                    <span id="selected-memo-verse-name"></span>
-                </div>
-            </div>
-        </div>
-
-        <div class="alfawz-plan-launchpad" id="memorizer-plan-launchpad">
-            <div class="alfawz-plan-launchpad-header">
-                <h3><?php _e('Start Your Memorization Journey', 'alfawzquran'); ?></h3>
-                <p><?php _e('Set your intention, choose your verses, and begin a focused dhikr-inspired repetition ritual.', 'alfawzquran'); ?></p>
-            </div>
-            <form id="create-plan-form" class="alfawz-plan-launchpad-form" novalidate>
-                <div class="alfawz-plan-launchpad-grid">
-                    <div class="alfawz-plan-field">
-                        <label for="plan-name"><?php _e('Intention Title (optional)', 'alfawzquran'); ?></label>
-                        <input type="text" id="plan-name" name="plan_name" placeholder="<?php esc_attr_e('e.g., Dawn Revision – Surah Al-Mulk', 'alfawzquran'); ?>">
-                    </div>
-                    <div class="alfawz-plan-field">
-                        <label for="plan-surah-select"><?php _e('Select Surah', 'alfawzquran'); ?></label>
-                        <select id="plan-surah-select" name="surah_id" class="alfawz-surah-dropdown" required>
-                            <option value=""><?php _e('Loading Surahs...', 'alfawzquran'); ?></option>
-                        </select>
-                    </div>
-                    <div class="alfawz-plan-field-group">
-                        <div class="alfawz-plan-field">
-                            <label for="plan-start-verse"><?php _e('Verse From', 'alfawzquran'); ?></label>
-                            <select id="plan-start-verse" name="start_verse" class="alfawz-verse-dropdown" disabled required>
-                                <option value=""><?php _e('Select surah first', 'alfawzquran'); ?></option>
-                            </select>
-                        </div>
-                        <div class="alfawz-plan-field">
-                            <label for="plan-end-verse"><?php _e('Verse To', 'alfawzquran'); ?></label>
-                            <select id="plan-end-verse" name="end_verse" class="alfawz-verse-dropdown" disabled required>
-                                <option value=""><?php _e('Select surah first', 'alfawzquran'); ?></option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="alfawz-plan-field">
-                        <label for="plan-daily-goal"><?php _e('Daily Target (verses)', 'alfawzquran'); ?></label>
-                        <input type="number" id="plan-daily-goal" name="daily_goal" min="1" value="1" required>
-                    </div>
-                </div>
-                <div class="alfawz-plan-summary">
-                    <p id="plan-summary-text"><?php _e('Select your verses to craft a heartfelt memorization intention.', 'alfawzquran'); ?></p>
-                </div>
-                <div class="alfawz-plan-launchpad-actions">
-                    <button type="submit" id="create-plan-btn" class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md alfawz-btn alfawz-btn-primary alfawz-btn-large" disabled>
-                        <span class="alfawz-btn-icon">✨</span>
-                        <span class="alfawz-btn-label"><?php _e('Begin Memorizing', 'alfawzquran'); ?></span>
-                    </button>
-                    <span class="alfawz-plan-launchpad-feedback" id="plan-launchpad-feedback" aria-live="polite"></span>
-                </div>
-                <div id="plan-created-success-message" class="alfawz-notice alfawz-hidden alfawz-success-notification">
-                    <?php _e('Plan created! Your journey is now saved in the Memorizer.', 'alfawzquran'); ?>
-                </div>
-            </form>
-        </div>
-
-        <div class="alfawz-memorization-stats alfawz-progress-grid">
-            <div class="alfawz-progress-card alfawz-memorizer-card">
-                <div class="alfawz-card-icon">
-                    <div class="alfawz-icon-circle alfawz-memorized-icon"><span class="alfawz-icon">🧠</span></div>
-                </div>
-                <div class="alfawz-card-content">
-                    <div class="alfawz-card-value" id="total-memorized-verses">0</div>
-                    <div class="alfawz-card-label"><?php _e('Memorized Verses', 'alfawzquran'); ?></div>
-                </div>
-                <div class="alfawz-card-decoration"></div>
-            </div>
-            <div class="alfawz-progress-card alfawz-memorizer-card">
-                <div class="alfawz-card-icon">
-                    <div class="alfawz-icon-circle alfawz-memorizer-streak-icon"><span class="alfawz-icon">🔥</span></div>
-                </div>
-                <div class="alfawz-card-content">
-                    <div class="alfawz-card-value" id="current-memorization-streak">0</div>
-                    <div class="alfawz-card-label"><?php _e('Current Streak', 'alfawzquran'); ?></div>
-                </div>
-                <div class="alfawz-card-decoration"></div>
-            </div>
-            <div class="alfawz-progress-card alfawz-memorizer-card">
-                <div class="alfawz-card-icon">
-                    <div class="alfawz-icon-circle alfawz-plans-icon"><span class="alfawz-icon">📝</span></div>
-                </div>
-                <div class="alfawz-card-content">
-                    <div class="alfawz-card-value" id="active-plans-count">0</div>
-                    <div class="alfawz-card-label"><?php _e('Active Plans', 'alfawzquran'); ?></div>
-                </div>
-                <div class="alfawz-card-decoration"></div>
-            </div>
-        </div>
-
-        <div class="alfawz-memorization-controls">
-            <div class="alfawz-memo-selection-controls">
-                <div class="alfawz-surah-selection">
-                    <label for="memo-surah-select" class="alfawz-control-label">
-                        <span class="alfawz-label-icon">📚</span>
-                        <?php _e('Select Surah:', 'alfawzquran'); ?>
-                    </label>
-                    <select id="memo-surah-select" class="alfawz-surah-dropdown">
-                        <option value=""><?php _e('Loading Surahs...', 'alfawzquran'); ?></option>
-                    </select>
-                </div>
-                <div class="alfawz-verse-selection">
-                    <label for="memo-verse-select" class="alfawz-control-label">
-                        <span class="alfawz-label-icon">📜</span>
-                        <?php _e('Select Verse:', 'alfawzquran'); ?>
-                    </label>
-                    <select id="memo-verse-select" class="alfawz-verse-dropdown" disabled>
-                        <option value=""><?php _e('Select surah first', 'alfawzquran'); ?></option>
-                    </select>
-                </div>
-                <div class="alfawz-memo-actions">
-                    <button id="load-memorization-verse" class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md alfawz-btn alfawz-btn-primary alfawz-btn-large" disabled>
-                        <span class="alfawz-btn-icon">▶️</span> <?php _e('Load Verse', 'alfawzquran'); ?>
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <div class="alfawz-memorization-plan-section">
-            <h3><?php _e('Memorization Plans', 'alfawzquran'); ?></h3>
-            <p class="alfawz-section-subtitle"><?php _e('Stay organised with a clear list of tasks and progress for every plan.', 'alfawzquran'); ?></p>
-            <div class="alfawz-plan-selection-controls">
-                <div class="alfawz-plan-dropdown-container">
-                    <label for="memorization-plan-select" class="alfawz-control-label">
-                        <span class="alfawz-label-icon">📝</span>
-                        <?php _e('Choose Plan:', 'alfawzquran'); ?>
-                    </label>
-                    <select id="memorization-plan-select" class="alfawz-surah-dropdown">
-                        <option value=""><?php _e('Loading plans...', 'alfawzquran'); ?></option>
-                    </select>
-                </div>
-                <button id="load-memorization-plan" class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md alfawz-btn alfawz-btn-primary alfawz-btn-large" disabled>
-                    <span class="alfawz-btn-icon">🚀</span> <?php _e('Load Plan', 'alfawzquran'); ?>
-                </button>
-            </div>
-
-            <div id="plan-progress-container" class="alfawz-plan-progress-overview alfawz-hidden">
-                <div class="alfawz-plan-info">
-                    <h4 id="current-plan-name"></h4>
-                    <p id="plan-completion-text"></p>
-                </div>
-                <div class="alfawz-progress-bar">
-                    <div class="alfawz-progress-fill" style="width: 0%" id="plan-progress-fill"></div>
-                </div>
-                <p class="alfawz-text-center"><span id="plan-percentage">0%</span> Completed</p>
-                <button id="restart-plan" class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md alfawz-btn alfawz-btn-secondary alfawz-btn-small">
-                    <span class="alfawz-btn-icon">🔄</span> <?php _e('Restart Plan', 'alfawzquran'); ?>
-                </button>
-            </div>
-
-            <div id="plan-verses-container" class="alfawz-plan-verses-list-container alfawz-hidden">
-                <h4><?php _e('Verses in Plan', 'alfawzquran'); ?></h4>
-                <div id="plan-verses-list" class="alfawz-plan-verses-list">
-                     Verses will be loaded here
-                </div>
-            </div>
-        </div>
-
-        <div class="alfawz-memorization-session alfawz-hidden">
-            <div class="alfawz-session-header">
-                <h3><?php _e('Memorization Session', 'alfawzquran'); ?></h3>
-                <div class="alfawz-session-info">
-                    <span><?php _e('Verse:', 'alfawzquran'); ?> <span id="session-verse-info"></span></span>
-                    <span><?php _e('Time:', 'alfawzquran'); ?> <span id="session-time">0m 0s</span></span>
-                </div>
-            </div>
-
-            <div class="alfawz-memorization-verse-card" role="group" aria-live="polite">
-                <div class="alfawz-verse-number-mem" id="memo-verse-number"></div>
-                <div class="alfawz-focus-card alfawz-verse-focus-card" tabindex="0">
-                    <div class="alfawz-verse-arabic-mem" id="memo-quran-text" dir="rtl" lang="ar"></div>
-                    <div class="alfawz-verse-translation-mem" id="memo-quran-translation"></div>
-                </div>
-            </div>
-
-            <div class="alfawz-session-navigation" role="group" aria-label="Memorization navigation controls">
-                <button id="prev-memo-verse-btn" class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md alfawz-btn alfawz-mobile-nav-btn" disabled>
-                    <span class="alfawz-btn-icon" aria-hidden="true">◀️</span>
-                    <span><?php _e('Previous', 'alfawzquran'); ?></span>
-                </button>
-                <button id="memo-mark-memorized" class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md alfawz-btn alfawz-beautiful-btn alfawz-btn-success">
-                    <span class="alfawz-btn-icon-wrapper"><span class="alfawz-btn-icon" aria-hidden="true">✅</span></span>
-                    <span class="alfawz-btn-text"><?php _e('Mark as Memorized', 'alfawzquran'); ?></span>
-                    <span class="alfawz-btn-glow"></span>
-                </button>
-                <button id="next-memo-verse-btn" class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md alfawz-btn alfawz-mobile-nav-btn" disabled>
-                    <span><?php _e('Next', 'alfawzquran'); ?></span>
-                    <span class="alfawz-btn-icon" aria-hidden="true">▶️</span>
-                </button>
-            </div>
-
-            <div class="alfawz-repetition-controls">
-                <div class="alfawz-repetition-header">
-                    <h4><?php _e('Repetitions', 'alfawzquran'); ?></h4>
-                    <span class="alfawz-repetition-counter" aria-live="polite" aria-atomic="true">
-                        <span id="repetition-count">0</span> / <span id="repetition-target">20</span>
-                    </span>
-                </div>
-                <div class="alfawz-repetition-progress">
-                    <div class="alfawz-progress-track" role="presentation">
-                        <div
-                            class="alfawz-progress-fill"
-                            style="width: 0%"
-                            id="repetition-progress-bar"
-                            role="progressbar"
-                            aria-label="<?php esc_attr_e('Repetition progress', 'alfawzquran'); ?>"
-                            aria-valuemin="0"
-                            aria-valuenow="0"
-                            aria-valuemax="20"
-                        ></div>
-                        <div class="alfawz-progress-check" id="repetition-progress-check" aria-hidden="true">✅</div>
-                        <div class="alfawz-progress-markers"></div>
-                    </div>
-                    <p class="alfawz-text-center alfawz-mb-0" id="session-progress-text" aria-live="polite" aria-atomic="true"><?php _e('0 / 20 Repetitions', 'alfawzquran'); ?></p>
-                </div>
-                <div class="alfawz-repeat-button-container">
-                    <button
-                        id="repeat-verse-btn"
-                        class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md alfawz-btn alfawz-repeat-btn"
-                        type="button"
-                    >
-                        <span class="alfawz-repeat-icon-wrapper"><span class="alfawz-repeat-icon" aria-hidden="true">🔁</span></span>
-                        <div class="alfawz-repeat-content">
-                            <span class="alfawz-repeat-text"><?php _e('Repeat Verse', 'alfawzquran'); ?></span>
-                            <span class="alfawz-repeat-subtitle"><?php _e('Each click adds one repetition towards 20x auto-advance', 'alfawzquran'); ?></span>
-                        </div>
-                    </button>
-                </div>
-            </div>
-
-            <div class="alfawz-session-actions">
-                <button id="memo-select-another" class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md alfawz-btn alfawz-beautiful-btn alfawz-btn-secondary">
-                    <span class="alfawz-btn-icon-wrapper"><span class="alfawz-btn-icon" aria-hidden="true">➕</span></span>
-                    <span class="alfawz-btn-text"><?php _e('Select Another Verse', 'alfawzquran'); ?></span>
-                    <span class="alfawz-btn-glow"></span>
-                </button>
-            </div>
-
-            <div class="alfawz-memorization-audio-controls">
-                <button id="memo-play-audio" class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md alfawz-btn alfawz-audio-control-btn">
-                    <span class="alfawz-btn-icon" aria-hidden="true">🔊</span> <span class="alfawz-audio-text"><?php _e('Play Audio', 'alfawzquran'); ?></span>
-                </button>
-            </div>
-
-            <div class="alfawz-review-panel" id="memo-review-panel">
-                <div class="alfawz-review-header">
-                    <h4><?php _e('Memorization Review', 'alfawzquran'); ?></h4>
-                    <span class="alfawz-review-status" id="memo-review-status"><?php _e('No review yet', 'alfawzquran'); ?></span>
-                </div>
-                <p class="alfawz-review-intro"><?php _e('Capture pronunciation, fluency, and confidence insights after each verse to power guardian and coach feedback.', 'alfawzquran'); ?></p>
-                <div class="alfawz-review-actions" id="memo-review-actions" role="radiogroup" aria-label="<?php esc_attr_e('Select review outcome', 'alfawzquran'); ?>">
-                    <button type="button" class="alfawz-review-chip" data-review-score="perfect" role="radio" aria-checked="false">
-                        <span class="alfawz-review-icon" aria-hidden="true">🌟</span>
-                        <span><?php _e('Perfect recall', 'alfawzquran'); ?></span>
-                    </button>
-                    <button type="button" class="alfawz-review-chip" data-review-score="solid" role="radio" aria-checked="false">
-                        <span class="alfawz-review-icon" aria-hidden="true">👍</span>
-                        <span><?php _e('Solid with notes', 'alfawzquran'); ?></span>
-                    </button>
-                    <button type="button" class="alfawz-review-chip" data-review-score="revisit" role="radio" aria-checked="false">
-                        <span class="alfawz-review-icon" aria-hidden="true">🔁</span>
-                        <span><?php _e('Needs revisit', 'alfawzquran'); ?></span>
-                    </button>
-                </div>
-                <label for="memo-review-notes" class="alfawz-review-label"><?php _e('Review notes', 'alfawzquran'); ?></label>
-                <textarea id="memo-review-notes" class="alfawz-review-notes" rows="3" placeholder="<?php esc_attr_e('Add tajwid observations, pacing feedback, or motivation cues…', 'alfawzquran'); ?>"></textarea>
-                <div class="alfawz-review-footer">
-                    <button type="button" id="memo-save-review" class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md alfawz-btn alfawz-btn-primary">
-                        <span class="alfawz-btn-icon" aria-hidden="true">💾</span>
-                        <span><?php _e('Save review snapshot', 'alfawzquran'); ?></span>
-                    </button>
-                    <span class="alfawz-review-feedback" id="memo-review-feedback" aria-live="polite"></span>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Congratulations Modal -->
-<div id="congratulations-modal" class="alfawz-congratulations-modal alfawz-hidden">
-    <div class="alfawz-modal-overlay"></div>
-    <div class="alfawz-modal-content">
-        <div class="alfawz-modal-header">
-            <div class="alfawz-celebration-icon">🎉</div>
-            <h3><?php _e('MashaAllah!', 'alfawzquran'); ?></h3>
-        </div>
-        <div class="alfawz-modal-body">
-            <p class="alfawz-modal-dua"><?php _e('Barakallahu Feek — May Allah preserve it in your heart.', 'alfawzquran'); ?></p>
-            <div class="alfawz-achievement-display">
-                <span class="alfawz-achievement-icon">⭐</span>
-                <div class="alfawz-achievement-text">
-                    <div class="alfawz-achievement-title"><?php _e('Verse Sealed Through 20x Repetition', 'alfawzquran'); ?></div>
-                    <div class="alfawz-achievement-subtitle" id="achievement-details"></div>
-                </div>
-            </div>
-            <p class="alfawz-modal-status" id="celebration-status"></p>
-        </div>
-        <div class="alfawz-modal-actions">
-            <button id="continue-memorization" class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md alfawz-btn alfawz-btn-primary alfawz-btn-large">
-                <?php _e('Continue to Next Verse', 'alfawzquran'); ?>
-            </button>
-            <button id="review-verse-later" class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md alfawz-btn alfawz-btn-secondary alfawz-btn-large">
-                <?php _e('Review This Verse Later', 'alfawzquran'); ?>
-            </button>
-        </div>
-    </div>
-</div>
-
 <?php
-$current_page = 'memorizer';
-include ALFAWZQURAN_PLUGIN_PATH . 'public/partials/mobile-nav.php';
+if ( ! defined( 'ABSPATH' ) ) {
+    exit;
+}
 ?>
+<div id="alfawz-memorizer" class="alfawz-surface mx-auto max-w-4xl space-y-8 rounded-3xl bg-white/90 p-6 shadow-xl shadow-emerald-100/70 backdrop-blur">
+    <header class="space-y-1 text-slate-900">
+        <p class="text-sm font-medium tracking-wide text-emerald-600"><?php esc_html_e( 'Memorisation Studio', 'alfawzquran' ); ?></p>
+        <h2 class="text-2xl font-semibold leading-tight"><?php esc_html_e( 'Repeat each ayah twenty times to seal it in your heart', 'alfawzquran' ); ?></h2>
+        <p class="text-sm text-slate-600"><?php esc_html_e( 'Choose an ayah, focus on tajwid, and let the counter guide you through 20 deliberate repetitions.', 'alfawzquran' ); ?></p>
+    </header>
+
+    <section class="grid gap-4 md:grid-cols-2" aria-labelledby="alfawz-memorizer-selection">
+        <h3 id="alfawz-memorizer-selection" class="sr-only"><?php esc_html_e( 'Memorisation verse selection', 'alfawzquran' ); ?></h3>
+        <label class="alfawz-field">
+            <span class="alfawz-field-label"><?php esc_html_e( 'Choose a surah', 'alfawzquran' ); ?></span>
+            <select id="alfawz-memo-surah" class="alfawz-select">
+                <option value=""><?php esc_html_e( 'Loading surahs…', 'alfawzquran' ); ?></option>
+            </select>
+        </label>
+        <label class="alfawz-field">
+            <span class="alfawz-field-label"><?php esc_html_e( 'Choose a verse', 'alfawzquran' ); ?></span>
+            <select id="alfawz-memo-verse" class="alfawz-select" disabled>
+                <option value=""><?php esc_html_e( 'Select a surah first', 'alfawzquran' ); ?></option>
+            </select>
+        </label>
+        <div class="md:col-span-2 flex flex-wrap items-center gap-3">
+            <button type="button" class="alfawz-button" id="alfawz-memo-load" disabled>
+                <span>🚀</span>
+                <span><?php esc_html_e( 'Load verse', 'alfawzquran' ); ?></span>
+            </button>
+            <p class="text-xs text-slate-500" id="alfawz-memo-selection-note"></p>
+        </div>
+    </section>
+
+    <section id="alfawz-memo-session" class="hidden space-y-6">
+        <article class="rounded-3xl bg-white p-6 shadow-lg shadow-emerald-100/60">
+            <header class="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-wide text-slate-500"><?php esc_html_e( 'Currently memorising', 'alfawzquran' ); ?></p>
+                    <h3 class="text-lg font-semibold text-slate-900" id="alfawz-memo-heading"></h3>
+                </div>
+                <span class="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700" id="alfawz-memo-repetition-label">0 / 20</span>
+            </header>
+            <div class="mt-4 space-y-4">
+                <p id="alfawz-memo-arabic" class="text-right text-2xl leading-relaxed tracking-wide text-slate-900" dir="rtl" lang="ar"></p>
+                <p id="alfawz-memo-translation" class="text-base leading-relaxed text-slate-600"></p>
+            </div>
+            <footer class="mt-6 flex flex-wrap items-center justify-between gap-3">
+                <div class="flex gap-2">
+                    <button type="button" class="alfawz-circle" id="alfawz-memo-prev" aria-label="<?php esc_attr_e( 'Previous verse', 'alfawzquran' ); ?>" disabled>◀</button>
+                    <button type="button" class="alfawz-circle" id="alfawz-memo-next" aria-label="<?php esc_attr_e( 'Next verse', 'alfawzquran' ); ?>" disabled>▶</button>
+                </div>
+                <div class="flex flex-wrap gap-3">
+                    <button type="button" class="alfawz-button" id="alfawz-memo-repeat">
+                        <span>🔁</span>
+                        <span><?php esc_html_e( 'Repeat verse', 'alfawzquran' ); ?></span>
+                    </button>
+                    <button type="button" class="alfawz-button" id="alfawz-memo-audio">
+                        <span>🎧</span>
+                        <span><?php esc_html_e( 'Play slow recitation', 'alfawzquran' ); ?></span>
+                    </button>
+                    <button type="button" class="alfawz-button" id="alfawz-memo-complete" disabled>
+                        <span>🌟</span>
+                        <span><?php esc_html_e( 'Mark memorised', 'alfawzquran' ); ?></span>
+                    </button>
+                </div>
+            </footer>
+        </article>
+
+        <article class="rounded-3xl border border-emerald-100 bg-emerald-50/60 p-6">
+            <div class="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                    <h3 class="text-base font-semibold text-emerald-800"><?php esc_html_e( '20x repetition tracker', 'alfawzquran' ); ?></h3>
+                    <p class="text-sm text-emerald-700"><?php esc_html_e( 'Tap the repeat button to advance the counter. The verse unlocks after 20 repetitions.', 'alfawzquran' ); ?></p>
+                </div>
+                <span class="rounded-full bg-white px-3 py-1 text-sm font-semibold text-emerald-700" id="alfawz-memo-counter">0</span>
+            </div>
+            <div class="mt-4 h-2 rounded-full bg-white/70">
+                <div id="alfawz-memo-progress" class="h-2 rounded-full bg-emerald-500 transition-all" style="width:0%"></div>
+            </div>
+            <p class="mt-3 text-xs uppercase tracking-wide text-emerald-700" id="alfawz-memo-progress-note"></p>
+        </article>
+
+        <article class="rounded-3xl bg-slate-50/80 p-6" id="alfawz-memo-journal">
+            <h3 class="text-base font-semibold text-slate-900"><?php esc_html_e( 'Reflection journal', 'alfawzquran' ); ?></h3>
+            <p class="mt-1 text-sm text-slate-600"><?php esc_html_e( 'Capture tajwid notes and teaching feedback to review later.', 'alfawzquran' ); ?></p>
+            <textarea id="alfawz-memo-notes" class="alfawz-textarea mt-4" rows="4" placeholder="<?php esc_attr_e( 'Record pronunciation notes or memorisation tips…', 'alfawzquran' ); ?>"></textarea>
+            <div class="mt-3 flex flex-wrap gap-3">
+                <button type="button" class="alfawz-button" id="alfawz-memo-save">
+                    <span>💾</span>
+                    <span><?php esc_html_e( 'Save notes', 'alfawzquran' ); ?></span>
+                </button>
+                <p class="text-xs text-slate-500" id="alfawz-memo-save-status"></p>
+            </div>
+        </article>
+    </section>
+
+    <section class="space-y-4" aria-labelledby="alfawz-memo-plans">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+            <h3 id="alfawz-memo-plans" class="text-lg font-semibold text-slate-900"><?php esc_html_e( 'Memorisation plans', 'alfawzquran' ); ?></h3>
+            <button type="button" class="alfawz-link text-sm font-semibold text-emerald-600" id="alfawz-memo-refresh">
+                <?php esc_html_e( 'Refresh', 'alfawzquran' ); ?>
+            </button>
+        </div>
+        <ul id="alfawz-memo-plan-list" class="space-y-3" aria-live="polite" aria-busy="true"></ul>
+    </section>
+</div>
