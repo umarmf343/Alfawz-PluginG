@@ -359,11 +359,13 @@
     const arabicEl = qs('#alfawz-arabic-text', root);
     const transliterationEl = qs('#alfawz-transliteration', root);
     const translationEl = qs('#alfawz-translation', root);
+    const verseContent = qs('#alfawz-verse-content', root);
     const prevBtn = qs('#alfawz-prev-verse', root);
     const nextBtn = qs('#alfawz-next-verse', root);
     const eggEmoji = qs('#alfawz-egg-emoji', root);
     const eggCount = qs('#alfawz-egg-count', root);
     const eggProgress = qs('#alfawz-egg-progress-bar', root);
+    const eggMessage = qs('#alfawz-egg-message', root);
     const dailyBar = qs('#alfawz-daily-progress-bar', root);
     const dailyLabel = qs('#alfawz-daily-label', root);
     const dailyNote = qs('#alfawz-daily-note', root);
@@ -385,6 +387,53 @@
       if (element) {
         element.textContent = value || '';
       }
+    };
+
+    const animateBar = (bar, percentage) => {
+      if (!bar) {
+        return;
+      }
+      requestAnimationFrame(() => {
+        bar.style.width = `${Math.min(100, Math.max(0, percentage))}%`;
+      });
+    };
+
+    const startVerseTransition = () => {
+      if (!verseContent) {
+        return;
+      }
+      verseContent.classList.remove('alfawz-fade-in');
+      verseContent.classList.add('alfawz-fade-out');
+    };
+
+    const finishVerseTransition = () => {
+      if (!verseContent) {
+        return;
+      }
+      requestAnimationFrame(() => {
+        verseContent.classList.remove('alfawz-fade-out');
+        verseContent.classList.add('alfawz-fade-in');
+        window.setTimeout(() => verseContent.classList.remove('alfawz-fade-in'), 320);
+      });
+    };
+
+    const attachPressFeedback = (button) => {
+      if (!button) {
+        return;
+      }
+      const add = () => button.classList.add('alfawz-press');
+      const remove = () => button.classList.remove('alfawz-press');
+      ['mousedown', 'touchstart', 'keydown'].forEach((eventName) => {
+        button.addEventListener(eventName, (event) => {
+          if (eventName === 'keydown' && event.key !== ' ' && event.key !== 'Enter') {
+            return;
+          }
+          add();
+        });
+      });
+      ['mouseup', 'mouseleave', 'touchend', 'touchcancel', 'blur', 'keyup'].forEach((eventName) => {
+        button.addEventListener(eventName, () => remove());
+      });
     };
 
     const setLoadingState = (busy, message) => {
@@ -427,15 +476,32 @@
       if (!state) {
         return;
       }
-      safeSetText(eggCount, `${state.count} / ${state.target}`);
-      if (eggProgress) {
-        eggProgress.style.width = `${Math.min(100, Number(state.percentage || 0))}%`;
-      }
+      const target = Number(state.target || 0);
+      const count = Number(state.count || 0);
+      const percentage = Number(state.percentage ?? (target ? (count / target) * 100 : 0));
+      animateBar(eggProgress, percentage);
       if (eggEmoji) {
-        eggEmoji.textContent = state.count >= state.target || state.completed ? '🐣' : '🥚';
+        eggEmoji.textContent = count >= target || state.completed ? '🐣' : '🥚';
       }
-      if (state.completed && state.previous_target && state.previous_target !== lastEggCelebratedTarget) {
-        lastEggCelebratedTarget = state.previous_target;
+      if (eggMessage) {
+        if (state.completed) {
+          const rawNextTarget = state.next_target || (target ? target + 5 : 25);
+          const nextTarget = Number(rawNextTarget) || 25;
+          eggMessage.innerHTML = `🎉 <span class="font-semibold">Takbir!</span> You’ve broken the egg! Next challenge: <span class="font-semibold">${nextTarget} verses</span>`;
+        } else {
+          const remaining = target ? Math.max(0, target - count) : null;
+          if (remaining && remaining > 0) {
+            eggMessage.textContent = `${remaining} ${remaining === 1 ? 'more verse' : 'more verses'} to hatch the surprise.`;
+          } else {
+            eggMessage.textContent = 'Keep reading to hatch the surprise.';
+          }
+        }
+      }
+      const label = target ? `${count} / ${target} Verses` : `${count} Verses`;
+      safeSetText(eggCount, label);
+      const celebrationKey = state.previous_target || state.target || `${count}-${target}`;
+      if (state.completed && celebrationKey !== lastEggCelebratedTarget) {
+        lastEggCelebratedTarget = celebrationKey;
         celebrateEgg();
       }
     };
@@ -458,10 +524,8 @@
         percentage: 0,
       };
       const percentage = Math.min(100, Number(resolved.percentage ?? (resolved.target ? (resolved.count / resolved.target) * 100 : 0)));
-      if (dailyBar) {
-        dailyBar.style.width = `${percentage}%`;
-      }
-      safeSetText(dailyLabel, `${resolved.count || 0} / ${resolved.target || defaultDailyTarget}`);
+      animateBar(dailyBar, percentage);
+      safeSetText(dailyLabel, `${resolved.count || 0} / ${resolved.target || defaultDailyTarget} Verses Today`);
       if (dailyNote) {
         if (resolved.remaining <= 0) {
           dailyNote.textContent = wpData.strings?.goalComplete || 'Goal completed for today!';
@@ -501,6 +565,7 @@
       isLoading = true;
       setLoadingState(true, 'Loading verse…');
       try {
+        startVerseTransition();
         const verse = await loadVerse(surahId, verseId);
         currentVerseId = verseId;
         isLoading = false;
@@ -533,10 +598,12 @@
           translationEl.classList.toggle('hidden', !verse.translation);
         }
         updateNavigationButtons();
+        finishVerseTransition();
       } catch (error) {
         isLoading = false;
         console.warn('[AlfawzQuran] Unable to load verse', error);
         setLoadingState(true, 'Unable to load verse. Please try again.');
+        finishVerseTransition();
       }
     };
 
@@ -685,6 +752,8 @@
     verseSelect.addEventListener('change', handleVerseChange);
     prevBtn?.addEventListener('click', handlePrev);
     nextBtn?.addEventListener('click', handleNext);
+    attachPressFeedback(prevBtn);
+    attachPressFeedback(nextBtn);
     dailyDismissControls.forEach((control) => {
       control.addEventListener('click', closeDailyModal);
     });
