@@ -288,6 +288,72 @@
     return li;
   };
 
+  const setDashboardAnimationDelays = (root) => {
+    if (!root) {
+      return;
+    }
+    const nodes = root.querySelectorAll('[data-animate]');
+    nodes.forEach((node, index) => {
+      const delay = Number(node.dataset.animateDelay || 0);
+      const fallback = index * 80;
+      const finalDelay = Number.isFinite(delay) && delay > 0 ? delay : fallback;
+      node.style.setProperty('--alfawz-animate-delay', `${finalDelay}ms`);
+    });
+  };
+
+  const revealDashboard = (root) => {
+    if (!root) {
+      return;
+    }
+    requestAnimationFrame(() => {
+      root.classList.add('is-ready');
+    });
+  };
+
+  const bindDashboardParallax = (root) => {
+    const glow = root?.querySelector('[data-dashboard-glow]');
+    if (!glow || prefersReducedMotion()) {
+      return;
+    }
+
+    const pointerQuery = typeof window !== 'undefined' && window.matchMedia ? window.matchMedia('(pointer: coarse)') : null;
+    if (pointerQuery?.matches) {
+      return;
+    }
+
+    const setGlow = (x, y) => {
+      glow.style.setProperty('--alfawz-glow-x', `${x}%`);
+      glow.style.setProperty('--alfawz-glow-y', `${y}%`);
+    };
+
+    const resetGlow = () => {
+      setGlow(50, 50);
+      root.classList.remove('is-pointer-active');
+    };
+
+    setGlow(50, 50);
+
+    const handleMove = (event) => {
+      const rect = glow.getBoundingClientRect();
+      if (!rect.width || !rect.height) {
+        return;
+      }
+      const withinX = event.clientX >= rect.left && event.clientX <= rect.right;
+      const withinY = event.clientY >= rect.top && event.clientY <= rect.bottom;
+      if (!withinX || !withinY) {
+        resetGlow();
+        return;
+      }
+      const x = Math.min(100, Math.max(0, ((event.clientX - rect.left) / rect.width) * 100));
+      const y = Math.min(100, Math.max(0, ((event.clientY - rect.top) / rect.height) * 100));
+      setGlow(x, y);
+      root.classList.add('is-pointer-active');
+    };
+
+    root.addEventListener('pointermove', handleMove);
+    root.addEventListener('pointerleave', resetGlow);
+  };
+
   const buildBadge = (text, theme = 'emerald') => {
     const span = document.createElement('span');
     span.className = `inline-flex items-center rounded-full bg-${theme}-100 px-3 py-1 text-xs font-semibold text-${theme}-700`;
@@ -465,6 +531,9 @@
       return;
     }
 
+    setDashboardAnimationDelays(root);
+    bindDashboardParallax(root);
+
     try {
       const [stats, goal, egg, leaderboard] = await Promise.all([
         apiRequest('user-stats'),
@@ -512,14 +581,14 @@
         renderList(leaderboardPreview, leaderboard.slice(0, 5), (item, index) => {
           const li = createListItem('alfawz-dashboard-list-item');
           li.innerHTML = `
-            <div class="alfawz-dashboard-list-user">
-              <span class="alfawz-dashboard-rank">${index + 1}</span>
+            <div class="alfawz-dashboard-list-user flex items-center gap-3">
+              <span class="alfawz-dashboard-rank text-base font-semibold">${index + 1}</span>
               <div class="alfawz-dashboard-list-details">
-                <p class="alfawz-dashboard-list-name">${item.display_name || '—'}</p>
-                <p class="alfawz-dashboard-list-meta">${formatNumber(item.verses_read || 0)} verses</p>
+                <p class="alfawz-dashboard-list-name text-base font-semibold text-rose-900">${item.display_name || '—'}</p>
+                <p class="alfawz-dashboard-list-meta text-sm text-rose-700">${formatNumber(item.verses_read || 0)} verses</p>
               </div>
             </div>
-            <span class="alfawz-dashboard-list-score">⭐ ${formatNumber(item.total_hasanat || 0)}</span>
+            <span class="alfawz-dashboard-list-score text-sm font-semibold text-rose-700">⭐ ${formatNumber(item.total_hasanat || 0)}</span>
           `;
           return li;
         });
@@ -560,8 +629,11 @@
           window.location.href = `${wpData.pluginUrl || ''}reader/?verse=${encodeURIComponent(stats.last_verse_key)}`;
         });
       }
+
+      revealDashboard(root);
     } catch (error) {
       console.warn('[AlfawzQuran] Unable to load dashboard data', error);
+      revealDashboard(root);
     }
   };
 
