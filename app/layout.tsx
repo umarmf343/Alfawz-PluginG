@@ -30,7 +30,7 @@ html {
 }
         `}</style>
       </head>
-      <body className="min-h-screen bg-background text-foreground antialiased pb-24">
+      <body className="min-h-screen bg-background text-foreground antialiased pb-[calc(6.5rem+env(safe-area-inset-bottom))]">
         {children}
         <BottomNav />
         <Analytics />
