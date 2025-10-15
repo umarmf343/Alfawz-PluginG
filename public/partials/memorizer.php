@@ -150,19 +150,32 @@
             <div class="alfawz-repetition-controls">
                 <div class="alfawz-repetition-header">
                     <h4><?php _e('Repetitions', 'alfawzquran'); ?></h4>
-                    <span class="alfawz-repetition-counter">
+                    <span class="alfawz-repetition-counter" aria-live="polite" aria-atomic="true">
                         <span id="repetition-count">0</span> / <span id="repetition-target">20</span>
                     </span>
                 </div>
                 <div class="alfawz-repetition-progress">
-                    <div class="alfawz-progress-track">
-                        <div class="alfawz-progress-fill" style="width: 0%" id="repetition-progress-bar"></div>
+                    <div class="alfawz-progress-track" role="presentation">
+                        <div
+                            class="alfawz-progress-fill"
+                            style="width: 0%"
+                            id="repetition-progress-bar"
+                            role="progressbar"
+                            aria-label="<?php esc_attr_e('Repetition progress', 'alfawzquran'); ?>"
+                            aria-valuemin="0"
+                            aria-valuenow="0"
+                            aria-valuemax="20"
+                        ></div>
                         <div class="alfawz-progress-markers"></div>
                     </div>
-                    <p class="alfawz-text-center alfawz-mb-0" id="session-progress-text"><?php _e('Repetitions: 0 / 20', 'alfawzquran'); ?></p>
+                    <p class="alfawz-text-center alfawz-mb-0" id="session-progress-text" aria-live="polite" aria-atomic="true"><?php _e('Repetitions: 0 / 20', 'alfawzquran'); ?></p>
                 </div>
                 <div class="alfawz-repeat-button-container">
-                    <button id="repeat-verse-btn" class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md alfawz-btn alfawz-repeat-btn">
+                    <button
+                        id="repeat-verse-btn"
+                        class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md alfawz-btn alfawz-repeat-btn"
+                        type="button"
+                    >
                         <span class="alfawz-repeat-icon-wrapper"><span class="alfawz-repeat-icon" aria-hidden="true">🔁</span></span>
                         <div class="alfawz-repeat-content">
                             <span class="alfawz-repeat-text"><?php _e('Repeat Verse', 'alfawzquran'); ?></span>

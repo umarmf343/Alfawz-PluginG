@@ -1601,6 +1601,23 @@
   gap: var(--spacing-sm);
 }
 
+#memo-mark-memorized.alfawz-btn-disabled,
+#memo-mark-memorized[disabled] {
+  opacity: 0.6;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+#memo-mark-memorized.alfawz-btn-disabled .alfawz-btn-glow,
+#memo-mark-memorized[disabled] .alfawz-btn-glow {
+  opacity: 0;
+}
+
+#memo-mark-memorized.alfawz-btn-disabled .alfawz-btn-icon,
+#memo-mark-memorized[disabled] .alfawz-btn-icon {
+  filter: grayscale(0.35);
+}
+
 .alfawz-session-actions {
   display: flex;
   justify-content: center;
@@ -1715,6 +1732,11 @@
   border-radius: var(--radius-sm);
   transition: width 0.5s ease;
   position: relative;
+}
+
+.alfawz-progress-fill.alfawz-progress-complete {
+  background: var(--warning-gradient);
+  box-shadow: 0 0 12px rgba(251, 191, 36, 0.45);
 }
 
 .alfawz-progress-glow {

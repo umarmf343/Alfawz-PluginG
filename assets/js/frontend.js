@@ -649,6 +649,7 @@
   const REVIEW_STORAGE_KEY_PREFIX = "alfawzMemoReview"
   let playAudioDefaultLabel = ""
   let currentReviewState = { rating: null, notes: "" }
+  let completionCelebrationShown = false
 
   function initializeMemorizer() {
     if ($(".alfawz-memorizer").length) {
@@ -662,7 +663,9 @@
       $("#next-memo-verse-btn").on("click", () => navigateMemorizationVerse(1))
       $("#memo-mark-memorized").on("click", markVerseAsMemorized)
       $("#memo-select-another").on("click", resetMemorizationSession)
-      $("#continue-memorization").on("click", resetMemorizationSession)
+      $("#continue-memorization").on("click", continueMemorizationAfterCelebration)
+
+      hideCongratulationsModal({ immediate: true })
 
       $("#memo-review-actions .alfawz-review-chip").on("click", handleReviewSelection)
       $("#memo-review-notes").on("input", handleReviewNotesInput)
@@ -745,10 +748,13 @@
     }
 
     memorizationSessionActive = true
+    completionCelebrationShown = false
     repetitionCount = 0
+    $("#repetition-progress-bar").removeClass("alfawz-progress-complete")
     updateRepetitionDisplay()
+    hideCongratulationsModal({ immediate: true })
     $("#repeat-verse-btn").removeClass("alfawz-repeat-completed").prop("disabled", false)
-    $("#memo-mark-memorized").prop("disabled", false)
+    disableMarkAsMemorizedButton()
     $("#memo-mark-memorized .alfawz-btn-text").text(markMemorizedDefaultLabel || $("#memo-mark-memorized").text())
 
     stopCurrentAudioPlayback()
@@ -878,10 +884,14 @@
     updateRepetitionDisplay()
     showRepetitionFeedback()
 
+    $("#repeat-verse-btn").addClass("alfawz-repeat-clicked")
+    setTimeout(() => {
+      $("#repeat-verse-btn").removeClass("alfawz-repeat-clicked")
+    }, 180)
+
     if (repetitionCount >= REPETITION_TARGET) {
-      $("#repeat-verse-btn").addClass("alfawz-repeat-completed").prop("disabled", true)
-      showNotification("Repetition target reached! Advancing to the next verse.", "success")
-      autoAdvanceToNextVerse()
+      repetitionCount = REPETITION_TARGET
+      handleRepetitionTargetReached()
     }
   }
 
@@ -891,7 +901,10 @@
     $("#session-progress-text").text(`Repetitions: ${repetitionCount} / ${REPETITION_TARGET}`)
 
     const percentage = (repetitionCount / REPETITION_TARGET) * 100
-    $("#repetition-progress-bar").css("width", `${percentage}%`)
+    $("#repetition-progress-bar")
+      .css("width", `${percentage}%`)
+      .attr("aria-valuenow", repetitionCount)
+      .attr("aria-valuemax", REPETITION_TARGET)
 
     // Update progress markers
     const markersContainer = $(".alfawz-progress-markers")
@@ -900,6 +913,34 @@
       const markerClass = i <= repetitionCount ? "alfawz-marker-completed" : ""
       markersContainer.append(`<div class="alfawz-progress-marker ${markerClass}"></div>`)
     }
+  }
+
+  function handleRepetitionTargetReached() {
+    if (completionCelebrationShown) {
+      return
+    }
+
+    completionCelebrationShown = true
+    $("#repeat-verse-btn").addClass("alfawz-repeat-completed").prop("disabled", true)
+    enableMarkAsMemorizedButton()
+    $("#repetition-progress-bar").addClass("alfawz-progress-complete")
+
+    const hasanatEarned = currentMemorizationVerse?.hasanat || 0
+    showCongratulationsModal(hasanatEarned)
+  }
+
+  function disableMarkAsMemorizedButton() {
+    $("#memo-mark-memorized")
+      .prop("disabled", true)
+      .attr("aria-disabled", "true")
+      .addClass("alfawz-btn-disabled")
+  }
+
+  function enableMarkAsMemorizedButton() {
+    $("#memo-mark-memorized")
+      .prop("disabled", false)
+      .attr("aria-disabled", "false")
+      .removeClass("alfawz-btn-disabled")
   }
 
   function showRepetitionFeedback() {
@@ -931,7 +972,7 @@
       showNotification("No verse loaded to mark as memorized.", "error")
       return
     }
-    if (repetitionCount < REPETITION_TARGET) {
+    if (!completionCelebrationShown && repetitionCount < REPETITION_TARGET) {
       showNotification(`Please complete ${REPETITION_TARGET} repetitions before marking as memorized.`, "error")
       return
     }
@@ -954,7 +995,9 @@
       },
       success: (response) => {
         if (response.success) {
-          showCongratulationsModal(currentMemorizationVerse.hasanat)
+          if (!completionCelebrationShown) {
+            showCongratulationsModal(currentMemorizationVerse.hasanat)
+          }
           loadUserStats() // Update overall stats
           // Update plan progress if a plan is active
           const selectedPlanId = $("#memorization-plan-select").val()
@@ -976,12 +1019,36 @@
   }
 
   function showCongratulationsModal(hasanatEarned) {
+    completionCelebrationShown = true
+    const modal = $("#congratulations-modal")
     $("#achievement-details").text(`+${hasanatEarned} Hasanat earned`)
-    $("#congratulations-modal").fadeIn().find(".alfawz-modal-content").addClass("alfawz-modal-celebrate")
+    modal
+      .removeClass("alfawz-hidden")
+      .attr("aria-hidden", "false")
+      .stop(true, true)
+      .fadeIn(200, () => {
+        modal.find(".alfawz-modal-content").addClass("alfawz-modal-celebrate")
+      })
+  }
+
+  function hideCongratulationsModal({ immediate = false } = {}) {
+    const modal = $("#congratulations-modal")
+    const finalizeHide = () => {
+      modal.addClass("alfawz-hidden").attr("aria-hidden", "true")
+      modal.find(".alfawz-modal-content").removeClass("alfawz-modal-celebrate")
+    }
+
+    if (immediate) {
+      modal.stop(true, true).hide()
+      finalizeHide()
+      return
+    }
+
+    modal.stop(true, true).fadeOut(200, finalizeHide)
   }
 
   function resetMemorizationSession() {
-    $("#congratulations-modal").fadeOut().find(".alfawz-modal-content").removeClass("alfawz-modal-celebrate")
+    hideCongratulationsModal()
     $(".alfawz-memorization-session").hide()
     $("#memo-surah-select").val("").prop("disabled", false)
     $("#memo-verse-select").empty().append('<option value="">Select surah first</option>').prop("disabled", true)
@@ -991,7 +1058,9 @@
     repetitionCount = 0
     updateRepetitionDisplay()
     $("#repeat-verse-btn").removeClass("alfawz-repeat-completed").prop("disabled", false)
-    $("#memo-mark-memorized").prop("disabled", false)
+    $("#repetition-progress-bar").removeClass("alfawz-progress-complete")
+    completionCelebrationShown = false
+    disableMarkAsMemorizedButton()
     $("#memo-mark-memorized .alfawz-btn-text").text(markMemorizedDefaultLabel || $("#memo-mark-memorized").text())
     memorizationSessionActive = false
     stopCurrentAudioPlayback()
@@ -1041,7 +1110,7 @@
 
   function navigateMemorizationVerse(step, triggeredByAuto = false) {
     if (!memorizationSessionActive) {
-      return
+      return false
     }
 
     const options = getVerseOptions()
@@ -1049,7 +1118,7 @@
     const currentIndex = options.findIndex(option => option.value === currentValue)
 
     if (currentIndex === -1) {
-      return
+      return false
     }
 
     const nextIndex = currentIndex + step
@@ -1058,7 +1127,7 @@
         showNotification("You have reached the end of this selection.", "info")
         $("#repeat-verse-btn").prop("disabled", false)
       }
-      return
+      return false
     }
 
     const nextVerseId = options[nextIndex].value
@@ -1067,12 +1136,18 @@
     if (triggeredByAuto) {
       showNotification(`Now reciting verse ${nextVerseId}.`, "success")
     }
+    return true
   }
 
-  function autoAdvanceToNextVerse() {
-    setTimeout(() => {
-      navigateMemorizationVerse(1, true)
-    }, 800)
+  function continueMemorizationAfterCelebration(event) {
+    event?.preventDefault?.()
+
+    hideCongratulationsModal()
+
+    const advanced = navigateMemorizationVerse(1, true)
+    if (!advanced) {
+      $("#repeat-verse-btn").removeClass("alfawz-repeat-completed").prop("disabled", false)
+    }
   }
 
   function refreshSelectedVerseDisplay(surahId, verseId) {
