@@ -3,6 +3,7 @@
   const API_BASE = (wpData.apiUrl || '/wp-json/alfawzquran/v1/').replace(/\/+$/, '/');
   const QURAN_AUDIO_API_BASE = 'https://api.alquran.cloud/v1/';
   const RECITER_EDITION = wpData.defaultReciter || 'ar.alafasy';
+  let currentReciter = wpData.userPreferences?.default_reciter || RECITER_EDITION;
   const TRANSLATION_EDITION = wpData.defaultTranslation || 'en.sahih';
   const TRANSLITERATION_EDITION = wpData.defaultTransliteration || 'en.transliteration';
   const HASANAT_PER_LETTER = Number(wpData.hasanatPerLetter || 10);
@@ -114,13 +115,29 @@
     return verse;
   };
 
+  const selectCdnAudio = (payload) => {
+    if (!payload || typeof payload !== 'object') {
+      return '';
+    }
+
+    const secondary = Array.isArray(payload.audioSecondary) ? payload.audioSecondary : [];
+    const cdnSource = secondary.find((url) => typeof url === 'string' && /cdn\.islamic\.network/i.test(url));
+
+    if (cdnSource) {
+      return cdnSource;
+    }
+
+    return typeof payload.audio === 'string' ? payload.audio : '';
+  };
+
   const loadAudio = async (surahId, verseId) => {
-    const cacheKey = `${surahId}:${verseId}`;
+    const reciter = currentReciter || RECITER_EDITION;
+    const cacheKey = `${reciter}:${surahId}:${verseId}`;
     if (state.audioCache.has(cacheKey)) {
       return state.audioCache.get(cacheKey);
     }
-    const response = await fetchJson(`${QURAN_AUDIO_API_BASE}ayah/${surahId}:${verseId}/${RECITER_EDITION}`);
-    const audioUrl = response?.data?.audio || '';
+    const response = await fetchJson(`${QURAN_AUDIO_API_BASE}ayah/${surahId}:${verseId}/${reciter}`);
+    const audioUrl = selectCdnAudio(response?.data) || '';
     state.audioCache.set(cacheKey, audioUrl);
     return audioUrl;
   };
@@ -1115,6 +1132,9 @@
         merged.enable_leaderboard ?? fallbackPreferences.enable_leaderboard
       );
 
+      currentReciter = statePrefs.default_reciter || RECITER_EDITION;
+      state.audioCache.clear();
+
       if (reciterSelect) {
         reciterSelect.value = statePrefs.default_reciter;
       }
@@ -1275,6 +1295,11 @@
           ? 'Show me on the community leaderboard'
           : 'Keep my progress private';
       }
+    });
+
+    reciterSelect?.addEventListener('change', (event) => {
+      currentReciter = event.target.value || RECITER_EDITION;
+      state.audioCache.clear();
     });
 
     resetBtn?.addEventListener('click', () => {

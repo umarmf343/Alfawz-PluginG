@@ -19,6 +19,7 @@
                         <option value="ar.abdulbasitmurattal" <?php selected( get_option('alfawz_default_reciter'), 'ar.abdulbasitmurattal' ); ?>><?php _e('Abdul Basit (Murattal)', 'alfawzquran'); ?></option>
                         <option value="ar.abdurrahmaansudais" <?php selected( get_option('alfawz_default_reciter'), 'ar.abdurrahmaansudais' ); ?>><?php _e('Abdur-Rahman as-Sudais', 'alfawzquran'); ?></option>
                         <option value="ar.husary" <?php selected( get_option('alfawz_default_reciter'), 'ar.husary' ); ?>><?php _e('Mahmoud Khalil Al-Husary', 'alfawzquran'); ?></option>
+                        <option value="ar.minshawi" <?php selected( get_option('alfawz_default_reciter'), 'ar.minshawi' ); ?>><?php _e('Mohamed Siddiq El-Minshawi', 'alfawzquran'); ?></option>
                     </select>
                     <p class="description"><?php _e('Choose the default Quran reciter for audio playback.', 'alfawzquran'); ?></p>
                 </td>
