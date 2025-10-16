@@ -189,6 +189,61 @@ class UserProgress {
     }
 
     /**
+     * Aggregate daily activity counts for the requested window.
+     *
+     * @param int $user_id User identifier.
+     * @param int $days    Number of days to include.
+     *
+     * @return array[]
+     */
+    public function get_recent_daily_activity( $user_id, $days = 14 ) {
+        $user_id = (int) $user_id;
+        if ( $user_id <= 0 ) {
+            return [];
+        }
+
+        $days = (int) $days;
+        if ( $days < 1 ) {
+            $days = 1;
+        } elseif ( $days > 90 ) {
+            $days = 90;
+        }
+
+        $start = gmdate( 'Y-m-d H:i:s', strtotime( sprintf( '-%d days', $days ) ) );
+
+        $query = $this->wpdb->prepare(
+            "SELECT DATE(timestamp) AS activity_date,
+                    SUM(CASE WHEN progress_type = 'read' THEN 1 ELSE 0 END) AS verses_read,
+                    SUM(CASE WHEN progress_type = 'memorized' THEN 1 ELSE 0 END) AS verses_memorized,
+                    SUM(hasanat) AS hasanat
+             FROM {$this->table_progress}
+             WHERE user_id = %d AND timestamp >= %s
+             GROUP BY activity_date
+             ORDER BY activity_date ASC",
+            $user_id,
+            $start
+        );
+
+        $rows = $this->wpdb->get_results( $query, ARRAY_A );
+
+        if ( empty( $rows ) ) {
+            return [];
+        }
+
+        return array_map(
+            static function ( $row ) {
+                return [
+                    'date'             => $row['activity_date'],
+                    'verses_read'      => isset( $row['verses_read'] ) ? (int) $row['verses_read'] : 0,
+                    'verses_memorized' => isset( $row['verses_memorized'] ) ? (int) $row['verses_memorized'] : 0,
+                    'hasanat'          => isset( $row['hasanat'] ) ? (int) $row['hasanat'] : 0,
+                ];
+            },
+            $rows
+        );
+    }
+
+    /**
      * Get overall statistics for admin dashboard.
      *
      * @return array
