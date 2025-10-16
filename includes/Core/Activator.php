@@ -128,6 +128,12 @@ class Activator {
     private static function create_pages() {
         $pages = [
             [
+                'slug'      => 'alfawz-account',
+                'title'     => __( 'Alfawz Account', 'alfawzquran' ),
+                'shortcode' => '[alfawz_account]',
+                'option'    => 'alfawz_account_page_id',
+            ],
+            [
                 'slug'      => 'alfawz-dashboard',
                 'title'     => __( 'Alfawz Dashboard', 'alfawzquran' ),
                 'shortcode' => '[alfawz_dashboard]',
@@ -192,6 +198,10 @@ class Activator {
                     ]);
                 }
 
+                if ( ! empty( $page['option'] ?? '' ) ) {
+                    update_option( $page['option'], (int) $existing_page->ID );
+                }
+
                 continue;
             }
 
@@ -205,6 +215,10 @@ class Activator {
             ]);
 
             if ( ! is_wp_error( $page_id ) && $page_id ) {
+                if ( ! empty( $page['option'] ?? '' ) ) {
+                    update_option( $page['option'], (int) $page_id );
+                }
+
                 $new_page_ids[] = (int) $page_id;
             }
         }
