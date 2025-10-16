@@ -5449,13 +5449,13 @@ body.alfawz-qaidah-modal-open {
 }
 
 .alfawz-reflection-title {
-  font-size: 1.25rem;
+  font-size: 1.875rem;
   font-weight: 700;
   color: #4d0f20;
 }
 
 .alfawz-reflection-context {
-  font-size: var(--alfawz-text-small);
+  font-size: calc(var(--alfawz-text-small) * 1.5);
   color: rgba(93, 19, 37, 0.78);
   margin-top: 0.35rem;
 }
@@ -5471,7 +5471,7 @@ body.alfawz-qaidah-modal-open {
   width: 2.5rem;
   height: 2.5rem;
   border-radius: 0.95rem;
-  font-size: 1.2rem;
+  font-size: 1.8rem;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -5493,7 +5493,7 @@ body.alfawz-qaidah-modal-open {
 
 .alfawz-reflection-label {
   display: block;
-  font-size: var(--alfawz-text-small);
+  font-size: calc(var(--alfawz-text-small) * 1.5);
   font-weight: 600;
   color: #4b0f21;
   margin-bottom: 0.4rem;
@@ -5507,7 +5507,7 @@ body.alfawz-qaidah-modal-open {
   padding: 0.95rem 1.05rem;
   min-height: 120px;
   resize: vertical;
-  font-size: var(--alfawz-text-small);
+  font-size: calc(var(--alfawz-text-small) * 1.5);
   color: #401022;
   box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
 }
@@ -5537,7 +5537,7 @@ body.alfawz-qaidah-modal-open {
 .alfawz-reflection-status {
   min-height: 1.2rem;
   margin-top: 0.55rem;
-  font-size: var(--alfawz-text-small);
+  font-size: calc(var(--alfawz-text-small) * 1.5);
   color: #79213b;
 }
 
@@ -5550,7 +5550,7 @@ body.alfawz-qaidah-modal-open {
 }
 
 .alfawz-reflection-history-title {
-  font-size: var(--alfawz-text-small);
+  font-size: calc(var(--alfawz-text-small) * 1.5);
   font-weight: 700;
   color: #5b1326;
   margin-bottom: 0.6rem;
@@ -5571,21 +5571,21 @@ body.alfawz-qaidah-modal-open {
 }
 
 .alfawz-reflection-item strong {
-  font-size: var(--alfawz-text-small);
+  font-size: calc(var(--alfawz-text-small) * 1.5);
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: #b54760;
 }
 
 .alfawz-reflection-item time {
-  font-size: var(--alfawz-text-small);
+  font-size: calc(var(--alfawz-text-small) * 1.5);
   color: rgba(112, 26, 46, 0.6);
   display: block;
   margin-top: 0.2rem;
 }
 
 .alfawz-reflection-item p {
-  font-size: var(--alfawz-text-small);
+  font-size: calc(var(--alfawz-text-small) * 1.5);
   color: #4d1224;
   margin-top: 0.35rem;
   line-height: 1.5;
@@ -5598,7 +5598,7 @@ body.alfawz-qaidah-modal-open {
   border: none;
   background: none;
   color: #c05369;
-  font-size: var(--alfawz-text-small);
+  font-size: calc(var(--alfawz-text-small) * 1.5);
   cursor: pointer;
 }
 
@@ -5607,7 +5607,7 @@ body.alfawz-qaidah-modal-open {
 }
 
 .alfawz-reflection-empty {
-  font-size: var(--alfawz-text-small);
+  font-size: calc(var(--alfawz-text-small) * 1.5);
   color: rgba(112, 26, 46, 0.72);
 }
 
