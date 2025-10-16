@@ -147,54 +147,6 @@ if ( ! defined( 'ABSPATH' ) ) {
         </article>
     </div>
 
-    <div id="alfawz-audio-panel" class="alfawz-audio-panel mx-auto mt-12 max-w-3xl" aria-live="polite">
-        <span class="alfawz-audio-rainbow" aria-hidden="true"></span>
-        <div class="alfawz-audio-inner">
-            <div class="alfawz-audio-top">
-                <div class="alfawz-audio-meta">
-                    <span class="alfawz-audio-bloom">
-                        <span class="alfawz-audio-icon" aria-hidden="true">🎧</span>
-                    </span>
-                    <div class="alfawz-audio-copy">
-                        <p id="alfawz-audio-label" class="alfawz-audio-heading">
-                            <?php esc_html_e( 'Recitation player', 'alfawzquran' ); ?>
-                        </p>
-                        <p id="alfawz-audio-status" class="alfawz-audio-status">
-                            <?php esc_html_e( 'Select a verse to load the recitation.', 'alfawzquran' ); ?>
-                        </p>
-                    </div>
-                </div>
-                <button type="button" id="alfawz-audio-toggle" class="alfawz-audio-toggle" disabled>
-                    <span class="alfawz-audio-toggle-icon" aria-hidden="true">▶️</span>
-                    <span class="screen-reader-text"><?php esc_html_e( 'Toggle audio playback', 'alfawzquran' ); ?></span>
-                    <span id="alfawz-audio-toggle-label"><?php esc_html_e( 'Play', 'alfawzquran' ); ?></span>
-                </button>
-            </div>
-
-            <div class="alfawz-audio-progress">
-                <div class="alfawz-audio-track">
-                    <div id="alfawz-audio-progress" class="alfawz-audio-progress-bar"></div>
-                    <div id="alfawz-audio-visualizer" class="alfawz-audio-visualizer" aria-hidden="true"></div>
-                </div>
-                <input type="range" id="alfawz-audio-seek" class="alfawz-audio-seek" min="0" max="100" value="0" aria-label="<?php esc_attr_e( 'Seek through the recitation', 'alfawzquran' ); ?>" disabled>
-                <div class="alfawz-audio-times">
-                    <span id="alfawz-audio-current">0:00</span>
-                    <span id="alfawz-audio-source" class="alfawz-badge">
-                        <?php esc_html_e( 'Archive · waiting', 'alfawzquran' ); ?>
-                    </span>
-                    <span id="alfawz-audio-duration">0:00</span>
-                </div>
-            </div>
-
-            <p class="alfawz-audio-footnote">
-                <?php esc_html_e( 'Audio sourced from the Moshaf Gwani Dahir collection hosted on the Internet Archive.', 'alfawzquran' ); ?>
-                <a href="https://archive.org/details/MoshafGwaniDahir" class="alfawz-audio-link" target="_blank" rel="noopener">
-                    <?php esc_html_e( 'Explore the archive', 'alfawzquran' ); ?>
-                </a>
-            </p>
-        </div>
-    </div>
-
     <div
         id="alfawz-gwani-player"
         class="alfawz-gwani-player mx-auto mt-8 max-w-3xl"
