@@ -2546,17 +2546,21 @@
       const target = Number(state.target || 0);
       const count = Number(state.count || 0);
       const percentage = Number(state.percentage ?? (target ? (count / target) * 100 : 0));
+      const hatched = Boolean(state.completed) || (target > 0 && count >= target);
+      const nextTarget = Number(state.next_target || state.target || 0) || (target ? target : 25);
+      const previousTarget = Number(state.previous_target || 0) || null;
       animateBar(eggProgress, percentage);
       if (eggEmoji) {
-        eggEmoji.textContent = count >= target || state.completed ? '🐣' : '🥚';
+        eggEmoji.textContent = hatched ? '🐣' : '🥚';
       }
       if (eggMessage) {
         if (state.completed) {
-          const rawNextTarget = state.next_target || (target ? target + 5 : 25);
-          const nextTarget = Number(rawNextTarget) || 25;
-          eggMessage.innerHTML = `🎉 <span class="font-semibold">Takbir!</span> You’ve broken the egg! Next challenge: <span class="font-semibold">${nextTarget} verses</span>`;
+          const hatchedLabel = previousTarget && previousTarget > 0 ? previousTarget : Math.max(1, nextTarget - 5);
+          const hatchedDisplay = formatNumber(hatchedLabel);
+          const nextDisplay = formatNumber(nextTarget);
+          eggMessage.innerHTML = `🎉 <span class="font-semibold">Takbir!</span> You cracked the <span class="font-semibold">${hatchedDisplay}-verse</span> egg! Next challenge: <span class="font-semibold">${nextDisplay} verses</span>`;
         } else {
-          const remaining = target ? Math.max(0, target - count) : null;
+          const remaining = Number(state.remaining ?? (target ? Math.max(0, target - count) : null));
           if (remaining && remaining > 0) {
             eggMessage.textContent = `${remaining} ${remaining === 1 ? 'more verse' : 'more verses'} to hatch the surprise.`;
           } else {
@@ -2564,9 +2568,13 @@
           }
         }
       }
-      const label = target ? `${count} / ${target} Verses` : `${count} Verses`;
+      const label = state.progress_label
+        ? `${state.progress_label} Verses`
+        : target
+          ? `${count} / ${target} Verses`
+          : `${count} Verses`;
       safeSetText(eggCount, label);
-      const celebrationKey = state.previous_target || state.target || `${count}-${target}`;
+      const celebrationKey = state.completed_at || state.previous_target || state.target || `${count}-${target}`;
       if (state.completed && celebrationKey !== lastEggCelebratedTarget) {
         lastEggCelebratedTarget = celebrationKey;
         celebrateEgg();
