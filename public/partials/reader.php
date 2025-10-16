@@ -47,18 +47,37 @@ if ( ! defined( 'ABSPATH' ) ) {
                 </div>
             </div>
 
-            <button type="button" id="alfawz-prev-verse" class="alfawz-verse-nav" aria-label="<?php esc_attr_e( 'Previous verse', 'alfawzquran' ); ?>" disabled>◁</button>
-            <button type="button" id="alfawz-next-verse" class="alfawz-verse-nav" aria-label="<?php esc_attr_e( 'Next verse', 'alfawzquran' ); ?>" disabled>▷</button>
+            <div class="alfawz-verse-main">
+                <button
+                    type="button"
+                    id="alfawz-prev-verse"
+                    class="alfawz-verse-nav"
+                    aria-label="<?php esc_attr_e( 'Previous verse', 'alfawzquran' ); ?>"
+                    disabled
+                >
+                    ◁
+                </button>
+                <div class="alfawz-verse-main__content">
+                    <header class="alfawz-verse-header" aria-live="polite">
+                        <p id="alfawz-verse-meta" class="alfawz-verse-meta"></p>
+                        <h3 id="alfawz-verse-heading" class="alfawz-verse-heading"></h3>
+                    </header>
 
-            <header class="alfawz-verse-header" aria-live="polite">
-                <p id="alfawz-verse-meta" class="alfawz-verse-meta"></p>
-                <h3 id="alfawz-verse-heading" class="alfawz-verse-heading"></h3>
-            </header>
-
-            <div id="alfawz-verse-content" class="alfawz-verse-panel">
-                <p id="alfawz-arabic-text" class="alfawz-arabic" dir="rtl" lang="ar"></p>
-                <p id="alfawz-transliteration" class="alfawz-transliteration"></p>
-                <p id="alfawz-translation" class="alfawz-translation"></p>
+                    <div id="alfawz-verse-content" class="alfawz-verse-panel">
+                        <p id="alfawz-arabic-text" class="alfawz-arabic" dir="rtl" lang="ar"></p>
+                        <p id="alfawz-transliteration" class="alfawz-transliteration"></p>
+                        <p id="alfawz-translation" class="alfawz-translation"></p>
+                    </div>
+                </div>
+                <button
+                    type="button"
+                    id="alfawz-next-verse"
+                    class="alfawz-verse-nav"
+                    aria-label="<?php esc_attr_e( 'Next verse', 'alfawzquran' ); ?>"
+                    disabled
+                >
+                    ▷
+                </button>
             </div>
 
             <div id="alfawz-surah-view-toggle" class="alfawz-view-toggle" role="group" aria-label="<?php esc_attr_e( 'Toggle surah display mode', 'alfawzquran' ); ?>">
