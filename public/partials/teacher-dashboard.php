@@ -205,7 +205,7 @@ $qaidah_markup = ob_get_clean();
                     </tbody>
                 </table>
             </div>
-            <div class="mt-6 grid gap-4 rounded-3xl bg-[#fdf5ea] p-6 text-sm text-[#502032] sm:grid-cols-2" data-alfawz-animate data-alfawz-delay="0.12">
+            <div class="mt-6 grid gap-4 rounded-3xl bg-gradient-to-br from-[#fff1f9] via-[#ffe0f2] to-[#ffc9e8] p-6 text-sm text-[#4a1034] shadow-md shadow-[#d96aa3]/20 sm:grid-cols-2" data-alfawz-animate data-alfawz-delay="0.12">
                 <div>
                     <h3 class="text-lg font-semibold text-[#3d0b1e]"><?php esc_html_e( 'Reflection prompts', 'alfawzquran' ); ?></h3>
                     <p class="mt-2 leading-relaxed"><?php esc_html_e( 'After learners submit, send a reflective prompt—ask what line felt most joyful to recite.', 'alfawzquran' ); ?></p>
