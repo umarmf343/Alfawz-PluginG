@@ -194,6 +194,37 @@ if ( ! defined( 'ABSPATH' ) ) {
         </div>
     </div>
 
+    <div
+        id="alfawz-gwani-player"
+        class="alfawz-gwani-player mx-auto mt-8 max-w-3xl"
+        aria-labelledby="alfawz-gwani-player-heading"
+        aria-live="polite"
+    >
+        <h3 id="alfawz-gwani-player-heading" class="alfawz-controls-heading">
+            <?php esc_html_e( 'Gwani Dahiru Surah Player', 'alfawzquran' ); ?>
+        </h3>
+        <p class="alfawz-gwani-description">
+            <?php esc_html_e( 'Stream complete surahs from the Gwani Dahiru archive without changing your current reader selection.', 'alfawzquran' ); ?>
+        </p>
+        <div class="alfawz-gwani-controls">
+            <label class="alfawz-field">
+                <span class="alfawz-field-label"><?php esc_html_e( 'Surah', 'alfawzquran' ); ?></span>
+                <select id="alfawz-gwani-surah-select" class="alfawz-select" disabled>
+                    <option value=""><?php esc_html_e( 'Loading…', 'alfawzquran' ); ?></option>
+                </select>
+            </label>
+            <div class="alfawz-gwani-action">
+                <button type="button" id="alfawz-gwani-play" class="alfawz-button" disabled>
+                    <?php esc_html_e( 'Play full surah', 'alfawzquran' ); ?>
+                </button>
+            </div>
+        </div>
+        <p id="alfawz-gwani-status" class="alfawz-gwani-status" role="status">
+            <?php esc_html_e( 'Select a surah to hear the Gwani Dahiru recitation.', 'alfawzquran' ); ?>
+        </p>
+        <audio id="alfawz-gwani-audio" class="alfawz-gwani-audio" controls preload="none" aria-label="<?php esc_attr_e( 'Gwani Dahiru surah audio player', 'alfawzquran' ); ?>"></audio>
+    </div>
+
     <div id="alfawz-daily-modal" class="alfawz-daily-modal hidden fixed inset-0 z-50 flex items-end justify-center px-4 pb-8 sm:items-center" role="dialog" aria-modal="true" aria-labelledby="alfawz-daily-modal-title" aria-describedby="alfawz-daily-modal-message">
         <div class="alfawz-daily-modal__backdrop absolute inset-0 bg-gray-900 bg-opacity-60" data-dismiss-daily></div>
         <div class="alfawz-daily-modal__card relative z-10 w-full max-w-md translate-y-6 rounded-2xl bg-white px-6 py-8 text-center shadow-xl transition sm:translate-y-0">
