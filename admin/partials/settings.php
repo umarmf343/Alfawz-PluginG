@@ -74,6 +74,26 @@
         </table>
     </div>
 
+    <div class="alfawz-admin-section">
+        <h2><?php _e('AI Recitation Feedback', 'alfawzquran'); ?></h2>
+        <table class="form-table">
+            <tr valign="top">
+                <th scope="row"><?php _e('Enable Recitation Assistant', 'alfawzquran'); ?></th>
+                <td>
+                    <input type="checkbox" name="alfawz_enable_recitation_assistant" value="1" <?php checked( 1, get_option('alfawz_enable_recitation_assistant', 1) ); ?> />
+                    <p class="description"><?php _e('Toggle the Tarteel-inspired AI coach on memorization pages.', 'alfawzquran'); ?></p>
+                </td>
+            </tr>
+            <tr valign="top">
+                <th scope="row"><?php _e('Tarteel API Key (optional)', 'alfawzquran'); ?></th>
+                <td>
+                    <input type="text" name="alfawz_tarteel_api_key" value="<?php echo esc_attr( get_option('alfawz_tarteel_api_key', '') ); ?>" class="regular-text" />
+                    <p class="description"><?php _e('Store your Tarteel API token for future direct integrations. The local AI assistant works without it.', 'alfawzquran'); ?></p>
+                </td>
+            </tr>
+        </table>
+    </div>
+
     <?php submit_button(); ?>
 </div>
 
@@ -88,6 +108,8 @@ function alfawz_quran_register_settings() {
     register_setting( 'alfawz_quran_settings_group', 'alfawz_enable_notifications' );
     register_setting( 'alfawz_quran_settings_group', 'alfawz_enable_leaderboard' );
     register_setting( 'alfawz_quran_settings_group', 'alfawz_theme_mode' ); // Assuming this is also a setting
+    register_setting( 'alfawz_quran_settings_group', 'alfawz_enable_recitation_assistant' );
+    register_setting( 'alfawz_quran_settings_group', 'alfawz_tarteel_api_key' );
 }
 ?>
 

@@ -88,6 +88,14 @@ class Frontend {
                 true
             );
 
+            wp_enqueue_script(
+                'alfawz-recitation',
+                ALFAWZQURAN_PLUGIN_URL . 'assets/js/alfawz-recitation.js',
+                [ 'alfawz-memorization' ],
+                ALFAWZQURAN_VERSION,
+                true
+            );
+
             wp_localize_script('alfawz-frontend', 'alfawzData', [
                 'apiUrl' => rest_url('alfawzquran/v1/'),
                 'nonce' => $rest_nonce,
@@ -160,6 +168,34 @@ class Frontend {
                 'showTranslationLabel' => __('Show translation', 'alfawzquran'),
                 'versesLabel' => __('Verses', 'alfawzquran'),
                 'repetitionLabel' => __('Repetitions', 'alfawzquran'),
+            ]);
+
+            wp_localize_script('alfawz-recitation', 'alfawzRecitationData', [
+                'apiUrl' => rest_url('alfawzquran/v1/'),
+                'nonce' => $rest_nonce,
+                'isLoggedIn' => $is_logged_in,
+                'enabled' => (bool) get_option('alfawz_enable_recitation_assistant', 1),
+                'endpoints' => [
+                    'analyze' => rest_url('alfawzquran/v1/recitations/analyze'),
+                    'history' => rest_url('alfawzquran/v1/recitations/history'),
+                    'snippets' => rest_url('alfawzquran/v1/recitations/snippets'),
+                ],
+                'strings' => [
+                    'coachTitle' => __('AI Recitation Coach', 'alfawzquran'),
+                    'startLabel' => __('Begin listening', 'alfawzquran'),
+                    'stopLabel' => __('Stop listening', 'alfawzquran'),
+                    'unsupported' => __('Your browser does not support speech recognition. Try Chrome or Edge on desktop.', 'alfawzquran'),
+                    'pending' => __('Listening… recite the ayah clearly.', 'alfawzquran'),
+                    'processing' => __('Analysing your recitation…', 'alfawzquran'),
+                    'idle' => __('Tap begin listening when you are ready to recite.', 'alfawzquran'),
+                    'scoreLabel' => __('Accuracy score', 'alfawzquran'),
+                    'historyTitle' => __('Recent sessions', 'alfawzquran'),
+                    'mistakeTitle' => __('Focus insights', 'alfawzquran'),
+                    'snippetsTitle' => __('Tarteel-style snippets', 'alfawzquran'),
+                    'retryLabel' => __('Try again', 'alfawzquran'),
+                    'viewHistoryLabel' => __('View last reviews', 'alfawzquran'),
+                    'noMistakes' => __('Flawless! Keep reinforcing this ayah daily.', 'alfawzquran'),
+                ],
             ]);
         }
 

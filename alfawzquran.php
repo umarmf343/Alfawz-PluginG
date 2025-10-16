@@ -88,6 +88,12 @@ function run_alfawz_quran() {
     $loader->add_action( 'admin_notices', $admin, 'display_api_connection_notice' );
     $loader->add_action( 'admin_init', $admin, 'ensure_admin_capability' );
 
+    // Load Models and shared services early so other classes can rely on them.
+    require_once ALFAWZQURAN_PLUGIN_PATH . 'includes/Models/UserProgress.php';
+    require_once ALFAWZQURAN_PLUGIN_PATH . 'includes/Models/QaidahBoard.php';
+    require_once ALFAWZQURAN_PLUGIN_PATH . 'includes/Models/RecitationFeedback.php';
+    require_once ALFAWZQURAN_PLUGIN_PATH . 'includes/API/QuranAPI.php';
+
     // Load public-facing functionality
     require_once ALFAWZQURAN_PLUGIN_PATH . 'includes/Frontend/Frontend.php';
     require_once ALFAWZQURAN_PLUGIN_PATH . 'includes/Frontend/BottomNav.php';
@@ -103,11 +109,6 @@ function run_alfawz_quran() {
     // Load API routes
     require_once ALFAWZQURAN_PLUGIN_PATH . 'includes/API/Routes.php';
     new AlfawzQuran\API\Routes();
-
-    // Load Models
-    require_once ALFAWZQURAN_PLUGIN_PATH . 'includes/Models/UserProgress.php';
-    require_once ALFAWZQURAN_PLUGIN_PATH . 'includes/Models/QaidahBoard.php';
-    require_once ALFAWZQURAN_PLUGIN_PATH . 'includes/API/QuranAPI.php'; // Ensure this is loaded if used by other classes
 
     $loader->run();
 }
