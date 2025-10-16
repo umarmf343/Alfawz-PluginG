@@ -76,6 +76,19 @@
       'Play verse audio',
   };
 
+  const broadcast = (name, detail = {}) => {
+    if (typeof document === 'undefined') {
+      return;
+    }
+    try {
+      document.dispatchEvent(new CustomEvent(name, { detail }));
+    } catch (error) {
+      if (window?.console?.warn) {
+        console.warn('[Alfawz Memorization] Unable to dispatch event', name, error);
+      }
+    }
+  };
+
   const softChimeSrc =
     'data:audio/wav;base64,UklGRlQAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YQAAADP/AP//z/8A//8z/8A//8z/8A//8z/8A//8z/8A//8z/8A//8z/8A//8z/8A//8z/8A//8z/8A//8z/8A//8z/8A//8z/8A//8z/8A//8z/8A//8z/8A//8z/8A//8z/8A//8z/8A//8z/8A//8z/8A//8z/8A';
 
@@ -756,6 +769,18 @@
         surahId: state.planDetail?.surah_id || null,
         verseId: state.currentVerse,
       };
+      broadcast('alfawz:memorizationVerse', {
+        planId: state.planDetail?.id || state.planSummary?.id || null,
+        surahId: state.planDetail?.surah_id || null,
+        verseId: state.currentVerse,
+        verseKey:
+          state.planDetail?.surah_id && state.currentVerse
+            ? `${state.planDetail.surah_id}:${state.currentVerse}`
+            : null,
+        arabic: verse.arabic || '',
+        translation: verse.translation || '',
+        transliteration: verse.transliteration || '',
+      });
       state.hasAwardedCurrentVerse = false;
       state.awardInFlight = false;
       el.verseArabic.textContent = verse.arabic;
@@ -782,6 +807,12 @@
       state.awardInFlight = false;
       updateVerseMeta(null);
       el.activeStatus.textContent = wpData.verseErrorMessage || 'Unable to load verse details right now.';
+      broadcast('alfawz:memorizationVerse', {
+        planId: state.planDetail?.id || state.planSummary?.id || null,
+        surahId: state.planDetail?.surah_id || null,
+        verseId: state.currentVerse,
+        error: true,
+      });
     }
   };
 
@@ -806,6 +837,8 @@
       setStatus(wpData.noPlanMessage || 'Create your first plan to begin memorizing.', 'muted');
       setRepeatButtonState();
       await syncSurahVisibility();
+      broadcast('alfawz:memorizationPlan', { active: false });
+      broadcast('alfawz:memorizationVerse', { planId: null, surahId: null, verseId: null });
       return;
     }
     state.planDetail = await fetchPlanDetail(state.planSummary.id);
@@ -822,6 +855,7 @@
         setButtonLabel(el.audioButton, state.audioButtonDefaultLabel || wpData.playAudioLabel || 'Play verse audio');
       }
       await syncSurahVisibility();
+      broadcast('alfawz:memorizationPlan', { active: false });
       return;
     }
     if (previousSurahId && Number(previousSurahId) !== Number(state.planDetail.surah_id)) {
@@ -830,6 +864,13 @@
     await fetchSurahs();
     setPlanHeader(state.planDetail);
     updateStats(state.planDetail);
+    broadcast('alfawz:memorizationPlan', {
+      active: true,
+      planId: state.planDetail?.id || state.planSummary?.id || null,
+      surahId: state.planDetail?.surah_id || null,
+      startVerse: state.planDetail?.start_verse || null,
+      endVerse: state.planDetail?.end_verse || null,
+    });
     const nextVerse = determineNextVerse(state.planDetail);
     state.currentVerse = nextVerse;
     setActiveState(true);
@@ -857,6 +898,12 @@
       }
       setRepeatButtonState();
       await syncSurahVisibility();
+      broadcast('alfawz:memorizationVerse', {
+        planId: state.planDetail?.id || state.planSummary?.id || null,
+        surahId: state.planDetail?.surah_id || null,
+        verseId: null,
+        complete: true,
+      });
       return;
     }
     toggleElement(el.repeatButton, true);

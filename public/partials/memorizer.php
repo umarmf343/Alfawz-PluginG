@@ -174,6 +174,60 @@ if ( ! defined( 'ABSPATH' ) ) {
                 <p id="alfawz-memorization-active-status" class="text-sm font-medium text-slate-500"></p>
             </article>
 
+            <section id="alfawz-recitation-assistant" class="mx-auto w-full max-w-4xl rounded-3xl bg-white/95 p-8 text-slate-800 shadow-2xl ring-1 ring-slate-200/70">
+                <header class="space-y-2 text-left">
+                    <p class="text-xs font-semibold uppercase tracking-[0.35em] text-indigo-500"><?php esc_html_e( 'AI recitation coach', 'alfawzquran' ); ?></p>
+                    <h3 class="text-2xl font-semibold text-slate-900 sm:text-3xl"><?php esc_html_e( 'Refine your flow with Tarteel-style insights.', 'alfawzquran' ); ?></h3>
+                    <p class="text-base text-slate-600"><?php esc_html_e( 'Let the assistant listen to your recitation, highlight slip-ups, and surface FES (Focus Enhancement Snippets) inspired by Tarteel’s memorisation playbook.', 'alfawzquran' ); ?></p>
+                </header>
+
+                <div class="mt-6 flex flex-col gap-8 lg:flex-row">
+                    <div class="flex-1 space-y-6">
+                        <div class="flex flex-wrap items-center gap-3">
+                            <button type="button" id="alfawz-recitation-toggle" class="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-indigo-500 via-purple-500 to-rose-500 px-5 py-2.5 text-sm font-semibold text-white shadow-lg transition hover:scale-[1.01] hover:from-indigo-400 hover:to-rose-400 focus:outline-none focus:ring-4 focus:ring-rose-200 focus:ring-offset-2 focus:ring-offset-white">
+                                <span aria-hidden="true">🎙️</span>
+                                <span><?php esc_html_e( 'Begin listening', 'alfawzquran' ); ?></span>
+                            </button>
+                            <button type="button" id="alfawz-recitation-history-toggle" class="inline-flex items-center gap-2 rounded-2xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:-translate-y-0.5 hover:border-indigo-200 hover:text-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-200">
+                                <span aria-hidden="true">🗂️</span>
+                                <span><?php esc_html_e( 'View last reviews', 'alfawzquran' ); ?></span>
+                            </button>
+                        </div>
+                        <p id="alfawz-recitation-status" class="text-sm text-slate-500"><?php esc_html_e( 'Tap begin listening when you are ready to recite.', 'alfawzquran' ); ?></p>
+                        <div class="rounded-3xl border border-slate-200/80 bg-gradient-to-br from-indigo-50 to-rose-50 p-6 shadow-inner">
+                            <p class="text-xs font-semibold uppercase tracking-[0.3em] text-indigo-500"><?php esc_html_e( 'Accuracy score', 'alfawzquran' ); ?></p>
+                            <p id="alfawz-recitation-score-value" class="mt-2 text-4xl font-bold text-slate-900">--</p>
+                            <p id="alfawz-recitation-verse" class="mt-1 text-sm text-slate-600"><?php esc_html_e( 'Select a verse to begin your session.', 'alfawzquran' ); ?></p>
+                            <p id="alfawz-recitation-translation" class="mt-2 text-sm italic text-slate-500"></p>
+                            <p id="alfawz-recitation-updated" class="mt-2 text-xs uppercase tracking-[0.25em] text-slate-400"></p>
+                        </div>
+                    </div>
+
+                    <div class="flex-1 space-y-6">
+                        <div>
+                            <h4 class="text-xs font-semibold uppercase tracking-[0.3em] text-indigo-500"><?php esc_html_e( 'Focus insights', 'alfawzquran' ); ?></h4>
+                            <ul id="alfawz-recitation-mistakes" class="mt-3 space-y-3 text-sm text-slate-600">
+                                <li class="rounded-2xl border border-dashed border-slate-200/70 bg-white/70 px-4 py-3 text-slate-400"><?php esc_html_e( 'No analysis yet. Start a session to see highlighted opportunities.', 'alfawzquran' ); ?></li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h4 class="text-xs font-semibold uppercase tracking-[0.3em] text-indigo-500"><?php esc_html_e( 'Tarteel-style snippets', 'alfawzquran' ); ?></h4>
+                            <div id="alfawz-recitation-snippets" class="mt-3 flex flex-wrap gap-2 text-sm"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="alfawz-recitation-history" class="mt-6 hidden rounded-3xl border border-slate-200/70 bg-white/90 p-5">
+                    <div class="flex items-center justify-between">
+                        <h4 class="text-xs font-semibold uppercase tracking-[0.3em] text-indigo-500"><?php esc_html_e( 'Recent sessions', 'alfawzquran' ); ?></h4>
+                        <button type="button" id="alfawz-recitation-history-close" class="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500 hover:text-indigo-500 focus:outline-none"><?php esc_html_e( 'Close', 'alfawzquran' ); ?></button>
+                    </div>
+                    <ul id="alfawz-recitation-history-list" class="mt-4 space-y-3 text-sm text-slate-600">
+                        <li class="text-slate-400"><?php esc_html_e( 'You have not recorded any recitation feedback yet.', 'alfawzquran' ); ?></li>
+                    </ul>
+                </div>
+            </section>
+
             <section id="alfawz-memorization-surah-contents" class="hidden">
                 <div class="mx-auto flex w-full max-w-4xl flex-col gap-6 rounded-3xl bg-white/90 p-8 text-slate-800 shadow-2xl ring-1 ring-slate-200/70">
                     <header class="text-center">

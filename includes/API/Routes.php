@@ -1,7 +1,9 @@
 <?php
 namespace AlfawzQuran\API;
 
+use AlfawzQuran\API\QuranAPI;
 use AlfawzQuran\Models\QaidahBoard;
+use AlfawzQuran\Models\RecitationFeedback;
 use AlfawzQuran\Models\UserProgress;
 use DateTimeImmutable;
 use DateTimeZone;
@@ -10,6 +12,12 @@ use WP_Error;
 use WP_REST_Request;
 use WP_REST_Response;
 use function __;
+use function absint;
+use function apply_filters;
+use function rest_ensure_response;
+use function sanitize_text_field;
+use function wp_strip_all_tags;
+use function wp_json_encode;
 
 /**
  * Register REST API routes for the plugin.
@@ -46,7 +54,31 @@ class Routes {
     const EGG_CHALLENGE_TARGET_META     = 'egg_challenge_target';
     const EGG_CHALLENGE_LAST_TARGET_META = 'alfawz_egg_last_completion_target';
 
+    /**
+     * Cached recitation snippet definitions sourced from the Tarteel-inspired library.
+     *
+     * @var array|null
+     */
+    private $recitation_snippet_cache = null;
+
+    /**
+     * Stores the recitation feedback repository.
+     *
+     * @var RecitationFeedback|null
+     */
+    private $recitation_feedback;
+
+    /**
+     * Provides access to the Quran API for verse lookups.
+     *
+     * @var QuranAPI|null
+     */
+    private $quran_api;
+
     public function __construct() {
+        $this->recitation_feedback = class_exists( RecitationFeedback::class ) ? new RecitationFeedback() : null;
+        $this->quran_api           = class_exists( QuranAPI::class ) ? new QuranAPI() : null;
+
         add_action( 'rest_api_init', [ $this, 'register_routes' ] );
         add_action( 'alfawz_quran_daily_cron', [ $this, 'calculate_daily_streaks' ] );
     }
@@ -351,6 +383,62 @@ class Routes {
                         },
                     ],
                 ],
+            ]
+        );
+
+        register_rest_route(
+            $namespace,
+            '/recitations/analyze',
+            [
+                'methods'             => WP_REST_Server::CREATABLE,
+                'callback'            => [ $this, 'analyze_recitation' ],
+                'permission_callback' => [ $this, 'check_permission' ],
+                'args'                => [
+                    'verse_key'  => [
+                        'required'          => true,
+                        'sanitize_callback' => function( $value ) {
+                            return sanitize_text_field( $value );
+                        },
+                    ],
+                    'transcript' => [
+                        'required'          => true,
+                        'sanitize_callback' => function( $value ) {
+                            return wp_strip_all_tags( (string) $value );
+                        },
+                    ],
+                    'confidence' => [
+                        'required'          => false,
+                        'validate_callback' => function( $value ) {
+                            return null === $value || is_numeric( $value );
+                        },
+                    ],
+                    'duration'   => [
+                        'required'          => false,
+                        'validate_callback' => function( $value ) {
+                            return null === $value || is_numeric( $value );
+                        },
+                    ],
+                ],
+            ]
+        );
+
+        register_rest_route(
+            $namespace,
+            '/recitations/history',
+            [
+                'methods'             => WP_REST_Server::READABLE,
+                'callback'            => [ $this, 'get_recitation_history' ],
+                'permission_callback' => [ $this, 'check_permission' ],
+            ]
+        );
+
+        register_rest_route(
+            $namespace,
+            '/recitations/snippets',
+            [
+                'methods'             => WP_REST_Server::READABLE,
+                'callback'            => [ $this, 'get_recitation_snippets_endpoint' ],
+                'permission_callback' => '__return_true',
             ]
         );
 
@@ -3405,5 +3493,429 @@ class Routes {
     public function sanitize_reciter_identifier( $value ) {
         $value = strtolower( (string) $value );
         return preg_replace( '/[^a-z0-9._-]/', '', $value );
+    }
+
+    /**
+     * Analyse a recitation transcript against the expected ayah and surface insights inspired by Tarteel.
+     */
+    public function analyze_recitation( WP_REST_Request $request ) {
+        $verse_key  = trim( (string) $request->get_param( 'verse_key' ) );
+        $transcript = trim( (string) $request->get_param( 'transcript' ) );
+        $confidence = $request->get_param( 'confidence' );
+        $duration   = $request->get_param( 'duration' );
+
+        if ( '' === $verse_key ) {
+            return new WP_Error( 'alfawz_invalid_verse_key', __( 'A verse key is required for analysis.', 'alfawzquran' ) );
+        }
+
+        if ( '' === $transcript ) {
+            return new WP_Error( 'alfawz_empty_transcript', __( 'Please recite the verse so we can provide feedback.', 'alfawzquran' ) );
+        }
+
+        $parsed = $this->parse_verse_key( $verse_key );
+        if ( is_wp_error( $parsed ) ) {
+            return $parsed;
+        }
+
+        list( $surah_id, $verse_id ) = $parsed;
+
+        $expected = $this->fetch_expected_verse_bundle( $surah_id, $verse_id );
+        if ( is_wp_error( $expected ) ) {
+            return $expected;
+        }
+
+        $analysis = $this->build_recitation_analysis( $transcript, $expected );
+
+        $payload = [
+            'verse_key'  => $verse_key,
+            'surah_id'   => $surah_id,
+            'verse_id'   => $verse_id,
+            'score'      => $analysis['score'],
+            'transcript' => $analysis['transcript'],
+            'mistakes'   => $analysis['mistakes'],
+            'suggestions'=> $analysis['suggestions'],
+            'snippets'   => $analysis['snippets'],
+            'expected'   => $expected,
+        ];
+
+        if ( null !== $analysis['token_count'] ) {
+            $payload['token_count'] = $analysis['token_count'];
+        }
+
+        if ( null !== $confidence && '' !== $confidence ) {
+            $payload['confidence'] = max( 0, min( 1, (float) $confidence ) );
+        }
+
+        if ( null !== $duration && '' !== $duration ) {
+            $payload['duration'] = max( 0, (float) $duration );
+        }
+
+        if ( $this->recitation_feedback ) {
+            $this->recitation_feedback->log_feedback( $request->get_user_id(), $payload );
+        }
+
+        return rest_ensure_response(
+            [
+                'result' => $payload,
+            ]
+        );
+    }
+
+    /**
+     * Return the user recitation history if the repository is available.
+     */
+    public function get_recitation_history( WP_REST_Request $request ) {
+        if ( ! $this->recitation_feedback ) {
+            return rest_ensure_response( [ 'history' => [] ] );
+        }
+
+        $history = $this->recitation_feedback->get_history( $request->get_user_id() );
+
+        return rest_ensure_response( [ 'history' => $history ] );
+    }
+
+    /**
+     * Expose the snippet library so the front-end can surface focused cues.
+     */
+    public function get_recitation_snippets_endpoint() {
+        return rest_ensure_response(
+            [
+                'snippets' => $this->get_recitation_snippet_library(),
+            ]
+        );
+    }
+
+    /**
+     * Compare a transcript with the expected verse and compute alignment metrics.
+     *
+     * @param string $transcript User supplied transcript.
+     * @param array  $expected   Expected verse bundle.
+     * @return array
+     */
+    private function build_recitation_analysis( $transcript, array $expected ) {
+        $clean_transcript = $this->normalize_transcript( $transcript );
+        $spoken_words     = $this->tokenize_phrase( $clean_transcript );
+
+        $expected_source = $expected['transliteration'] ?? '';
+        if ( '' === $expected_source ) {
+            $expected_source = $expected['translation'] ?? '';
+        }
+        if ( '' === $expected_source ) {
+            $expected_source = $expected['arabic'] ?? '';
+        }
+
+        $expected_words = $this->tokenize_phrase( $this->normalize_transcript( $expected_source ) );
+
+        $diff = $this->diff_word_sequences( $expected_words, $spoken_words );
+        $matches = max( 0, (int) ( $diff['matches'] ?? 0 ) );
+        $expected_count = max( count( $expected_words ), 1 );
+
+        $score = round( max( 0, min( 100, ( $matches / $expected_count ) * 100 ) ), 2 );
+
+        return [
+            'score'       => $score,
+            'transcript'  => $clean_transcript,
+            'mistakes'    => $diff['mistakes'],
+            'suggestions' => $this->generate_recitation_suggestions( $diff['mistakes'], $expected ),
+            'snippets'    => $this->prepare_snippets_from_mistakes( $diff['mistakes'] ),
+            'token_count' => count( $spoken_words ),
+        ];
+    }
+
+    /**
+     * Normalise text for comparison.
+     */
+    private function normalize_transcript( $text ) {
+        $text = strtolower( (string) $text );
+        $text = preg_replace( '/[\p{Mn}\p{Sk}]+/u', '', $text );
+        $text = preg_replace( '/[^\p{L}\p{N}\s\'\-]+/u', ' ', $text );
+        $text = preg_replace( '/\s+/u', ' ', trim( $text ) );
+
+        return $text;
+    }
+
+    /**
+     * Tokenise text into an ordered sequence of words.
+     */
+    private function tokenize_phrase( $text ) {
+        if ( '' === trim( (string) $text ) ) {
+            return [];
+        }
+
+        $tokens = preg_split( '/\s+/u', trim( (string) $text ) );
+        $tokens = array_map( 'trim', array_filter( (array) $tokens ) );
+
+        return array_values( $tokens );
+    }
+
+    /**
+     * Produce a lightweight diff between the expected and spoken word sequences.
+     */
+    private function diff_word_sequences( array $expected, array $spoken ) {
+        $mistakes = [];
+        $matches  = 0;
+        $i        = 0;
+        $j        = 0;
+        $expected_count = count( $expected );
+        $spoken_count   = count( $spoken );
+
+        while ( $i < $expected_count && $j < $spoken_count ) {
+            $expected_word = $expected[ $i ];
+            $spoken_word   = $spoken[ $j ];
+
+            if ( $expected_word === $spoken_word ) {
+                $matches++;
+                $i++;
+                $j++;
+                continue;
+            }
+
+            $remaining_spoken   = array_slice( $spoken, $j + 1 );
+            $remaining_expected = array_slice( $expected, $i + 1 );
+
+            if ( in_array( $expected_word, $remaining_spoken, true ) ) {
+                $mistakes[] = [
+                    'type'     => 'skipped_word',
+                    'expected' => $expected_word,
+                    'spoken'   => $spoken_word,
+                    'position' => $i + 1,
+                ];
+                $i++;
+                continue;
+            }
+
+            if ( ! empty( $spoken_word ) && ! in_array( $spoken_word, $remaining_expected, true ) ) {
+                $mistakes[] = [
+                    'type'     => 'extra_word',
+                    'expected' => $expected_word,
+                    'spoken'   => $spoken_word,
+                    'position' => $i + 1,
+                ];
+                $j++;
+                continue;
+            }
+
+            $mistakes[] = [
+                'type'     => 'mismatch',
+                'expected' => $expected_word,
+                'spoken'   => $spoken_word,
+                'position' => $i + 1,
+            ];
+            $i++;
+            $j++;
+        }
+
+        while ( $i < $expected_count ) {
+            $mistakes[] = [
+                'type'     => 'skipped_word',
+                'expected' => $expected[ $i ],
+                'spoken'   => '',
+                'position' => $i + 1,
+            ];
+            $i++;
+        }
+
+        while ( $j < $spoken_count ) {
+            $mistakes[] = [
+                'type'     => 'extra_word',
+                'expected' => '',
+                'spoken'   => $spoken[ $j ],
+                'position' => $expected_count + ( $j + 1 ),
+            ];
+            $j++;
+        }
+
+        return [
+            'matches'  => $matches,
+            'mistakes' => $mistakes,
+        ];
+    }
+
+    /**
+     * Generate encouraging guidance based on the detected mistakes.
+     */
+    private function generate_recitation_suggestions( array $mistakes, array $expected ) {
+        if ( empty( $mistakes ) ) {
+            return [
+                __( 'Impeccable flow! Sustain this cadence to cement the ayah in your heart.', 'alfawzquran' ),
+            ];
+        }
+
+        $suggestions = [];
+        foreach ( $mistakes as $mistake ) {
+            switch ( $mistake['type'] ) {
+                case 'skipped_word':
+                    $suggestions[] = sprintf(
+                        /* translators: %s: missed word */
+                        __( 'Revisit the phrase "%s" and trace it slowly with your finger to avoid skipping it next time.', 'alfawzquran' ),
+                        $mistake['expected']
+                    );
+                    break;
+                case 'extra_word':
+                    $suggestions[] = __( 'Balance your breathing between phrases so additional words do not slip into the recitation.', 'alfawzquran' );
+                    break;
+                default:
+                    $suggestions[] = __( 'Focus on your makharij and elongations to keep each syllable distinct.', 'alfawzquran' );
+                    break;
+            }
+        }
+
+        return array_values( array_unique( $suggestions ) );
+    }
+
+    /**
+     * Select snippets aligned with the detected improvement areas.
+     */
+    private function prepare_snippets_from_mistakes( array $mistakes ) {
+        $library = $this->get_recitation_snippet_library();
+        $pool    = [];
+
+        if ( empty( $mistakes ) && isset( $library['success'] ) ) {
+            $pool = $library['success'];
+        } else {
+            foreach ( $mistakes as $mistake ) {
+                $type = $mistake['type'] ?? 'mismatch';
+                if ( isset( $library[ $type ] ) ) {
+                    $pool = array_merge( $pool, (array) $library[ $type ] );
+                }
+            }
+        }
+
+        $unique = [];
+        $seen   = [];
+
+        foreach ( $pool as $snippet ) {
+            if ( ! is_array( $snippet ) ) {
+                continue;
+            }
+            $key = isset( $snippet['id'] ) ? $snippet['id'] : md5( wp_json_encode( $snippet ) );
+            if ( isset( $seen[ $key ] ) ) {
+                continue;
+            }
+            $seen[ $key ] = true;
+            $unique[]     = $snippet;
+        }
+
+        return $unique;
+    }
+
+    /**
+     * Retrieve (and cache) the snippet library.
+     */
+    private function get_recitation_snippet_library() {
+        if ( null !== $this->recitation_snippet_cache ) {
+            return $this->recitation_snippet_cache;
+        }
+
+        $defaults = [
+            'mismatch'     => [
+                [
+                    'id'    => 'tajweed-vowel-balance',
+                    'title' => __( 'Tune your vowels', 'alfawzquran' ),
+                    'body'  => __( 'Lengthen your madd letters for two slow beats and anchor your tongue placement on qalqalah sounds.', 'alfawzquran' ),
+                ],
+            ],
+            'skipped_word' => [
+                [
+                    'id'    => 'trace-phrase-loop',
+                    'title' => __( 'Trace the skipped phrase', 'alfawzquran' ),
+                    'body'  => __( 'Whisper the missed word three times, then blend it back into the full ayah to rebuild the neural loop.', 'alfawzquran' ),
+                ],
+            ],
+            'extra_word'   => [
+                [
+                    'id'    => 'breath-harmony',
+                    'title' => __( 'Reset your breathing cadence', 'alfawzquran' ),
+                    'body'  => __( 'Inhale through the nose for four counts before reciting, letting excess filler words fall away.', 'alfawzquran' ),
+                ],
+            ],
+            'success'      => [
+                [
+                    'id'    => 'flow-celebration',
+                    'title' => __( 'Flow secured', 'alfawzquran' ),
+                    'body'  => __( 'Lock in this confident recitation by revisiting it at dawn and after maghrib for spaced reinforcement.', 'alfawzquran' ),
+                ],
+            ],
+        ];
+
+        $this->recitation_snippet_cache = apply_filters( 'alfawz_recitation_snippets_library', $defaults );
+
+        return $this->recitation_snippet_cache;
+    }
+
+    /**
+     * Parse a verse key such as "2:255" into numeric identifiers.
+     */
+    private function parse_verse_key( $verse_key ) {
+        $parts = preg_split( '/[:\\-]/', (string) $verse_key );
+        if ( count( $parts ) < 2 ) {
+            return new WP_Error( 'alfawz_invalid_verse_key', __( 'Verse keys should follow the surah:ayah format.', 'alfawzquran' ) );
+        }
+
+        $surah_id = absint( $parts[0] );
+        $verse_id = absint( $parts[1] );
+
+        if ( $surah_id <= 0 || $verse_id <= 0 ) {
+            return new WP_Error( 'alfawz_invalid_verse_key', __( 'A valid surah and ayah number are required.', 'alfawzquran' ) );
+        }
+
+        return [ $surah_id, $verse_id ];
+    }
+
+    /**
+     * Retrieve the verse text bundle from the Quran API client.
+     */
+    private function fetch_expected_verse_bundle( $surah_id, $verse_id ) {
+        if ( ! $this->quran_api ) {
+            return new WP_Error( 'alfawz_missing_api', __( 'Recitation insights require the Quran API service to be available.', 'alfawzquran' ) );
+        }
+
+        $arabic_data = $this->quran_api->get_ayah( $surah_id, $verse_id, 'quran-uthmani' );
+        if ( is_wp_error( $arabic_data ) ) {
+            return $arabic_data;
+        }
+
+        $transliteration_edition = get_option( 'alfawz_default_transliteration', 'en.transliteration' );
+        $translation_edition     = get_option( 'alfawz_default_translation', 'en.sahih' );
+
+        $transliteration_data = $this->quran_api->get_ayah( $surah_id, $verse_id, $transliteration_edition );
+        $translation_data     = $this->quran_api->get_ayah( $surah_id, $verse_id, $translation_edition );
+
+        if ( is_wp_error( $transliteration_data ) ) {
+            $transliteration_data = [];
+        }
+
+        if ( is_wp_error( $translation_data ) ) {
+            $translation_data = [];
+        }
+
+        return [
+            'arabic'         => $this->extract_ayah_text( $arabic_data ),
+            'transliteration'=> $this->extract_ayah_text( $transliteration_data ),
+            'translation'    => $this->extract_ayah_text( $translation_data ),
+        ];
+    }
+
+    /**
+     * Extract the text component from a Quran API ayah response.
+     */
+    private function extract_ayah_text( $payload ) {
+        if ( empty( $payload ) || ! is_array( $payload ) ) {
+            return '';
+        }
+
+        if ( isset( $payload['text'] ) ) {
+            return trim( wp_strip_all_tags( $payload['text'] ) );
+        }
+
+        if ( isset( $payload['ayah'] ) && is_array( $payload['ayah'] ) && isset( $payload['ayah']['text'] ) ) {
+            return trim( wp_strip_all_tags( $payload['ayah']['text'] ) );
+        }
+
+        if ( isset( $payload['data'] ) && is_array( $payload['data'] ) ) {
+            return $this->extract_ayah_text( $payload['data'] );
+        }
+
+        return '';
     }
 }

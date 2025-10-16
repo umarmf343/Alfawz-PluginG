@@ -200,6 +200,48 @@
   isolation: isolate;
 }
 
+#alfawz-recitation-assistant.is-listening {
+  box-shadow: 0 30px 60px rgba(79, 70, 229, 0.2), 0 16px 32px rgba(244, 114, 182, 0.15);
+  border-color: rgba(79, 70, 229, 0.45);
+}
+
+#alfawz-recitation-assistant .alfawz-recitation-chip {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 1rem 1.1rem;
+  border-radius: 1.75rem;
+  background: linear-gradient(135deg, rgba(79, 70, 229, 0.1), rgba(244, 114, 182, 0.12));
+  border: 1px solid rgba(79, 70, 229, 0.15);
+  min-width: 220px;
+  max-width: 100%;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+#alfawz-recitation-assistant .alfawz-recitation-chip strong {
+  font-family: var(--alfawz-font-heading);
+  font-size: 0.95rem;
+  color: var(--alfawz-maroon-800);
+}
+
+#alfawz-recitation-assistant .alfawz-recitation-chip p {
+  margin: 0;
+  font-size: var(--alfawz-text-compact);
+  color: var(--alfawz-muted);
+}
+
+#alfawz-recitation-assistant .alfawz-recitation-mistake {
+  border-left: 4px solid rgba(79, 70, 229, 0.35);
+  background: rgba(255, 255, 255, 0.85);
+  border-radius: 1.5rem;
+  padding: 0.85rem 1.1rem;
+  box-shadow: 0 8px 18px rgba(47, 8, 17, 0.06);
+}
+
+#alfawz-recitation-assistant .alfawz-recitation-mistake strong {
+  color: var(--alfawz-maroon-700);
+}
+
 #alfawz-leaderboard .alfawz-leaderboard-hero {
   position: relative;
   border-radius: var(--alfawz-radius-xl);
