@@ -26,6 +26,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
     <div class="alfawz-reader-surface mx-auto max-w-3xl px-5 py-10 sm:px-8" aria-live="polite" aria-busy="true">
         <div id="alfawz-confetti-host" class="alfawz-confetti-host" aria-hidden="true"></div>
+        <p id="alfawz-reader-announcement" class="screen-reader-text" role="status" aria-live="polite"></p>
         <div id="alfawz-verse-loader" class="alfawz-verse-loader">
             <?php esc_html_e( 'Select a surah and verse to begin your recitation.', 'alfawzquran' ); ?>
         </div>

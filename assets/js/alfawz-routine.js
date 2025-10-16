@@ -49,6 +49,8 @@
     })();
 
     const storageState = storageAvailable ? readStorage() : {};
+    const confettiHost = document.getElementById('alfawz-dashboard-confetti') || createConfettiHost();
+    const routineAnnouncement = document.getElementById('alfawz-routine-announcement') || createRoutineAnnouncement();
 
     const routineConfigs = {
         morning: {
@@ -99,6 +101,7 @@
 
     let lastSignature = '';
     let currentDateKey = '';
+    const routineCelebrations = new Map();
 
     renderRoutines(true);
     window.setInterval(renderRoutines, 60 * 1000);
@@ -115,6 +118,7 @@
             if (!storageState[currentDateKey]) {
                 storageState[currentDateKey] = {};
             }
+            routineCelebrations.clear();
             persistStorage();
         }
 
@@ -297,6 +301,13 @@
             }, 180);
 
             updateState(itemKey, nextState);
+            if (nextState) {
+                if (isRoutineComplete(config)) {
+                    celebrateRoutineCompletion(config);
+                }
+            } else {
+                resetRoutineCelebration(config);
+            }
         });
 
         return button;
@@ -318,6 +329,99 @@
         }
 
         persistStorage();
+    }
+
+    function celebrateRoutineCompletion(config) {
+        const key = routineKey(config);
+        if (!key) {
+            return;
+        }
+
+        const now = Date.now();
+        const previous = routineCelebrations.get(key) || 0;
+
+        if (now - previous < 60000) {
+            return;
+        }
+
+        routineCelebrations.set(key, now);
+        spawnRoutineConfetti(28);
+        announceRoutine('Takbir! ' + (config.title || 'Routine') + ' complete.');
+    }
+
+    function resetRoutineCelebration(config) {
+        const key = routineKey(config);
+        if (!key) {
+            return;
+        }
+        routineCelebrations.delete(key);
+    }
+
+    function isRoutineComplete(config) {
+        if (!config || !currentDateKey) {
+            return false;
+        }
+
+        const dayState = storageState[currentDateKey] || {};
+        return config.items.every(function (item) {
+            const itemKey = config.id + ':' + item.id;
+            return Boolean(dayState[itemKey]);
+        });
+    }
+
+    function routineKey(config) {
+        if (!config || !currentDateKey) {
+            return '';
+        }
+        return config.id + ':' + currentDateKey;
+    }
+
+    function announceRoutine(message) {
+        if (!routineAnnouncement || !message) {
+            return;
+        }
+
+        routineAnnouncement.textContent = '';
+        routineAnnouncement.textContent = message;
+    }
+
+    function spawnRoutineConfetti(count) {
+        const host = confettiHost || section;
+        if (!host) {
+            return;
+        }
+
+        const total = typeof count === 'number' && count > 0 ? count : 24;
+
+        for (let index = 0; index < total; index++) {
+            const piece = document.createElement('span');
+            piece.className = 'alfawz-confetti-piece';
+            piece.style.setProperty('--alfawz-confetti-x', (Math.random() * 100) + '%');
+            piece.style.setProperty('--alfawz-confetti-delay', (Math.random() * 150) + 'ms');
+            piece.style.setProperty('--alfawz-confetti-duration', (1200 + Math.random() * 600) + 'ms');
+            host.appendChild(piece);
+            window.setTimeout(function () {
+                piece.remove();
+            }, 2200);
+        }
+    }
+
+    function createConfettiHost() {
+        const host = document.createElement('div');
+        host.className = 'alfawz-confetti-host';
+        host.setAttribute('aria-hidden', 'true');
+        section.appendChild(host);
+        return host;
+    }
+
+    function createRoutineAnnouncement() {
+        const announcer = document.createElement('p');
+        announcer.id = 'alfawz-routine-announcement';
+        announcer.className = 'screen-reader-text';
+        announcer.setAttribute('role', 'status');
+        announcer.setAttribute('aria-live', 'polite');
+        section.insertBefore(announcer, section.firstChild);
+        return announcer;
     }
 
     function persistStorage() {

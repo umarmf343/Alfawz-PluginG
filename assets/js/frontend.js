@@ -1205,6 +1205,7 @@
     const dailyDismissControls = dailyModal ? dailyModal.querySelectorAll('[data-dismiss-daily]') : [];
     const dailyModalConfetti = dailyModal ? qs('.alfawz-daily-modal__confetti', dailyModal) : null;
     const confettiHost = qs('#alfawz-confetti-host', root);
+    const celebrationAnnouncer = qs('#alfawz-reader-announcement', root);
     const eggWidget = qs('#alfawz-egg-widget', root);
     const audioPanel = qs('#alfawz-audio-panel', root);
     const audioStatus = audioPanel ? qs('#alfawz-audio-status', audioPanel) : null;
@@ -1264,6 +1265,14 @@
       loading: wpData.strings?.reflectionLoading || 'Loading reflections…',
       removing: wpData.strings?.reflectionDeleting || 'Removing reflection…',
       confirmDelete: wpData.strings?.confirmDeleteReflection || 'Delete this reflection?',
+    };
+
+    const announceCelebration = (message = '') => {
+      if (!celebrationAnnouncer || !message) {
+        return;
+      }
+      celebrationAnnouncer.textContent = '';
+      celebrationAnnouncer.textContent = message;
     };
 
     const reflectionListLimit = 8;
@@ -1817,6 +1826,7 @@
     let currentVerseId = null;
     let isLoading = false;
     let lastEggCelebratedTarget = null;
+    let lastSurahCelebration = { key: '', timestamp: 0 };
     let audioElement = null;
     let audioReady = false;
     let audioIsPlaying = false;
@@ -2559,6 +2569,39 @@
         window.setTimeout(() => eggWidget.classList.remove('alfawz-egg-celebrate'), 1200);
       }
       spawnConfetti(confettiHost);
+      announceCelebration('Takbir! You cracked the egg challenge.');
+    };
+
+    const celebrateSurahCompletion = (surahName = '') => {
+      spawnConfetti(confettiHost, 32);
+      announceCelebration(
+        surahName ? `Takbir! You completed ${surahName}.` : 'Takbir! You completed this surah.'
+      );
+    };
+
+    const maybeCelebrateSurahCompletion = (surahId, verseId) => {
+      const numericSurah = Number(surahId || 0);
+      const numericVerse = Number(verseId || 0);
+      if (!numericSurah || !numericVerse) {
+        return;
+      }
+      const surah = getSurahById(numericSurah);
+      const totalVerses = surah ? Number(surah.numberOfAyahs || surah.ayahs || surah.totalVerses || 0) : 0;
+      if (!totalVerses || numericVerse < totalVerses) {
+        return;
+      }
+      const key = `${numericSurah}:${totalVerses}`;
+      const now = Date.now();
+      if (lastSurahCelebration.key === key && now - lastSurahCelebration.timestamp < 60000) {
+        return;
+      }
+      lastSurahCelebration = { key, timestamp: now };
+      const surahName =
+        surah?.englishName ||
+        surah?.englishNameTranslation ||
+        surah?.name ||
+        `Surah ${numericSurah}`;
+      celebrateSurahCompletion(surahName);
     };
 
     const updateEggWidget = (state) => {
@@ -2650,6 +2693,7 @@
         }
       }
       spawnConfetti(dailyModalConfetti || confettiHost, 28);
+      announceCelebration('MashaAllah! Daily goal achieved.');
     };
 
     const closeDailyModal = () => {
@@ -2758,6 +2802,7 @@
           updateEggWidget(response.egg);
           dispatchEggState(response.egg);
         }
+        maybeCelebrateSurahCompletion(surahId, verseId);
       } catch (error) {
         console.warn('[AlfawzQuran] unable to update progress state', error);
       }
