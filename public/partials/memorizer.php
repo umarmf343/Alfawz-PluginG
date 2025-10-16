@@ -102,7 +102,7 @@ if ( ! defined( 'ABSPATH' ) ) {
             </header>
 
             <div class="relative mx-auto w-full max-w-4xl overflow-hidden rounded-3xl bg-gradient-to-br from-sky-500 via-indigo-500 to-rose-500 p-8 shadow-2xl ring-1 ring-white/25">
-                <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"></div>
+                <div class="absolute inset-0 bg-gradient-to-br from-slate-900/80 via-slate-900/40 to-sky-900/70 backdrop-blur-sm"></div>
                 <div class="relative flex flex-col gap-6 text-center text-white drop-shadow-md">
                     <div class="flex flex-col items-center justify-center gap-4 sm:flex-row sm:justify-between">
                         <div class="flex flex-col items-center gap-3 sm:items-start">
