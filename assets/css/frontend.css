@@ -623,7 +623,7 @@
 
 .alfawz-arabic {
   font-family: 'Scheherazade New', 'Amiri', serif;
-  font-size: clamp(8.4rem, 13.8vw, 10.5rem);
+  font-size: clamp(16.8rem, 27.6vw, 21rem);
   line-height: 1.6;
   color: var(--alfawz-maroon-800);
 }
