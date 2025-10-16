@@ -17,18 +17,18 @@ $qaidah_markup = ob_get_clean();
 
     <div id="alfawz-teacher-dashboard" class="relative z-10 mx-auto max-w-6xl space-y-12 px-4 font-sans sm:px-6 lg:px-0">
         <section class="alfawz-teacher-card grid gap-10 rounded-3xl bg-white/80 p-8 shadow-2xl shadow-[#2b0618]/10 backdrop-blur" data-alfawz-animate>
-            <div class="flex flex-col items-start justify-between gap-6 lg:flex-row lg:items-center" data-alfawz-animate data-alfawz-delay="0.05">
-                <div class="space-y-5">
-                    <span class="inline-flex items-center rounded-full bg-[#f3d9c1] px-5 py-1.5 text-sm font-semibold uppercase tracking-[0.28em] text-[#5a0f27]">
+            <div class="flex flex-col items-stretch gap-8 lg:flex-row lg:items-center lg:gap-12" data-alfawz-animate data-alfawz-delay="0.05">
+                <div class="w-full space-y-5 text-center lg:w-1/2 lg:space-y-6 lg:text-left">
+                    <span class="inline-flex items-center justify-center rounded-full bg-[#f3d9c1] px-5 py-1.5 text-sm font-semibold uppercase tracking-[0.28em] text-[#5a0f27]">
                         <?php esc_html_e( 'Teacher hub', 'alfawzquran' ); ?>
                     </span>
-                    <h1 class="max-w-2xl text-4xl font-extrabold tracking-tight text-[#3d0b1e] sm:text-5xl lg:text-6xl">
+                    <h1 class="mx-auto max-w-2xl text-4xl font-extrabold tracking-tight text-[#3d0b1e] sm:text-5xl lg:text-6xl">
                         <?php esc_html_e( 'Inspire every learner with purposeful Qa’idah journeys.', 'alfawzquran' ); ?>
                     </h1>
-                    <p class="max-w-2xl text-lg leading-relaxed text-[#502032] sm:text-xl">
+                    <p class="mx-auto max-w-2xl text-lg leading-relaxed text-[#502032] sm:text-xl">
                         <?php esc_html_e( 'Craft Qa’idah lessons, review classroom momentum, and celebrate student milestones—all from your personalised teaching studio.', 'alfawzquran' ); ?>
                     </p>
-                    <div class="flex flex-wrap items-center gap-4 text-base font-semibold text-[#7b1e3c]">
+                    <div class="flex flex-wrap items-center justify-center gap-4 text-base font-semibold text-[#7b1e3c] lg:justify-start">
                         <span class="alfawz-teacher-stat inline-flex items-center gap-2 rounded-full bg-[#fdf5ea] px-4 py-2 shadow-sm" data-alfawz-animate data-alfawz-delay="0.15">
                             <span class="text-xl" aria-hidden="true">🏫</span>
                             <span data-alfawz-metric="classes" data-label="<?php esc_attr_e( 'classes', 'alfawzquran' ); ?>"><?php esc_html_e( 'Loading…', 'alfawzquran' ); ?></span>
@@ -39,7 +39,7 @@ $qaidah_markup = ob_get_clean();
                         </span>
                     </div>
                 </div>
-                <div class="relative w-full max-w-sm self-stretch overflow-hidden rounded-3xl border border-[#f5d5bf] bg-white/95 p-6 text-[#431125] shadow-xl shadow-[#2b0618]/15" data-alfawz-animate data-alfawz-delay="0.12">
+                <div class="relative w-full max-w-lg self-stretch overflow-hidden rounded-3xl border border-[#f5d5bf] bg-white/95 p-6 text-[#431125] shadow-xl shadow-[#2b0618]/15 sm:mx-auto lg:w-5/12 lg:max-w-none" data-alfawz-animate data-alfawz-delay="0.12">
                     <div class="pointer-events-none absolute inset-x-6 -top-16 h-32 rounded-full bg-gradient-to-br from-[#ffe8d7] via-[#f9d9c5] to-[#f7b7b0] blur-3xl" aria-hidden="true"></div>
                     <div class="relative flex items-center justify-between">
                         <div class="flex items-center gap-3">
