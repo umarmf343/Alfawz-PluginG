@@ -101,27 +101,28 @@ if ( ! defined( 'ABSPATH' ) ) {
                 <div class="mx-auto mt-5 inline-flex items-center gap-3 rounded-full bg-white/20 px-6 py-2 text-sm font-semibold text-white shadow-lg" id="alfawz-memorization-plan-progress"></div>
             </header>
 
-            <div class="relative mx-auto w-full max-w-4xl overflow-hidden rounded-3xl bg-gradient-to-br from-white/20 via-white/10 to-white/5 p-8 shadow-2xl backdrop-blur">
-                <div class="flex flex-col gap-6 text-center text-white">
+            <div class="relative mx-auto w-full max-w-4xl overflow-hidden rounded-3xl bg-gradient-to-br from-sky-500 via-indigo-500 to-rose-500 p-8 shadow-2xl ring-1 ring-white/25">
+                <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"></div>
+                <div class="relative flex flex-col gap-6 text-center text-white drop-shadow-md">
                     <div class="flex flex-col items-center justify-center gap-4 sm:flex-row sm:justify-between">
                         <div class="flex flex-col items-center gap-3 sm:items-start">
-                            <span class="text-sm font-semibold uppercase tracking-[0.3em] text-sky-100"><?php esc_html_e( 'Rhythm tracker', 'alfawzquran' ); ?></span>
-                            <div class="flex items-center gap-3 text-left">
-                                <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-400/60 to-purple-400/60 text-3xl shadow-inner" aria-hidden="true">🧠</div>
-                                <div>
-                                    <p class="text-sm text-slate-100/90"><?php esc_html_e( 'Daily loops completed', 'alfawzquran' ); ?></p>
+                            <span class="text-sm font-semibold uppercase tracking-[0.3em] text-slate-100/90"><?php esc_html_e( 'Rhythm tracker', 'alfawzquran' ); ?></span>
+                            <div class="flex items-center gap-3 rounded-2xl bg-white/10 p-4 text-left shadow-lg backdrop-blur-sm">
+                                <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-300/80 via-teal-300/80 to-cyan-300/80 text-3xl text-slate-900 shadow-inner" aria-hidden="true">🧠</div>
+                                <div class="space-y-1">
+                                    <p class="text-sm font-medium text-white/90"><?php esc_html_e( 'Daily loops completed', 'alfawzquran' ); ?></p>
                                     <p id="counter" class="text-2xl font-semibold text-white">0 / 20 <?php esc_html_e( 'Repetitions', 'alfawzquran' ); ?></p>
                                 </div>
                             </div>
                         </div>
                         <div class="flex flex-col items-center gap-3 sm:items-end">
-                            <p id="progress-note" class="text-sm font-medium text-sky-100"><?php esc_html_e( 'Tap repeat to begin your twenty-fold focus session.', 'alfawzquran' ); ?></p>
+                            <p id="progress-note" class="text-sm font-medium text-white/90"><?php esc_html_e( 'Tap repeat to begin your twenty-fold focus session.', 'alfawzquran' ); ?></p>
                             <div class="flex items-center gap-3 text-sm font-medium text-white">
-                                <button type="button" id="alfawz-memorization-toggle-surah" class="inline-flex items-center gap-2 rounded-full border border-white/40 bg-white/10 px-4 py-2 transition hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-sky-200 focus:ring-offset-2 focus:ring-offset-transparent">
+                                <button type="button" id="alfawz-memorization-toggle-surah" class="inline-flex items-center gap-2 rounded-full border border-white/40 bg-white/15 px-4 py-2 transition hover:bg-white/25 focus:outline-none focus:ring-2 focus:ring-sky-200 focus:ring-offset-2 focus:ring-offset-transparent">
                                     <span aria-hidden="true">📜</span>
                                     <span><?php esc_html_e( 'Show entire surah', 'alfawzquran' ); ?></span>
                                 </button>
-                                <button type="button" id="alfawz-memorization-toggle-translation" class="inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/10 px-4 py-2 transition hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-[#f3d9d7] focus:ring-offset-2 focus:ring-offset-transparent">
+                                <button type="button" id="alfawz-memorization-toggle-translation" class="inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/15 px-4 py-2 transition hover:bg-white/25 focus:outline-none focus:ring-2 focus:ring-[#f3d9d7] focus:ring-offset-2 focus:ring-offset-transparent">
                                     <span aria-hidden="true">🔁</span>
                                     <span><?php esc_html_e( 'Hide translation', 'alfawzquran' ); ?></span>
                                 </button>
@@ -129,8 +130,8 @@ if ( ! defined( 'ABSPATH' ) ) {
                         </div>
                     </div>
 
-                    <div class="mx-auto h-3 w-full max-w-2xl rounded-full bg-white/25">
-                        <div id="progress-bar" class="h-3 rounded-full bg-gradient-to-r from-indigo-300 via-fuchsia-300 to-amber-200 transition-all duration-500" style="width: 0%"></div>
+                    <div class="mx-auto h-3 w-full max-w-2xl rounded-full bg-white/30 shadow-inner">
+                        <div id="progress-bar" class="h-3 rounded-full bg-gradient-to-r from-emerald-300 via-cyan-300 to-amber-200 transition-all duration-500" style="width: 0%"></div>
                     </div>
                 </div>
             </div>
