@@ -4216,6 +4216,21 @@ body.alfawz-qaidah-modal-open {
   text-shadow: 0 8px 18px rgba(22, 101, 52, 0.18);
 }
 
+#alfawz-memorization-ayah-ar {
+  font-size: 6.75rem;
+}
+
+@media (min-width: 640px) {
+  #alfawz-memorization-ayah-ar {
+    font-size: 9rem;
+  }
+}
+
+#alfawz-memorization-ayah-transliteration,
+#alfawz-memorization-ayah-translation {
+  font-size: 3.375rem;
+}
+
 .memorization-verse-shell {
   position: relative;
   background: linear-gradient(180deg, rgba(254, 252, 232, 0.55), rgba(255, 255, 255, 0.9));
