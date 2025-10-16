@@ -2245,21 +2245,29 @@
 }
 
 #alfawz-smart-goal-card .alfawz-dashboard-metric {
-  background: linear-gradient(150deg, rgba(14, 165, 233, 0.48), rgba(244, 114, 182, 0.48));
-  border: 1px solid rgba(148, 163, 184, 0.28);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25), 0 24px 44px rgba(14, 116, 144, 0.22);
+  background: linear-gradient(160deg, rgba(15, 23, 42, 0.85), rgba(30, 64, 175, 0.65));
+  border: 1px solid rgba(248, 250, 252, 0.18);
+  box-shadow: 0 24px 44px rgba(15, 23, 42, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.28);
+  color: #f8fafc;
+  padding: 1.15rem 1.25rem;
+  border-radius: 1.25rem;
+  backdrop-filter: blur(18px);
 }
 
 #alfawz-smart-goal-card .alfawz-dashboard-metric-label {
-  color: rgba(226, 232, 240, 0.85);
+  color: #fdf4ff;
+  font-weight: 600;
+  text-shadow: 0 2px 4px rgba(15, 23, 42, 0.4);
 }
 
 #alfawz-smart-goal-card .alfawz-dashboard-metric-value {
-  color: #fdf4ff;
+  color: #fef3c7;
+  text-shadow: 0 3px 8px rgba(15, 23, 42, 0.6);
 }
 
 #alfawz-smart-goal-card .alfawz-dashboard-metric-hint {
-  color: rgba(226, 232, 240, 0.78);
+  color: rgba(241, 245, 249, 0.85);
+  text-shadow: 0 2px 6px rgba(15, 23, 42, 0.55);
 }
 
 #alfawz-smart-goal-card .alfawz-dashboard-panel-note {
@@ -2267,13 +2275,36 @@
 }
 
 #alfawz-smart-goal-card .alfawz-dashboard-consistency {
-  background: rgba(15, 23, 42, 0.45);
-  border: 1px solid rgba(148, 163, 184, 0.35);
-  box-shadow: 0 28px 56px rgba(12, 74, 110, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  background: linear-gradient(155deg, rgba(30, 41, 59, 0.92), rgba(88, 28, 135, 0.7));
+  border: 1px solid rgba(248, 250, 252, 0.22);
+  box-shadow: 0 28px 56px rgba(30, 41, 59, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  color: #f8fafc;
+}
+
+#alfawz-smart-goal-card .alfawz-dashboard-consistency-header {
+  color: inherit;
+}
+
+#alfawz-smart-goal-card .alfawz-dashboard-consistency-score {
+  background: none;
+  -webkit-text-fill-color: unset;
+  color: #fde68a;
+  text-shadow: 0 4px 18px rgba(15, 23, 42, 0.6);
+}
+
+#alfawz-smart-goal-card .alfawz-dashboard-consistency-label {
+  color: rgba(254, 252, 232, 0.92);
+  text-shadow: 0 2px 6px rgba(15, 23, 42, 0.55);
 }
 
 #alfawz-smart-goal-card .alfawz-dashboard-consistency-message {
-  color: rgba(226, 232, 240, 0.9);
+  color: rgba(248, 250, 252, 0.9);
+  text-shadow: 0 2px 8px rgba(15, 23, 42, 0.55);
+}
+
+#alfawz-smart-goal-card .alfawz-dashboard-heatmap span {
+  color: #fdf2f8;
+  text-shadow: 0 2px 6px rgba(15, 23, 42, 0.45);
 }
 
 #alfawz-smart-goal-card .alfawz-dashboard-heatmap span {

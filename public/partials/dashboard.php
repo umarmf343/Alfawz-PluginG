@@ -275,7 +275,13 @@ foreach ( $quick_action_slugs as $slug => $fallback_slug ) {
         <article class="alfawz-dashboard-panel" id="alfawz-reflection-card">
             <div class="alfawz-dashboard-section-header">
                 <h3><?php esc_html_e( 'Reflection journal', 'alfawzquran' ); ?></h3>
-                <a href="<?php echo esc_url( apply_filters( 'alfawz_mobile_nav_url', '', 'reader' ) ); ?>" class="alfawz-dashboard-link">
+                <?php
+                $reflection_reader_link = apply_filters( 'alfawz_mobile_nav_url', '', 'reader' );
+                if ( empty( $reflection_reader_link ) ) {
+                    $reflection_reader_link = home_url( '/alfawz-reader/' );
+                }
+                ?>
+                <a href="<?php echo esc_url( $reflection_reader_link ); ?>" class="alfawz-dashboard-link">
                     <?php esc_html_e( 'Open reader', 'alfawzquran' ); ?>
                 </a>
             </div>

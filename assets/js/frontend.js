@@ -12,6 +12,53 @@
   const TRANSLITERATION_EDITION = wpData.defaultTransliteration || 'en.transliteration';
   const HASANAT_PER_LETTER = 10;
 
+  const safeStorage = (() => {
+    try {
+      if (typeof window === 'undefined' || !window.localStorage) {
+        return null;
+      }
+      const testKey = '__alfawz_storage_check__';
+      window.localStorage.setItem(testKey, testKey);
+      window.localStorage.removeItem(testKey);
+      return window.localStorage;
+    } catch (error) {
+      return null;
+    }
+  })();
+
+  const setPersistentItem = (key, value) => {
+    if (!safeStorage || typeof value === 'undefined') {
+      return;
+    }
+    try {
+      safeStorage.setItem(key, value);
+    } catch (error) {
+      // Storage may be full or unavailable; ignore gracefully.
+    }
+  };
+
+  const getPersistentItem = (key) => {
+    if (!safeStorage) {
+      return null;
+    }
+    try {
+      return safeStorage.getItem(key);
+    } catch (error) {
+      return null;
+    }
+  };
+
+  const normaliseStoredValue = (value) => {
+    if (typeof value !== 'string') {
+      return '';
+    }
+    const trimmed = value.trim();
+    if (!trimmed || trimmed === 'undefined' || trimmed === 'null') {
+      return '';
+    }
+    return trimmed;
+  };
+
   const headers = {};
   if (wpData.nonce) {
     headers['X-WP-Nonce'] = wpData.nonce;
@@ -1085,36 +1132,80 @@
 
       const lastVerseHeading = qs('#alfawz-last-verse-title', root);
       const lastVersePreview = qs('#alfawz-last-verse-preview', root);
+      const lastVerseProgress = qs('#alfawz-last-verse-progress', root);
+
+      const lastVerseKeyFromStats = stats?.last_verse_key ? String(stats.last_verse_key).trim() : '';
+      if (lastVerseKeyFromStats) {
+        setPersistentItem('alfawz:last-verse-key', lastVerseKeyFromStats);
+      }
+      const cachedLastVerseKey = normaliseStoredValue(getPersistentItem('alfawz:last-verse-key'));
+      const resolvedLastVerseKey = lastVerseKeyFromStats || cachedLastVerseKey;
+      const displayLastVerseKey = normaliseStoredValue(resolvedLastVerseKey);
+
+      const lastVerseExcerptFromStats = normaliseStoredValue(stats?.last_verse_excerpt || '');
+      if (lastVerseExcerptFromStats) {
+        setPersistentItem('alfawz:last-verse-excerpt', lastVerseExcerptFromStats);
+      }
+      const cachedLastVerseExcerpt = normaliseStoredValue(getPersistentItem('alfawz:last-verse-excerpt'));
+
+      const statsProgressValue =
+        typeof stats?.last_verse_progress === 'number'
+          ? stats.last_verse_progress
+          : typeof stats?.last_verse_percentage === 'number'
+          ? stats.last_verse_percentage
+          : null;
+      if (statsProgressValue !== null && !Number.isNaN(Number(statsProgressValue))) {
+        setPersistentItem('alfawz:last-verse-progress', String(statsProgressValue));
+      }
+      const cachedProgressRaw = normaliseStoredValue(getPersistentItem('alfawz:last-verse-progress'));
+      const cachedProgressValue = cachedProgressRaw ? Number(cachedProgressRaw) : NaN;
+      const resolvedProgressValue =
+        statsProgressValue !== null && !Number.isNaN(Number(statsProgressValue))
+          ? Number(statsProgressValue)
+          : !Number.isNaN(cachedProgressValue)
+          ? cachedProgressValue
+          : 0;
+
       if (lastVerseHeading) {
-        lastVerseHeading.textContent = stats?.last_verse_key ? `Surah ${stats.last_verse_key}` : 'Start a new session';
+        lastVerseHeading.textContent = displayLastVerseKey
+          ? `Surah ${displayLastVerseKey}`
+          : 'Start a new session';
       }
       if (lastVersePreview) {
         lastVersePreview.textContent =
-          stats?.last_verse_excerpt ||
+          lastVerseExcerptFromStats ||
+          cachedLastVerseExcerpt ||
           wpData.strings?.dashboardPlaceholder ||
           'Launch the reader to log your next ayah.';
+      }
+      if (lastVerseProgress) {
+        const progressDisplay = Number.isFinite(resolvedProgressValue)
+          ? Math.max(0, Math.min(100, Math.round(resolvedProgressValue)))
+          : 0;
+        lastVerseProgress.textContent = `${progressDisplay}%`;
       }
 
       const continueButton = qs('[data-action="continue-reading"]', root);
       if (continueButton) {
-        if (stats?.last_verse_key) {
-          const lastVerseKey = String(stats.last_verse_key);
+        const continueVerseKey = displayLastVerseKey;
+        if (continueVerseKey) {
+          continueButton.removeAttribute('disabled');
           continueButton.addEventListener('click', () => {
-            const baseUrl = wpData.readerUrl || 'reader/';
+            const baseUrl = wpData.readerUrl || 'alfawz-reader/';
             let targetUrl;
             try {
               targetUrl = new URL(baseUrl, window.location.origin);
             } catch (error) {
               console.warn('[AlfawzQuran] invalid reader URL, falling back to site origin', error);
-              targetUrl = new URL('reader/', window.location.origin);
+              targetUrl = new URL('alfawz-reader/', window.location.origin);
             }
 
-            const [surahPart, versePart] = lastVerseKey.split(':');
+            const [surahPart, versePart] = continueVerseKey.split(':');
             if (surahPart && versePart) {
               targetUrl.searchParams.set('surah', surahPart);
               targetUrl.searchParams.set('verse', versePart);
             } else {
-              targetUrl.searchParams.set('verse', lastVerseKey);
+              targetUrl.searchParams.set('verse', continueVerseKey);
             }
 
             window.location.href = targetUrl.toString();
