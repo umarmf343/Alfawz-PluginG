@@ -3,6 +3,33 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 ?>
+<?php
+$quick_action_slugs = [
+    'reader'    => 'alfawz-reader',
+    'memorizer' => 'alfawz-memorizer',
+    'games'     => 'alfawz-games',
+];
+
+$quick_action_links = [];
+
+foreach ( $quick_action_slugs as $slug => $fallback_slug ) {
+    $url = '';
+
+    if ( function_exists( 'alfawz_get_bottom_nav_url' ) ) {
+        $url = alfawz_get_bottom_nav_url( $slug );
+    }
+
+    if ( empty( $url ) ) {
+        $url = apply_filters( 'alfawz_mobile_nav_url', '', $slug );
+    }
+
+    if ( empty( $url ) ) {
+        $url = home_url( trailingslashit( $fallback_slug ) );
+    }
+
+    $quick_action_links[ $slug ] = $url;
+}
+?>
 <div
     id="alfawz-dashboard"
     class="alfawz-dashboard-shell relative mx-auto max-w-6xl overflow-hidden rounded-3xl bg-gradient-to-br from-rose-900 via-rose-800 to-amber-100 p-6 text-rose-50 shadow-2xl sm:p-10"
@@ -25,7 +52,7 @@ if ( ! defined( 'ABSPATH' ) ) {
                 <a
                     role="listitem"
                     class="alfawz-dashboard-action inline-flex items-center gap-2 rounded-full border border-rose-100 border-opacity-30 bg-white bg-opacity-10 px-4 py-2 text-sm font-semibold text-rose-50 transition duration-200 ease-out hover:-translate-y-1 hover:border-opacity-60 hover:bg-opacity-20 focus:outline-none focus:ring-2 focus:ring-amber-200 focus:ring-offset-2 focus:ring-offset-rose-900"
-                    href="<?php echo esc_url( apply_filters( 'alfawz_mobile_nav_url', '', 'reader' ) ); ?>"
+                    href="<?php echo esc_url( $quick_action_links['reader'] ?? '' ); ?>"
                 >
                     <span aria-hidden="true">📖</span>
                     <span><?php esc_html_e( 'Continue reciting', 'alfawzquran' ); ?></span>
@@ -33,7 +60,7 @@ if ( ! defined( 'ABSPATH' ) ) {
                 <a
                     role="listitem"
                     class="alfawz-dashboard-action inline-flex items-center gap-2 rounded-full border border-rose-100 border-opacity-30 bg-white bg-opacity-10 px-4 py-2 text-sm font-semibold text-rose-50 transition duration-200 ease-out hover:-translate-y-1 hover:border-opacity-60 hover:bg-opacity-20 focus:outline-none focus:ring-2 focus:ring-amber-200 focus:ring-offset-2 focus:ring-offset-rose-900"
-                    href="<?php echo esc_url( apply_filters( 'alfawz_mobile_nav_url', '', 'memorizer' ) ); ?>"
+                    href="<?php echo esc_url( $quick_action_links['memorizer'] ?? '' ); ?>"
                 >
                     <span aria-hidden="true">🧠</span>
                     <span><?php esc_html_e( 'Open memoriser', 'alfawzquran' ); ?></span>
@@ -41,7 +68,7 @@ if ( ! defined( 'ABSPATH' ) ) {
                 <a
                     role="listitem"
                     class="alfawz-dashboard-action inline-flex items-center gap-2 rounded-full border border-rose-100 border-opacity-30 bg-white bg-opacity-10 px-4 py-2 text-sm font-semibold text-rose-50 transition duration-200 ease-out hover:-translate-y-1 hover:border-opacity-60 hover:bg-opacity-20 focus:outline-none focus:ring-2 focus:ring-amber-200 focus:ring-offset-2 focus:ring-offset-rose-900"
-                    href="<?php echo esc_url( apply_filters( 'alfawz_mobile_nav_url', '', 'games' ) ); ?>"
+                    href="<?php echo esc_url( $quick_action_links['games'] ?? '' ); ?>"
                 >
                     <span aria-hidden="true">🎮</span>
                     <span><?php esc_html_e( 'Boost with a game', 'alfawzquran' ); ?></span>
