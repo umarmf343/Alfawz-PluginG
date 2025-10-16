@@ -9,7 +9,7 @@ if ( ! defined( 'ABSPATH' ) ) {
     data-role="teacher"
 >
     <div class="alfawz-qaidah-surface relative z-10 space-y-10 rounded-[30px] bg-white/90 p-6 backdrop-blur md:p-10">
-        <div class="qaidah-hero relative overflow-hidden rounded-[28px] border border-white/60 bg-gradient-to-br from-[#faf1eb] via-white/95 to-[#fdf7f0] p-8 text-center shadow-lg">
+        <div class="qaidah-hero relative overflow-hidden rounded-[28px] border border-white/60 bg-gradient-to-br from-[#faf1eb] via-white/95 to-[#fdf7f0] p-6 md:p-8 text-center shadow-lg">
             <span class="qaidah-hero-badge mx-auto mb-4 inline-flex items-center gap-2 rounded-full bg-[#7a1a31] px-5 py-2 text-sm font-semibold uppercase tracking-wider text-[#fcefe6] shadow-sm">
                 <span class="inline-block h-2 w-2 rounded-full bg-[#f6d5b5] animate-ping-slow"></span>
                 <?php esc_html_e( 'Qa’idah Studio', 'alfawzquran' ); ?>

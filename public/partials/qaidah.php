@@ -15,7 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) {
     </div>
 
     <div class="alfawz-qaidah-surface relative z-10 space-y-10 rounded-[30px] bg-white/90 p-6 backdrop-blur md:p-10">
-        <div class="qaidah-hero relative overflow-hidden rounded-[28px] border border-white/60 bg-gradient-to-br from-[#fef3f2] via-white/95 to-[#fdf3ff] p-8 text-center shadow-2xl">
+        <div class="qaidah-hero relative overflow-hidden rounded-[28px] border border-white/60 bg-gradient-to-br from-[#fef3f2] via-white/95 to-[#fdf3ff] p-6 md:p-8 text-center shadow-2xl">
             <div class="pointer-events-none absolute -top-16 -right-10 h-48 w-48 rounded-full bg-emerald-200/50 blur-3xl"></div>
             <div class="pointer-events-none absolute -bottom-20 -left-16 h-56 w-56 rounded-full bg-rose-200/60 blur-3xl"></div>
             <div class="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(250,200,210,0.35),_transparent_60%)]"></div>
