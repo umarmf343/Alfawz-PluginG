@@ -1460,6 +1460,7 @@
       }
       if (surahToggle) {
         surahToggle.checked = showFullSurah;
+        surahToggle.setAttribute('aria-expanded', showFullSurah ? 'true' : 'false');
       }
       updateToggleHint();
       updateNavigationButtons();
@@ -1974,8 +1975,8 @@
       await logVerseProgress(currentSurahId, nextVerse);
     };
 
-    const handleSurahToggleChange = async (event) => {
-      showFullSurah = Boolean(event.target.checked);
+    const handleSurahToggleChange = async () => {
+      showFullSurah = !showFullSurah;
       updateSurahModeUI();
       if (showFullSurah && currentSurahId) {
         ensureSurahView(currentSurahId, currentVerseId || null);
