@@ -618,25 +618,25 @@
 }
 
 .alfawz-verse-panel p {
-  font-size: 23px;
+  font-size: 69px;
 }
 
 .alfawz-arabic {
   font-family: 'Scheherazade New', 'Amiri', serif;
-  font-size: clamp(2.8rem, 4.6vw, 3.5rem);
+  font-size: clamp(8.4rem, 13.8vw, 10.5rem);
   line-height: 1.6;
   color: var(--alfawz-maroon-800);
 }
 
 .alfawz-transliteration {
   margin-top: 1.25rem;
-  font-size: 1.15rem;
+  font-size: 3.45rem;
   color: rgba(79, 13, 24, 0.78);
 }
 
 .alfawz-translation {
   margin-top: 0.75rem;
-  font-size: 1.1rem;
+  font-size: 3.3rem;
   font-style: italic;
   color: rgba(68, 36, 38, 0.75);
 }
