@@ -64,8 +64,8 @@ function alfawz_render_bottom_nav() {
                 <div class="alfawz-bottom-nav__list flex items-stretch gap-1 overflow-x-auto hide-scrollbar px-2 py-2 snap-x snap-mandatory scroll-smooth" data-nav-scroll>
                 <?php foreach ( $tabs as $tab ) :
                     $is_active = ! empty( $tab['active'] );
-                    $classes   = 'alfawz-bottom-nav__tab flex min-w-[80px] min-h-[48px] flex-col items-center justify-center rounded-xl px-3 py-2 text-center text-xs transition-colors snap-center shrink-0';
-                    $classes  .= $is_active ? ' bg-emerald-50 text-emerald-600 font-semibold' : ' text-slate-500 hover:text-emerald-600 focus:text-emerald-600';
+                    $classes   = 'alfawz-bottom-nav__tab flex min-w-[80px] min-h-[48px] flex-col items-center justify-center rounded-xl px-3 py-2 text-center text-xs transition-colors snap-center shrink-0 bg-gradient-to-br from-white/80 via-white/40 to-white/20 border border-white/40 shadow-sm backdrop-blur-md';
+                    $classes  .= $is_active ? ' text-emerald-600 font-semibold ring-1 ring-emerald-200/80 from-emerald-100/80 via-white/60 to-white/30' : ' text-slate-500 hover:text-emerald-600 focus:text-emerald-600 hover:from-white/90 hover:via-white/50 hover:to-white/30';
                     ?>
                     <a href="<?php echo esc_url( $tab['url'] ); ?>" class="<?php echo esc_attr( $classes ); ?>" data-slug="<?php echo esc_attr( $tab['slug'] ); ?>"<?php echo $is_active ? ' aria-current="page"' : ''; ?>>
                         <span class="text-xl" aria-hidden="true"><?php echo esc_html( $tab['icon'] ); ?></span>
