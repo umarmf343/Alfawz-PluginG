@@ -143,7 +143,7 @@ if ( ! defined( 'ABSPATH' ) ) {
                         <p id="alfawz-memorization-verse-meta" class="text-base font-medium text-slate-600"></p>
                     </div>
                     <div class="flex flex-wrap items-center justify-end gap-3">
-                        <button type="button" id="alfawz-memorization-prev" class="inline-flex items-center gap-2 rounded-2xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:-translate-y-0.5 hover:border-indigo-200 hover:text-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-200 disabled:cursor-not-allowed disabled:opacity-50">
+                        <button type="button" id="alfawz-memorization-prev" class="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-sky-400 via-indigo-400 to-violet-500 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:from-sky-300 hover:via-indigo-300 hover:to-violet-400 focus:outline-none focus:ring-2 focus:ring-indigo-200 disabled:cursor-not-allowed disabled:opacity-60 disabled:shadow-none">
                             <span aria-hidden="true">⬅️</span>
                             <?php esc_html_e( 'Previous', 'alfawzquran' ); ?>
                         </button>
@@ -151,7 +151,7 @@ if ( ! defined( 'ABSPATH' ) ) {
                             <span aria-hidden="true">🔊</span>
                             <?php esc_html_e( 'Play verse audio', 'alfawzquran' ); ?>
                         </button>
-                        <button type="button" id="alfawz-memorization-next" class="inline-flex items-center gap-2 rounded-2xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:-translate-y-0.5 hover:border-indigo-200 hover:text-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-200 disabled:cursor-not-allowed disabled:opacity-50">
+                        <button type="button" id="alfawz-memorization-next" class="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-emerald-400 via-teal-400 to-lime-400 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:from-emerald-300 hover:via-teal-300 hover:to-lime-300 focus:outline-none focus:ring-2 focus:ring-emerald-200 disabled:cursor-not-allowed disabled:opacity-60 disabled:shadow-none">
                             <?php esc_html_e( 'Next', 'alfawzquran' ); ?>
                             <span aria-hidden="true">➡️</span>
                         </button>
