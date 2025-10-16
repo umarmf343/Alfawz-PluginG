@@ -1,3 +1,60 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+:root {
+  --alfawz-font-body: 'Inter', 'SF Pro Text', 'SF Pro Display', 'Segoe UI', -apple-system,
+    BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+  --alfawz-font-heading: 'Plus Jakarta Sans', 'Inter', 'Segoe UI', -apple-system,
+    BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+  --alfawz-font-mono: 'JetBrains Mono', 'Fira Code', 'Source Code Pro', 'SFMono-Regular',
+    'Menlo', 'Monaco', Consolas, 'Liberation Mono', 'Courier New', monospace;
+}
+
+body .alfawz-qaidah-board-admin,
+body .alfawz-qaidah-board-app {
+  font-family: var(--alfawz-font-body);
+  color: #1f2937;
+  text-rendering: optimizeLegibility;
+  font-feature-settings: 'liga' 1, 'kern' 1;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body .alfawz-qaidah-board-admin h1,
+body .alfawz-qaidah-board-admin h2,
+body .alfawz-qaidah-board-admin h3,
+body .alfawz-qaidah-board-admin h4,
+body .alfawz-qaidah-board-admin h5,
+body .alfawz-qaidah-board-admin h6,
+body .alfawz-qaidah-board-app h1,
+body .alfawz-qaidah-board-app h2,
+body .alfawz-qaidah-board-app h3,
+body .alfawz-qaidah-board-app h4,
+body .alfawz-qaidah-board-app h5,
+body .alfawz-qaidah-board-app h6 {
+  font-family: var(--alfawz-font-heading);
+  font-weight: 700;
+  letter-spacing: -0.012em;
+}
+
+body .alfawz-qaidah-board-admin code,
+body .alfawz-qaidah-board-admin pre,
+body .alfawz-qaidah-board-admin kbd,
+body .alfawz-qaidah-board-admin samp,
+body .alfawz-qaidah-board-app code,
+body .alfawz-qaidah-board-app pre,
+body .alfawz-qaidah-board-app kbd,
+body .alfawz-qaidah-board-app samp {
+  font-family: var(--alfawz-font-mono);
+  font-size: 0.95em;
+}
+
+body .alfawz-qaidah-board-admin :where(button, input, select, textarea),
+body .alfawz-qaidah-board-app :where(button, input, select, textarea) {
+  font-family: inherit;
+  font-weight: 500;
+}
+
 .alfawz-qaidah-board-admin {
   margin-top: 24px;
 }

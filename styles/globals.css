@@ -1,3 +1,5 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap");
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -10,8 +12,13 @@
 
 @layer base {
   :root {
-    --font-sans: var(--font-geist-sans);
-    --font-mono: var(--font-geist-mono);
+    --font-body: "Inter", "SF Pro Text", "SF Pro Display", "Segoe UI", -apple-system,
+      BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+    --font-heading: "Plus Jakarta Sans", "Inter", "Segoe UI", -apple-system,
+      BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+    --font-mono: "JetBrains Mono", "Fira Code", "Source Code Pro", "SFMono-Regular",
+      "Menlo", "Monaco", Consolas, "Liberation Mono", "Courier New", monospace;
+    --font-sans: var(--font-body);
     --background: 0 0% 100%;
     --foreground: 0 0% 3.9%;
     --card: 0 0% 100%;
@@ -87,6 +94,39 @@
     @apply border-border;
   }
   body {
+    font-family: var(--font-body);
+    font-feature-settings: "liga" 1, "kern" 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
     @apply bg-background text-foreground;
+  }
+}
+
+@layer base {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-heading);
+    font-weight: 700;
+    letter-spacing: -0.015em;
+    line-height: 1.15;
+  }
+
+  code,
+  pre,
+  kbd,
+  samp {
+    font-family: var(--font-mono);
+    font-size: 0.95em;
+  }
+
+  button,
+  input,
+  select,
+  textarea {
+    font-family: inherit;
   }
 }
