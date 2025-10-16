@@ -39,6 +39,11 @@
       startLabel: 'Begin listening',
       stopLabel: 'Stop listening',
       unsupported: 'Your browser does not support speech recognition. Try Chrome or Edge on desktop.',
+      permissionDenied: 'Microphone access was blocked. Enable it in your browser settings and try again.',
+      audioCaptureError: 'We could not access your microphone. Check your device and try again.',
+      networkError: 'Speech recognition is temporarily unavailable. Check your connection and try again.',
+      interrupted: 'Speech recognition was interrupted. Tap begin listening to try again.',
+      noSpeech: 'We did not capture your voice. Try again.',
       pending: 'Listening… recite the ayah clearly.',
       processing: 'Analysing your recitation…',
       idle: 'Tap begin listening when you are ready to recite.',
@@ -164,9 +169,32 @@
         });
 
         state.recognition.addEventListener('error', (event) => {
-          console.warn('[Alfawz Recitation] Speech recognition error', event.error);
+          const errorType = event?.error;
+          console.warn('[Alfawz Recitation] Speech recognition error', errorType);
+          state.processing = false;
           stopListening();
-          setStatus(strings.unsupported, 'error');
+
+          switch (errorType) {
+            case 'not-allowed':
+            case 'service-not-allowed':
+              setStatus(strings.permissionDenied, 'error');
+              break;
+            case 'audio-capture':
+              setStatus(strings.audioCaptureError, 'error');
+              break;
+            case 'network':
+              setStatus(strings.networkError, 'error');
+              break;
+            case 'aborted':
+              setStatus(strings.interrupted, 'info');
+              break;
+            case 'no-speech':
+              setStatus(strings.noSpeech, 'error');
+              break;
+            default:
+              setStatus(strings.unsupported, 'error');
+              break;
+          }
         });
 
         state.recognition.addEventListener('end', () => {
