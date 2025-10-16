@@ -110,8 +110,8 @@ if ( ! defined( 'ABSPATH' ) ) {
                             <div class="flex items-center gap-3 rounded-2xl bg-white/10 p-4 text-left shadow-lg backdrop-blur-sm">
                                 <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-300/80 via-teal-300/80 to-cyan-300/80 text-3xl text-slate-900 shadow-inner" aria-hidden="true">🧠</div>
                                 <div class="space-y-1">
-                                    <p class="text-sm font-medium text-white/90"><?php esc_html_e( 'Daily loops completed', 'alfawzquran' ); ?></p>
-                                    <p id="counter" class="text-2xl font-semibold text-white">0 / 20 <?php esc_html_e( 'Repetitions', 'alfawzquran' ); ?></p>
+                                    <p class="text-sm font-medium text-emerald-50/90"><?php esc_html_e( 'Daily loops completed', 'alfawzquran' ); ?></p>
+                                    <p id="counter" class="text-2xl font-semibold text-emerald-50">0 / 20 <?php esc_html_e( 'Repetitions', 'alfawzquran' ); ?></p>
                                 </div>
                             </div>
                         </div>
