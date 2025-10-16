@@ -220,7 +220,7 @@ $qaidah_markup = ob_get_clean();
             </div>
         </section>
 
-        <section id="alfawz-teacher-memorization" class="rounded-3xl border border-[#d0e1ff] bg-gradient-to-br from-white/95 to-[#eef3ff] p-8 shadow-xl shadow-[#1b1f3b]/10 backdrop-blur" aria-labelledby="alfawz-teacher-memorization-title" data-alfawz-animate>
+        <section id="alfawz-teacher-memorization" class="rounded-3xl border border-[#f8c7ec] bg-gradient-to-br from-[#fff7e8] via-[#ffe3f7] to-[#dceeff] p-8 shadow-xl shadow-[#1b1f3b]/10 backdrop-blur" aria-labelledby="alfawz-teacher-memorization-title" data-alfawz-animate>
             <div class="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
                 <div class="space-y-3">
                     <h2 id="alfawz-teacher-memorization-title" class="text-3xl font-extrabold text-[#1f2a5b]"><?php esc_html_e( 'Student memorisation oversight', 'alfawzquran' ); ?></h2>
