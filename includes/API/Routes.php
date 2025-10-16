@@ -22,6 +22,11 @@ class Routes {
     const API_BASE = 'https://api.alquran.cloud/v1';
 
     /**
+     * Base URL for the CDN that hosts Quran recitations.
+     */
+    const AUDIO_CDN_BASE = 'https://cdn.islamic.network/quran/audio/128/';
+
+    /**
      * Default number of verses for the daily goal.
      */
     const DAILY_GOAL_TARGET = 10;
@@ -93,6 +98,27 @@ class Routes {
                     'validate_callback' => [ $this, 'validate_numeric_param' ],
                 ],
                 'num' => [
+                    'validate_callback' => [ $this, 'validate_numeric_param' ],
+                ],
+            ],
+        ]);
+
+        register_rest_route($namespace, '/audio/(?P<reciter>[a-zA-Z0-9._-]+)/(?P<surah>\d+)/(?P<verse>\d+)(?:\.mp3)?', [
+            'methods'  => [ WP_REST_Server::READABLE, 'HEAD' ],
+            'callback' => [ $this, 'proxy_audio' ],
+            'permission_callback' => '__return_true',
+            'args'     => [
+                'reciter' => [
+                    'required'          => true,
+                    'validate_callback' => [ $this, 'validate_reciter_identifier' ],
+                    'sanitize_callback' => [ $this, 'sanitize_reciter_identifier' ],
+                ],
+                'surah'   => [
+                    'required'          => true,
+                    'validate_callback' => [ $this, 'validate_numeric_param' ],
+                ],
+                'verse'   => [
+                    'required'          => true,
                     'validate_callback' => [ $this, 'validate_numeric_param' ],
                 ],
             ],
@@ -2977,9 +3003,7 @@ class Routes {
             $url,
             [
                 'timeout' => 20,
-                'headers' => [
-                    'Accept' => 'application/json',
-                ],
+                'headers' => $this->build_default_headers(),
             ]
         );
 
@@ -2990,7 +3014,7 @@ class Routes {
         $body = wp_remote_retrieve_body( $response );
         $data = json_decode( $body, true );
 
-        if ( empty( $data ) || 200 !== (int) ( $data['code'] ?? 0 ) || empty( $data['data'] ) ) {
+        if ( ! $this->is_successful_api_response( $data ) || empty( $data['data'] ) ) {
             return $this->record_api_failure( new \WP_Error( 'api_error', __( 'Invalid response received from the Quran API.', 'alfawzquran' ) ) );
         }
 
@@ -3000,6 +3024,74 @@ class Routes {
         $this->clear_api_failure_notice();
 
         return $ayah;
+    }
+
+    /**
+     * Proxy Quran audio through WordPress to avoid CORS restrictions.
+     */
+    public function proxy_audio( \WP_REST_Request $request ) {
+        $reciter = $this->sanitize_reciter_identifier( (string) $request->get_param( 'reciter' ) );
+        $surah   = (int) $request->get_param( 'surah' );
+        $verse   = (int) $request->get_param( 'verse' );
+
+        if ( $surah <= 0 || $verse <= 0 ) {
+            return new \WP_REST_Response( [ 'message' => __( 'Invalid audio reference provided.', 'alfawzquran' ) ], 400 );
+        }
+
+        $reciter = $reciter ?: 'ar.alafasy';
+
+        $padded_surah = str_pad( (string) $surah, 3, '0', STR_PAD_LEFT );
+        $padded_verse = str_pad( (string) $verse, 3, '0', STR_PAD_LEFT );
+        $file_name    = $padded_surah . $padded_verse . '.mp3';
+        $remote_url   = trailingslashit( self::AUDIO_CDN_BASE . $reciter ) . $file_name;
+
+        $cache_key = sprintf( 'alfawz_audio_%s_%d_%d', $reciter, $surah, $verse );
+        $cached    = get_transient( $cache_key );
+        if ( false !== $cached ) {
+            $response = new \WP_REST_Response( $cached );
+            $response->set_headers( $this->build_audio_headers( strlen( $cached ) ) );
+            return $response;
+        }
+
+        $response = wp_remote_get(
+            $remote_url,
+            [
+                'timeout'     => 25,
+                'decompress'  => false,
+                'redirection' => 3,
+                'headers'     => [
+                    'Accept'     => 'audio/mpeg',
+                    'User-Agent' => $this->build_user_agent(),
+                    'Referer'    => home_url(),
+                ],
+            ]
+        );
+
+        if ( is_wp_error( $response ) ) {
+            return $this->record_api_failure( $response );
+        }
+
+        $status = (int) wp_remote_retrieve_response_code( $response );
+        if ( $status < 200 || $status >= 300 ) {
+            return $this->record_api_failure( new \WP_Error( 'api_error', __( 'Unable to load requested audio clip from the Quran CDN.', 'alfawzquran' ) ) );
+        }
+
+        $body = wp_remote_retrieve_body( $response );
+        if ( empty( $body ) ) {
+            return $this->record_api_failure( new \WP_Error( 'api_error', __( 'Audio stream returned an empty response.', 'alfawzquran' ) ) );
+        }
+
+        set_transient( $cache_key, $body, HOUR_IN_SECONDS * 6 );
+
+        $rest_response = new \WP_REST_Response( $body );
+        $rest_response->set_headers( $this->build_audio_headers( strlen( $body ) ) );
+
+        $etag = wp_remote_retrieve_header( $response, 'etag' );
+        if ( $etag ) {
+            $rest_response->header( 'ETag', $etag );
+        }
+
+        return $rest_response;
     }
 
     /**
@@ -3027,9 +3119,7 @@ class Routes {
             self::API_BASE . '/surah',
             [
                 'timeout' => 20,
-                'headers' => [
-                    'Accept' => 'application/json',
-                ],
+                'headers' => $this->build_default_headers(),
             ]
         );
 
@@ -3040,11 +3130,16 @@ class Routes {
         $body = wp_remote_retrieve_body($response);
         $data = json_decode($body, true);
 
-        if (empty($data) || !isset($data['code']) || 200 !== (int) $data['code'] || empty($data['data'])) {
+        if (!$this->is_successful_api_response($data) || empty($data['data'])) {
             return $this->record_api_failure(new \WP_Error('api_error', __('Invalid response received from the Quran API.', 'alfawzquran')));
         }
 
-        $surahs = $data['data'];
+        $surah_payload = $data['data'];
+        if (isset($surah_payload['surahs']) && is_array($surah_payload['surahs'])) {
+            $surahs = $surah_payload['surahs'];
+        } else {
+            $surahs = $surah_payload;
+        }
 
         set_transient($transient_key, $surahs, DAY_IN_SECONDS);
         update_option($option_key, $surahs, false);
@@ -3099,9 +3194,7 @@ class Routes {
             sprintf('%s/surah/%d/editions/%s', self::API_BASE, $surah_id, $edition_path),
             [
                 'timeout' => 20,
-                'headers' => [
-                    'Accept' => 'application/json',
-                ],
+                'headers' => $this->build_default_headers(),
             ]
         );
 
@@ -3112,11 +3205,16 @@ class Routes {
         $body = wp_remote_retrieve_body($response);
         $data = json_decode($body, true);
 
-        if (empty($data) || 200 !== (int) ($data['code'] ?? 0) || empty($data['data']) || !is_array($data['data'])) {
+        if (!$this->is_successful_api_response($data) || empty($data['data']) || !is_array($data['data'])) {
             return $this->record_api_failure(new \WP_Error('api_error', __('Invalid response received from the Quran API.', 'alfawzquran')));
         }
 
-        $editions_data = $data['data'];
+        $payload = $data['data'];
+        if (isset($payload['data']) && is_array($payload['data'])) {
+            $payload = $payload['data'];
+        }
+
+        $editions_data = $payload;
 
         $buckets    = [];
         $surah_meta = null;
@@ -3221,5 +3319,91 @@ class Routes {
      */
     private function clear_api_failure_notice() {
         delete_transient('alfawz_quran_api_notice');
+    }
+
+    /**
+     * Build a common set of headers for HTTP requests to the Quran API.
+     */
+    private function build_default_headers() {
+        return [
+            'Accept'     => 'application/json',
+            'User-Agent' => $this->build_user_agent(),
+            'Referer'    => home_url(),
+        ];
+    }
+
+    /**
+     * Generate a descriptive user-agent for outbound requests.
+     */
+    private function build_user_agent() {
+        $blog_name = get_bloginfo( 'name', 'display' );
+        $site_url  = home_url();
+
+        return sprintf( 'AlfawzQuran/%s (%s)', ALFAWZQURAN_VERSION ?? '1.0.0', $site_url ?: $blog_name ?: 'WordPress' );
+    }
+
+    /**
+     * Determine whether a decoded API response should be considered successful.
+     *
+     * @param mixed $data
+     * @return bool
+     */
+    private function is_successful_api_response( $data ) {
+        if ( ! is_array( $data ) ) {
+            return false;
+        }
+
+        if ( isset( $data['code'] ) && 200 === (int) $data['code'] ) {
+            return true;
+        }
+
+        if ( isset( $data['status'] ) ) {
+            $status = $data['status'];
+
+            if ( true === $status || 200 === (int) $status ) {
+                return true;
+            }
+
+            if ( is_string( $status ) ) {
+                $normalized = strtolower( $status );
+                if ( in_array( $normalized, [ 'ok', 'success', 'true' ], true ) ) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Build response headers for proxied audio requests.
+     */
+    private function build_audio_headers( $content_length = null ) {
+        $headers = [
+            'Content-Type'              => 'audio/mpeg',
+            'Access-Control-Allow-Origin' => '*',
+            'Cache-Control'             => 'public, max-age=' . DAY_IN_SECONDS,
+        ];
+
+        if ( null !== $content_length ) {
+            $headers['Content-Length'] = (string) $content_length;
+        }
+
+        return $headers;
+    }
+
+    /**
+     * Validate a reciter identifier received via the REST API.
+     */
+    public function validate_reciter_identifier( $value ) {
+        return is_string( $value ) && (bool) preg_match( '/^[a-z0-9._-]+$/i', $value );
+    }
+
+    /**
+     * Sanitize a reciter identifier while preserving allowed separators.
+     */
+    public function sanitize_reciter_identifier( $value ) {
+        $value = strtolower( (string) $value );
+        return preg_replace( '/[^a-z0-9._-]/', '', $value );
     }
 }
