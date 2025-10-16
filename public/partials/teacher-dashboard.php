@@ -29,11 +29,11 @@ $qaidah_markup = ob_get_clean();
                         <?php esc_html_e( 'Craft Qa’idah lessons, review classroom momentum, and celebrate student milestones—all from your personalised teaching studio.', 'alfawzquran' ); ?>
                     </p>
                     <div class="flex flex-wrap items-center justify-center gap-4 text-base font-semibold text-[#7b1e3c] lg:justify-start">
-                        <span class="alfawz-teacher-stat inline-flex items-center gap-2 rounded-full bg-[#fdf5ea] px-4 py-2 shadow-sm" data-alfawz-animate data-alfawz-delay="0.15">
+                        <span class="alfawz-teacher-stat inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#fef8ee] via-[#fbe6d5] to-[#f3c4b2] px-4 py-2 text-[#5a0f27] shadow-sm shadow-[#f3d9c1]/60" data-alfawz-animate data-alfawz-delay="0.15">
                             <span class="text-xl" aria-hidden="true">🏫</span>
                             <span data-alfawz-metric="classes" data-label="<?php esc_attr_e( 'classes', 'alfawzquran' ); ?>"><?php esc_html_e( 'Loading…', 'alfawzquran' ); ?></span>
                         </span>
-                        <span class="alfawz-teacher-stat inline-flex items-center gap-2 rounded-full bg-[#fdf5ea] px-4 py-2 shadow-sm" data-alfawz-animate data-alfawz-delay="0.2">
+                        <span class="alfawz-teacher-stat inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#fef5f1] via-[#f8e0dc] to-[#f1bcd0] px-4 py-2 text-[#5a0f27] shadow-sm shadow-[#f3d9c1]/60" data-alfawz-animate data-alfawz-delay="0.2">
                             <span class="text-xl" aria-hidden="true">👥</span>
                             <span data-alfawz-metric="students" data-label="<?php esc_attr_e( 'students', 'alfawzquran' ); ?>"><?php esc_html_e( 'Loading…', 'alfawzquran' ); ?></span>
                         </span>
@@ -226,7 +226,7 @@ $qaidah_markup = ob_get_clean();
                     <h2 id="alfawz-teacher-memorization-title" class="text-3xl font-extrabold text-[#1f2a5b]"><?php esc_html_e( 'Student memorisation oversight', 'alfawzquran' ); ?></h2>
                     <p class="max-w-2xl text-base text-[#243764]"><?php esc_html_e( 'Monitor repetitions, completion pace, and streak health for every student assigned to you.', 'alfawzquran' ); ?></p>
                 </div>
-                <span class="alfawz-teacher-stat inline-flex items-center gap-2 rounded-full bg-[#dbe7ff] px-4 py-2 text-sm font-semibold text-[#1f2a5b]" id="alfawz-teacher-memo-pill" data-label="<?php esc_attr_e( 'students tracked', 'alfawzquran' ); ?>" data-alfawz-animate data-alfawz-delay="0.1">
+                <span class="alfawz-teacher-stat inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#e6efff] via-[#c8d8ff] to-[#9bb9ff] px-4 py-2 text-sm font-semibold text-[#15214a] shadow-sm shadow-[#1b1f3b]/20" id="alfawz-teacher-memo-pill" data-label="<?php esc_attr_e( 'students tracked', 'alfawzquran' ); ?>" data-alfawz-animate data-alfawz-delay="0.1">
                     <?php esc_html_e( 'Loading…', 'alfawzquran' ); ?>
                 </span>
             </div>
