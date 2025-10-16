@@ -3734,6 +3734,245 @@
     const goalNoteEl = qs('#alfawz-profile-daily-note', root);
     const goalResetEl = qs('#alfawz-profile-daily-reset', root);
 
+    const avatarPreview = qs('#alfawz-profile-avatar-preview', root);
+    const avatarButton = qs('#alfawz-profile-avatar-button', root);
+    const avatarStatus = qs('#alfawz-profile-avatar-status', root);
+    const avatarModal = qs('#alfawz-profile-avatar-modal', root);
+    const avatarOverlay = avatarModal?.querySelector('[data-avatar-overlay]');
+    const avatarDialog = avatarModal?.querySelector('[data-avatar-dialog]');
+    const avatarOptions = Array.from(avatarModal?.querySelectorAll('[data-avatar-option]') || []);
+    const avatarSaveBtn = avatarModal?.querySelector('[data-avatar-save]');
+    const avatarCancelButtons = Array.from(avatarModal?.querySelectorAll('[data-avatar-cancel]') || []);
+    const avatarMessage = avatarModal?.querySelector('[data-avatar-message]');
+    const avatarMap = wpData.avatars || {};
+    const initialAvatarGender = (avatarPreview?.dataset.avatarGender || '').toLowerCase();
+    let avatarState = { current: initialAvatarGender, pending: initialAvatarGender };
+    let avatarStatusTimeout = null;
+
+    const hideAvatarStatus = () => {
+      if (avatarStatusTimeout) {
+        clearTimeout(avatarStatusTimeout);
+        avatarStatusTimeout = null;
+      }
+      if (!avatarStatus) {
+        return;
+      }
+      avatarStatus.textContent = '';
+      avatarStatus.classList.add('hidden');
+      avatarStatus.classList.remove('text-emerald-200', 'text-rose-200');
+    };
+
+    const showAvatarStatus = (message, status = 'success') => {
+      if (!avatarStatus) {
+        return;
+      }
+      if (avatarStatusTimeout) {
+        clearTimeout(avatarStatusTimeout);
+        avatarStatusTimeout = null;
+      }
+      if (!message) {
+        hideAvatarStatus();
+        return;
+      }
+      avatarStatus.textContent = message;
+      avatarStatus.classList.remove('hidden');
+      avatarStatus.classList.remove('text-emerald-200', 'text-rose-200');
+      avatarStatus.classList.add(status === 'error' ? 'text-rose-200' : 'text-emerald-200');
+      const timeoutDuration = status === 'error' ? 5200 : 3600;
+      avatarStatusTimeout = setTimeout(() => {
+        hideAvatarStatus();
+      }, timeoutDuration);
+    };
+
+    const resetAvatarInlineMessage = () => {
+      if (!avatarMessage) {
+        return;
+      }
+      avatarMessage.textContent = '';
+      avatarMessage.classList.add('hidden');
+      avatarMessage.classList.remove('text-red-600', 'text-emerald-600');
+    };
+
+    const updateAvatarOptionState = (value) => {
+      avatarOptions.forEach((option) => {
+        const { avatarOption } = option.dataset || {};
+        option.setAttribute('aria-pressed', avatarOption === value ? 'true' : 'false');
+      });
+    };
+
+    const applyAvatarSelection = (payload = {}) => {
+      const fallbackGender = (avatarPreview?.dataset.avatarGender || '').toLowerCase();
+      const gender = String(
+        payload.gender || payload.avatar_gender || avatarState.current || fallbackGender || ''
+      ).toLowerCase();
+      const mappedUrl = gender && avatarMap ? avatarMap[gender] : '';
+      const responseUrl = payload.url || payload.avatar_url;
+      const nextUrl =
+        responseUrl ||
+        mappedUrl ||
+        avatarPreview?.dataset.activeAvatar ||
+        avatarPreview?.dataset.defaultAvatar ||
+        avatarPreview?.src;
+
+      avatarState = {
+        current: gender,
+        pending: gender,
+      };
+
+      if (avatarPreview) {
+        if (nextUrl) {
+          avatarPreview.src = nextUrl;
+          avatarPreview.dataset.activeAvatar = nextUrl;
+        } else if (avatarPreview.dataset.defaultAvatar) {
+          avatarPreview.src = avatarPreview.dataset.defaultAvatar;
+          avatarPreview.dataset.activeAvatar = avatarPreview.dataset.defaultAvatar;
+        }
+        avatarPreview.dataset.avatarGender = gender || '';
+        const altText = payload.alt || payload.avatar_alt || avatarPreview.dataset.defaultAlt || avatarPreview.alt;
+        if (altText) {
+          avatarPreview.alt = altText;
+        }
+      }
+
+      updateAvatarOptionState(gender);
+      resetAvatarInlineMessage();
+    };
+
+    const closeAvatarModal = () => {
+      if (!avatarModal) {
+        return;
+      }
+      avatarModal.classList.add('hidden');
+      avatarModal.setAttribute('aria-hidden', 'true');
+      document.removeEventListener('keydown', handleAvatarKeydown);
+      resetAvatarInlineMessage();
+    };
+
+    const handleAvatarKeydown = (event) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        closeAvatarModal();
+      }
+    };
+
+    const openAvatarModal = () => {
+      if (!avatarModal) {
+        return;
+      }
+      resetAvatarInlineMessage();
+      avatarModal.classList.remove('hidden');
+      avatarModal.setAttribute('aria-hidden', 'false');
+      avatarState.pending = avatarState.current;
+      updateAvatarOptionState(avatarState.pending);
+      const focusTarget =
+        avatarOptions.find((option) => option.dataset.avatarOption === avatarState.pending) || avatarOptions[0];
+      requestAnimationFrame(() => {
+        focusTarget?.focus();
+      });
+      document.addEventListener('keydown', handleAvatarKeydown);
+    };
+
+    const saveAvatarSelection = async () => {
+      if (!avatarModal) {
+        return;
+      }
+
+      const selected = avatarState.pending;
+      if (!selected) {
+        if (avatarMessage) {
+          avatarMessage.textContent = wpData.strings?.avatarMissing || 'Please choose a silhouette before saving.';
+          avatarMessage.classList.remove('hidden');
+          avatarMessage.classList.remove('text-emerald-600');
+          avatarMessage.classList.add('text-red-600');
+        } else {
+          showAvatarStatus(wpData.strings?.avatarMissing || 'Please choose a silhouette before saving.', 'error');
+        }
+        return;
+      }
+
+      hideAvatarStatus();
+      const originalLabel = avatarSaveBtn?.textContent;
+      if (avatarSaveBtn) {
+        avatarSaveBtn.disabled = true;
+        avatarSaveBtn.textContent = wpData.strings?.saving || 'Saving…';
+      }
+
+      try {
+        const response = await apiRequest('user-profile', {
+          method: 'POST',
+          body: { avatar_gender: selected },
+        });
+        const avatarPayload = response?.avatar || {
+          gender: response?.avatar_gender,
+          url: response?.avatar_url,
+        };
+        applyAvatarSelection(avatarPayload);
+        closeAvatarModal();
+        showAvatarStatus(wpData.strings?.avatarSaved || 'Profile photo updated!', 'success');
+      } catch (error) {
+        console.warn('[AlfawzQuran] Unable to update avatar', error);
+        if (avatarMessage) {
+          avatarMessage.textContent = wpData.strings?.avatarError || 'Unable to update profile photo. Please try again.';
+          avatarMessage.classList.remove('hidden');
+          avatarMessage.classList.remove('text-emerald-600');
+          avatarMessage.classList.add('text-red-600');
+        }
+        showAvatarStatus(
+          wpData.strings?.avatarError || 'Unable to update profile photo. Please try again.',
+          'error'
+        );
+      } finally {
+        if (avatarSaveBtn) {
+          avatarSaveBtn.disabled = false;
+          if (originalLabel) {
+            avatarSaveBtn.textContent = originalLabel;
+          }
+        }
+      }
+    };
+
+    avatarOptions.forEach((option) => {
+      option.addEventListener('click', () => {
+        const { avatarOption } = option.dataset || {};
+        if (!avatarOption) {
+          return;
+        }
+        avatarState.pending = avatarOption;
+        updateAvatarOptionState(avatarOption);
+        resetAvatarInlineMessage();
+      });
+    });
+
+    avatarButton?.addEventListener('click', () => {
+      openAvatarModal();
+    });
+
+    avatarSaveBtn?.addEventListener('click', () => {
+      saveAvatarSelection();
+    });
+
+    avatarCancelButtons.forEach((button) => {
+      button.addEventListener('click', () => {
+        closeAvatarModal();
+      });
+    });
+
+    avatarOverlay?.addEventListener('click', () => {
+      closeAvatarModal();
+    });
+
+    avatarDialog?.addEventListener('click', (event) => {
+      event.stopPropagation();
+    });
+
+    avatarModal?.addEventListener('click', (event) => {
+      if (event.target === avatarModal) {
+        closeAvatarModal();
+      }
+    });
+
+    applyAvatarSelection({});
+
     const renderTimeline = (plans) => {
       if (!timelineEl) {
         return;
@@ -3946,6 +4185,7 @@
         setText(memorizedEl, formatNumber(stats.verses_memorized || 0));
         setText(readEl, formatNumber(stats.verses_read || 0));
         setText(currentStreakEl, formatNumber(stats.current_streak || 0));
+        applyAvatarSelection({ gender: stats.avatar_gender, url: stats.avatar_url });
       }
 
       const planList = Array.isArray(plans) ? plans : [];
