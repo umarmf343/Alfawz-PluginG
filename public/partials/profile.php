@@ -21,38 +21,49 @@ $avatar_default = get_avatar( get_current_user_id(), 96, '', esc_attr__( 'Profil
         <div class="absolute inset-0 bg-[radial-gradient(circle_at_top,#ffffff1f,transparent_55%)]"></div>
 
         <div class="relative flex flex-col gap-10 lg:flex-row lg:items-center">
-            <div class="flex-1 space-y-6">
-                <span class="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-1 text-xs font-semibold uppercase tracking-[0.35em] text-[#ffe7d6]/90">
-                    <span class="h-2 w-2 rounded-full bg-[#ffcf99]"></span>
+            <div class="flex-1 space-y-8 text-white/95">
+                <span class="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-1 text-xs font-semibold uppercase tracking-[0.35em] text-white/80 backdrop-blur-sm">
+                    <span class="h-2 w-2 rounded-full bg-gradient-to-r from-[#ffcf99] to-[#ffe7d6]"></span>
                     <?php esc_html_e( 'Daily Qur’an Momentum', 'alfawzquran' ); ?>
                 </span>
-                <div>
-                    <h1 id="alfawz-profile-name" class="text-4xl font-black leading-tight tracking-tight text-white sm:text-5xl lg:text-6xl">
+
+                <div class="space-y-4 rounded-3xl border border-white/15 bg-white/10 p-6 shadow-lg shadow-[#2d0a14]/30 backdrop-blur">
+                    <h1
+                        id="alfawz-profile-name"
+                        class="text-4xl font-black leading-tight tracking-tight text-white sm:text-5xl lg:text-6xl"
+                    >
                         <?php echo esc_html( $display_name ); ?>
                     </h1>
-                    <p id="alfawz-profile-tagline" class="mt-3 max-w-2xl text-lg font-medium text-[#ffe7d6]/95 sm:text-xl">
+                    <p
+                        id="alfawz-profile-tagline"
+                        class="max-w-2xl text-base font-medium text-[#ffe7d6] sm:text-lg"
+                    >
                         <?php esc_html_e( 'Walking with the Qur’an each day.', 'alfawzquran' ); ?>
                     </p>
-                    <p id="alfawz-profile-hero-note" class="mt-3 text-lg font-semibold text-[#ffcf99]"></p>
+                    <p
+                        id="alfawz-profile-hero-note"
+                        class="text-lg font-semibold text-[#ffe0b7]"
+                    ></p>
                 </div>
 
-                <div class="grid grid-cols-2 gap-6 sm:flex sm:flex-wrap sm:gap-8">
-                    <div class="alfawz-hero-stat">
-                        <span class="alfawz-hero-stat-label"><?php esc_html_e( 'Days streak', 'alfawzquran' ); ?></span>
-                        <span id="alfawz-profile-streak-days" class="alfawz-hero-stat-value">0</span>
+                <div class="grid gap-4 sm:grid-cols-2">
+                    <div class="alfawz-hero-stat rounded-2xl border border-white/10 bg-white/5 p-5 text-left shadow-lg shadow-[#2d0a14]/20 backdrop-blur">
+                        <span class="alfawz-hero-stat-label text-white/70"><?php esc_html_e( 'Days streak', 'alfawzquran' ); ?></span>
+                        <span id="alfawz-profile-streak-days" class="alfawz-hero-stat-value text-white">0</span>
                     </div>
-                    <div class="alfawz-hero-stat">
-                        <span class="alfawz-hero-stat-label"><?php esc_html_e( 'Hasanat earned', 'alfawzquran' ); ?></span>
-                        <span id="alfawz-profile-hasanat-total" class="alfawz-hero-stat-value">0</span>
+                    <div class="alfawz-hero-stat rounded-2xl border border-white/10 bg-white/5 p-5 text-left shadow-lg shadow-[#2d0a14]/20 backdrop-blur">
+                        <span class="alfawz-hero-stat-label text-white/70"><?php esc_html_e( 'Hasanat earned', 'alfawzquran' ); ?></span>
+                        <span id="alfawz-profile-hasanat-total" class="alfawz-hero-stat-value text-white">0</span>
                     </div>
                 </div>
 
-                <div class="flex flex-col gap-3 text-sm text-[#ffe7d6]/80 sm:flex-row sm:items-center">
-                    <p class="flex items-center gap-2">
-                        <span class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#fff4e6]/15 text-lg">✨</span>
+                <div class="flex flex-col gap-4 text-sm text-white/80 sm:flex-row sm:items-center">
+                    <p class="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 shadow-lg shadow-[#2d0a14]/10">
+                        <span class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#ffe7d6]/15 text-lg">✨</span>
                         <?php esc_html_e( 'Stay consistent and watch your blessings grow.', 'alfawzquran' ); ?>
                     </p>
-                    <a class="inline-flex items-center justify-center rounded-full bg-[#fff4e6] px-5 py-2 text-sm font-semibold text-[#4b0d18] shadow-lg shadow-black/10 transition duration-300 hover:-translate-y-0.5 hover:bg-white/90"
+                    <a
+                        class="inline-flex items-center justify-center rounded-full bg-gradient-to-r from-[#ffe7d6] via-[#ffd1b6] to-[#ffb28d] px-6 py-2 text-sm font-semibold text-[#4b0d18] shadow-lg shadow-black/10 transition duration-300 hover:-translate-y-0.5 hover:shadow-[#2d0a14]/40"
                         href="#alfawz-profile-goal"
                     >
                         <?php esc_html_e( 'Review today’s plan', 'alfawzquran' ); ?>
