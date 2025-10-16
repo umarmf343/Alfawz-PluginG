@@ -70,7 +70,7 @@ $qaidah_markup = ob_get_clean();
                                     <p class="font-semibold text-[#2f0a18]"><?php esc_html_e( 'Students tracked', 'alfawzquran' ); ?></p>
                                     <p class="text-xs uppercase tracking-widest text-[#b57b69]"><?php esc_html_e( 'Active memorisation loops', 'alfawzquran' ); ?></p>
                                 </div>
-                                <span class="text-sm font-semibold text-[#7b1e3c]" data-alfawz-metric="memorization" data-label="<?php esc_attr_e( 'students tracked', 'alfawzquran' ); ?>"><?php esc_html_e( 'Loading…', 'alfawzquran' ); ?></span>
+                                <span class="alfawz-teacher-stat inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#eef3ff] via-[#dbe7ff] to-[#b6caff] px-3 py-1.5 text-sm font-semibold text-[#1f2a5b] shadow-lg shadow-[#1b1f3b]/15 ring-1 ring-inset ring-[#aec0ff]/60 transition-transform" data-alfawz-metric="memorization" data-label="<?php esc_attr_e( 'students tracked', 'alfawzquran' ); ?>"><?php esc_html_e( 'Loading…', 'alfawzquran' ); ?></span>
                             </div>
                             <div class="mt-4 h-2.5 rounded-full bg-[#fdf1e7]">
                                 <span class="block h-full w-2/3 rounded-full bg-gradient-to-r from-[#f7d6ad] via-[#f3b5a2] to-[#ea8892] transition-all" aria-hidden="true"></span>
@@ -147,7 +147,7 @@ $qaidah_markup = ob_get_clean();
                 <h3 class="text-3xl font-extrabold text-[#1f2a5b]"><?php esc_html_e( 'Student memorisation', 'alfawzquran' ); ?></h3>
                 <p class="mt-3 text-base leading-relaxed text-[#243764]"><?php esc_html_e( 'Review streaks, pacing, and celebrate golden moments where a learner blossoms.', 'alfawzquran' ); ?></p>
                 <div class="mt-8 flex items-center justify-between gap-4">
-                    <span class="text-sm font-semibold text-[#1f2a5b]" data-alfawz-metric="memorization" data-label="<?php esc_attr_e( 'students tracked', 'alfawzquran' ); ?>"><?php esc_html_e( 'Loading…', 'alfawzquran' ); ?></span>
+                    <span class="alfawz-teacher-stat inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#eef3ff] via-[#dbe7ff] to-[#b6caff] px-4 py-2 text-sm font-semibold text-[#1f2a5b] shadow-lg shadow-[#1b1f3b]/15 ring-1 ring-inset ring-[#aec0ff]/60 transition-transform" data-alfawz-metric="memorization" data-label="<?php esc_attr_e( 'students tracked', 'alfawzquran' ); ?>"><?php esc_html_e( 'Loading…', 'alfawzquran' ); ?></span>
                     <a href="#alfawz-teacher-memorization" class="inline-flex items-center gap-2 rounded-full bg-[#1f2a5b] px-5 py-2 text-base font-semibold text-white shadow-lg shadow-[#1b1f3b]/30 transition hover:bg-[#15214a] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#94b0ff]">
                         <?php esc_html_e( 'View progress →', 'alfawzquran' ); ?>
                     </a>
@@ -226,7 +226,7 @@ $qaidah_markup = ob_get_clean();
                     <h2 id="alfawz-teacher-memorization-title" class="text-3xl font-extrabold text-[#1f2a5b]"><?php esc_html_e( 'Student memorisation oversight', 'alfawzquran' ); ?></h2>
                     <p class="max-w-2xl text-base text-[#243764]"><?php esc_html_e( 'Monitor repetitions, completion pace, and streak health for every student assigned to you.', 'alfawzquran' ); ?></p>
                 </div>
-                <span class="alfawz-teacher-stat inline-flex items-center gap-2 rounded-full bg-[#dbe7ff] px-4 py-2 text-sm font-semibold text-[#1f2a5b]" id="alfawz-teacher-memo-pill" data-label="<?php esc_attr_e( 'students tracked', 'alfawzquran' ); ?>" data-alfawz-animate data-alfawz-delay="0.1">
+                <span class="alfawz-teacher-stat inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#eef3ff] via-[#dbe7ff] to-[#b6caff] px-4 py-2 text-sm font-semibold text-[#1f2a5b] shadow-xl shadow-[#1b1f3b]/20 ring-1 ring-inset ring-[#aec0ff]/60" id="alfawz-teacher-memo-pill" data-label="<?php esc_attr_e( 'students tracked', 'alfawzquran' ); ?>" data-alfawz-animate data-alfawz-delay="0.1">
                     <?php esc_html_e( 'Loading…', 'alfawzquran' ); ?>
                 </span>
             </div>
