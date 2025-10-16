@@ -8,12 +8,23 @@ if ( ! defined( 'ABSPATH' ) ) {
     class="alfawz-qaidah-shell relative mx-auto max-w-6xl overflow-hidden rounded-[34px] bg-gradient-to-br from-[#571222] via-[#7a1a31] to-[#f4e6d8] p-[1px] shadow-2xl"
     data-role="student"
 >
+    <div class="qaidah-color-trails" aria-hidden="true">
+        <span class="qaidah-color-trail qaidah-color-trail--rose"></span>
+        <span class="qaidah-color-trail qaidah-color-trail--amber"></span>
+        <span class="qaidah-color-trail qaidah-color-trail--teal"></span>
+    </div>
+
     <div class="alfawz-qaidah-surface relative z-10 space-y-10 rounded-[30px] bg-white/90 p-6 backdrop-blur md:p-10">
         <div class="qaidah-hero relative overflow-hidden rounded-[28px] border border-white/60 bg-gradient-to-br from-[#faf1eb] via-white/95 to-[#fdf7f0] p-8 text-center shadow-lg">
             <span class="qaidah-hero-badge mx-auto mb-4 inline-flex items-center gap-2 rounded-full bg-[#7a1a31] px-5 py-2 text-sm font-semibold uppercase tracking-wider text-[#fcefe6] shadow-sm">
                 <span class="inline-block h-2 w-2 rounded-full bg-[#f6d5b5] animate-ping-slow"></span>
                 <?php esc_html_e( 'Qa’idah Studio', 'alfawzquran' ); ?>
             </span>
+            <div class="qaidah-hero-palette" aria-hidden="true">
+                <span class="qaidah-hero-palette__swatch qaidah-hero-palette__swatch--sunrise"></span>
+                <span class="qaidah-hero-palette__swatch qaidah-hero-palette__swatch--peach"></span>
+                <span class="qaidah-hero-palette__swatch qaidah-hero-palette__swatch--mint"></span>
+            </div>
             <div class="mb-4 flex justify-center text-5xl">
                 <span class="inline-flex h-16 w-16 items-center justify-center rounded-full bg-white/80 text-4xl shadow-inner">📚</span>
             </div>
@@ -46,7 +57,7 @@ if ( ! defined( 'ABSPATH' ) ) {
                 </button>
             </div>
             <ul id="alfawz-qaidah-assignment-list" class="grid gap-5 md:grid-cols-2" aria-live="polite" aria-busy="true"></ul>
-            <p id="alfawz-qaidah-empty" class="hidden rounded-[24px] bg-white/70 p-5 text-base font-medium text-[#7b6459] shadow-inner">
+            <p id="alfawz-qaidah-empty" class="hidden rounded-[24px] bg-white/70 p-5 text-base font-medium text-[#0f766e] shadow-inner">
                 <?php esc_html_e( 'No assignments yet. Your teacher will share Qa’idah activities here.', 'alfawzquran' ); ?>
             </p>
         </section>
