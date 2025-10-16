@@ -326,29 +326,36 @@
       return state.surahContentCache.get(surahId);
     }
 
-    try {
-      const [arabicResponse, translationResponse] = await Promise.all([
-        fetch(`${QURAN_API_BASE}surah/${surahId}/${ARABIC_EDITION}`),
-        fetch(`${QURAN_API_BASE}surah/${surahId}/${TRANSLATION_EDITION}`),
-      ]);
+    const query = new URLSearchParams();
+    if (wpData.defaultTranslation) {
+      query.append('translation', wpData.defaultTranslation);
+    }
+    if (wpData.defaultTransliteration) {
+      query.append('transliteration', wpData.defaultTransliteration);
+    }
 
-      if (!arabicResponse.ok || !translationResponse.ok) {
-        throw new Error('Unable to load surah content');
+    try {
+      const path = `surahs/${surahId}/verses${query.toString() ? `?${query.toString()}` : ''}`;
+      const versesResponse = await apiRequest(path);
+
+      if (!Array.isArray(versesResponse) || versesResponse.length === 0) {
+        throw new Error('Invalid surah response');
       }
 
-      const [arabicData, translationData] = await Promise.all([arabicResponse.json(), translationResponse.json()]);
-      const arabicVerses = Array.isArray(arabicData?.data?.ayahs) ? arabicData.data.ayahs : [];
-      const translationVerses = Array.isArray(translationData?.data?.ayahs) ? translationData.data.ayahs : [];
-
-      const verses = arabicVerses.map((ayah, index) => ({
-        numberInSurah: ayah.numberInSurah,
-        arabic: ayah.text || '',
-        translation: translationVerses[index]?.text || '',
+      const verses = versesResponse.map((verse, index) => ({
+        numberInSurah:
+          Number(verse.numberInSurah || verse.verse_id || verse.verseId || verse.number_in_surah || index + 1) || index + 1,
+        arabic: verse.arabic || verse.text || '',
+        translation: verse.translation || '',
+        transliteration: verse.transliteration || '',
       }));
 
+      const firstVerse = versesResponse[0] || {};
       const bundle = {
-        surahName: arabicData?.data?.englishName || '',
-        totalAyahs: arabicVerses.length,
+        surahName: firstVerse.surah_name || '',
+        surahNameArabic: firstVerse.surah_name_ar || '',
+        totalAyahs:
+          Number(firstVerse.total_verses || firstVerse.totalAyahs || firstVerse.total_ayahs || verses.length) || verses.length,
         verses,
       };
 
