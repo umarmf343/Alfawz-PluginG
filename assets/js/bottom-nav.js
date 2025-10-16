@@ -164,12 +164,22 @@
     let cachedAssignments = [];
 
     const updateBadge = (count) => {
+      const previousCount = parseInt(badge.getAttribute('data-count') || '0', 10);
       if (count > 0) {
-        badge.textContent = count > 9 ? '9+' : String(count);
+        const displayCount = count > 99 ? '99+' : String(count);
+        badge.textContent = displayCount;
+        badge.setAttribute('data-count', String(count));
+        const shouldAnimate = !badge.classList.contains('is-visible') || previousCount !== count;
         badge.classList.add('is-visible');
+        if (shouldAnimate) {
+          badge.classList.remove('is-pop');
+          void badge.offsetWidth;
+          badge.classList.add('is-pop');
+        }
       } else {
         badge.textContent = '';
-        badge.classList.remove('is-visible');
+        badge.removeAttribute('data-count');
+        badge.classList.remove('is-visible', 'is-pop');
       }
       if (announcement) {
         announcement.textContent = count > 0 ? labelText(count) : '';
