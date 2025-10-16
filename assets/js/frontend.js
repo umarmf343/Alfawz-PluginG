@@ -1096,10 +1096,32 @@
       }
 
       const continueButton = qs('[data-action="continue-reading"]', root);
-      if (continueButton && stats?.last_verse_key) {
-        continueButton.addEventListener('click', () => {
-          window.location.href = `${wpData.pluginUrl || ''}reader/?verse=${encodeURIComponent(stats.last_verse_key)}`;
-        });
+      if (continueButton) {
+        if (stats?.last_verse_key) {
+          const lastVerseKey = String(stats.last_verse_key);
+          continueButton.addEventListener('click', () => {
+            const baseUrl = wpData.readerUrl || 'reader/';
+            let targetUrl;
+            try {
+              targetUrl = new URL(baseUrl, window.location.origin);
+            } catch (error) {
+              console.warn('[AlfawzQuran] invalid reader URL, falling back to site origin', error);
+              targetUrl = new URL('reader/', window.location.origin);
+            }
+
+            const [surahPart, versePart] = lastVerseKey.split(':');
+            if (surahPart && versePart) {
+              targetUrl.searchParams.set('surah', surahPart);
+              targetUrl.searchParams.set('verse', versePart);
+            } else {
+              targetUrl.searchParams.set('verse', lastVerseKey);
+            }
+
+            window.location.href = targetUrl.toString();
+          });
+        } else {
+          continueButton.setAttribute('disabled', 'disabled');
+        }
       }
 
       applyInsights(insights);

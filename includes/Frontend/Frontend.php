@@ -96,6 +96,14 @@ class Frontend {
                 true
             );
 
+            $reader_url = home_url('/reader/');
+            if (function_exists('alfawz_get_bottom_nav_url')) {
+                $resolved_reader = \alfawz_get_bottom_nav_url('reader');
+                if (! empty($resolved_reader)) {
+                    $reader_url = $resolved_reader;
+                }
+            }
+
             wp_localize_script('alfawz-frontend', 'alfawzData', [
                 'apiUrl' => rest_url('alfawzquran/v1/'),
                 'nonce' => $rest_nonce,
@@ -103,6 +111,7 @@ class Frontend {
                 'isLoggedIn' => $is_logged_in,
                 'ajaxUrl' => admin_url('admin-ajax.php'),
                 'pluginUrl' => ALFAWZQURAN_PLUGIN_URL,
+                'readerUrl' => $reader_url,
                 'memorizerUrl' => home_url('/alfawz-memorizer/'),
                 'hasanatPerLetter' => get_option('alfawz_hasanat_per_letter', 10),
                 'dailyTarget' => get_option('alfawz_daily_verse_target', 10),
