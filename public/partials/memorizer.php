@@ -195,12 +195,12 @@ if ( ! defined( 'ABSPATH' ) ) {
                             </button>
                         </div>
                         <p id="alfawz-recitation-status" class="text-sm text-slate-500"><?php esc_html_e( 'Tap begin listening when you are ready to recite.', 'alfawzquran' ); ?></p>
-                        <div class="rounded-3xl border border-slate-200/80 bg-gradient-to-br from-indigo-50 to-rose-50 p-6 shadow-inner">
-                            <p class="text-xs font-semibold uppercase tracking-[0.3em] text-indigo-500"><?php esc_html_e( 'Accuracy score', 'alfawzquran' ); ?></p>
-                            <p id="alfawz-recitation-score-value" class="mt-2 text-4xl font-bold text-slate-900">--</p>
-                            <p id="alfawz-recitation-verse" class="mt-1 text-sm text-slate-600"><?php esc_html_e( 'Select a verse to begin your session.', 'alfawzquran' ); ?></p>
-                            <p id="alfawz-recitation-translation" class="mt-2 text-sm italic text-slate-500"></p>
-                            <p id="alfawz-recitation-updated" class="mt-2 text-xs uppercase tracking-[0.25em] text-slate-400"></p>
+                        <div class="rounded-3xl border border-slate-200/80 bg-gradient-to-br from-indigo-50 to-rose-50 p-6 text-center shadow-inner">
+                            <p class="text-3xl font-semibold uppercase tracking-[0.3em] text-indigo-500"><?php esc_html_e( 'Accuracy score', 'alfawzquran' ); ?></p>
+                            <p id="alfawz-recitation-score-value" class="mt-2 text-[6.75rem] font-bold text-slate-900">--</p>
+                            <p id="alfawz-recitation-verse" class="mt-1 text-4xl text-slate-600"><?php esc_html_e( 'Select a verse to begin your session.', 'alfawzquran' ); ?></p>
+                            <p id="alfawz-recitation-translation" class="mt-2 text-4xl italic text-slate-500"></p>
+                            <p id="alfawz-recitation-updated" class="mt-2 text-3xl uppercase tracking-[0.25em] text-slate-400"></p>
                         </div>
                     </div>
 
