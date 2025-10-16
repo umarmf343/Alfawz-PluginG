@@ -141,6 +141,7 @@ class Frontend {
                 'nonce' => $rest_nonce,
                 'isLoggedIn' => $is_logged_in,
                 'defaultTranslation' => get_option('alfawz_default_translation', 'en.sahih'),
+                'defaultTransliteration' => get_option('alfawz_default_transliteration', 'en.transliteration'),
                 'selectSurahLabel' => __('Select a surah', 'alfawzquran'),
                 'surahErrorMessage' => __('Unable to load surahs right now.', 'alfawzquran'),
                 'formValidationMessage' => __('Please select a surah and valid ayah range.', 'alfawzquran'),
