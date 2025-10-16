@@ -25,6 +25,7 @@ class Frontend {
         add_action('init', [$this, 'register_shortcodes']);
         add_action('wp_enqueue_scripts', [$this, 'enqueue_assets']);
         add_action('wp_head', [$this, 'add_meta_tags']);
+        add_action('template_redirect', [$this, 'redirect_alfawz_pages_to_account']);
     }
 
     public function register_shortcodes() {
@@ -331,6 +332,29 @@ class Frontend {
             echo '<meta name="description" content="AlfawzQuran - Read, memorize and track your Quran progress">' . "\n";
         }
     }
+
+    public function redirect_alfawz_pages_to_account() {
+        if (is_admin() || wp_doing_ajax()) {
+            return;
+        }
+
+        if (defined('REST_REQUEST') && REST_REQUEST) {
+            return;
+        }
+
+        if (!$this->is_alfawz_page() || $this->is_account_page_request()) {
+            return;
+        }
+
+        $account_url = $this->get_account_page_url();
+
+        if (empty($account_url)) {
+            return;
+        }
+
+        wp_safe_redirect($account_url);
+        exit;
+    }
     
     private function is_alfawz_page() {
         global $post;
@@ -360,6 +384,16 @@ class Frontend {
         }
 
         return false;
+    }
+
+    private function is_account_page_request() {
+        global $post;
+
+        if (!$post) {
+            return false;
+        }
+
+        return has_shortcode($post->post_content, 'alfawz_account');
     }
 
     private function current_page_uses_shortcode($shortcode) {
