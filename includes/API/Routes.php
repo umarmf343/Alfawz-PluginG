@@ -4138,14 +4138,38 @@ class Routes {
 
         $buckets    = [];
         $surah_meta = null;
-        foreach ($editions_data as $edition) {
-            if (!is_array($edition) || empty($edition['identifier']) || empty($edition['ayahs']) || !is_array($edition['ayahs'])) {
+        foreach ($editions_data as $edition_payload) {
+            if (!is_array($edition_payload)) {
                 continue;
             }
-            $identifier = sanitize_key(str_replace('.', '_', strtolower($edition['identifier'])));
-            $buckets[ $identifier ] = $edition['ayahs'];
-            if (!$surah_meta && isset($edition['englishName'])) {
-                $surah_meta = $edition;
+
+            $edition_meta = $edition_payload;
+            if (isset($edition_payload['edition']) && is_array($edition_payload['edition'])) {
+                $edition_meta = array_merge($edition_payload['edition'], $edition_meta);
+            }
+
+            $raw_identifier = $edition_meta['identifier'] ?? $edition_payload['identifier'] ?? '';
+            $ayahs = $edition_payload['ayahs'] ?? [];
+
+            if (empty($raw_identifier) || empty($ayahs) || !is_array($ayahs)) {
+                continue;
+            }
+
+            $identifier = sanitize_key(str_replace('.', '_', strtolower($raw_identifier)));
+            $buckets[ $identifier ] = $ayahs;
+
+            if (!$surah_meta) {
+                if (isset($edition_payload['surah']) && is_array($edition_payload['surah'])) {
+                    $surah_meta = $edition_payload['surah'];
+                } else {
+                    $surah_meta = [
+                        'englishName'           => $edition_payload['englishName'] ?? $edition_meta['englishName'] ?? '',
+                        'englishNameTranslation' => $edition_payload['englishNameTranslation'] ?? $edition_meta['englishNameTranslation'] ?? '',
+                        'name'                  => $edition_payload['name'] ?? $edition_meta['name'] ?? '',
+                        'numberOfAyahs'         => isset($edition_payload['numberOfAyahs']) ? (int) $edition_payload['numberOfAyahs'] : ($edition_meta['numberOfAyahs'] ?? 0),
+                        'revelationType'        => $edition_payload['revelationType'] ?? $edition_meta['revelationType'] ?? '',
+                    ];
+                }
             }
         }
 
