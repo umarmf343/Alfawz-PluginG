@@ -4203,6 +4203,12 @@ body.alfawz-qaidah-modal-open {
   animation: alfawzPopIn 0.6s ease both;
 }
 
+.page-header-title.clr {
+  text-align: center;
+  width: 100%;
+  display: block;
+}
+
 .alfawz-confetti-burst {
   position: absolute;
   inset: 0;
