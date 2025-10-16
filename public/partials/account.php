@@ -20,9 +20,15 @@ $teacher_dashboard_url = function_exists( 'alfawz_get_bottom_nav_url' )
     ? alfawz_get_bottom_nav_url( 'teacher-dashboard' )
     : home_url( trailingslashit( 'alfawz-teacher-dashboard' ) );
 
+$admin_portal_url = function_exists( 'alfawz_get_bottom_nav_url' )
+    ? alfawz_get_bottom_nav_url( 'admin-dashboard' )
+    : home_url( trailingslashit( 'alfawz-admin-dashboard' ) );
+
 $settings_url = function_exists( 'alfawz_get_bottom_nav_url' )
     ? alfawz_get_bottom_nav_url( 'settings' )
     : home_url( trailingslashit( 'alfawz-settings' ) );
+
+$wp_admin_console_url = admin_url( 'admin.php?page=alfawz-quran' );
 
 $requested_redirect = '';
 if ( isset( $_GET['redirect_to'] ) ) {
@@ -33,6 +39,7 @@ if ( isset( $_GET['redirect_to'] ) ) {
 
 $student_redirect = $requested_redirect ? $requested_redirect : $student_dashboard_url;
 $teacher_redirect = $requested_redirect ? $requested_redirect : $teacher_dashboard_url;
+$admin_redirect   = $requested_redirect ? $requested_redirect : $admin_portal_url;
 
 $notices = [];
 
@@ -89,8 +96,14 @@ if ( isset( $_GET['loggedout'] ) ) {
     ];
 }
 
+$is_admin_user   = $is_logged_in && $current_user instanceof WP_User && ( user_can( $current_user, 'manage_options' ) || user_can( $current_user, 'alfawz_admin' ) );
+$is_teacher_user = $is_logged_in && $current_user instanceof WP_User && ( user_can( $current_user, 'alfawz_teacher' ) || in_array( 'teacher', (array) $current_user->roles, true ) );
+$is_student_user = $is_logged_in && $current_user instanceof WP_User && ( user_can( $current_user, 'alfawz_student' ) || in_array( 'student', (array) $current_user->roles, true ) || in_array( 'subscriber', (array) $current_user->roles, true ) || ( ! $is_admin_user && ! $is_teacher_user ) );
+
 if ( $is_logged_in && $current_user instanceof WP_User ) {
-    if ( user_can( $current_user, 'manage_options' ) || user_can( $current_user, 'alfawz_teacher' ) || in_array( 'teacher', (array) $current_user->roles, true ) ) {
+    if ( $is_admin_user ) {
+        $role_label = __( 'Administrator', 'alfawzquran' );
+    } elseif ( $is_teacher_user ) {
         $role_label = __( 'Teacher', 'alfawzquran' );
     } else {
         $role_label = __( 'Student', 'alfawzquran' );
@@ -209,6 +222,7 @@ if ( ! function_exists( 'alfawz_customize_login_form_fields' ) ) {
 
 $student_form = '';
 $teacher_form = '';
+$admin_form   = '';
 
 if ( ! $is_logged_in ) {
     $student_form = wp_login_form(
@@ -264,6 +278,33 @@ if ( ! $is_logged_in ) {
             'placeholder_password' => __( 'Enter your password', 'alfawzquran' ),
         ]
     );
+
+    $admin_form = wp_login_form(
+        [
+            'echo'           => false,
+            'remember'       => true,
+            'form_id'        => 'alfawz-admin-login-form',
+            'label_username' => __( 'Email or Username', 'alfawzquran' ),
+            'label_password' => __( 'Password', 'alfawzquran' ),
+            'label_remember' => __( 'Stay signed in', 'alfawzquran' ),
+            'label_log_in'   => __( 'Login as Admin', 'alfawzquran' ),
+            'id_username'    => 'alfawz-admin-username',
+            'id_password'    => 'alfawz-admin-password',
+            'id_remember'    => 'alfawz-admin-remember',
+            'id_submit'      => 'alfawz-admin-submit',
+            'redirect'       => $admin_redirect,
+        ]
+    );
+
+    $admin_form = alfawz_customize_login_form_fields(
+        $admin_form,
+        [
+            'id_username'          => 'alfawz-admin-username',
+            'id_password'          => 'alfawz-admin-password',
+            'placeholder_username' => __( 'Enter your email address', 'alfawzquran' ),
+            'placeholder_password' => __( 'Enter your password', 'alfawzquran' ),
+        ]
+    );
 }
 ?>
 <div id="alfawz-account" class="alfawz-account-shell relative mx-auto max-w-5xl overflow-hidden px-4 py-12 text-slate-900 sm:px-8 lg:px-0">
@@ -313,16 +354,28 @@ if ( ! $is_logged_in ) {
                         esc_html( $role_label )
                     );
                 } else {
-                    esc_html_e( 'Log in as a student to track memorization, or as a teacher to guide your class.', 'alfawzquran' );
+                    esc_html_e( 'Log in as a student to track memorization, as a teacher to guide your class, or as an administrator to orchestrate the programme.', 'alfawzquran' );
                 }
                 ?>
             </p>
             <?php if ( $is_logged_in ) : ?>
                 <div class="alfawz-account-hero__actions">
-                    <a class="alfawz-account-btn alfawz-account-btn--primary" href="<?php echo esc_url( $student_dashboard_url ); ?>">
-                        <?php esc_html_e( 'Open Student Dashboard', 'alfawzquran' ); ?>
-                    </a>
-                    <?php if ( user_can( $current_user, 'manage_options' ) || user_can( $current_user, 'alfawz_teacher' ) || in_array( 'teacher', (array) $current_user->roles, true ) ) : ?>
+                    <?php if ( $is_admin_user ) : ?>
+                        <a class="alfawz-account-btn alfawz-account-btn--primary" href="<?php echo esc_url( $admin_portal_url ); ?>">
+                            <?php esc_html_e( 'Open Admin Console', 'alfawzquran' ); ?>
+                        </a>
+                    <?php endif; ?>
+                    <?php if ( $is_student_user ) : ?>
+                        <?php
+                        $student_button_class = $is_admin_user
+                            ? 'alfawz-account-btn alfawz-account-btn--outline'
+                            : 'alfawz-account-btn alfawz-account-btn--primary';
+                        ?>
+                        <a class="<?php echo esc_attr( $student_button_class ); ?>" href="<?php echo esc_url( $student_dashboard_url ); ?>">
+                            <?php esc_html_e( 'Open Student Dashboard', 'alfawzquran' ); ?>
+                        </a>
+                    <?php endif; ?>
+                    <?php if ( $is_teacher_user ) : ?>
                         <a class="alfawz-account-btn alfawz-account-btn--outline" href="<?php echo esc_url( $teacher_dashboard_url ); ?>">
                             <?php esc_html_e( 'Go to Teacher Tools', 'alfawzquran' ); ?>
                         </a>
@@ -330,6 +383,11 @@ if ( ! $is_logged_in ) {
                     <a class="alfawz-account-btn alfawz-account-btn--quiet" href="<?php echo esc_url( $settings_url ); ?>">
                         <?php esc_html_e( 'Manage preferences', 'alfawzquran' ); ?>
                     </a>
+                    <?php if ( $is_admin_user ) : ?>
+                        <a class="alfawz-account-btn alfawz-account-btn--quiet" href="<?php echo esc_url( $wp_admin_console_url ); ?>">
+                            <?php esc_html_e( 'Open WordPress Admin', 'alfawzquran' ); ?>
+                        </a>
+                    <?php endif; ?>
                     <a class="alfawz-account-btn alfawz-account-btn--quiet" href="<?php echo esc_url( $logout_url ); ?>">
                         <?php esc_html_e( 'Log out', 'alfawzquran' ); ?>
                     </a>
@@ -394,9 +452,32 @@ if ( ! $is_logged_in ) {
                     <p class="alfawz-account-note"><?php esc_html_e( 'Teacher access is provided by your program administrator.', 'alfawzquran' ); ?></p>
                 </footer>
             </article>
+
+            <article class="alfawz-account-card" data-animate="fade">
+                <header class="alfawz-account-card__header">
+                    <div class="alfawz-account-card__icon" aria-hidden="true">🛠️</div>
+                    <div>
+                        <h3 class="alfawz-account-card__title"><?php esc_html_e( 'Administrator Login', 'alfawzquran' ); ?></h3>
+                        <p class="alfawz-account-card__description"><?php esc_html_e( 'Coordinate programmes, manage roles, and keep every classroom in sync.', 'alfawzquran' ); ?></p>
+                    </div>
+                </header>
+                <ul class="alfawz-account-card__list" role="list">
+                    <li><?php esc_html_e( 'Assign teachers and manage enrolment', 'alfawzquran' ); ?></li>
+                    <li><?php esc_html_e( 'Monitor memorisation metrics across cohorts', 'alfawzquran' ); ?></li>
+                    <li><?php esc_html_e( 'Configure programme-wide goals and settings', 'alfawzquran' ); ?></li>
+                </ul>
+                <div class="alfawz-login-form">
+                    <?php echo wp_kses( $admin_form, alfawz_get_allowed_login_form_tags() ); ?>
+                </div>
+                <footer class="alfawz-account-card__footer">
+                    <a href="<?php echo esc_url( $lost_password ); ?>" class="alfawz-account-link"><?php esc_html_e( 'Reset administrator password', 'alfawzquran' ); ?></a>
+                    <p class="alfawz-account-note"><?php esc_html_e( 'Administrator access is invitation-only for safeguarding.', 'alfawzquran' ); ?></p>
+                </footer>
+            </article>
         </section>
     <?php else : ?>
         <section class="alfawz-account-grid" data-animate="fade">
+            <?php if ( $is_student_user ) : ?>
             <article class="alfawz-account-card alfawz-account-card--compact">
                 <header class="alfawz-account-card__header">
                     <div class="alfawz-account-card__icon" aria-hidden="true">📊</div>
@@ -409,6 +490,7 @@ if ( ! $is_logged_in ) {
                     <?php esc_html_e( 'Open student dashboard', 'alfawzquran' ); ?>
                 </a>
             </article>
+            <?php endif; ?>
             <article class="alfawz-account-card alfawz-account-card--compact">
                 <header class="alfawz-account-card__header">
                     <div class="alfawz-account-card__icon" aria-hidden="true">⚙️</div>
@@ -421,7 +503,21 @@ if ( ! $is_logged_in ) {
                     <?php esc_html_e( 'Go to settings', 'alfawzquran' ); ?>
                 </a>
             </article>
-            <?php if ( user_can( $current_user, 'manage_options' ) || user_can( $current_user, 'alfawz_teacher' ) || in_array( 'teacher', (array) $current_user->roles, true ) ) : ?>
+            <?php if ( $is_admin_user ) : ?>
+                <article class="alfawz-account-card alfawz-account-card--compact">
+                    <header class="alfawz-account-card__header">
+                        <div class="alfawz-account-card__icon" aria-hidden="true">🛠️</div>
+                        <div>
+                            <h3 class="alfawz-account-card__title"><?php esc_html_e( 'Administrator Hub', 'alfawzquran' ); ?></h3>
+                            <p class="alfawz-account-card__description"><?php esc_html_e( 'Oversee classes, people, and the overall platform pulse.', 'alfawzquran' ); ?></p>
+                        </div>
+                    </header>
+                    <a class="alfawz-account-btn alfawz-account-btn--primary" href="<?php echo esc_url( $admin_portal_url ); ?>">
+                        <?php esc_html_e( 'Open admin console', 'alfawzquran' ); ?>
+                    </a>
+                </article>
+            <?php endif; ?>
+            <?php if ( $is_teacher_user ) : ?>
                 <article class="alfawz-account-card alfawz-account-card--compact">
                     <header class="alfawz-account-card__header">
                         <div class="alfawz-account-card__icon" aria-hidden="true">🏫</div>
