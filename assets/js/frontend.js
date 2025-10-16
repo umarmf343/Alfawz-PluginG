@@ -1195,6 +1195,14 @@
     const audioCurrentTime = audioPanel ? qs('#alfawz-audio-current', audioPanel) : null;
     const audioDurationTime = audioPanel ? qs('#alfawz-audio-duration', audioPanel) : null;
     const audioSourceBadge = audioPanel ? qs('#alfawz-audio-source', audioPanel) : null;
+    const gwaniPlayer = qs('#alfawz-gwani-player', root);
+    const gwaniSurahSelect = gwaniPlayer ? qs('#alfawz-gwani-surah-select', gwaniPlayer) : null;
+    const gwaniPlayButton = gwaniPlayer ? qs('#alfawz-gwani-play', gwaniPlayer) : null;
+    const gwaniStatus = gwaniPlayer ? qs('#alfawz-gwani-status', gwaniPlayer) : null;
+    const gwaniAudio = gwaniPlayer ? qs('#alfawz-gwani-audio', gwaniPlayer) : null;
+    if (gwaniSurahSelect) {
+      gwaniSurahSelect.dataset.locked = 'true';
+    }
     const surahToggle = qs('#alfawz-surah-toggle', root);
     const surahToggleHint = qs('#alfawz-surah-toggle-hint', root);
     const surahList = qs('#alfawz-surah-full-view', root);
@@ -1246,6 +1254,11 @@
       lastMood: '',
     };
 
+    const gwaniDefaultStatus = 'Select a surah to hear the Gwani Dahiru recitation.';
+    const gwaniPlayDefaultLabel = gwaniPlayButton?.textContent?.trim() || 'Play full surah';
+    let gwaniLoading = false;
+    let gwaniCurrentSurahId = null;
+
     const setReflectionStatus = (message = '') => {
       if (reflectionStatus) {
         reflectionStatus.textContent = message;
@@ -1285,6 +1298,139 @@
         return;
       }
       state.dashboardInsights.reflections = state.dashboardInsights.reflections.filter((entry) => entry?.id !== id);
+    };
+
+    const describeGwaniSurah = (surahId) => {
+      const numericId = Number(surahId || 0);
+      if (!numericId) {
+        return '';
+      }
+      const surah = getSurahById(numericId);
+      const fallback = `Surah ${numericId}`;
+      if (!surah) {
+        return fallback;
+      }
+      const prefix = surah.number ? `${surah.number}. ` : '';
+      const name =
+        surah.englishName ||
+        surah.englishNameTranslation ||
+        surah.name ||
+        surah.revelationType ||
+        fallback;
+      return `${prefix}${name}`;
+    };
+
+    const setGwaniStatus = (message = gwaniDefaultStatus, tone = 'muted') => {
+      if (!gwaniStatus) {
+        return;
+      }
+      gwaniStatus.textContent = message || '';
+      const tones = ['loading', 'success', 'error'];
+      tones.forEach((name) => {
+        gwaniStatus.classList.toggle(`is-${name}`, tone === name);
+      });
+    };
+
+    const updateGwaniButtonState = () => {
+      if (!gwaniPlayButton) {
+        return;
+      }
+      const hasSelection = Boolean(Number(gwaniSurahSelect?.value || 0));
+      gwaniPlayButton.disabled = gwaniLoading || !hasSelection;
+    };
+
+    const setGwaniLoadingState = (loading) => {
+      gwaniLoading = Boolean(loading);
+      if (gwaniPlayButton) {
+        gwaniPlayButton.setAttribute('aria-busy', gwaniLoading ? 'true' : 'false');
+        gwaniPlayButton.textContent = gwaniLoading
+          ? wpData.strings?.loading || 'Loading…'
+          : gwaniPlayDefaultLabel;
+      }
+      if (gwaniSurahSelect && !gwaniSurahSelect.dataset.locked) {
+        gwaniSurahSelect.disabled = gwaniLoading;
+      }
+      updateGwaniButtonState();
+    };
+
+    const resetGwaniAudio = ({ keepSource = false } = {}) => {
+      if (!gwaniAudio) {
+        return;
+      }
+      try {
+        gwaniAudio.pause();
+      } catch (error) {
+        // ignore pause errors
+      }
+      if (!keepSource) {
+        gwaniAudio.removeAttribute('src');
+      }
+      gwaniAudio.load();
+    };
+
+    const handleGwaniSurahChange = () => {
+      updateGwaniButtonState();
+      if (!gwaniSurahSelect) {
+        return;
+      }
+      const surahId = Number(gwaniSurahSelect.value || 0);
+      if (!surahId) {
+        gwaniCurrentSurahId = null;
+        resetGwaniAudio();
+        setGwaniStatus(gwaniDefaultStatus);
+        return;
+      }
+      if (gwaniCurrentSurahId && gwaniCurrentSurahId !== surahId) {
+        gwaniCurrentSurahId = null;
+        resetGwaniAudio();
+      }
+      const surahName = describeGwaniSurah(surahId);
+      setGwaniStatus(`Ready to play ${surahName} from the Gwani Dahiru archive. Press play to begin.`, 'success');
+    };
+
+    const handleGwaniPlay = async () => {
+      if (!gwaniSurahSelect || !gwaniAudio || gwaniLoading) {
+        return;
+      }
+      const surahId = Number(gwaniSurahSelect.value || 0);
+      if (!surahId) {
+        return;
+      }
+      const surahName = describeGwaniSurah(surahId) || `Surah ${surahId}`;
+      setGwaniLoadingState(true);
+      setGwaniStatus(`Loading ${surahName} from the Gwani Dahiru archive…`, 'loading');
+      try {
+        const url = await loadArchiveSurahUrl(surahId);
+        if (!url) {
+          throw new Error('Archive URL unavailable');
+        }
+        gwaniCurrentSurahId = surahId;
+        const verseAudio = ensureAudioElement();
+        if (verseAudio && typeof verseAudio.pause === 'function') {
+          verseAudio.pause();
+        }
+        gwaniAudio.pause();
+        gwaniAudio.src = url;
+        gwaniAudio.dataset.surahId = String(surahId);
+        gwaniAudio.load();
+        const playPromise = gwaniAudio.play();
+        if (playPromise && typeof playPromise.then === 'function') {
+          playPromise.catch(() => {
+            if (gwaniCurrentSurahId === surahId) {
+              setGwaniStatus(`Ready to play ${surahName} from the Gwani Dahiru archive. Press play to begin.`, 'success');
+            }
+          });
+        } else {
+          setGwaniStatus(`Ready to play ${surahName} from the Gwani Dahiru archive. Press play to begin.`, 'success');
+        }
+      } catch (error) {
+        console.warn('[AlfawzQuran] Unable to start Gwani surah playback', error);
+        gwaniCurrentSurahId = null;
+        resetGwaniAudio();
+        setGwaniStatus('Unable to load this surah from the archive right now. Please try another.', 'error');
+      } finally {
+        setGwaniLoadingState(false);
+      }
     };
 
     function updateReflectionMoodButtons() {
@@ -1588,6 +1734,60 @@
         setReflectionStatus(reflectionStrings.loginRequired);
       }
       syncReflectionControls();
+    }
+
+    if (gwaniPlayer) {
+      setGwaniStatus(gwaniDefaultStatus);
+      updateGwaniButtonState();
+      if (gwaniSurahSelect) {
+        gwaniSurahSelect.addEventListener('change', handleGwaniSurahChange);
+      }
+      if (gwaniPlayButton) {
+        gwaniPlayButton.addEventListener('click', handleGwaniPlay);
+      }
+      if (gwaniAudio) {
+        const describeCurrentGwaniSurah = () => describeGwaniSurah(gwaniCurrentSurahId) || '';
+        gwaniAudio.addEventListener('loadeddata', () => {
+          if (!gwaniCurrentSurahId) {
+            return;
+          }
+          const name = describeCurrentGwaniSurah();
+          setGwaniStatus(`${name} ready. Press play to listen.`, 'success');
+        });
+        gwaniAudio.addEventListener('play', () => {
+          if (!gwaniCurrentSurahId) {
+            return;
+          }
+          const name = describeCurrentGwaniSurah();
+          setGwaniStatus(`Now playing ${name} from the Gwani Dahiru archive.`, 'success');
+        });
+        gwaniAudio.addEventListener('pause', () => {
+          if (!gwaniCurrentSurahId || gwaniAudio.ended) {
+            return;
+          }
+          const name = describeCurrentGwaniSurah();
+          setGwaniStatus(`${name} playback paused.`, 'muted');
+        });
+        gwaniAudio.addEventListener('ended', () => {
+          if (!gwaniCurrentSurahId) {
+            return;
+          }
+          const name = describeCurrentGwaniSurah();
+          setGwaniStatus(`${name} playback finished.`, 'success');
+        });
+        gwaniAudio.addEventListener('waiting', () => {
+          if (!gwaniCurrentSurahId) {
+            return;
+          }
+          const name = describeCurrentGwaniSurah();
+          setGwaniStatus(`Buffering ${name}…`, 'loading');
+        });
+        gwaniAudio.addEventListener('error', () => {
+          gwaniCurrentSurahId = null;
+          resetGwaniAudio();
+          setGwaniStatus('Unable to play this surah from the archive right now. Please try again later.', 'error');
+        });
+      }
     }
 
     let currentSurahId = null;
@@ -2699,7 +2899,16 @@
     };
 
     setLoadingState(true);
-    await populateSurahSelect(surahSelect);
+    await Promise.all([
+      populateSurahSelect(surahSelect),
+      gwaniSurahSelect ? populateSurahSelect(gwaniSurahSelect) : Promise.resolve(),
+    ]);
+    if (gwaniSurahSelect) {
+      delete gwaniSurahSelect.dataset.locked;
+      gwaniSurahSelect.disabled = false;
+      gwaniSurahSelect.value = '';
+      handleGwaniSurahChange();
+    }
     await fetchInitialStates();
     hydrateFromQuery();
 
