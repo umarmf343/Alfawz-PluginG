@@ -606,6 +606,10 @@
   text-align: center;
 }
 
+.alfawz-verse-panel p {
+  font-size: 23px;
+}
+
 .alfawz-arabic {
   font-family: 'Scheherazade New', 'Amiri', serif;
   font-size: clamp(2.8rem, 4.6vw, 3.5rem);
