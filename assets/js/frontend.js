@@ -3688,6 +3688,7 @@
     const goalFillEl = qs('#alfawz-profile-goal-fill', root);
     const goalNoteEl = qs('#alfawz-profile-daily-note', root);
     const goalResetEl = qs('#alfawz-profile-daily-reset', root);
+    const heroAvatarImage = qs('[data-profile-avatar="image"]', root);
 
     const renderTimeline = (plans) => {
       if (!timelineEl) {
@@ -3876,6 +3877,15 @@
 
       if (stats) {
         setText(nameEl, stats.display_name || nameEl?.textContent || 'Beloved Student');
+        if (heroAvatarImage && stats.avatar_url) {
+          heroAvatarImage.src = stats.avatar_url;
+          if (typeof stats.avatar_choice === 'string') {
+            heroAvatarImage.dataset.avatarChoice = stats.avatar_choice;
+          }
+          if (stats.display_name) {
+            heroAvatarImage.alt = `${stats.display_name} profile photo`;
+          }
+        }
         const tagline = stats.member_since
           ? `Walking with the Qur’an since ${stats.member_since}`
           : taglineEl?.textContent || 'Walking with the Qur’an each day.';
@@ -3927,6 +3937,15 @@
     const profileSaveBtn = qs('#alfawz-settings-profile-save', profileForm);
     const profileStatus = qs('#alfawz-profile-status', root);
     const profileMessage = qs('#alfawz-profile-message', profileForm);
+    const avatarChoiceField = qs('#alfawz-settings-avatar-choice', profileForm);
+    const avatarPreview = qs('#alfawz-settings-avatar-preview', profileForm);
+    const avatarUploadBtn = qs('#alfawz-settings-avatar-trigger', profileForm);
+    const avatarModal = document.getElementById('alfawz-avatar-modal');
+    const avatarModalPanel = avatarModal ? qs('[data-avatar-modal-panel]', avatarModal) : null;
+    const avatarOptions = Array.from(avatarModal?.querySelectorAll('[data-avatar-option]') || []);
+    const avatarApplyBtn = avatarModal ? qs('#alfawz-avatar-apply', avatarModal) : null;
+    const avatarCloseButtons = Array.from(avatarModal?.querySelectorAll('[data-action="close"]') || []);
+    const heroAvatarImage = document.querySelector('[data-profile-avatar="image"]');
 
     const planSection = root.querySelector('[data-plan-url]');
     const planName = qs('#alfawz-current-plan-name', root);
@@ -3944,6 +3963,147 @@
     const prefStatus = qs('#alfawz-preferences-status', preferencesForm);
     const prefMessage = qs('#alfawz-preferences-message', preferencesForm);
     const prefSaveBtn = qs('#alfawz-preferences-save', preferencesForm);
+
+    const avatarChoices = wpData.avatarChoices || {};
+
+    const ensureValidAvatarChoice = (value) => {
+      if (!value || typeof value !== 'string') {
+        return '';
+      }
+      const key = value.trim().toLowerCase();
+      return avatarChoices[key] ? key : '';
+    };
+
+    const getDefaultAvatarUrl = () => avatarPreview?.dataset.defaultAvatar || wpData.defaultAvatarUrl || '';
+
+    const resolveAvatarUrl = (choice, defaultUrl) => {
+      const validChoice = ensureValidAvatarChoice(choice);
+      if (validChoice && avatarChoices[validChoice]) {
+        return avatarChoices[validChoice];
+      }
+      return defaultUrl || getDefaultAvatarUrl();
+    };
+
+    let selectedAvatar = ensureValidAvatarChoice(avatarChoiceField?.value || '');
+
+    const updateAvatarState = (choice, avatarUrl, defaultUrl) => {
+      const validChoice = ensureValidAvatarChoice(choice);
+      const fallback = defaultUrl || getDefaultAvatarUrl();
+      const resolvedUrl = avatarUrl || resolveAvatarUrl(validChoice, fallback);
+
+      selectedAvatar = validChoice;
+      if (avatarChoiceField) {
+        avatarChoiceField.value = validChoice;
+      }
+      if (avatarPreview) {
+        if (defaultUrl) {
+          avatarPreview.dataset.defaultAvatar = defaultUrl;
+        } else if (!avatarPreview.dataset.defaultAvatar && fallback) {
+          avatarPreview.dataset.defaultAvatar = fallback;
+        }
+        if (resolvedUrl) {
+          avatarPreview.src = resolvedUrl;
+        }
+      }
+      if (heroAvatarImage && resolvedUrl) {
+        heroAvatarImage.src = resolvedUrl;
+        heroAvatarImage.dataset.avatarChoice = validChoice || '';
+        const heroAltName = (fullNameField?.value || '').trim();
+        if (heroAltName) {
+          heroAvatarImage.alt = `${heroAltName} profile photo`;
+        }
+      }
+      return resolvedUrl;
+    };
+
+    updateAvatarState(selectedAvatar, avatarPreview?.src || null, avatarPreview?.dataset.defaultAvatar || null);
+
+    let modalAvatarSelection = selectedAvatar;
+    let lastFocusedAvatarTrigger = null;
+
+    const updateAvatarOptionStyles = () => {
+      avatarOptions.forEach((option) => {
+        const { avatarOption } = option.dataset;
+        const isActive = Boolean(modalAvatarSelection) && avatarOption === modalAvatarSelection;
+        option.classList.toggle('border-emerald-500', isActive);
+        option.classList.toggle('ring-2', isActive);
+        option.classList.toggle('ring-emerald-400', isActive);
+        option.classList.toggle('shadow-lg', isActive);
+        option.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+      });
+      if (avatarApplyBtn) {
+        avatarApplyBtn.disabled = !modalAvatarSelection;
+      }
+    };
+
+    const openAvatarModal = () => {
+      if (!avatarModal) {
+        return;
+      }
+      modalAvatarSelection = selectedAvatar;
+      updateAvatarOptionStyles();
+      avatarModal.classList.remove('hidden');
+      avatarModal.classList.add('flex');
+      avatarModal.setAttribute('aria-hidden', 'false');
+      lastFocusedAvatarTrigger = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+      if (avatarModalPanel && typeof avatarModalPanel.focus === 'function') {
+        avatarModalPanel.focus();
+      } else if (avatarOptions[0] && typeof avatarOptions[0].focus === 'function') {
+        avatarOptions[0].focus();
+      }
+    };
+
+    const closeAvatarModal = () => {
+      if (!avatarModal) {
+        return;
+      }
+      avatarModal.classList.remove('flex');
+      avatarModal.classList.add('hidden');
+      avatarModal.setAttribute('aria-hidden', 'true');
+      if (lastFocusedAvatarTrigger && typeof lastFocusedAvatarTrigger.focus === 'function') {
+        lastFocusedAvatarTrigger.focus();
+      }
+    };
+
+    avatarUploadBtn?.addEventListener('click', () => {
+      openAvatarModal();
+    });
+
+    avatarCloseButtons.forEach((button) => {
+      button.addEventListener('click', () => {
+        closeAvatarModal();
+      });
+    });
+
+    avatarOptions.forEach((option) => {
+      option.addEventListener('click', () => {
+        const validChoice = ensureValidAvatarChoice(option.dataset.avatarOption);
+        modalAvatarSelection = validChoice;
+        updateAvatarOptionStyles();
+      });
+    });
+
+    avatarApplyBtn?.addEventListener('click', () => {
+      if (!modalAvatarSelection) {
+        return;
+      }
+      const resolvedUrl = resolveAvatarUrl(modalAvatarSelection);
+      updateAvatarState(modalAvatarSelection, resolvedUrl);
+      closeAvatarModal();
+    });
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && avatarModal && !avatarModal.classList.contains('hidden')) {
+        event.preventDefault();
+        closeAvatarModal();
+      }
+    });
+
+    avatarModal?.addEventListener('click', (event) => {
+      if (event.target === avatarModal) {
+        closeAvatarModal();
+      }
+    });
 
     const indicatorTimers = new WeakMap();
 
@@ -4030,6 +4190,9 @@
         }
         if (profile?.email && emailField) {
           emailField.value = profile.email;
+        }
+        if (profile) {
+          updateAvatarState(profile.avatar_choice, profile.avatar_url, profile.avatar_default_url);
         }
       } catch (error) {
         console.warn('[AlfawzQuran] Unable to load profile data', error);
@@ -4240,13 +4403,16 @@
       try {
         const response = await apiRequest('user-profile', {
           method: 'POST',
-          body: { full_name: fullName },
+          body: { full_name: fullName, avatar_choice: selectedAvatar },
         });
         if (response?.display_name && fullNameField) {
           fullNameField.value = response.display_name;
         }
         if (response?.email && emailField) {
           emailField.value = response.email;
+        }
+        if (response) {
+          updateAvatarState(response.avatar_choice, response.avatar_url, response.avatar_default_url);
         }
         flashIndicator(profileStatus);
         showMessage(profileMessage, wpData.strings?.profileSaved || 'Profile updated!', 'success');

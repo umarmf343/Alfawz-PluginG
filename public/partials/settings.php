@@ -3,11 +3,21 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
-$current_user     = wp_get_current_user();
-$display_name     = $current_user instanceof WP_User ? $current_user->display_name : '';
-$email_address    = $current_user instanceof WP_User ? $current_user->user_email : '';
-$memorizer_link   = esc_url( home_url( '/alfawz-memorizer/' ) );
-$password_link    = esc_url( wp_lostpassword_url() );
+$current_user       = wp_get_current_user();
+$display_name       = $current_user instanceof WP_User ? $current_user->display_name : '';
+$email_address      = $current_user instanceof WP_User ? $current_user->user_email : '';
+$avatar_choices     = [
+    'male'   => trailingslashit( ALFAWZQURAN_PLUGIN_URL ) . 'assets/images/alfawz-avatar-male.svg',
+    'female' => trailingslashit( ALFAWZQURAN_PLUGIN_URL ) . 'assets/images/alfawz-avatar-female.svg',
+];
+$selected_avatar    = get_user_meta( get_current_user_id(), 'alfawz_profile_avatar', true );
+if ( ! array_key_exists( $selected_avatar, $avatar_choices ) ) {
+    $selected_avatar = '';
+}
+$default_avatar_url = get_avatar_url( get_current_user_id() );
+$active_avatar_url  = $selected_avatar ? $avatar_choices[ $selected_avatar ] : $default_avatar_url;
+$memorizer_link     = esc_url( home_url( '/alfawz-memorizer/' ) );
+$password_link      = esc_url( wp_lostpassword_url() );
 ?>
 <section id="alfawz-settings" class="bg-stone-50 py-10 sm:py-14">
     <div class="mx-auto w-full max-w-4xl px-4 sm:px-6 lg:px-8">
@@ -52,6 +62,34 @@ $password_link    = esc_url( wp_lostpassword_url() );
                         <p id="alfawz-settings-email-help" class="mt-2 text-sm text-gray-500"><?php esc_html_e( 'Email cannot be changed. Contact your teacher for updates.', 'alfawzquran' ); ?></p>
                     </div>
 
+                    <div>
+                        <span class="block text-sm font-medium text-gray-700 mb-2"><?php esc_html_e( 'Profile Photo', 'alfawzquran' ); ?></span>
+                        <div class="flex items-center gap-4">
+                            <span class="inline-flex h-16 w-16 items-center justify-center overflow-hidden rounded-full border-2 border-emerald-100 bg-emerald-50 shadow-inner">
+                                <img
+                                    id="alfawz-settings-avatar-preview"
+                                    src="<?php echo esc_url( $active_avatar_url ); ?>"
+                                    alt="<?php esc_attr_e( 'Selected profile photo', 'alfawzquran' ); ?>"
+                                    class="h-full w-full object-cover"
+                                    data-default-avatar="<?php echo esc_url( $default_avatar_url ); ?>"
+                                />
+                            </span>
+                            <div class="space-y-2">
+                                <button
+                                    type="button"
+                                    id="alfawz-settings-avatar-trigger"
+                                    class="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
+                                >
+                                    <?php esc_html_e( 'Upload Photo', 'alfawzquran' ); ?>
+                                </button>
+                                <p class="text-sm text-gray-500">
+                                    <?php esc_html_e( 'Choose a Muslim silhouette that represents you.', 'alfawzquran' ); ?>
+                                </p>
+                            </div>
+                        </div>
+                        <input type="hidden" id="alfawz-settings-avatar-choice" name="avatar_choice" value="<?php echo esc_attr( $selected_avatar ); ?>" />
+                    </div>
+
                     <div class="flex flex-wrap items-center gap-3">
                         <button type="submit" id="alfawz-settings-profile-save" class="bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2 px-5 rounded-lg transition transform hover:scale-[1.02]">
                             <?php esc_html_e( 'Save Profile', 'alfawzquran' ); ?>
@@ -63,6 +101,72 @@ $password_link    = esc_url( wp_lostpassword_url() );
                     </div>
                     <p id="alfawz-profile-message" class="hidden text-base" aria-live="polite"></p>
                 </form>
+                <div
+                    id="alfawz-avatar-modal"
+                    class="fixed inset-0 z-[60] hidden items-center justify-center bg-slate-900/70 px-4 py-6"
+                    aria-hidden="true"
+                >
+                    <div class="absolute inset-0" data-action="close" aria-hidden="true"></div>
+                    <div
+                        class="relative z-10 w-full max-w-xl rounded-2xl bg-white p-6 shadow-2xl focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                        role="dialog"
+                        aria-modal="true"
+                        aria-labelledby="alfawz-avatar-modal-title"
+                        tabindex="-1"
+                        data-avatar-modal-panel
+                    >
+                        <div class="flex items-start justify-between gap-4">
+                            <div>
+                                <h3 id="alfawz-avatar-modal-title" class="text-xl font-semibold text-gray-800"><?php esc_html_e( 'Choose your profile photo', 'alfawzquran' ); ?></h3>
+                                <p class="mt-1 text-sm text-gray-600"><?php esc_html_e( 'Select a brother or sister silhouette to appear wherever your avatar is shown.', 'alfawzquran' ); ?></p>
+                            </div>
+                            <button
+                                type="button"
+                                class="rounded-full bg-gray-100 p-2 text-gray-500 transition hover:bg-gray-200 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                data-action="close"
+                                aria-label="<?php esc_attr_e( 'Close', 'alfawzquran' ); ?>"
+                            >
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="mt-6 grid gap-4 sm:grid-cols-2">
+                            <?php foreach ( $avatar_choices as $choice => $url ) : ?>
+                                <button
+                                    type="button"
+                                    class="group flex flex-col items-center gap-3 rounded-2xl border border-gray-200 bg-white p-4 text-center shadow-sm transition hover:border-emerald-400 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                    data-avatar-option="<?php echo esc_attr( $choice ); ?>"
+                                >
+                                    <span class="flex h-24 w-24 items-center justify-center overflow-hidden rounded-full border-4 border-emerald-100 bg-emerald-50 shadow-inner">
+                                        <img
+                                            src="<?php echo esc_url( $url ); ?>"
+                                            alt="<?php echo esc_attr( 'male' === $choice ? __( 'Brother silhouette', 'alfawzquran' ) : __( 'Sister silhouette', 'alfawzquran' ) ); ?>"
+                                            class="h-full w-full object-cover"
+                                        />
+                                    </span>
+                                    <span class="text-sm font-semibold text-gray-700 group-hover:text-emerald-700">
+                                        <?php echo 'male' === $choice ? esc_html__( 'Brother', 'alfawzquran' ) : esc_html__( 'Sister', 'alfawzquran' ); ?>
+                                    </span>
+                                </button>
+                            <?php endforeach; ?>
+                        </div>
+                        <div class="mt-6 flex items-center justify-end gap-3">
+                            <button
+                                type="button"
+                                class="rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                data-action="close"
+                            >
+                                <?php esc_html_e( 'Cancel', 'alfawzquran' ); ?>
+                            </button>
+                            <button
+                                type="button"
+                                id="alfawz-avatar-apply"
+                                class="rounded-lg bg-emerald-600 px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 disabled:cursor-not-allowed disabled:opacity-60"
+                            >
+                                <?php esc_html_e( 'Save Photo', 'alfawzquran' ); ?>
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </section>
 
             <section class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm" aria-labelledby="alfawz-settings-plan-heading" data-plan-url="<?php echo $memorizer_link; ?>">

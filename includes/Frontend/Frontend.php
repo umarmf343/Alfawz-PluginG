@@ -104,6 +104,11 @@ class Frontend {
                 }
             }
 
+            $avatar_choices = [
+                'male'   => trailingslashit(ALFAWZQURAN_PLUGIN_URL) . 'assets/images/alfawz-avatar-male.svg',
+                'female' => trailingslashit(ALFAWZQURAN_PLUGIN_URL) . 'assets/images/alfawz-avatar-female.svg',
+            ];
+
             wp_localize_script('alfawz-frontend', 'alfawzData', [
                 'apiUrl' => rest_url('alfawzquran/v1/'),
                 'nonce' => $rest_nonce,
@@ -119,6 +124,8 @@ class Frontend {
                 'defaultTranslation' => get_option('alfawz_default_translation', 'en.sahih'),
                 'defaultTransliteration' => get_option('alfawz_default_transliteration', 'en.transliteration'),
                 'enableLeaderboard' => (bool) get_option('alfawz_enable_leaderboard', 1),
+                'avatarChoices' => $avatar_choices,
+                'defaultAvatarUrl' => get_avatar_url($current_user_id),
                 'userPreferences' => $this->get_user_preferences_for_script(),
                 'strings' => [
                     'settingsSaved' => __('Preferences updated!', 'alfawzquran'),

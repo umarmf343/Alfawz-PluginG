@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" role="img" aria-labelledby="title desc">
+  <title id="title">Brother profile silhouette</title>
+  <desc id="desc">Stylised silhouette of a Muslim brother wearing a kufi cap.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0%" x2="100%" y1="0%" y2="100%">
+      <stop offset="0%" stop-color="#fef3c7" />
+      <stop offset="100%" stop-color="#fde68a" />
+    </linearGradient>
+    <linearGradient id="robe" x1="0%" x2="0%" y1="0%" y2="100%">
+      <stop offset="0%" stop-color="#43302b" />
+      <stop offset="100%" stop-color="#261a17" />
+    </linearGradient>
+  </defs>
+  <rect width="160" height="160" rx="80" fill="url(#bg)" />
+  <g fill="none" stroke="#2f1f1c" stroke-linecap="round" stroke-linejoin="round" stroke-width="6">
+    <path d="M51 118c14-11 44-11 58 0" fill="#1f2937" stroke="none" />
+    <path d="M52 118c11-14 43-14 56 0" />
+  </g>
+  <g fill-rule="evenodd">
+    <path fill="#1f2937" d="M54 111c0-18 11-33 26-33s26 15 26 33v6c-8 6-18 9-26 9s-18-3-26-9z" />
+    <path fill="#ede9fe" d="M58 51c0-15 12-27 27-27s27 12 27 27-12 27-27 27-27-12-27-27z" />
+    <path fill="#f9fafb" d="M60 62c9 6 17 9 25 9s16-3 25-9l2 6c0 15-12 27-27 27s-27-12-27-27z" />
+    <path fill="#1f2937" d="M60 55c4-10 11-17 22-17 11 0 18 7 22 17-7 6-15 9-22 9-7 0-15-3-22-9z" />
+    <path fill="#43302b" d="M82 96c-3 0-5 1-7 3l-8 9c8 4 15 6 21 6s13-2 21-6l-8-9c-2-2-4-3-7-3z" />
+  </g>
+  <circle cx="80" cy="57" r="52" fill="none" stroke="#f59e0b" stroke-width="4" stroke-dasharray="10 14" opacity="0.25" />
+</svg>

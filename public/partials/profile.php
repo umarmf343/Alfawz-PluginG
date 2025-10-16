@@ -3,11 +3,24 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
-$current_user   = wp_get_current_user();
-$display_name   = $current_user ? $current_user->display_name : __( 'Beloved Student', 'alfawzquran' );
-$avatar_default = get_avatar( get_current_user_id(), 96, '', esc_attr__( 'Profile photo', 'alfawzquran' ), [
-    'class' => 'h-full w-full object-cover',
-] );
+$current_user     = wp_get_current_user();
+$display_name     = $current_user ? $current_user->display_name : __( 'Beloved Student', 'alfawzquran' );
+$avatar_choices   = [
+    'male'   => trailingslashit( ALFAWZQURAN_PLUGIN_URL ) . 'assets/images/alfawz-avatar-male.svg',
+    'female' => trailingslashit( ALFAWZQURAN_PLUGIN_URL ) . 'assets/images/alfawz-avatar-female.svg',
+];
+$selected_avatar  = get_user_meta( get_current_user_id(), 'alfawz_profile_avatar', true );
+if ( ! array_key_exists( $selected_avatar, $avatar_choices ) ) {
+    $selected_avatar = '';
+}
+$default_avatar_url = get_avatar_url( get_current_user_id() );
+$active_avatar_url  = $selected_avatar ? $avatar_choices[ $selected_avatar ] : $default_avatar_url;
+$avatar_default     = sprintf(
+    '<img id="alfawz-profile-avatar-image" data-profile-avatar="image" data-avatar-choice="%s" src="%s" alt="%s" class="avatar avatar-96 h-full w-full object-cover" />',
+    esc_attr( $selected_avatar ),
+    esc_url( $active_avatar_url ),
+    esc_attr__( 'Profile photo', 'alfawzquran' )
+);
 ?>
 <div id="alfawz-profile" class="alfawz-profile-shell relative mx-auto max-w-5xl space-y-12 px-4 py-10 text-slate-900 sm:px-8 lg:px-0">
     <div class="pointer-events-none absolute inset-x-6 -top-8 bottom-0 -z-10 rounded-[3rem] bg-gradient-to-br from-[#f8efe5]/70 via-[#fff4e6]/95 to-white/40 blur-3xl"></div>

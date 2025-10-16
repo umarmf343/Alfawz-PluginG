@@ -15,17 +15,21 @@ use WP_REST_Response;
 use function __;
 use function absint;
 use function apply_filters;
+use function delete_user_meta;
+use function esc_url_raw;
+use function get_avatar_url;
+use function get_option;
+use function get_user_meta;
 use function number_format_i18n;
 use function rest_ensure_response;
 use function sanitize_key;
 use function sanitize_text_field;
 use function sanitize_textarea_field;
-use function get_option;
-use function get_user_meta;
-use function wp_strip_all_tags;
-use function wp_json_encode;
-use function wp_trim_words;
+use function trailingslashit;
 use function update_user_meta;
+use function wp_json_encode;
+use function wp_strip_all_tags;
+use function wp_trim_words;
 
 /**
  * Register REST API routes for the plugin.
@@ -104,6 +108,44 @@ class Routes {
 
         add_action( 'rest_api_init', [ $this, 'register_routes' ] );
         add_action( 'alfawz_quran_daily_cron', [ $this, 'calculate_daily_streaks' ] );
+    }
+
+    /**
+     * Return the available built-in avatar silhouettes.
+     *
+     * @return array<string, string>
+     */
+    private function get_profile_avatar_choices() {
+        $base = trailingslashit( ALFAWZQURAN_PLUGIN_URL ) . 'assets/images/';
+
+        return [
+            'male'   => $base . 'alfawz-avatar-male.svg',
+            'female' => $base . 'alfawz-avatar-female.svg',
+        ];
+    }
+
+    /**
+     * Prepare avatar data for API responses.
+     *
+     * @param int $user_id User identifier.
+     * @return array{choice: string, url: string, default_url: string}
+     */
+    private function prepare_profile_avatar_response( $user_id ) {
+        $default_url = get_avatar_url( $user_id );
+        $selected    = sanitize_key( (string) get_user_meta( $user_id, 'alfawz_profile_avatar', true ) );
+        $choices     = $this->get_profile_avatar_choices();
+
+        if ( ! array_key_exists( $selected, $choices ) ) {
+            $selected = '';
+        }
+
+        $avatar_url = $selected ? $choices[ $selected ] : $default_url;
+
+        return [
+            'choice'      => $selected,
+            'url'         => esc_url_raw( $avatar_url ),
+            'default_url' => esc_url_raw( $default_url ),
+        ];
     }
 
     /**
@@ -1301,9 +1343,12 @@ class Routes {
         $stats = $progress_model->get_user_stats( $user_id );
 
         // Add user display name and avatar
-        $user_data = get_userdata( $user_id );
+        $user_data   = get_userdata( $user_id );
+        $avatar_data = $this->prepare_profile_avatar_response( $user_id );
+
         $stats['display_name'] = $user_data ? $user_data->display_name : 'Guest';
-        $stats['avatar_url'] = get_avatar_url( $user_id );
+        $stats['avatar_url']   = $avatar_data['url'];
+        $stats['avatar_choice'] = $avatar_data['choice'];
         $stats['member_since'] = $user_data ? date( 'M Y', strtotime( $user_data->user_registered ) ) : 'N/A';
         $stats['daily_goal'] = $this->prepare_daily_goal_state( $user_id, $timezone_offset );
 
@@ -1467,12 +1512,17 @@ class Routes {
             );
         }
 
+        $avatar_data = $this->prepare_profile_avatar_response( $user_id );
+
         return new WP_REST_Response(
             [
                 'display_name' => $user->display_name,
                 'first_name'   => $user->first_name,
                 'last_name'    => $user->last_name,
                 'email'        => $user->user_email,
+                'avatar_choice'       => $avatar_data['choice'],
+                'avatar_url'          => $avatar_data['url'],
+                'avatar_default_url'  => $avatar_data['default_url'],
             ],
             200
         );
@@ -1538,6 +1588,17 @@ class Routes {
         }
 
         update_user_meta( $user_id, 'nickname', $full_name );
+
+        if ( array_key_exists( 'avatar_choice', $params ) ) {
+            $avatar_choice = sanitize_key( (string) $params['avatar_choice'] );
+            $choices       = $this->get_profile_avatar_choices();
+
+            if ( '' === $avatar_choice ) {
+                delete_user_meta( $user_id, 'alfawz_profile_avatar' );
+            } elseif ( array_key_exists( $avatar_choice, $choices ) ) {
+                update_user_meta( $user_id, 'alfawz_profile_avatar', $avatar_choice );
+            }
+        }
 
         return $this->get_user_profile( $request );
     }
