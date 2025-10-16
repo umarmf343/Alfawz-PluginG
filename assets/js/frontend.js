@@ -3440,39 +3440,46 @@
         const verses = Number(entry?.verses_read || 0);
         const percent = percentOfLeader(verses, leaderVerses || verses);
         const card = document.createElement('article');
-        card.className = 'alfawz-leaderboard-podium-card';
+        card.className = 'alfawz-leaderboard-podium-card group';
         card.dataset.rank = String(rank);
         card.setAttribute('data-animate', 'rise');
         card.style.animationDelay = `${index * 90}ms`;
         card.innerHTML = `
           <div class="alfawz-leaderboard-medal" aria-hidden="true">${medals[index] || '🏅'}</div>
-          <div class="space-y-6">
-            <div class="flex items-center gap-4">
-              <div class="relative h-14 w-14 overflow-hidden rounded-full bg-white/80 shadow-lg">
-                <span class="absolute inset-0 flex items-center justify-center text-lg font-semibold text-[#741f31]">${initialsFor(entry?.display_name)}</span>
+          <div class="flex flex-col gap-6">
+            <header class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div class="flex items-center gap-4">
+                <div class="relative h-16 w-16 overflow-hidden rounded-full bg-white/80 shadow-xl shadow-[#741f31]/10">
+                  <span class="absolute inset-0 flex items-center justify-center text-xl font-semibold text-[#741f31]">${initialsFor(entry?.display_name)}</span>
+                  <span class="absolute inset-0 rounded-full border border-white/70"></span>
+                </div>
+                <div class="space-y-1">
+                  <h3 class="text-2xl font-semibold text-[#2f0811]">${entry?.display_name || '—'}</h3>
+                  <p class="text-sm text-[#741f31]/70">${differenceLabel(rank, verses, leaderVerses)}</p>
+                </div>
               </div>
-              <div class="space-y-1">
-                <p class="text-xs font-semibold uppercase tracking-[0.3em] text-[#741f31]/70">${podiumLabel(rank)}</p>
-                <h3 class="text-xl font-semibold text-[#2f0811]">${entry?.display_name || '—'}</h3>
-                <p class="text-sm text-[#741f31]/70">${differenceLabel(rank, verses, leaderVerses)}</p>
+              <span class="inline-flex items-center justify-center rounded-full bg-white/60 px-4 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.35em] text-[#741f31]/80 shadow-sm shadow-white/40 backdrop-blur-sm">${podiumLabel(rank)}</span>
+            </header>
+            <dl class="grid gap-3 text-sm text-[#4b0d18]/80 sm:grid-cols-2">
+              <div class="rounded-2xl border border-white/40 bg-white/60 p-4 shadow-inner shadow-white/40 backdrop-blur">
+                <dt class="text-[0.7rem] font-semibold uppercase tracking-[0.35em] text-[#741f31]/60">Verses</dt>
+                <dd class="mt-2 text-2xl font-bold text-[#2f0811]">${formatNumber(verses)}</dd>
               </div>
-            </div>
-            <dl class="grid grid-cols-2 gap-4 text-sm text-[#4b0d18]/80">
-              <div>
-                <dt class="text-xs font-semibold uppercase tracking-[0.3em] text-[#741f31]/60">Verses</dt>
-                <dd class="text-lg font-semibold text-[#2f0811]">${formatNumber(verses)}</dd>
-              </div>
-              <div>
-                <dt class="text-xs font-semibold uppercase tracking-[0.3em] text-[#741f31]/60">Hasanat</dt>
-                <dd class="text-lg font-semibold text-[#a83254]">${formatNumber(entry?.total_hasanat || 0)}</dd>
+              <div class="rounded-2xl border border-white/40 bg-white/50 p-4 shadow-inner shadow-white/30 backdrop-blur">
+                <dt class="text-[0.7rem] font-semibold uppercase tracking-[0.35em] text-[#741f31]/60">Hasanat</dt>
+                <dd class="mt-2 text-2xl font-bold text-[#a83254]">${formatNumber(entry?.total_hasanat || 0)}</dd>
               </div>
             </dl>
-            <div class="mt-4 space-y-2">
+            <footer class="flex flex-col gap-3">
+              <div class="flex items-center justify-between text-xs font-semibold uppercase tracking-[0.3em] text-[#a83254]/70">
+                <span>Progress</span>
+                <span>${percent}%</span>
+              </div>
               <div class="alfawz-leaderboard-progress" style="--alfawz-progress:${percent}%">
                 <span class="sr-only">${percent}% of leader</span>
               </div>
               <p class="text-xs font-medium uppercase tracking-[0.3em] text-[#a83254]/70">${percent}% of leader</p>
-            </div>
+            </footer>
           </div>
         `;
         podium.appendChild(card);
