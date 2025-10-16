@@ -1828,6 +1828,43 @@
   isolation: isolate;
 }
 
+.alfawz-dashboard-page {
+  --alfawz-dashboard-page-padding: clamp(3rem, 6vw, 5rem);
+  position: relative;
+  left: 50%;
+  right: 50%;
+  width: 100vw;
+  margin-left: -50vw;
+  margin-right: -50vw;
+  min-height: 100vh;
+  padding: var(--alfawz-dashboard-page-padding) 0;
+  background:
+    radial-gradient(65% 65% at 20% 15%, rgba(96, 165, 250, 0.12), transparent 70%),
+    radial-gradient(55% 55% at 80% 15%, rgba(148, 197, 255, 0.08), transparent 65%),
+    linear-gradient(160deg, #020617 0%, #0f172a 45%, #1e293b 100%);
+  display: flex;
+  justify-content: center;
+  align-items: stretch;
+  overflow: hidden;
+}
+
+.alfawz-dashboard-page::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(80% 60% at 50% 110%, rgba(15, 118, 110, 0.15), transparent 70%);
+  pointer-events: none;
+  mix-blend-mode: screen;
+}
+
+.alfawz-dashboard-page .alfawz-dashboard-shell {
+  width: min(72rem, calc(100vw - var(--alfawz-dashboard-page-padding) * 2));
+  max-width: none;
+  margin: 0;
+  border-radius: clamp(1.75rem, 3vw, 3rem);
+  min-height: calc(100vh - var(--alfawz-dashboard-page-padding) * 2);
+}
+
 .alfawz-dashboard-shell::before {
   content: '';
   position: absolute;
