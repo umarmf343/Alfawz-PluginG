@@ -20,6 +20,7 @@
   const state = {
     surahs: null,
     verseCache: new Map(),
+    versePromises: new Map(),
     surahCache: new Map(),
     surahPromises: new Map(),
     audioCache: new Map(),
@@ -395,19 +396,60 @@
     if (state.verseCache.has(cacheKey)) {
       return state.verseCache.get(cacheKey);
     }
+    if (state.versePromises.has(cacheKey)) {
+      return state.versePromises.get(cacheKey);
+    }
 
     const query = buildApiQuery({
       translation: TRANSLATION_EDITION,
       transliteration: TRANSLITERATION_EDITION,
     });
 
-    const payload = await apiRequest(`surahs/${surahId}/verses/${verseId}${query}`);
-    const verse = normaliseApiVerse(payload, surahId, verseId);
-    if (!verse) {
-      throw new Error('Invalid verse response');
+    const request = (async () => {
+      const payload = await apiRequest(`surahs/${surahId}/verses/${verseId}${query}`);
+      const verse = normaliseApiVerse(payload, surahId, verseId);
+      if (!verse) {
+        throw new Error('Invalid verse response');
+      }
+      storeVerseInCache(verse);
+      return verse;
+    })()
+      .catch((error) => {
+        state.versePromises.delete(cacheKey);
+        throw error;
+      })
+      .finally(() => {
+        state.versePromises.delete(cacheKey);
+      });
+
+    state.versePromises.set(cacheKey, request);
+    return request;
+  };
+
+  const primeVerse = (surahId, verseId, { immediate = false } = {}) => {
+    const safeSurah = Number(surahId || 0);
+    const safeVerse = Number(verseId || 0);
+    if (!safeSurah || !safeVerse) {
+      return;
     }
-    storeVerseInCache(verse);
-    return verse;
+    const cacheKey = verseCacheKey(safeSurah, safeVerse);
+    if (state.verseCache.has(cacheKey) || state.versePromises.has(cacheKey)) {
+      return;
+    }
+
+    const task = () => {
+      loadVerse(safeSurah, safeVerse).catch(() => {});
+    };
+
+    if (immediate) {
+      task();
+      return;
+    }
+
+    const schedule = typeof window.requestIdleCallback === 'function'
+      ? window.requestIdleCallback
+      : (fn) => window.setTimeout(fn, 120);
+    schedule(() => task());
   };
 
   const loadSurahVerses = async (surahId) => {
@@ -678,6 +720,17 @@
     }
   };
 
+  const dispatchEggState = (state) => {
+    if (!state) {
+      return;
+    }
+    try {
+      document.dispatchEvent(new CustomEvent('alfawz:egg-updated', { detail: state }));
+    } catch (error) {
+      console.warn('[AlfawzQuran] Unable to dispatch egg state', error);
+    }
+  };
+
   const awardHasanat = async ({
     surahId,
     verseId,
@@ -692,6 +745,7 @@
     const parsedHasanat = Number(hasanat || 0);
     const safeSurah = Number(surahId || 0);
     const safeVerse = Number(verseId || 0);
+    const safeProgressType = progressType === 'memorized' ? 'memorized' : 'read';
     if (parsedHasanat <= 0 || safeSurah <= 0 || safeVerse <= 0) {
       return null;
     }
@@ -702,7 +756,7 @@
           surah_id: safeSurah,
           verse_id: safeVerse,
           hasanat: parsedHasanat,
-          progress_type: progressType,
+          progress_type: safeProgressType,
           repetition_count: repetitionCount,
         },
       });
@@ -723,9 +777,20 @@
         amount: awarded,
         surahId: safeSurah,
         verseId: safeVerse,
-        progressType,
+        progressType: safeProgressType,
         alreadyCounted: !(awarded > 0),
       });
+
+      if (safeProgressType === 'read') {
+        Promise.resolve().then(async () => {
+          try {
+            const eggState = await apiRequest('egg-challenge');
+            dispatchEggState(eggState);
+          } catch (eggError) {
+            console.warn('[AlfawzQuran] Unable to refresh egg state', eggError);
+          }
+        });
+      }
 
       return response;
     } catch (error) {
@@ -1457,6 +1522,10 @@
       if (surahList) {
         surahList.classList.toggle('hidden', !showFullSurah);
         surahList.classList.toggle('is-expanded', showFullSurah);
+        surahList.setAttribute('aria-hidden', showFullSurah ? 'false' : 'true');
+        if (!showFullSurah && surahListBody) {
+          surahListBody.innerHTML = '';
+        }
       }
       if (surahToggle) {
         surahToggle.checked = showFullSurah;
@@ -1634,15 +1703,13 @@
           const match = versesSource.find((entry) => Number(entry.verseId) === Number(id));
           if (match) {
             storeVerseInCache(match);
+            if (match?.surahId && match?.verseId) {
+              primeVerse(match.surahId, match.verseId, { immediate: true });
+            }
             return;
           }
         }
-        const schedule = typeof window.requestIdleCallback === 'function'
-          ? window.requestIdleCallback
-          : (fn) => window.setTimeout(fn, 150);
-        schedule(() => {
-          loadVerse(surahId, id).catch(() => {});
-        });
+        primeVerse(surahId, id, { immediate: true });
       });
     };
 
@@ -1809,6 +1876,12 @@
           verseSelect.value = String(verseId);
         }
         const totalVerses = verse.totalVerses || Number(surah.numberOfAyahs || surah.ayahs || 0);
+        if (verseId > 1) {
+          primeVerse(surahId, verseId - 1, { immediate: true });
+        }
+        if (totalVerses && verseId < totalVerses) {
+          primeVerse(surahId, verseId + 1, { immediate: true });
+        }
         safeSetText(heading, verse.surahName || `Surah ${surah.englishName || surah.englishNameTranslation || surah.name || surahId}`);
         const metaParts = [];
         if (totalVerses) {
@@ -1882,6 +1955,7 @@
         }
         if (response?.egg) {
           updateEggWidget(response.egg);
+          dispatchEggState(response.egg);
         }
       } catch (error) {
         console.warn('[AlfawzQuran] unable to update progress state', error);
@@ -2061,6 +2135,11 @@
         closeDailyModal();
       }
     });
+    document.addEventListener('alfawz:egg-updated', (event) => {
+      if (event?.detail) {
+        updateEggWidget(event.detail);
+      }
+    });
   };
 
 
@@ -2225,6 +2304,15 @@
       }
       try {
         const verse = await loadVerse(currentSurahId, currentVerseId);
+        const totalVerses = Number(
+          verse.totalVerses || surah.numberOfAyahs || surah.ayahs || surah.totalVerses || 0
+        );
+        if (currentVerseId > 1) {
+          primeVerse(currentSurahId, currentVerseId - 1, { immediate: true });
+        }
+        if (totalVerses && currentVerseId < totalVerses) {
+          primeVerse(currentSurahId, currentVerseId + 1, { immediate: true });
+        }
         setText(heading, `Surah ${surah.englishName} · Ayah ${currentVerseId}`);
         setText(arabicEl, verse.arabic);
         setText(translationEl, verse.translation);
