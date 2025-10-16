@@ -4351,9 +4351,15 @@ class Routes {
 
         list( $surah_id, $verse_id ) = $parsed;
 
-        $expected = $this->fetch_expected_verse_bundle( $surah_id, $verse_id );
+        $expected        = $this->fetch_expected_verse_bundle( $surah_id, $verse_id );
+        $fallback_reason = null;
+
         if ( is_wp_error( $expected ) ) {
-            return $expected;
+            $fallback_reason = $expected->get_error_message();
+            $expected        = $this->build_fallback_expected_bundle( $transcript );
+        } elseif ( ! $this->expected_bundle_has_content( $expected ) ) {
+            $fallback_reason = __( 'The verse text was unavailable from the Quran API.', 'alfawzquran' );
+            $expected        = $this->build_fallback_expected_bundle( $transcript );
         }
 
         $analysis = $this->build_recitation_analysis( $transcript, $expected );
@@ -4380,6 +4386,19 @@ class Routes {
 
         if ( null !== $duration && '' !== $duration ) {
             $payload['duration'] = max( 0, (float) $duration );
+        }
+
+        if ( isset( $expected['fallback'] ) && $expected['fallback'] ) {
+            $notice = [
+                'code'    => 'alfawz_recitation_expected_fallback',
+                'message' => __( 'We could not fetch the reference verse. Feedback is based on your recitation alone.', 'alfawzquran' ),
+            ];
+
+            if ( $fallback_reason ) {
+                $notice['details'] = $fallback_reason;
+            }
+
+            $payload['notices'] = [ $notice ];
         }
 
         if ( $this->recitation_feedback ) {
@@ -4673,6 +4692,33 @@ class Routes {
         $this->recitation_snippet_cache = apply_filters( 'alfawz_recitation_snippets_library', $defaults );
 
         return $this->recitation_snippet_cache;
+    }
+
+    /**
+     * Determine whether the fetched verse bundle contains usable content.
+     */
+    private function expected_bundle_has_content( array $bundle ) {
+        $fields = [ 'arabic', 'transliteration', 'translation' ];
+
+        foreach ( $fields as $field ) {
+            if ( ! empty( $bundle[ $field ] ) && is_string( $bundle[ $field ] ) ) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Build a minimal expected verse bundle when the Quran API is unreachable.
+     */
+    private function build_fallback_expected_bundle( $transcript ) {
+        return [
+            'arabic'          => '',
+            'transliteration' => $this->normalize_transcript( $transcript ),
+            'translation'     => '',
+            'fallback'        => true,
+        ];
     }
 
     /**
