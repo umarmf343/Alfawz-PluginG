@@ -63,6 +63,59 @@ if ( ! defined( 'ABSPATH' ) ) {
                 </div>
             </section>
 
+            <section
+                id="alfawz-reflection-widget"
+                class="alfawz-reflection-widget"
+                aria-labelledby="alfawz-reflection-heading"
+                aria-live="polite"
+            >
+                <div class="alfawz-reflection-head">
+                    <div>
+                        <h4 id="alfawz-reflection-heading" class="alfawz-reflection-title">
+                            <?php esc_html_e( 'Reflection journal', 'alfawzquran' ); ?>
+                        </h4>
+                        <p id="alfawz-reflection-context" class="alfawz-reflection-context">
+                            <?php esc_html_e( 'Select a verse to share how it resonated with you.', 'alfawzquran' ); ?>
+                        </p>
+                    </div>
+                    <div class="alfawz-reflection-moods" role="radiogroup" aria-label="<?php esc_attr_e( 'Select a reflection mood', 'alfawzquran' ); ?>">
+                        <button type="button" class="alfawz-reflection-mood" data-mood="grateful" aria-pressed="false">😊</button>
+                        <button type="button" class="alfawz-reflection-mood" data-mood="focused" aria-pressed="false">🎯</button>
+                        <button type="button" class="alfawz-reflection-mood" data-mood="hopeful" aria-pressed="false">🌱</button>
+                        <button type="button" class="alfawz-reflection-mood" data-mood="reflective" aria-pressed="false">🪞</button>
+                        <button type="button" class="alfawz-reflection-mood" data-mood="striving" aria-pressed="false">🔥</button>
+                    </div>
+                </div>
+                <div class="alfawz-reflection-body">
+                    <label class="alfawz-reflection-label" for="alfawz-reflection-input">
+                        <?php esc_html_e( 'Your reflection', 'alfawzquran' ); ?>
+                    </label>
+                    <textarea
+                        id="alfawz-reflection-input"
+                        class="alfawz-reflection-input"
+                        rows="3"
+                        maxlength="500"
+                        placeholder="<?php echo esc_attr__( 'Capture a brief note or dua inspired by this ayah…', 'alfawzquran' ); ?>"
+                    ></textarea>
+                    <p class="alfawz-reflection-status" id="alfawz-reflection-status" role="status" aria-live="polite"></p>
+                    <div class="alfawz-reflection-actions">
+                        <button type="button" class="alfawz-button" id="alfawz-reflection-save">
+                            <?php esc_html_e( 'Save reflection', 'alfawzquran' ); ?>
+                        </button>
+                        <button type="button" class="alfawz-reflection-clear" id="alfawz-reflection-clear">
+                            <?php esc_html_e( 'Clear', 'alfawzquran' ); ?>
+                        </button>
+                    </div>
+                </div>
+                <div class="alfawz-reflection-history">
+                    <h5 class="alfawz-reflection-history-title"><?php esc_html_e( 'Recent reflections', 'alfawzquran' ); ?></h5>
+                    <ul id="alfawz-reflection-list" class="alfawz-reflection-list" aria-live="polite"></ul>
+                    <p id="alfawz-reflection-empty-state" class="alfawz-reflection-empty">
+                        <?php esc_html_e( 'Your reflections for this ayah will appear here.', 'alfawzquran' ); ?>
+                    </p>
+                </div>
+            </section>
+
             <div id="alfawz-surah-full-view" class="alfawz-surah-list hidden" aria-live="polite" aria-labelledby="alfawz-surah-full-heading">
                 <div class="alfawz-surah-list__intro">
                     <h4 id="alfawz-surah-full-heading"><?php esc_html_e( 'All verses in this surah', 'alfawzquran' ); ?></h4>

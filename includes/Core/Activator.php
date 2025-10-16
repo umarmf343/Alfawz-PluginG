@@ -84,11 +84,28 @@ class Activator {
             UNIQUE KEY plan_verse_user (plan_id, surah_id, verse_id, user_id)
         ) $charset_collate;";
 
+        // Table for user reflections inspired by Quranly journalling
+        $table_name_reflections = $wpdb->prefix . 'alfawz_quran_reflections';
+        $sql_reflections = "CREATE TABLE $table_name_reflections (
+            id bigint(20) NOT NULL AUTO_INCREMENT,
+            user_id bigint(20) NOT NULL,
+            surah_id int(11) NOT NULL,
+            verse_id int(11) NOT NULL,
+            mood varchar(32) DEFAULT '' NOT NULL,
+            reflection text NOT NULL,
+            created_at datetime DEFAULT CURRENT_TIMESTAMP NOT NULL,
+            updated_at datetime DEFAULT CURRENT_TIMESTAMP NOT NULL,
+            PRIMARY KEY  (id),
+            KEY user_id (user_id),
+            KEY verse_lookup (user_id, surah_id, verse_id)
+        ) $charset_collate;";
+
         require_once ABSPATH . 'wp-admin/includes/upgrade.php';
         dbDelta( $sql_progress );
         dbDelta( $sql_bookmarks );
         dbDelta( $sql_plans );
         dbDelta( $sql_plan_progress );
+        dbDelta( $sql_reflections );
 
         // Set default options
         add_option( 'alfawz_hasanat_per_letter', 10 );

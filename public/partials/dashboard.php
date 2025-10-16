@@ -200,4 +200,64 @@ if ( ! defined( 'ABSPATH' ) ) {
             <p class="alfawz-dashboard-progress-note" id="alfawz-daily-progress-note"></p>
         </div>
     </section>
+
+    <section class="alfawz-dashboard-columns" aria-labelledby="alfawz-insights" data-animate data-animate-delay="720">
+        <h3 id="alfawz-insights" class="screen-reader-text"><?php esc_html_e( 'Personalised insights', 'alfawzquran' ); ?></h3>
+        <article class="alfawz-dashboard-panel" id="alfawz-smart-goal-card">
+            <div class="alfawz-dashboard-section-header">
+                <h3><?php esc_html_e( 'Smart goal coach', 'alfawzquran' ); ?></h3>
+                <span class="alfawz-dashboard-pill" id="alfawz-smart-goal-trend"></span>
+            </div>
+            <p class="alfawz-dashboard-panel-body text-sm text-rose-100" id="alfawz-smart-goal-message">
+                <?php esc_html_e( 'Your dynamic intention adapts with every session—keep your heart steady on the Qur’an.', 'alfawzquran' ); ?>
+            </p>
+            <dl class="alfawz-dashboard-metric-grid" aria-live="polite">
+                <div class="alfawz-dashboard-metric">
+                    <dt class="alfawz-dashboard-metric-label"><?php esc_html_e( 'Today', 'alfawzquran' ); ?></dt>
+                    <dd class="alfawz-dashboard-metric-value" id="alfawz-smart-goal-today">0</dd>
+                    <p class="alfawz-dashboard-metric-hint" id="alfawz-smart-goal-today-hint"></p>
+                </div>
+                <div class="alfawz-dashboard-metric">
+                    <dt class="alfawz-dashboard-metric-label"><?php esc_html_e( 'Suggested target', 'alfawzquran' ); ?></dt>
+                    <dd class="alfawz-dashboard-metric-value" id="alfawz-smart-goal-target">0</dd>
+                    <p class="alfawz-dashboard-metric-hint" id="alfawz-smart-goal-target-hint"></p>
+                </div>
+                <div class="alfawz-dashboard-metric">
+                    <dt class="alfawz-dashboard-metric-label"><?php esc_html_e( 'Recent average', 'alfawzquran' ); ?></dt>
+                    <dd class="alfawz-dashboard-metric-value" id="alfawz-smart-goal-average">0</dd>
+                    <p class="alfawz-dashboard-metric-hint" id="alfawz-smart-goal-average-hint"></p>
+                </div>
+                <div class="alfawz-dashboard-metric">
+                    <dt class="alfawz-dashboard-metric-label"><?php esc_html_e( 'Goal streak', 'alfawzquran' ); ?></dt>
+                    <dd class="alfawz-dashboard-metric-value" id="alfawz-smart-goal-streak">0</dd>
+                    <p class="alfawz-dashboard-metric-hint" id="alfawz-smart-goal-streak-hint"></p>
+                </div>
+            </dl>
+            <p class="alfawz-dashboard-panel-note" id="alfawz-smart-goal-note"></p>
+            <div class="alfawz-dashboard-consistency" aria-live="polite">
+                <div class="alfawz-dashboard-consistency-header">
+                    <span class="alfawz-dashboard-consistency-score" id="alfawz-consistency-score">0</span>
+                    <span class="alfawz-dashboard-consistency-label"><?php esc_html_e( 'Consistency score', 'alfawzquran' ); ?></span>
+                </div>
+                <p class="alfawz-dashboard-consistency-message" id="alfawz-consistency-message"></p>
+                <div class="alfawz-dashboard-heatmap" id="alfawz-consistency-heatmap" role="list"></div>
+            </div>
+        </article>
+        <article class="alfawz-dashboard-panel" id="alfawz-reflection-card">
+            <div class="alfawz-dashboard-section-header">
+                <h3><?php esc_html_e( 'Reflection journal', 'alfawzquran' ); ?></h3>
+                <a href="<?php echo esc_url( apply_filters( 'alfawz_mobile_nav_url', '', 'reader' ) ); ?>" class="alfawz-dashboard-link">
+                    <?php esc_html_e( 'Open reader', 'alfawzquran' ); ?>
+                </a>
+            </div>
+            <p class="alfawz-dashboard-panel-body text-sm text-rose-100" id="alfawz-reflection-card-copy">
+                <?php esc_html_e( 'Capture how an ayah touched your heart and revisit your Quranly-inspired reflections.', 'alfawzquran' ); ?>
+            </p>
+            <ul id="alfawz-reflection-preview" class="alfawz-dashboard-reflection-list" aria-live="polite">
+                <li class="alfawz-dashboard-reflection-empty" id="alfawz-reflection-empty">
+                    <?php esc_html_e( 'No reflections yet. Share one from today’s recitation.', 'alfawzquran' ); ?>
+                </li>
+            </ul>
+        </article>
+    </section>
 </div>

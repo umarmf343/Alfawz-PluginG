@@ -25,6 +25,7 @@
     surahPromises: new Map(),
     audioCache: new Map(),
     dashboardStats: null,
+    dashboardInsights: null,
     hasanatTotal: 0,
     hasanatBadge: null,
     hasanatBadgeCount: null,
@@ -34,6 +35,11 @@
 
   const qs = (selector, scope = document) => scope.querySelector(selector);
   const formatNumber = (value) => new Intl.NumberFormat().format(Number(value || 0));
+  const formatDecimal = (value, digits = 1) =>
+    new Intl.NumberFormat(undefined, {
+      minimumFractionDigits: digits,
+      maximumFractionDigits: digits,
+    }).format(Number(value || 0));
   const formatPercent = (value) => `${Math.min(100, Math.max(0, Number(value || 0))).toFixed(0)}%`;
   const timezoneOffset = () => -new Date().getTimezoneOffset();
 
@@ -828,7 +834,6 @@
 
   const buildVerseKey = (surahId, verseId) => `${surahId}:${verseId}`;
 
-
   const initDashboard = async () => {
     const root = qs('#alfawz-dashboard');
     if (!root || !wpData.isLoggedIn) {
@@ -838,12 +843,165 @@
     setDashboardAnimationDelays(root);
     bindDashboardParallax(root);
 
+    const smartGoalCard = qs('#alfawz-smart-goal-card', root);
+    const smartGoalMessage = qs('#alfawz-smart-goal-message', root);
+    const smartGoalToday = qs('#alfawz-smart-goal-today', root);
+    const smartGoalTodayHint = qs('#alfawz-smart-goal-today-hint', root);
+    const smartGoalTarget = qs('#alfawz-smart-goal-target', root);
+    const smartGoalTargetHint = qs('#alfawz-smart-goal-target-hint', root);
+    const smartGoalAverage = qs('#alfawz-smart-goal-average', root);
+    const smartGoalAverageHint = qs('#alfawz-smart-goal-average-hint', root);
+    const smartGoalStreak = qs('#alfawz-smart-goal-streak', root);
+    const smartGoalStreakHint = qs('#alfawz-smart-goal-streak-hint', root);
+    const smartGoalTrend = qs('#alfawz-smart-goal-trend', root);
+    const smartGoalNote = qs('#alfawz-smart-goal-note', root);
+    const consistencyScore = qs('#alfawz-consistency-score', root);
+    const consistencyMessage = qs('#alfawz-consistency-message', root);
+    const consistencyHeatmap = qs('#alfawz-consistency-heatmap', root);
+    const reflectionList = qs('#alfawz-reflection-preview', root);
+    const reflectionEmpty = qs('#alfawz-reflection-empty', root);
+    const reflectionCardCopy = qs('#alfawz-reflection-card-copy', root);
+
+    const renderHeatmap = (series) => {
+      if (!consistencyHeatmap) {
+        return;
+      }
+      consistencyHeatmap.innerHTML = '';
+      if (!Array.isArray(series) || !series.length) {
+        return;
+      }
+      const fragment = document.createDocumentFragment();
+      series.forEach((day) => {
+        const span = document.createElement('span');
+        span.setAttribute('role', 'listitem');
+        const percentage = Number(day?.percentage || 0);
+        let level = 'none';
+        if (percentage >= 100) {
+          level = 'high';
+        } else if (percentage >= 60) {
+          level = 'medium';
+        } else if (percentage > 0) {
+          level = 'low';
+        }
+        span.dataset.level = level;
+        const verses = Number(day?.verses || 0);
+        span.textContent = verses > 0 ? String(Math.min(verses, 99)) : '·';
+        span.title = `${day?.label || day?.date || ''}: ${formatNumber(verses)} ${verses === 1 ? 'verse' : 'verses'}`;
+        fragment.appendChild(span);
+      });
+      consistencyHeatmap.appendChild(fragment);
+    };
+
+    const renderReflectionsPreview = (items) => {
+      if (!reflectionList) {
+        return;
+      }
+      reflectionList.innerHTML = '';
+      if (!Array.isArray(items) || !items.length) {
+        reflectionEmpty?.classList.remove('hidden');
+        return;
+      }
+
+      reflectionEmpty?.classList.add('hidden');
+      const fragment = document.createDocumentFragment();
+      items.forEach((entry) => {
+        const li = document.createElement('li');
+        li.className = 'alfawz-dashboard-reflection-item';
+        const mood = document.createElement('strong');
+        mood.textContent = entry?.mood_label || entry?.mood || 'Reflection';
+        li.appendChild(mood);
+        if (entry?.created_at_label) {
+          const time = document.createElement('time');
+          time.dateTime = entry?.created_at_gmt || '';
+          time.textContent = entry.created_at_label;
+          li.appendChild(time);
+        }
+        const body = document.createElement('p');
+        body.textContent = entry?.excerpt || entry?.content || '';
+        li.appendChild(body);
+        fragment.appendChild(li);
+      });
+      reflectionList.appendChild(fragment);
+    };
+
+    const applyInsights = (insights) => {
+      if (!insights) {
+        smartGoalCard?.classList.add('opacity-60');
+        return;
+      }
+
+      state.dashboardInsights = insights;
+      const dynamic = insights.dynamic_goal || {};
+      const consistency = insights.consistency || {};
+
+      if (smartGoalMessage && dynamic.message) {
+        smartGoalMessage.textContent = dynamic.message;
+      }
+      if (smartGoalToday) {
+        smartGoalToday.textContent = formatNumber(dynamic.today || 0);
+      }
+      if (smartGoalTodayHint) {
+        smartGoalTodayHint.textContent = dynamic.today_percentage >= 0
+          ? `${formatPercent(dynamic.today_percentage)} of today’s intention`
+          : '';
+      }
+      if (smartGoalTarget) {
+        smartGoalTarget.textContent = formatNumber(dynamic.suggested_target || insights.target || wpData.dailyTarget || 10);
+      }
+      if (smartGoalTargetHint) {
+        smartGoalTargetHint.textContent = dynamic.goal_message ? '' : 'Personalised suggestion based on your recent pace.';
+      }
+      if (smartGoalAverage) {
+        smartGoalAverage.textContent = formatDecimal(dynamic.range_average || 0, 1);
+      }
+      if (smartGoalAverageHint) {
+        smartGoalAverageHint.textContent = 'Average verses across the last 7 days.';
+      }
+      if (smartGoalStreak) {
+        smartGoalStreak.textContent = formatNumber(dynamic.streak_met_goal || 0);
+      }
+      if (smartGoalStreakHint) {
+        smartGoalStreakHint.textContent = 'Consecutive days meeting your intention.';
+      }
+      if (smartGoalTrend) {
+        const trend = String(dynamic.trend || 'steady').toLowerCase();
+        const emoji = trend === 'up' ? '📈' : trend === 'down' ? '🌙' : '〰️';
+        const label = trend === 'up' ? 'Rising rhythm' : trend === 'down' ? 'Gentle reset' : 'Steady pace';
+        smartGoalTrend.textContent = `${emoji} ${label}`;
+      }
+      if (smartGoalNote && dynamic.goal_message) {
+        smartGoalNote.textContent = dynamic.goal_message;
+      }
+
+      if (consistencyScore) {
+        consistencyScore.textContent = formatNumber(consistency.score || 0);
+      }
+      if (consistencyMessage && consistency.message) {
+        consistencyMessage.textContent = consistency.message;
+      }
+      renderHeatmap(insights.series || []);
+      renderReflectionsPreview(insights.reflections || []);
+
+      if (reflectionCardCopy && Array.isArray(insights.reflections)) {
+        const totalReflections = insights.reflections.length;
+        reflectionCardCopy.textContent = totalReflections
+          ? `You have ${formatNumber(totalReflections)} heartfelt reflections logged. Add one from today’s reading.`
+          : 'Capture how an ayah touched your heart and revisit your Quranly-inspired reflections.';
+      }
+    };
+
     try {
-      const [stats, goal, egg, leaderboard] = await Promise.all([
+      const insightsPromise = apiRequest('insights/dashboard?range=21&include_reflections=1').catch((error) => {
+        console.warn('[AlfawzQuran] Unable to load insights', error);
+        return null;
+      });
+
+      const [stats, goal, egg, leaderboard, insights] = await Promise.all([
         apiRequest('user-stats'),
         apiRequest(`recitation-goal?timezone_offset=${timezoneOffset()}`),
         apiRequest('egg-challenge'),
         apiRequest('leaderboard'),
+        insightsPromise,
       ]);
 
       state.dashboardStats = stats;
@@ -868,7 +1026,12 @@
       if (goal) {
         animateProgressBar(dailyProgressBar, goal.percentage || 0);
         setText(dailyProgressLabel, `${goal.count || 0} / ${goal.target || 10}`);
-        setText(dailyProgressNote, goal.remaining === 0 ? wpData.strings?.goalComplete || 'Goal completed for today!' : `${goal.remaining} verses left to reach today\'s target.`);
+        setText(
+          dailyProgressNote,
+          goal.remaining === 0
+            ? wpData.strings?.goalComplete || 'Goal completed for today!'
+            : `${goal.remaining} verses left to reach today\'s target.`
+        );
       }
 
       const eggStatus = qs('#alfawz-egg-status', root);
@@ -892,7 +1055,9 @@
                 <p class="alfawz-dashboard-list-meta text-sm text-rose-700">${formatNumber(item.verses_read || 0)} verses</p>
               </div>
             </div>
-            <span class="alfawz-dashboard-list-score text-sm font-semibold text-rose-700">⭐ ${formatNumber(item.total_hasanat || 0)}</span>
+            <span class="alfawz-dashboard-list-score text-sm font-semibold text-rose-700">⭐ ${formatNumber(
+              item.total_hasanat || 0
+            )}</span>
           `;
           return li;
         });
@@ -924,7 +1089,10 @@
         lastVerseHeading.textContent = stats?.last_verse_key ? `Surah ${stats.last_verse_key}` : 'Start a new session';
       }
       if (lastVersePreview) {
-        lastVersePreview.textContent = stats?.last_verse_excerpt || wpData.strings?.dashboardPlaceholder || 'Launch the reader to log your next ayah.';
+        lastVersePreview.textContent =
+          stats?.last_verse_excerpt ||
+          wpData.strings?.dashboardPlaceholder ||
+          'Launch the reader to log your next ayah.';
       }
 
       const continueButton = qs('[data-action="continue-reading"]', root);
@@ -934,12 +1102,14 @@
         });
       }
 
+      applyInsights(insights);
       revealDashboard(root);
     } catch (error) {
       console.warn('[AlfawzQuran] Unable to load dashboard data', error);
       revealDashboard(root);
     }
   };
+
 
   const populateSurahSelect = async (select) => {
     if (!select) {
@@ -1029,6 +1199,18 @@
     const surahToggleHint = qs('#alfawz-surah-toggle-hint', root);
     const surahList = qs('#alfawz-surah-full-view', root);
     const surahListBody = surahList ? qs('#alfawz-surah-list-body', surahList) : null;
+    const reflectionWidget = qs('#alfawz-reflection-widget', root);
+    const reflectionContext = qs('#alfawz-reflection-context', root);
+    const reflectionInput = qs('#alfawz-reflection-input', root);
+    const reflectionStatus = qs('#alfawz-reflection-status', root);
+    const reflectionSaveButton = qs('#alfawz-reflection-save', root);
+    const reflectionClearButton = qs('#alfawz-reflection-clear', root);
+    const reflectionList = qs('#alfawz-reflection-list', root);
+    const reflectionEmptyState = qs('#alfawz-reflection-empty-state', root);
+    const reflectionMoodButtons = reflectionWidget
+      ? Array.from(reflectionWidget.querySelectorAll('.alfawz-reflection-mood'))
+      : [];
+    const reflectionSaveDefaultLabel = reflectionSaveButton?.textContent?.trim() || 'Save reflection';
 
     const strings = {
       playAyah: wpData.strings?.playAyah || 'Play this ayah',
@@ -1038,6 +1220,375 @@
       toggleOff: wpData.strings?.toggleVerseMode || 'Navigate verse by verse',
       toggleOn: wpData.strings?.toggleSurahMode || 'All verses visible at once',
     };
+
+    const reflectionStrings = {
+      prompt: wpData.strings?.reflectionPrompt || 'How did this ayah resonate with your heart today?',
+      saved: wpData.strings?.reflectionSaved || 'Reflection saved. JazakAllahu khayran for sharing.',
+      deleted: wpData.strings?.reflectionDeleted || 'Reflection removed.',
+      loadError: wpData.strings?.reflectionLoadError || 'Unable to load reflections right now.',
+      saveError: wpData.strings?.reflectionSaveError || 'Unable to save reflection. Please try again.',
+      deleteError: wpData.strings?.reflectionDeleteError || 'Unable to delete this reflection right now.',
+      loginRequired: wpData.strings?.reflectionLogin || 'Sign in to save your reflections.',
+      selectVerse: wpData.strings?.reflectionSelectVerse || 'Select a verse to begin reflecting.',
+      saving: wpData.strings?.saving || 'Saving…',
+      loading: wpData.strings?.reflectionLoading || 'Loading reflections…',
+      removing: wpData.strings?.reflectionDeleting || 'Removing reflection…',
+      confirmDelete: wpData.strings?.confirmDeleteReflection || 'Delete this reflection?',
+    };
+
+    const reflectionListLimit = 8;
+    const reflectionState = {
+      items: [],
+      currentVerseKey: null,
+      loading: false,
+      submitting: false,
+      activeMood: '',
+      lastMood: '',
+    };
+
+    const setReflectionStatus = (message = '') => {
+      if (reflectionStatus) {
+        reflectionStatus.textContent = message;
+      }
+    };
+
+    const setReflectionContext = (surah, verse, verseId, surahId = null) => {
+      if (!reflectionContext) {
+        return;
+      }
+
+      if (!verseId) {
+        reflectionContext.textContent = reflectionStrings.selectVerse;
+        return;
+      }
+
+      const surahName =
+        verse?.surahName ||
+        surah?.englishName ||
+        surah?.englishNameTranslation ||
+        surah?.name ||
+        (surahId ? `Surah ${surahId}` : 'This surah');
+      reflectionContext.textContent = `Reflect on ${surahName} · Ayah ${verseId}`;
+    };
+
+    const updateDashboardReflections = (reflection) => {
+      if (!reflection || !state.dashboardInsights || !Array.isArray(state.dashboardInsights.reflections)) {
+        return;
+      }
+
+      const existing = state.dashboardInsights.reflections.filter((entry) => entry && entry.id !== reflection.id);
+      state.dashboardInsights.reflections = [reflection, ...existing].slice(0, 3);
+    };
+
+    const removeDashboardReflection = (id) => {
+      if (!state.dashboardInsights || !Array.isArray(state.dashboardInsights.reflections)) {
+        return;
+      }
+      state.dashboardInsights.reflections = state.dashboardInsights.reflections.filter((entry) => entry?.id !== id);
+    };
+
+    function updateReflectionMoodButtons() {
+      reflectionMoodButtons.forEach((button) => {
+        const mood = button.dataset.mood || '';
+        const pressed = Boolean(reflectionState.activeMood) && reflectionState.activeMood === mood;
+        button.setAttribute('aria-pressed', pressed ? 'true' : 'false');
+      });
+    }
+
+    const syncReflectionControls = () => {
+      const hasVerse = Boolean(reflectionState.currentVerseKey);
+      const isLoggedIn = Boolean(wpData.isLoggedIn);
+      const disabled = !hasVerse || !isLoggedIn;
+      const busy = reflectionState.loading;
+
+      if (reflectionWidget) {
+        reflectionWidget.classList.toggle('alfawz-reflection-widget--disabled', disabled);
+        reflectionWidget.setAttribute('aria-busy', busy ? 'true' : 'false');
+      }
+
+      if (reflectionInput) {
+        reflectionInput.disabled = disabled;
+      }
+
+      reflectionMoodButtons.forEach((button) => {
+        button.disabled = disabled || reflectionState.submitting;
+      });
+
+      if (reflectionSaveButton) {
+        const hasContent = Boolean(reflectionInput?.value?.trim());
+        reflectionSaveButton.disabled = disabled || reflectionState.submitting || !hasContent;
+        reflectionSaveButton.textContent = reflectionState.submitting
+          ? reflectionStrings.saving
+          : reflectionSaveDefaultLabel;
+      }
+
+      if (reflectionClearButton) {
+        const hasFormState = Boolean(reflectionInput?.value) || Boolean(reflectionState.activeMood);
+        reflectionClearButton.disabled = disabled || !hasFormState || reflectionState.submitting;
+      }
+    };
+
+    const clearReflectionForm = ({ keepMood = false, quiet = false } = {}) => {
+      if (reflectionInput) {
+        reflectionInput.value = '';
+      }
+      if (!keepMood) {
+        reflectionState.activeMood = '';
+        updateReflectionMoodButtons();
+      }
+      if (!quiet) {
+        setReflectionStatus('');
+      }
+      syncReflectionControls();
+    };
+
+    function renderReflectionItems() {
+      if (!reflectionList) {
+        return;
+      }
+
+      reflectionList.innerHTML = '';
+      const items = Array.isArray(reflectionState.items) ? reflectionState.items : [];
+
+      if (!items.length) {
+        if (reflectionEmptyState) {
+          reflectionEmptyState.classList.remove('hidden');
+        }
+        return;
+      }
+
+      if (reflectionEmptyState) {
+        reflectionEmptyState.classList.add('hidden');
+      }
+
+      const fragment = document.createDocumentFragment();
+      items.forEach((entry) => {
+        const li = document.createElement('li');
+        li.className = 'alfawz-reflection-item';
+
+        const mood = document.createElement('strong');
+        mood.textContent = entry?.mood_label || entry?.mood || 'Reflection';
+        li.appendChild(mood);
+
+        if (entry?.created_at_label) {
+          const time = document.createElement('time');
+          time.dateTime = entry?.created_at_gmt || '';
+          time.textContent = entry.created_at_label;
+          li.appendChild(time);
+        }
+
+        const body = document.createElement('p');
+        body.textContent = entry?.content || '';
+        li.appendChild(body);
+
+        if (entry?.id) {
+          const remove = document.createElement('button');
+          remove.type = 'button';
+          remove.textContent = wpData.strings?.delete || 'Delete';
+          remove.addEventListener('click', () => {
+            handleReflectionDelete(entry);
+          });
+          li.appendChild(remove);
+        }
+
+        fragment.appendChild(li);
+      });
+
+      reflectionList.appendChild(fragment);
+    }
+
+    async function handleReflectionDelete(entry) {
+      if (!entry?.id || reflectionState.submitting) {
+        return;
+      }
+
+      if (!window.confirm(reflectionStrings.confirmDelete)) {
+        return;
+      }
+
+      reflectionState.submitting = true;
+      syncReflectionControls();
+      setReflectionStatus(reflectionStrings.removing);
+
+      try {
+        await apiRequest(`reflections/${entry.id}`, { method: 'DELETE' });
+        reflectionState.items = reflectionState.items.filter((item) => item.id !== entry.id);
+        renderReflectionItems();
+        if (reflectionState.items.length) {
+          setReflectionStatus(reflectionStrings.deleted);
+        } else {
+          setReflectionStatus(reflectionStrings.prompt);
+        }
+        removeDashboardReflection(entry.id);
+      } catch (error) {
+        console.warn('[AlfawzQuran] Unable to delete reflection', error);
+        setReflectionStatus(reflectionStrings.deleteError);
+      } finally {
+        reflectionState.submitting = false;
+        syncReflectionControls();
+      }
+    }
+
+    const loadReflectionsForVerse = async (surahId, verseId, verse) => {
+      reflectionState.currentVerseKey = surahId && verseId ? `${surahId}:${verseId}` : null;
+      reflectionState.items = [];
+      renderReflectionItems();
+
+      if (!reflectionState.currentVerseKey) {
+        setReflectionContext(null, null, null);
+        setReflectionStatus(reflectionStrings.selectVerse);
+        syncReflectionControls();
+        return;
+      }
+
+      setReflectionContext(getSurahById(surahId), verse, verseId, surahId);
+
+      if (!wpData.isLoggedIn) {
+        setReflectionStatus(reflectionStrings.loginRequired);
+        syncReflectionControls();
+        return;
+      }
+
+      clearReflectionForm({ keepMood: true, quiet: true });
+      reflectionState.loading = true;
+      syncReflectionControls();
+      setReflectionStatus(reflectionStrings.loading);
+
+      try {
+        const response = await apiRequest(
+          `reflections?surah_id=${surahId}&verse_id=${verseId}&limit=${reflectionListLimit}`
+        );
+        const items = Array.isArray(response?.items) ? response.items : [];
+        reflectionState.items = items;
+        reflectionState.lastMood = response?.last_mood || reflectionState.lastMood || '';
+        if (!reflectionState.activeMood && reflectionState.lastMood) {
+          reflectionState.activeMood = reflectionState.lastMood;
+          updateReflectionMoodButtons();
+        }
+        renderReflectionItems();
+        setReflectionStatus(items.length ? '' : reflectionStrings.prompt);
+      } catch (error) {
+        console.warn('[AlfawzQuran] Unable to load reflections', error);
+        setReflectionStatus(reflectionStrings.loadError);
+      } finally {
+        reflectionState.loading = false;
+        syncReflectionControls();
+      }
+    };
+
+    const handleReflectionSave = async () => {
+      if (!wpData.isLoggedIn || reflectionState.submitting || !reflectionState.currentVerseKey) {
+        if (!wpData.isLoggedIn) {
+          setReflectionStatus(reflectionStrings.loginRequired);
+        }
+        return;
+      }
+
+      const content = reflectionInput?.value?.trim();
+      if (!content) {
+        setReflectionStatus(reflectionStrings.prompt);
+        return;
+      }
+
+      const [surahId, verseId] = reflectionState.currentVerseKey.split(':').map((part) => Number(part));
+      if (!surahId || !verseId) {
+        return;
+      }
+
+      const body = {
+        surah_id: surahId,
+        verse_id: verseId,
+        content,
+      };
+
+      const mood = reflectionState.activeMood || reflectionState.lastMood || '';
+      if (mood) {
+        body.mood = mood;
+      }
+
+      reflectionState.submitting = true;
+      syncReflectionControls();
+      setReflectionStatus(reflectionStrings.saving);
+
+      try {
+        const response = await apiRequest('reflections', {
+          method: 'POST',
+          body,
+        });
+        const reflection = response?.reflection;
+        if (reflection) {
+          reflectionState.items = [reflection, ...reflectionState.items].slice(0, reflectionListLimit);
+          reflectionState.lastMood = reflection.mood || mood || reflectionState.lastMood;
+          reflectionState.activeMood = reflectionState.lastMood;
+          updateReflectionMoodButtons();
+          renderReflectionItems();
+          setReflectionStatus(reflectionStrings.saved);
+          if (reflectionInput) {
+            reflectionInput.value = '';
+          }
+          updateDashboardReflections(reflection);
+        } else {
+          setReflectionStatus(reflectionStrings.saved);
+        }
+      } catch (error) {
+        console.warn('[AlfawzQuran] Unable to save reflection', error);
+        setReflectionStatus(reflectionStrings.saveError);
+      } finally {
+        reflectionState.submitting = false;
+        syncReflectionControls();
+      }
+    };
+
+    reflectionMoodButtons.forEach((button) => {
+      button.addEventListener('click', () => {
+        if (!wpData.isLoggedIn || reflectionState.submitting || !reflectionState.currentVerseKey) {
+          if (!wpData.isLoggedIn) {
+            setReflectionStatus(reflectionStrings.loginRequired);
+          }
+          return;
+        }
+        const mood = button.dataset.mood || '';
+        reflectionState.activeMood = reflectionState.activeMood === mood ? '' : mood;
+        updateReflectionMoodButtons();
+        syncReflectionControls();
+      });
+    });
+
+    reflectionInput?.addEventListener('input', () => {
+      if (!reflectionState.submitting) {
+        syncReflectionControls();
+      }
+    });
+
+    reflectionInput?.addEventListener('keydown', (event) => {
+      if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') {
+        event.preventDefault();
+        handleReflectionSave();
+      }
+    });
+
+    reflectionSaveButton?.addEventListener('click', handleReflectionSave);
+
+    reflectionClearButton?.addEventListener('click', () => {
+      if (!wpData.isLoggedIn) {
+        setReflectionStatus(reflectionStrings.loginRequired);
+        return;
+      }
+      clearReflectionForm();
+      setReflectionStatus(reflectionStrings.prompt);
+      reflectionInput?.focus();
+    });
+
+    if (reflectionWidget) {
+      updateReflectionMoodButtons();
+      renderReflectionItems();
+      if (wpData.isLoggedIn) {
+        setReflectionStatus(reflectionStrings.selectVerse);
+      } else {
+        setReflectionStatus(reflectionStrings.loginRequired);
+      }
+      syncReflectionControls();
+    }
 
     let currentSurahId = null;
     let currentSurah = null;
@@ -1937,6 +2488,9 @@
         } else {
           warmSurahCache(surahId, verseId).catch(() => {});
         }
+        if (reflectionWidget) {
+          void loadReflectionsForVerse(surahId, verseId, verse);
+        }
         return verse;
       } catch (error) {
         isLoading = false;
@@ -2015,6 +2569,23 @@
         if (audioPanel) {
           resetAudio('Select a surah and verse to load the recitation.', { keepSource: false });
         }
+      }
+      if (reflectionWidget) {
+        reflectionState.currentVerseKey = null;
+        reflectionState.items = [];
+        renderReflectionItems();
+        if (currentSurah) {
+          setReflectionContext(currentSurah, null, null, surahId);
+        } else {
+          setReflectionContext(null, null, null);
+        }
+        if (wpData.isLoggedIn) {
+          setReflectionStatus(reflectionStrings.selectVerse);
+        } else {
+          setReflectionStatus(reflectionStrings.loginRequired);
+        }
+        clearReflectionForm({ keepMood: true, quiet: true });
+        syncReflectionControls();
       }
       updateSurahModeUI();
     };

@@ -4899,3 +4899,374 @@ body.alfawz-qaidah-modal-open {
 .alfawz-dashboard-stat-value {
   line-height: 1.5;
 }
+
+/* Quranly-inspired dashboard insights */
+.alfawz-dashboard-metric-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+}
+
+.alfawz-dashboard-metric {
+  background: rgba(255, 255, 255, 0.14);
+  border-radius: 1.2rem;
+  padding: 1rem 1.1rem;
+  backdrop-filter: blur(8px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18), 0 15px 40px rgba(70, 7, 26, 0.15);
+}
+
+.alfawz-dashboard-metric-label {
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 237, 213, 0.78);
+}
+
+.alfawz-dashboard-metric-value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #fff7ed;
+  margin-top: 0.2rem;
+}
+
+.alfawz-dashboard-metric-hint {
+  font-size: 0.75rem;
+  color: rgba(255, 237, 213, 0.72);
+  margin-top: 0.35rem;
+}
+
+.alfawz-dashboard-panel-note {
+  margin-top: 1rem;
+  font-size: 0.85rem;
+  color: rgba(255, 237, 213, 0.78);
+}
+
+.alfawz-dashboard-consistency {
+  margin-top: 1.6rem;
+  padding: 1.2rem 1.4rem;
+  border-radius: 1.35rem;
+  background: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 18px 45px rgba(64, 8, 26, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.24);
+}
+
+.alfawz-dashboard-consistency-header {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+}
+
+.alfawz-dashboard-consistency-score {
+  font-size: 2.5rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #fbbf24, #f97316);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-fill-color: transparent;
+}
+
+.alfawz-dashboard-consistency-label {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: rgba(255, 237, 213, 0.82);
+  font-weight: 600;
+}
+
+.alfawz-dashboard-consistency-message {
+  margin-top: 0.65rem;
+  font-size: 0.88rem;
+  color: rgba(255, 247, 237, 0.85);
+}
+
+.alfawz-dashboard-heatmap {
+  margin-top: 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.alfawz-dashboard-heatmap span {
+  display: inline-flex;
+  width: 1.7rem;
+  height: 1.7rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.65rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: rgba(118, 29, 49, 0.82);
+  background: rgba(255, 255, 255, 0.18);
+  box-shadow: 0 8px 18px rgba(70, 7, 26, 0.18);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.alfawz-dashboard-heatmap span[data-level="none"] {
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.alfawz-dashboard-heatmap span[data-level="low"] {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.alfawz-dashboard-heatmap span[data-level="medium"] {
+  background: rgba(251, 191, 36, 0.35);
+  color: #6e1c31;
+}
+
+.alfawz-dashboard-heatmap span[data-level="high"] {
+  background: linear-gradient(135deg, #f59e0b, #ef4444);
+  color: #4b1024;
+}
+
+.alfawz-dashboard-heatmap span:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px rgba(70, 7, 26, 0.22);
+}
+
+.alfawz-dashboard-reflection-list {
+  margin-top: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.alfawz-dashboard-reflection-empty {
+  padding: 1.1rem 1.25rem;
+  border-radius: 1.25rem;
+  background: rgba(255, 255, 255, 0.85);
+  color: #7a2338;
+  font-size: 0.88rem;
+  box-shadow: 0 12px 30px rgba(70, 7, 26, 0.1);
+}
+
+.alfawz-dashboard-reflection-item {
+  background: rgba(255, 255, 255, 0.95);
+  color: #69172c;
+  border-radius: 1.3rem;
+  padding: 1rem 1.2rem;
+  box-shadow: 0 18px 38px rgba(70, 7, 26, 0.16);
+  position: relative;
+}
+
+.alfawz-dashboard-reflection-item strong {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #b54760;
+}
+
+.alfawz-dashboard-reflection-item time {
+  display: block;
+  font-size: 0.75rem;
+  color: rgba(105, 23, 44, 0.65);
+  margin-top: 0.2rem;
+}
+
+.alfawz-dashboard-reflection-item p {
+  margin-top: 0.5rem;
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+.alfawz-dashboard-reflection-item button {
+  position: absolute;
+  top: 0.8rem;
+  right: 1rem;
+  background: none;
+  border: none;
+  color: #b54760;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.alfawz-dashboard-reflection-item button:hover {
+  text-decoration: underline;
+}
+
+/* Reader reflection widget */
+.alfawz-reflection-widget {
+  margin-top: 2rem;
+  border-radius: 1.6rem;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(255, 233, 209, 0.82));
+  box-shadow: 0 24px 60px rgba(97, 17, 40, 0.14);
+  padding: 1.8rem 1.6rem;
+  color: #5f1227;
+}
+
+.alfawz-reflection-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.alfawz-reflection-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #4d0f20;
+}
+
+.alfawz-reflection-context {
+  font-size: 0.85rem;
+  color: rgba(93, 19, 37, 0.78);
+  margin-top: 0.35rem;
+}
+
+.alfawz-reflection-moods {
+  display: flex;
+  gap: 0.55rem;
+}
+
+.alfawz-reflection-mood {
+  border: none;
+  background: rgba(255, 255, 255, 0.9);
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.95rem;
+  font-size: 1.2rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 8px 20px rgba(94, 16, 34, 0.18);
+}
+
+.alfawz-reflection-mood:hover {
+  transform: translateY(-2px);
+}
+
+.alfawz-reflection-mood[aria-pressed="true"] {
+  background: linear-gradient(135deg, #fbbf24, #f97316);
+  box-shadow: 0 12px 28px rgba(249, 115, 22, 0.28);
+  color: #4b0f21;
+}
+
+.alfawz-reflection-label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #4b0f21;
+  margin-bottom: 0.4rem;
+}
+
+.alfawz-reflection-input {
+  width: 100%;
+  border-radius: 1.1rem;
+  border: 1px solid rgba(108, 20, 40, 0.16);
+  background: rgba(255, 255, 255, 0.96);
+  padding: 0.95rem 1.05rem;
+  min-height: 120px;
+  resize: vertical;
+  font-size: 0.95rem;
+  color: #401022;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.alfawz-reflection-input:focus {
+  outline: none;
+  border-color: #f97316;
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.25);
+}
+
+.alfawz-reflection-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  margin-top: 0.85rem;
+}
+
+.alfawz-reflection-clear {
+  background: none;
+  border: none;
+  color: #a83f59;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.alfawz-reflection-status {
+  min-height: 1.2rem;
+  margin-top: 0.55rem;
+  font-size: 0.8rem;
+  color: #79213b;
+}
+
+.alfawz-reflection-history {
+  margin-top: 1.5rem;
+  border-radius: 1.2rem;
+  background: rgba(255, 255, 255, 0.7);
+  padding: 1rem 1.1rem;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+.alfawz-reflection-history-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #5b1326;
+  margin-bottom: 0.6rem;
+}
+
+.alfawz-reflection-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.alfawz-reflection-item {
+  background: #fff;
+  border-radius: 1rem;
+  padding: 0.8rem 1rem;
+  box-shadow: 0 12px 28px rgba(83, 18, 38, 0.15);
+  position: relative;
+}
+
+.alfawz-reflection-item strong {
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #b54760;
+}
+
+.alfawz-reflection-item time {
+  font-size: 0.72rem;
+  color: rgba(112, 26, 46, 0.6);
+  display: block;
+  margin-top: 0.2rem;
+}
+
+.alfawz-reflection-item p {
+  font-size: 0.9rem;
+  color: #4d1224;
+  margin-top: 0.35rem;
+  line-height: 1.5;
+}
+
+.alfawz-reflection-item button {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.9rem;
+  border: none;
+  background: none;
+  color: #c05369;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.alfawz-reflection-item button:hover {
+  text-decoration: underline;
+}
+
+.alfawz-reflection-empty {
+  font-size: 0.78rem;
+  color: rgba(112, 26, 46, 0.72);
+}
+
+.alfawz-reflection-widget--disabled {
+  opacity: 0.6;
+  pointer-events: none;
+}

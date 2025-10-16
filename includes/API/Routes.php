@@ -5,6 +5,7 @@ use AlfawzQuran\API\QuranAPI;
 use AlfawzQuran\Models\QaidahBoard;
 use AlfawzQuran\Models\RecitationFeedback;
 use AlfawzQuran\Models\UserProgress;
+use AlfawzQuran\Models\UserReflection;
 use DateTimeImmutable;
 use DateTimeZone;
 use WP_REST_Server;
@@ -14,10 +15,17 @@ use WP_REST_Response;
 use function __;
 use function absint;
 use function apply_filters;
+use function number_format_i18n;
 use function rest_ensure_response;
+use function sanitize_key;
 use function sanitize_text_field;
+use function sanitize_textarea_field;
+use function get_option;
+use function get_user_meta;
 use function wp_strip_all_tags;
 use function wp_json_encode;
+use function wp_trim_words;
+use function update_user_meta;
 
 /**
  * Register REST API routes for the plugin.
@@ -75,9 +83,17 @@ class Routes {
      */
     private $quran_api;
 
+    /**
+     * Journalling repository inspired by Quranly reflections.
+     *
+     * @var UserReflection|null
+     */
+    private $user_reflections;
+
     public function __construct() {
         $this->recitation_feedback = class_exists( RecitationFeedback::class ) ? new RecitationFeedback() : null;
         $this->quran_api           = class_exists( QuranAPI::class ) ? new QuranAPI() : null;
+        $this->user_reflections    = class_exists( UserReflection::class ) ? new UserReflection() : null;
 
         add_action( 'rest_api_init', [ $this, 'register_routes' ] );
         add_action( 'alfawz_quran_daily_cron', [ $this, 'calculate_daily_streaks' ] );
@@ -365,6 +381,28 @@ class Routes {
 
         register_rest_route(
             $namespace,
+            '/insights/dashboard',
+            [
+                'methods'             => WP_REST_Server::READABLE,
+                'callback'            => [ $this, 'get_dashboard_insights' ],
+                'permission_callback' => [ $this, 'check_permission' ],
+                'args'                => [
+                    'range' => [
+                        'validate_callback' => function( $param ) {
+                            return null === $param || '' === $param || is_numeric( $param );
+                        },
+                    ],
+                    'include_reflections' => [
+                        'sanitize_callback' => function( $value ) {
+                            return (bool) $value;
+                        },
+                    ],
+                ],
+            ]
+        );
+
+        register_rest_route(
+            $namespace,
             '/verse-progress',
             [
                 'methods'             => 'POST',
@@ -381,6 +419,89 @@ class Routes {
                         'validate_callback' => function( $param, $request = null, $param_name = '' ) {
                             return is_numeric( $param ) || '' === $param || null === $param;
                         },
+                    ],
+                ],
+            ]
+        );
+
+        register_rest_route(
+            $namespace,
+            '/reflections',
+            [
+                [
+                    'methods'             => WP_REST_Server::READABLE,
+                    'callback'            => [ $this, 'list_reflections' ],
+                    'permission_callback' => [ $this, 'check_permission' ],
+                    'args'                => [
+                        'surah_id' => [
+                            'validate_callback' => [ $this, 'validate_numeric_param' ],
+                        ],
+                        'verse_id' => [
+                            'validate_callback' => [ $this, 'validate_numeric_param' ],
+                        ],
+                        'limit' => [
+                            'validate_callback' => [ $this, 'validate_numeric_param' ],
+                        ],
+                    ],
+                ],
+                [
+                    'methods'             => WP_REST_Server::CREATABLE,
+                    'callback'            => [ $this, 'create_reflection' ],
+                    'permission_callback' => [ $this, 'check_permission' ],
+                    'args'                => [
+                        'surah_id' => [
+                            'required'          => true,
+                            'validate_callback' => [ $this, 'validate_numeric_param' ],
+                        ],
+                        'verse_id' => [
+                            'required'          => true,
+                            'validate_callback' => [ $this, 'validate_numeric_param' ],
+                        ],
+                        'content' => [
+                            'required'          => true,
+                            'sanitize_callback' => 'sanitize_textarea_field',
+                        ],
+                        'mood' => [
+                            'required'          => false,
+                            'sanitize_callback' => 'sanitize_key',
+                        ],
+                    ],
+                ],
+            ]
+        );
+
+        register_rest_route(
+            $namespace,
+            '/reflections/(?P<id>\\d+)',
+            [
+                [
+                    'methods'             => WP_REST_Server::EDITABLE,
+                    'callback'            => [ $this, 'update_reflection' ],
+                    'permission_callback' => [ $this, 'check_permission' ],
+                    'args'                => [
+                        'id'      => [
+                            'required'          => true,
+                            'validate_callback' => [ $this, 'validate_numeric_param' ],
+                        ],
+                        'content' => [
+                            'required'          => false,
+                            'sanitize_callback' => 'sanitize_textarea_field',
+                        ],
+                        'mood'    => [
+                            'required'          => false,
+                            'sanitize_callback' => 'sanitize_key',
+                        ],
+                    ],
+                ],
+                [
+                    'methods'             => WP_REST_Server::DELETABLE,
+                    'callback'            => [ $this, 'delete_reflection' ],
+                    'permission_callback' => [ $this, 'check_permission' ],
+                    'args'                => [
+                        'id' => [
+                            'required'          => true,
+                            'validate_callback' => [ $this, 'validate_numeric_param' ],
+                        ],
                     ],
                 ],
             ]
@@ -693,6 +814,305 @@ class Routes {
      */
     public function admin_permission_callback( WP_REST_Request $request ) {
         return current_user_can( 'manage_options' ) || current_user_can( 'alfawz_admin' );
+    }
+
+    /**
+     * Provide dashboard-grade insights mirroring Quranly's guided analytics.
+     */
+    public function get_dashboard_insights( WP_REST_Request $request ) {
+        $user_id = get_current_user_id();
+
+        if ( ! $user_id ) {
+            return new WP_REST_Response(
+                [
+                    'success' => false,
+                    'message' => __( 'User not logged in.', 'alfawzquran' ),
+                ],
+                401
+            );
+        }
+
+        $range = $request->get_param( 'range' );
+        if ( null === $range || '' === $range ) {
+            $range = 21;
+        }
+
+        $range = absint( $range );
+        if ( $range < 7 ) {
+            $range = 7;
+        } elseif ( $range > 60 ) {
+            $range = 60;
+        }
+
+        $include_reflections = (bool) $request->get_param( 'include_reflections' );
+
+        $progress_model = new UserProgress();
+        $history        = $progress_model->get_recent_daily_activity( $user_id, $range );
+        $target         = $this->resolve_user_daily_target( $user_id );
+        $series         = $this->normalise_activity_series( is_array( $history ) ? $history : [], $range, $target );
+        $dynamic        = $this->build_dynamic_goal_insights( $series, $target );
+        $consistency    = $this->build_consistency_insights( $series, $target );
+
+        $payload = [
+            'range_days'   => $range,
+            'target'       => $target,
+            'series'       => $series,
+            'dynamic_goal' => $dynamic,
+            'consistency'  => $consistency,
+        ];
+
+        if ( $include_reflections && $this->user_reflections ) {
+            $recent = $this->user_reflections->get_recent( $user_id, 3 );
+            $payload['reflections'] = array_map(
+                [ $this, 'transform_reflection_for_response' ],
+                is_array( $recent ) ? $recent : []
+            );
+            $payload['last_mood'] = sanitize_key( (string) get_user_meta( $user_id, 'alfawz_reflection_last_mood', true ) );
+        }
+
+        return rest_ensure_response( $payload );
+    }
+
+    /**
+     * Return reflections for the authenticated user.
+     */
+    public function list_reflections( WP_REST_Request $request ) {
+        $user_id = get_current_user_id();
+
+        if ( ! $user_id ) {
+            return new WP_REST_Response( [ 'success' => false, 'message' => __( 'User not logged in.', 'alfawzquran' ) ], 401 );
+        }
+
+        if ( ! $this->user_reflections ) {
+            return new WP_REST_Response(
+                [
+                    'success' => false,
+                    'message' => __( 'Reflections are currently unavailable.', 'alfawzquran' ),
+                ],
+                501
+            );
+        }
+
+        $limit    = absint( $request->get_param( 'limit' ) );
+        $surah_id = absint( $request->get_param( 'surah_id' ) );
+        $verse_id = absint( $request->get_param( 'verse_id' ) );
+
+        if ( $limit <= 0 ) {
+            $limit = 10;
+        } elseif ( $limit > 25 ) {
+            $limit = 25;
+        }
+
+        $args = [
+            'limit' => $limit,
+        ];
+
+        if ( $surah_id > 0 ) {
+            $args['surah_id'] = $surah_id;
+        }
+
+        if ( $verse_id > 0 ) {
+            $args['verse_id'] = $verse_id;
+        }
+
+        $items = $this->user_reflections->get_many( $user_id, $args );
+        $items = is_array( $items ) ? $items : [];
+
+        return rest_ensure_response(
+            [
+                'items'     => array_map( [ $this, 'transform_reflection_for_response' ], $items ),
+                'count'     => count( $items ),
+                'last_mood' => sanitize_key( (string) get_user_meta( $user_id, 'alfawz_reflection_last_mood', true ) ),
+            ]
+        );
+    }
+
+    /**
+     * Create a new reflection entry.
+     */
+    public function create_reflection( WP_REST_Request $request ) {
+        $user_id = get_current_user_id();
+
+        if ( ! $user_id ) {
+            return new WP_REST_Response( [ 'success' => false, 'message' => __( 'User not logged in.', 'alfawzquran' ) ], 401 );
+        }
+
+        if ( ! $this->user_reflections ) {
+            return new WP_REST_Response(
+                [
+                    'success' => false,
+                    'message' => __( 'Reflections are currently unavailable.', 'alfawzquran' ),
+                ],
+                501
+            );
+        }
+
+        $surah_id = absint( $request->get_param( 'surah_id' ) );
+        $verse_id = absint( $request->get_param( 'verse_id' ) );
+        $content  = sanitize_textarea_field( (string) $request->get_param( 'content' ) );
+        $mood     = sanitize_key( (string) $request->get_param( 'mood' ) );
+
+        if ( $surah_id <= 0 || $verse_id <= 0 || '' === trim( $content ) ) {
+            return new WP_REST_Response(
+                [
+                    'success' => false,
+                    'message' => __( 'A surah, ayah, and heartfelt reflection are required.', 'alfawzquran' ),
+                ],
+                400
+            );
+        }
+
+        $created = $this->user_reflections->create( $user_id, $surah_id, $verse_id, $content, $mood );
+
+        if ( ! $created ) {
+            return new WP_REST_Response(
+                [
+                    'success' => false,
+                    'message' => __( 'Unable to save your reflection. Please try again.', 'alfawzquran' ),
+                ],
+                500
+            );
+        }
+
+        if ( $mood ) {
+            update_user_meta( $user_id, 'alfawz_reflection_last_mood', $mood );
+        }
+
+        return new WP_REST_Response(
+            [
+                'success'    => true,
+                'reflection' => $this->transform_reflection_for_response( $created ),
+            ],
+            201
+        );
+    }
+
+    /**
+     * Update an existing reflection.
+     */
+    public function update_reflection( WP_REST_Request $request ) {
+        $user_id = get_current_user_id();
+
+        if ( ! $user_id ) {
+            return new WP_REST_Response( [ 'success' => false, 'message' => __( 'User not logged in.', 'alfawzquran' ) ], 401 );
+        }
+
+        if ( ! $this->user_reflections ) {
+            return new WP_REST_Response(
+                [
+                    'success' => false,
+                    'message' => __( 'Reflections are currently unavailable.', 'alfawzquran' ),
+                ],
+                501
+            );
+        }
+
+        $id = absint( $request->get_param( 'id' ) );
+
+        if ( $id <= 0 ) {
+            return new WP_REST_Response( [ 'success' => false, 'message' => __( 'Reflection identifier is required.', 'alfawzquran' ) ], 400 );
+        }
+
+        $existing = $this->user_reflections->get( $id, $user_id );
+        if ( ! $existing ) {
+            return new WP_REST_Response( [ 'success' => false, 'message' => __( 'Reflection not found.', 'alfawzquran' ) ], 404 );
+        }
+
+        $fields = [];
+
+        if ( null !== $request->get_param( 'content' ) ) {
+            $fields['content'] = sanitize_textarea_field( (string) $request->get_param( 'content' ) );
+        }
+
+        if ( null !== $request->get_param( 'mood' ) ) {
+            $fields['mood'] = sanitize_key( (string) $request->get_param( 'mood' ) );
+        }
+
+        if ( empty( $fields ) ) {
+            return new WP_REST_Response(
+                [
+                    'success' => false,
+                    'message' => __( 'Provide content or a mood update.', 'alfawzquran' ),
+                ],
+                400
+            );
+        }
+
+        $updated = $this->user_reflections->update( $id, $user_id, $fields );
+
+        if ( ! $updated ) {
+            return new WP_REST_Response(
+                [
+                    'success' => false,
+                    'message' => __( 'Unable to update this reflection right now.', 'alfawzquran' ),
+                ],
+                500
+            );
+        }
+
+        if ( ! empty( $fields['mood'] ) ) {
+            update_user_meta( $user_id, 'alfawz_reflection_last_mood', $fields['mood'] );
+        }
+
+        return new WP_REST_Response(
+            [
+                'success'    => true,
+                'reflection' => $this->transform_reflection_for_response( $updated ),
+            ],
+            200
+        );
+    }
+
+    /**
+     * Delete a stored reflection.
+     */
+    public function delete_reflection( WP_REST_Request $request ) {
+        $user_id = get_current_user_id();
+
+        if ( ! $user_id ) {
+            return new WP_REST_Response( [ 'success' => false, 'message' => __( 'User not logged in.', 'alfawzquran' ) ], 401 );
+        }
+
+        if ( ! $this->user_reflections ) {
+            return new WP_REST_Response(
+                [
+                    'success' => false,
+                    'message' => __( 'Reflections are currently unavailable.', 'alfawzquran' ),
+                ],
+                501
+            );
+        }
+
+        $id = absint( $request->get_param( 'id' ) );
+
+        if ( $id <= 0 ) {
+            return new WP_REST_Response( [ 'success' => false, 'message' => __( 'Reflection identifier is required.', 'alfawzquran' ) ], 400 );
+        }
+
+        $existing = $this->user_reflections->get( $id, $user_id );
+        if ( ! $existing ) {
+            return new WP_REST_Response( [ 'success' => false, 'message' => __( 'Reflection not found.', 'alfawzquran' ) ], 404 );
+        }
+
+        $deleted = $this->user_reflections->delete( $id, $user_id );
+
+        if ( ! $deleted ) {
+            return new WP_REST_Response(
+                [
+                    'success' => false,
+                    'message' => __( 'Unable to delete this reflection at the moment.', 'alfawzquran' ),
+                ],
+                500
+            );
+        }
+
+        return new WP_REST_Response(
+            [
+                'success' => true,
+                'deleted' => true,
+            ],
+            200
+        );
     }
 
     /**
@@ -2769,6 +3189,270 @@ class Routes {
         $progress_model->update_all_user_streaks();
         $this->reset_daily_recitations_for_all_users();
         error_log('AlfawzQuran Daily Cron: Streaks updated.');
+    }
+
+    /**
+     * Resolve the personalised daily target for the given user.
+     */
+    private function resolve_user_daily_target( $user_id ) {
+        $target = (int) get_user_meta( $user_id, 'alfawz_pref_daily_target', true );
+
+        if ( $target <= 0 ) {
+            $target = (int) get_option( 'alfawz_daily_verse_target', self::DAILY_GOAL_TARGET );
+        }
+
+        if ( $target <= 0 ) {
+            $target = self::DAILY_GOAL_TARGET;
+        }
+
+        return max( 1, (int) $target );
+    }
+
+    /**
+     * Prepare a contiguous daily series for the requested range.
+     */
+    private function normalise_activity_series( array $history, $range, $target ) {
+        $range  = max( 1, (int) $range );
+        $target = max( 1, (int) $target );
+
+        $map = [];
+        foreach ( $history as $row ) {
+            if ( empty( $row['date'] ) ) {
+                continue;
+            }
+
+            $map[ $row['date'] ] = [
+                'verses_read'      => isset( $row['verses_read'] ) ? (int) $row['verses_read'] : 0,
+                'verses_memorized' => isset( $row['verses_memorized'] ) ? (int) $row['verses_memorized'] : 0,
+                'hasanat'          => isset( $row['hasanat'] ) ? (int) $row['hasanat'] : 0,
+            ];
+        }
+
+        $series = [];
+        $anchor = new DateTimeImmutable( 'now', new DateTimeZone( 'UTC' ) );
+        $anchor = $anchor->setTime( 0, 0, 0 );
+
+        for ( $i = $range - 1; $i >= 0; $i-- ) {
+            $date_obj = $anchor->modify( sprintf( '-%d days', $i ) );
+            $date_key = $date_obj->format( 'Y-m-d' );
+            $stats    = $map[ $date_key ] ?? [ 'verses_read' => 0, 'verses_memorized' => 0, 'hasanat' => 0 ];
+            $verses   = (int) $stats['verses_read'];
+            $ratio    = $target > 0 ? min( 1, $verses / $target ) : 0;
+
+            $series[] = [
+                'date'        => $date_key,
+                'label'       => $date_obj->format( 'M j' ),
+                'weekday'     => $date_obj->format( 'D' ),
+                'verses'      => $verses,
+                'memorized'   => (int) $stats['verses_memorized'],
+                'hasanat'     => (int) $stats['hasanat'],
+                'percentage'  => round( $ratio * 100, 1 ),
+                'met_goal'    => $ratio >= 1,
+                'target'      => $target,
+            ];
+        }
+
+        return $series;
+    }
+
+    /**
+     * Build the dynamic goal payload inspired by Quranly's smart coach.
+     */
+    private function build_dynamic_goal_insights( array $series, $target ) {
+        $target = max( 1, (int) $target );
+
+        if ( empty( $series ) ) {
+            return [
+                'suggested_target' => $target,
+                'today'            => 0,
+                'range_average'    => 0,
+                'trend'            => 'steady',
+                'trend_delta'      => 0,
+                'today_percentage' => 0,
+                'streak_met_goal'  => 0,
+                'message'          => __( 'Recite your first ayah today to unlock personalised insights.', 'alfawzquran' ),
+                'goal_message'     => sprintf(
+                    __( 'Aim for %1$s verses today.', 'alfawzquran' ),
+                    number_format_i18n( $target )
+                ),
+            ];
+        }
+
+        $counts = array_map(
+            static function ( $day ) {
+                return isset( $day['verses'] ) ? (int) $day['verses'] : 0;
+            },
+            $series
+        );
+
+        $today         = (int) end( $counts );
+        $recent_window = array_slice( $counts, -7 );
+        $average       = ! empty( $recent_window ) ? array_sum( $recent_window ) / count( $recent_window ) : 0;
+        $suggested     = $average > 0 ? (int) round( $average ) : $target;
+        $suggested     = max( 3, min( 60, $suggested ) );
+
+        if ( $suggested <= 0 ) {
+            $suggested = $target;
+        }
+
+        $previous_window = array_slice( $counts, -4, 3 );
+        $previous_avg    = ! empty( $previous_window ) ? array_sum( $previous_window ) / count( $previous_window ) : 0;
+        $trend_delta     = $today - $previous_avg;
+
+        if ( $trend_delta > 1.5 ) {
+            $trend = 'up';
+        } elseif ( $trend_delta < -1.5 ) {
+            $trend = 'down';
+        } else {
+            $trend = 'steady';
+        }
+
+        $today_percentage = $suggested > 0 ? min( 100, round( ( $today / $suggested ) * 100 ) ) : 0;
+        $streak_met_goal  = $this->calculate_goal_streak( $series );
+
+        if ( $today_percentage >= 100 ) {
+            $message = __( 'Takbir! You have already met today’s personalised target.', 'alfawzquran' );
+        } elseif ( 'up' === $trend ) {
+            $message = __( 'Your pace is accelerating—keep nourishing your heart with this momentum.', 'alfawzquran' );
+        } elseif ( 'down' === $trend ) {
+            $message = __( 'Slow and steady is still progress. Revisit a shorter passage to rebuild flow.', 'alfawzquran' );
+        } else {
+            $message = __( 'A consistent rhythm is forming. Protect it with a mindful recitation today.', 'alfawzquran' );
+        }
+
+        return [
+            'suggested_target' => $suggested,
+            'today'            => $today,
+            'range_average'    => round( $average, 1 ),
+            'trend'            => $trend,
+            'trend_delta'      => round( $trend_delta, 1 ),
+            'today_percentage' => $today_percentage,
+            'streak_met_goal'  => $streak_met_goal,
+            'message'          => $message,
+            'goal_message'     => sprintf(
+                __( 'Aim for %1$s verses today (recent average %2$s).', 'alfawzquran' ),
+                number_format_i18n( $suggested ),
+                number_format_i18n( max( 0, $average ), 1 )
+            ),
+        ];
+    }
+
+    /**
+     * Summarise consistency metrics for the dashboard heatmap.
+     */
+    private function build_consistency_insights( array $series, $target ) {
+        $target     = max( 1, (int) $target );
+        $total_days = count( $series );
+
+        if ( $total_days <= 0 ) {
+            return [
+                'score'           => 0,
+                'status'          => 'fresh',
+                'message'         => __( 'Begin logging verses to unlock your consistency insights.', 'alfawzquran' ),
+                'met_goal_days'   => 0,
+                'total_days'      => 0,
+                'streak_met_goal' => 0,
+            ];
+        }
+
+        $met_goal_days = 0;
+        $ratio_sum     = 0.0;
+
+        foreach ( $series as $day ) {
+            $verses = isset( $day['verses'] ) ? (int) $day['verses'] : 0;
+            $ratio  = $target > 0 ? min( 1, $verses / $target ) : 0;
+            $ratio_sum += $ratio;
+
+            if ( $ratio >= 1 ) {
+                $met_goal_days++;
+            }
+        }
+
+        $score           = (int) round( ( $ratio_sum / max( 1, $total_days ) ) * 100 );
+        $streak_met_goal = $this->calculate_goal_streak( $series );
+
+        if ( $score >= 85 ) {
+            $status  = 'radiant';
+            $message = __( 'Phenomenal consistency—this mirrors Quranly’s radiant streak tier!', 'alfawzquran' );
+        } elseif ( $score >= 60 ) {
+            $status  = 'steady';
+            $message = __( 'A steady habit is blooming. Keep polishing your heart each day.', 'alfawzquran' );
+        } elseif ( $score > 0 ) {
+            $status  = 'growing';
+            $message = __( 'Let’s rebuild with small, sincere sessions—every ayah counts.', 'alfawzquran' );
+        } else {
+            $status  = 'fresh';
+            $message = __( 'Start today with one ayah to unlock personalised streak coaching.', 'alfawzquran' );
+        }
+
+        return [
+            'score'           => $score,
+            'status'          => $status,
+            'message'         => $message,
+            'met_goal_days'   => $met_goal_days,
+            'total_days'      => $total_days,
+            'streak_met_goal' => $streak_met_goal,
+        ];
+    }
+
+    /**
+     * Determine the current streak of days meeting the daily goal.
+     */
+    private function calculate_goal_streak( array $series ) {
+        $streak = 0;
+
+        for ( $i = count( $series ) - 1; $i >= 0; $i-- ) {
+            $met = ! empty( $series[ $i ]['met_goal'] );
+            if ( $met ) {
+                $streak++;
+            } else {
+                break;
+            }
+        }
+
+        return $streak;
+    }
+
+    /**
+     * Decorate a reflection row for REST responses.
+     */
+    private function transform_reflection_for_response( array $reflection ) {
+        $reflection['surah_id'] = isset( $reflection['surah_id'] ) ? (int) $reflection['surah_id'] : 0;
+        $reflection['verse_id'] = isset( $reflection['verse_id'] ) ? (int) $reflection['verse_id'] : 0;
+        $reflection['mood']     = sanitize_key( $reflection['mood'] ?? '' );
+        $reflection['verse_key'] = sprintf( '%d:%d', $reflection['surah_id'], $reflection['verse_id'] );
+        $reflection['mood_label'] = $this->get_reflection_mood_label( $reflection['mood'] );
+        $reflection['excerpt']    = wp_trim_words( $reflection['content'] ?? '', 28, '…' );
+
+        $created_gmt = $reflection['created_at'] ?? '';
+        $timestamp   = $created_gmt ? strtotime( $created_gmt . ' UTC' ) : false;
+
+        if ( $timestamp ) {
+            $reflection['created_at_gmt']   = gmdate( 'c', $timestamp );
+            $reflection['created_at_label'] = gmdate( 'M j', $timestamp );
+        } else {
+            $reflection['created_at_gmt']   = '';
+            $reflection['created_at_label'] = '';
+        }
+
+        return $reflection;
+    }
+
+    /**
+     * Provide a human-readable label for reflection moods.
+     */
+    private function get_reflection_mood_label( $mood ) {
+        $key = sanitize_key( $mood );
+        $map = [
+            'grateful'   => __( 'Grateful', 'alfawzquran' ),
+            'focused'    => __( 'Focused', 'alfawzquran' ),
+            'hopeful'    => __( 'Hopeful', 'alfawzquran' ),
+            'reflective' => __( 'Reflective', 'alfawzquran' ),
+            'striving'   => __( 'Striving', 'alfawzquran' ),
+            'uplifted'   => __( 'Uplifted', 'alfawzquran' ),
+        ];
+
+        return $map[ $key ] ?? __( 'Reflection', 'alfawzquran' );
     }
 
     /**
