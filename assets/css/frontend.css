@@ -3400,6 +3400,8 @@ body.alfawz-qaidah-modal-open {
 .qaidah-hero {
   position: relative;
   overflow: hidden;
+  /* Reduce the visual gap above the hero while keeping comfortable horizontal and bottom spacing */
+  padding: clamp(1.5rem, 2.5vw, 2.5rem) clamp(1.75rem, 4vw, 3rem) clamp(2.5rem, 4vw, 3.5rem);
 }
 
 .qaidah-hero-palette {
