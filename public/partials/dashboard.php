@@ -34,6 +34,8 @@ foreach ( $quick_action_slugs as $slug => $fallback_slug ) {
     id="alfawz-dashboard"
     class="alfawz-dashboard-shell relative mx-auto max-w-6xl overflow-hidden rounded-3xl bg-gradient-to-br from-rose-900 via-rose-800 to-amber-100 p-6 text-rose-50 shadow-2xl sm:p-10"
 >
+    <div id="alfawz-dashboard-confetti" class="alfawz-confetti-host" aria-hidden="true"></div>
+    <p id="alfawz-routine-announcement" class="screen-reader-text" role="status" aria-live="polite"></p>
     <div class="alfawz-dashboard-aurora" aria-hidden="true"></div>
     <div class="alfawz-dashboard-aurora alfawz-dashboard-aurora--accent" aria-hidden="true"></div>
 
