@@ -274,12 +274,35 @@ class QaidahBoard {
                 'id'          => $student_id,
                 'name'        => $user->display_name,
                 'email'       => $user->user_email,
-                'avatar'      => \get_avatar_url( $student_id ),
+                'avatar'      => $this->resolve_student_avatar_url( $student_id ),
                 'role_labels' => $user->roles,
             ];
         }
 
         return $details;
+    }
+
+    /**
+     * Resolve the appropriate avatar URL for a student.
+     *
+     * @param int $student_id User identifier.
+     * @return string
+     */
+    private function resolve_student_avatar_url( $student_id ) {
+        $gender = strtolower( (string) \get_user_meta( $student_id, 'alfawz_avatar_gender', true ) );
+
+        if ( in_array( $gender, [ 'male', 'female' ], true ) ) {
+            $map = [
+                'male'   => defined( 'ALFAWZQURAN_PLUGIN_URL' ) ? ALFAWZQURAN_PLUGIN_URL . 'assets/images/avatar-male.svg' : '',
+                'female' => defined( 'ALFAWZQURAN_PLUGIN_URL' ) ? ALFAWZQURAN_PLUGIN_URL . 'assets/images/avatar-female.svg' : '',
+            ];
+
+            if ( ! empty( $map[ $gender ] ) ) {
+                return $map[ $gender ];
+            }
+        }
+
+        return \get_avatar_url( $student_id );
     }
 
     /**

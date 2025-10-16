@@ -26,6 +26,7 @@ class Frontend {
         add_action('wp_enqueue_scripts', [$this, 'enqueue_assets']);
         add_action('wp_head', [$this, 'add_meta_tags']);
         add_action('template_redirect', [$this, 'redirect_alfawz_pages_to_account']);
+        add_filter('get_avatar_data', [$this, 'filter_avatar_data'], 10, 2);
     }
 
     public function register_shortcodes() {
@@ -120,12 +121,19 @@ class Frontend {
                 'defaultTransliteration' => get_option('alfawz_default_transliteration', 'en.transliteration'),
                 'enableLeaderboard' => (bool) get_option('alfawz_enable_leaderboard', 1),
                 'userPreferences' => $this->get_user_preferences_for_script(),
+                'avatars' => [
+                    'male'   => ALFAWZQURAN_PLUGIN_URL . 'assets/images/avatar-male.svg',
+                    'female' => ALFAWZQURAN_PLUGIN_URL . 'assets/images/avatar-female.svg',
+                ],
                 'strings' => [
                     'settingsSaved' => __('Preferences updated!', 'alfawzquran'),
                     'settingsError' => __('Unable to save preferences. Please try again.', 'alfawzquran'),
                     'profileSaved' => __('Profile updated!', 'alfawzquran'),
                     'profileError' => __('Unable to update profile. Please try again.', 'alfawzquran'),
                     'profileNameMissing' => __('Please add your full name before saving.', 'alfawzquran'),
+                    'avatarSaved' => __('Profile photo updated!', 'alfawzquran'),
+                    'avatarError' => __('Unable to update profile photo. Please try again.', 'alfawzquran'),
+                    'avatarMissing' => __('Please choose a silhouette before saving.', 'alfawzquran'),
                     'gamePanelLoadError' => __('We could not load your quest data. Please refresh to try again.', 'alfawzquran'),
                     'gamePanelCompletedLabel' => __('Completed', 'alfawzquran'),
                     'gamePanelVersesLabel' => __('Verses', 'alfawzquran'),
@@ -969,4 +977,81 @@ class Frontend {
         return $this->account_page_url;
     }
 
+    public function filter_avatar_data($args, $id_or_email) {
+        $user_id = $this->resolve_avatar_user_id($id_or_email);
+
+        if (!$user_id) {
+            return $args;
+        }
+
+        $gender = strtolower((string) \get_user_meta($user_id, 'alfawz_avatar_gender', true));
+
+        if (!in_array($gender, ['male', 'female'], true)) {
+            return $args;
+        }
+
+        $map = [
+            'male'   => ALFAWZQURAN_PLUGIN_URL . 'assets/images/avatar-male.svg',
+            'female' => ALFAWZQURAN_PLUGIN_URL . 'assets/images/avatar-female.svg',
+        ];
+
+        if (empty($map[$gender])) {
+            return $args;
+        }
+
+        $args['url'] = $map[$gender];
+        $args['found_avatar'] = true;
+
+        if (empty($args['width'])) {
+            $args['width'] = 96;
+        }
+
+        if (empty($args['height'])) {
+            $args['height'] = 96;
+        }
+
+        return $args;
+    }
+
+    private function resolve_avatar_user_id($id_or_email) {
+        if ($id_or_email instanceof \WP_User) {
+            return (int) $id_or_email->ID;
+        }
+
+        if ($id_or_email instanceof \WP_Post) {
+            return (int) $id_or_email->post_author;
+        }
+
+        if ($id_or_email instanceof \WP_Comment) {
+            if (!empty($id_or_email->user_id)) {
+                return (int) $id_or_email->user_id;
+            }
+
+            if (!empty($id_or_email->comment_author_email)) {
+                $user = \get_user_by('email', $id_or_email->comment_author_email);
+
+                return $user ? (int) $user->ID : 0;
+            }
+
+            return 0;
+        }
+
+        if (is_numeric($id_or_email)) {
+            return (int) $id_or_email;
+        }
+
+        if (is_string($id_or_email)) {
+            $user = false;
+
+            if (false !== strpos($id_or_email, '@')) {
+                $user = \get_user_by('email', $id_or_email);
+            } else {
+                $user = \get_user_by('login', $id_or_email);
+            }
+
+            return $user ? (int) $user->ID : 0;
+        }
+
+        return 0;
+    }
 }
