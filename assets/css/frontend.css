@@ -423,17 +423,30 @@
 /* Quran reader redesign */
 
 #alfawz-reader.alfawz-reader-shell {
-  background: radial-gradient(circle at top left, rgba(79, 13, 24, 0.85), transparent 55%),
-    linear-gradient(135deg, rgba(47, 8, 17, 0.92) 0%, rgba(122, 35, 42, 0.88) 42%, rgba(255, 236, 224, 0.95) 100%);
+  min-height: 100vh;
+  padding: 0;
+  background: transparent;
   color: var(--alfawz-text);
+}
+
+#alfawz-reader .alfawz-reader-controls,
+#alfawz-reader .alfawz-reader-surface,
+#alfawz-reader .alfawz-gwani-player {
+  max-width: none !important;
+  margin-left: 0;
+  margin-right: 0;
+}
+
+#alfawz-reader .alfawz-reader-controls {
+  margin-top: 0;
 }
 
 .alfawz-reader-surface {
   position: relative;
-  border-radius: var(--alfawz-radius-xl);
-  background: linear-gradient(140deg, rgba(255, 247, 241, 0.96), rgba(255, 227, 205, 0.94));
-  box-shadow: var(--alfawz-shadow-strong);
-  padding: var(--alfawz-surface-padding);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  padding: 0;
   overflow: hidden;
 }
 
@@ -2728,18 +2741,17 @@
 
 .alfawz-reader-shell {
   min-height: 100vh;
-  padding-top: 2rem;
-  padding-bottom: calc(4.5rem + env(safe-area-inset-bottom, 0px));
-  background: #fffbeb;
+  padding: 0;
+  background: transparent;
 }
 
 .alfawz-reader-surface {
   position: relative;
-  border-radius: var(--alfawz-radius-lg);
-  background: linear-gradient(135deg, rgba(236, 253, 245, 0.88), rgba(209, 250, 229, 0.92));
-  padding: var(--alfawz-surface-padding);
-  box-shadow: 0 24px 48px rgba(16, 185, 129, 0.18);
-  backdrop-filter: blur(14px);
+  border-radius: 0;
+  background: transparent;
+  padding: 0;
+  box-shadow: none;
+  backdrop-filter: none;
 }
 
 .alfawz-verse-loader {
