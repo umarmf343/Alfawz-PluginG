@@ -4044,14 +4044,30 @@ class Routes {
         );
 
         if (is_wp_error($response)) {
-            return $this->record_api_failure($response);
+            $error = $this->record_api_failure($response);
+            $fallback = $this->get_local_surah_catalog_from_dataset();
+            if ($fallback !== null) {
+                set_transient($transient_key, $fallback, DAY_IN_SECONDS);
+                update_option($option_key, $fallback, false);
+                return $fallback;
+            }
+
+            return $error;
         }
 
         $body = wp_remote_retrieve_body($response);
         $data = json_decode($body, true);
 
         if (!$this->is_successful_api_response($data) || empty($data['data'])) {
-            return $this->record_api_failure(new \WP_Error('api_error', __('Invalid response received from the Quran API.', 'alfawzquran')));
+            $error = $this->record_api_failure(new \WP_Error('api_error', __('Invalid response received from the Quran API.', 'alfawzquran')));
+            $fallback = $this->get_local_surah_catalog_from_dataset();
+            if ($fallback !== null) {
+                set_transient($transient_key, $fallback, DAY_IN_SECONDS);
+                update_option($option_key, $fallback, false);
+                return $fallback;
+            }
+
+            return $error;
         }
 
         $surah_payload = $data['data'];
@@ -4119,14 +4135,30 @@ class Routes {
         );
 
         if (is_wp_error($response)) {
-            return $this->record_api_failure($response);
+            $error = $this->record_api_failure($response);
+            $fallback = $this->get_local_surah_verses_from_dataset($surah_id);
+            if ($fallback !== null) {
+                set_transient($transient_key, $fallback, WEEK_IN_SECONDS);
+                update_option($option_key, $fallback, false);
+                return $fallback;
+            }
+
+            return $error;
         }
 
         $body = wp_remote_retrieve_body($response);
         $data = json_decode($body, true);
 
         if (!$this->is_successful_api_response($data) || empty($data['data']) || !is_array($data['data'])) {
-            return $this->record_api_failure(new \WP_Error('api_error', __('Invalid response received from the Quran API.', 'alfawzquran')));
+            $error = $this->record_api_failure(new \WP_Error('api_error', __('Invalid response received from the Quran API.', 'alfawzquran')));
+            $fallback = $this->get_local_surah_verses_from_dataset($surah_id);
+            if ($fallback !== null) {
+                set_transient($transient_key, $fallback, WEEK_IN_SECONDS);
+                update_option($option_key, $fallback, false);
+                return $fallback;
+            }
+
+            return $error;
         }
 
         $payload = $data['data'];
@@ -4179,7 +4211,15 @@ class Routes {
         $translit_bucket    = $transliteration_edition ? sanitize_key(str_replace('.', '_', strtolower($transliteration_edition))) : null;
 
         if (empty($arabic_ayahs) || !is_array($arabic_ayahs)) {
-            return $this->record_api_failure(new \WP_Error('api_error', __('Invalid response received from the Quran API.', 'alfawzquran')));
+            $error = $this->record_api_failure(new \WP_Error('api_error', __('Invalid response received from the Quran API.', 'alfawzquran')));
+            $fallback = $this->get_local_surah_verses_from_dataset($surah_id);
+            if ($fallback !== null) {
+                set_transient($transient_key, $fallback, WEEK_IN_SECONDS);
+                update_option($option_key, $fallback, false);
+                return $fallback;
+            }
+
+            return $error;
         }
 
         $verse_count = count($arabic_ayahs);
@@ -4229,6 +4269,158 @@ class Routes {
         $this->clear_api_failure_notice();
 
         return $verses;
+    }
+
+    /**
+     * Retrieve the surah catalog from the bundled fallback dataset.
+     *
+     * @return array|null
+     */
+    private function get_local_surah_catalog_from_dataset() {
+        $map = $this->load_fallback_surah_map();
+        if (empty($map) || !is_array($map)) {
+            return null;
+        }
+
+        $catalog = [];
+        foreach ($map as $id => $surah) {
+            if (!is_array($surah)) {
+                continue;
+            }
+
+            $verses = isset($surah['verses']) && is_array($surah['verses']) ? $surah['verses'] : [];
+            $catalog[] = [
+                'number'                => (int) $id,
+                'englishName'           => (string) ($surah['english_name'] ?? ''),
+                'englishNameTranslation' => (string) ($surah['english_name'] ?? ''),
+                'name'                  => (string) ($surah['arabic_name'] ?? ''),
+                'numberOfAyahs'         => count($verses),
+            ];
+        }
+
+        usort(
+            $catalog,
+            static function ($left, $right) {
+                return ($left['number'] ?? 0) <=> ($right['number'] ?? 0);
+            }
+        );
+
+        return $catalog;
+    }
+
+    /**
+     * Retrieve surah verses from the bundled fallback dataset.
+     *
+     * @param int $surah_id
+     *
+     * @return array|null
+     */
+    private function get_local_surah_verses_from_dataset(int $surah_id) {
+        $map = $this->load_fallback_surah_map();
+        if (empty($map) || !isset($map[ $surah_id ])) {
+            return null;
+        }
+
+        $surah = $map[ $surah_id ];
+        if (!is_array($surah)) {
+            return null;
+        }
+
+        $verses = isset($surah['verses']) && is_array($surah['verses']) ? $surah['verses'] : [];
+        if (empty($verses)) {
+            return null;
+        }
+
+        $total = count($verses);
+        $normalised = [];
+
+        foreach ($verses as $entry) {
+            if (!is_array($entry)) {
+                continue;
+            }
+
+            $verse_id = isset($entry['verse_id']) ? (int) $entry['verse_id'] : 0;
+            if ($verse_id <= 0) {
+                continue;
+            }
+
+            $juz_value = null;
+            if (array_key_exists('juz', $entry) && $entry['juz'] !== '' && $entry['juz'] !== null) {
+                $juz_value = (int) $entry['juz'];
+                if ($juz_value <= 0) {
+                    $juz_value = null;
+                }
+            }
+
+            $normalised[] = [
+                'surah_id'        => $surah_id,
+                'verse_id'        => $verse_id,
+                'verse_key'       => isset($entry['verse_key']) ? (string) $entry['verse_key'] : sprintf('%d:%d', $surah_id, $verse_id),
+                'surah_name'      => isset($entry['surah_name']) ? (string) $entry['surah_name'] : (string) ($surah['english_name'] ?? ''),
+                'surah_name_ar'   => isset($entry['surah_name_ar']) ? (string) $entry['surah_name_ar'] : (string) ($surah['arabic_name'] ?? ''),
+                'total_verses'    => isset($entry['total_verses']) ? max(1, (int) $entry['total_verses']) : $total,
+                'juz'             => $juz_value,
+                'arabic'          => isset($entry['arabic']) ? (string) $entry['arabic'] : '',
+                'translation'     => isset($entry['translation']) ? (string) $entry['translation'] : '',
+                'transliteration' => isset($entry['transliteration']) ? (string) $entry['transliteration'] : '',
+                'audio'           => '',
+                'audio_secondary' => [],
+            ];
+        }
+
+        return $normalised ?: null;
+    }
+
+    /**
+     * Load the bundled fallback surah dataset into memory.
+     *
+     * @return array|null
+     */
+    private function load_fallback_surah_map() {
+        static $map = null;
+
+        if ($map !== null) {
+            return $map ?: null;
+        }
+
+        $path = ALFAWZQURAN_PLUGIN_PATH . 'assets/data/quran-fallback.json';
+        if (!file_exists($path) || !is_readable($path)) {
+            $map = false;
+            return null;
+        }
+
+        $contents = file_get_contents($path);
+        if (false === $contents) {
+            $map = false;
+            return null;
+        }
+
+        $decoded = json_decode($contents, true);
+        if (!is_array($decoded) || empty($decoded['surahs']) || !is_array($decoded['surahs'])) {
+            $map = false;
+            return null;
+        }
+
+        $map = [];
+        foreach ($decoded['surahs'] as $surah) {
+            if (!is_array($surah)) {
+                continue;
+            }
+
+            $id = isset($surah['id']) ? (int) $surah['id'] : 0;
+            if ($id <= 0) {
+                continue;
+            }
+
+            $map[ $id ] = $surah;
+        }
+
+        if (empty($map)) {
+            $map = false;
+            return null;
+        }
+
+        return $map;
     }
 
     /**
