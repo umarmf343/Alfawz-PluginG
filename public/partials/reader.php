@@ -207,6 +207,12 @@ if ( ! defined( 'ABSPATH' ) ) {
         <p class="alfawz-gwani-description">
             <?php esc_html_e( 'Stream complete surahs from the Gwani Dahiru archive without changing your current reader selection.', 'alfawzquran' ); ?>
         </p>
+        <p class="alfawz-gwani-footnote">
+            <?php esc_html_e( 'Audio sourced from the Moshaf Gwani Dahir collection hosted on the Internet Archive.', 'alfawzquran' ); ?>
+            <a href="https://archive.org/details/MoshafGwaniDahir" class="alfawz-audio-link" target="_blank" rel="noopener">
+                <?php esc_html_e( 'Explore the archive', 'alfawzquran' ); ?>
+            </a>
+        </p>
         <div class="alfawz-gwani-controls">
             <label class="alfawz-field">
                 <span class="alfawz-field-label"><?php esc_html_e( 'Surah', 'alfawzquran' ); ?></span>
