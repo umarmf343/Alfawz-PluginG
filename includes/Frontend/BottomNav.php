@@ -71,19 +71,19 @@ function alfawz_render_bottom_nav() {
         return;
     }
     ?>
-    <nav id="alfawz-bottom-nav" class="fixed bottom-0 left-0 right-0 z-50 bg-white/95 border-t border-gray-200 shadow-lg backdrop-blur" data-current="<?php echo esc_attr( $current ); ?>" data-role="<?php echo esc_attr( $role ); ?>" aria-label="<?php esc_attr_e( 'Primary navigation', 'alfawzquran' ); ?>">
+    <nav id="alfawz-bottom-nav" class="alfawz-bottom-nav fixed bottom-0 left-0 right-0 z-50 bg-white/95 border-t border-gray-200 shadow-lg backdrop-blur" data-current="<?php echo esc_attr( $current ); ?>" data-role="<?php echo esc_attr( $role ); ?>" aria-label="<?php esc_attr_e( 'Primary navigation', 'alfawzquran' ); ?>">
         <div class="mx-auto max-w-4xl">
             <div class="alfawz-bottom-nav__scroll-wrapper relative">
                 <span class="alfawz-bottom-nav__scroll-indicator alfawz-bottom-nav__scroll-indicator--left" aria-hidden="true">&#8249;</span>
                 <div class="alfawz-bottom-nav__list flex items-stretch gap-1 overflow-x-auto hide-scrollbar px-2 py-2 snap-x snap-mandatory scroll-smooth" data-nav-scroll>
                 <?php foreach ( $tabs as $tab ) :
                     $is_active = ! empty( $tab['active'] );
-                    $classes   = 'alfawz-bottom-nav__tab relative flex min-w-[80px] min-h-[48px] flex-col items-center justify-center rounded-xl px-3 py-2 text-center text-xs transition-colors snap-center shrink-0 bg-gradient-to-br from-white/80 via-white/40 to-white/20 border border-white/40 shadow-sm backdrop-blur-md';
-                    $classes  .= $is_active ? ' text-emerald-600 font-semibold ring-1 ring-emerald-200/80 from-emerald-100/80 via-white/60 to-white/30' : ' text-slate-500 hover:text-emerald-600 focus:text-emerald-600 hover:from-white/90 hover:via-white/50 hover:to-white/30';
+                    $classes   = 'alfawz-bottom-nav__tab relative flex min-w-[80px] min-h-[48px] flex-col items-center justify-center rounded-2xl px-3 py-2 text-center text-xs font-medium transition-all duration-300 ease-out snap-center shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent focus-visible:ring-white/70';
+                    $classes  .= $is_active ? ' is-active' : ' is-inactive';
                     ?>
                     <a href="<?php echo esc_url( $tab['url'] ); ?>" class="<?php echo esc_attr( $classes ); ?>" data-slug="<?php echo esc_attr( $tab['slug'] ); ?>"<?php echo $is_active ? ' aria-current="page"' : ''; ?>>
-                        <span class="text-xl" aria-hidden="true"><?php echo esc_html( $tab['icon'] ); ?></span>
-                        <span class="mt-1 text-[11px] font-medium leading-tight"><?php echo esc_html( $tab['label'] ); ?></span>
+                        <span class="alfawz-bottom-nav__icon text-xl" aria-hidden="true"><?php echo esc_html( $tab['icon'] ); ?></span>
+                        <span class="alfawz-bottom-nav__label mt-1 text-[11px] leading-tight"><?php echo esc_html( $tab['label'] ); ?></span>
                         <?php if ( 'qaidah' === $tab['slug'] ) : ?>
                             <span class="alfawz-bottom-nav__badge" data-qaidah-indicator aria-hidden="true"></span>
                             <span class="sr-only" data-qaidah-indicator-announcement></span>
