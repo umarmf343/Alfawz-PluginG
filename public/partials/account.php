@@ -97,6 +97,69 @@ if ( $is_logged_in && $current_user instanceof WP_User ) {
     }
 }
 
+if ( ! function_exists( 'alfawz_get_allowed_login_form_tags' ) ) {
+    /**
+     * Returns a list of tags and attributes that should be preserved when rendering login forms.
+     *
+     * @return array
+     */
+    function alfawz_get_allowed_login_form_tags() {
+        $allowed = wp_kses_allowed_html( 'post' );
+
+        $allowed['form'] = [
+            'action'       => true,
+            'method'       => true,
+            'id'           => true,
+            'class'        => true,
+            'name'         => true,
+            'autocomplete' => true,
+            'novalidate'   => true,
+        ];
+
+        $allowed['input'] = [
+            'type'             => true,
+            'name'             => true,
+            'value'            => true,
+            'id'               => true,
+            'class'            => true,
+            'placeholder'      => true,
+            'checked'          => true,
+            'autocomplete'     => true,
+            'required'         => true,
+            'aria-required'    => true,
+            'inputmode'        => true,
+            'size'             => true,
+            'maxlength'        => true,
+            'minlength'        => true,
+            'pattern'          => true,
+            'step'             => true,
+            'aria-describedby' => true,
+            'aria-label'       => true,
+        ];
+
+        $allowed['label'] = [
+            'for'   => true,
+            'class' => true,
+        ];
+
+        $allowed['p'] = array_merge(
+            isset( $allowed['p'] ) ? $allowed['p'] : [],
+            [
+                'class' => true,
+            ]
+        );
+
+        $allowed['div'] = array_merge(
+            isset( $allowed['div'] ) ? $allowed['div'] : [],
+            [
+                'class' => true,
+            ]
+        );
+
+        return $allowed;
+    }
+}
+
 if ( ! function_exists( 'alfawz_customize_login_form_fields' ) ) {
     /**
      * Adds placeholders and accessibility attributes to the Alfawz login forms.
@@ -300,7 +363,7 @@ if ( ! $is_logged_in ) {
                     <li><?php esc_html_e( 'Earn hasanat with every letter recited', 'alfawzquran' ); ?></li>
                 </ul>
                 <div class="alfawz-login-form">
-                    <?php echo wp_kses_post( $student_form ); ?>
+                    <?php echo wp_kses( $student_form, alfawz_get_allowed_login_form_tags() ); ?>
                 </div>
                 <footer class="alfawz-account-card__footer">
                     <a href="<?php echo esc_url( $lost_password ); ?>" class="alfawz-account-link"><?php esc_html_e( 'Forgot password?', 'alfawzquran' ); ?></a>
@@ -324,7 +387,7 @@ if ( ! $is_logged_in ) {
                     <li><?php esc_html_e( 'Track class engagement at a glance', 'alfawzquran' ); ?></li>
                 </ul>
                 <div class="alfawz-login-form">
-                    <?php echo wp_kses_post( $teacher_form ); ?>
+                    <?php echo wp_kses( $teacher_form, alfawz_get_allowed_login_form_tags() ); ?>
                 </div>
                 <footer class="alfawz-account-card__footer">
                     <a href="<?php echo esc_url( $lost_password ); ?>" class="alfawz-account-link"><?php esc_html_e( 'Need help accessing your class?', 'alfawzquran' ); ?></a>
