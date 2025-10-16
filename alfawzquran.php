@@ -92,6 +92,7 @@ function run_alfawz_quran() {
     require_once ALFAWZQURAN_PLUGIN_PATH . 'includes/Models/UserProgress.php';
     require_once ALFAWZQURAN_PLUGIN_PATH . 'includes/Models/QaidahBoard.php';
     require_once ALFAWZQURAN_PLUGIN_PATH . 'includes/Models/RecitationFeedback.php';
+    require_once ALFAWZQURAN_PLUGIN_PATH . 'includes/Models/UserReflection.php';
     require_once ALFAWZQURAN_PLUGIN_PATH . 'includes/API/QuranAPI.php';
 
     // Load public-facing functionality
