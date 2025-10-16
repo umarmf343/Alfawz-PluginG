@@ -342,18 +342,32 @@ class Frontend {
             return;
         }
 
-        if (!$this->is_alfawz_page() || $this->is_account_page_request()) {
+        if (!$this->is_alfawz_page()) {
             return;
         }
 
-        $account_url = $this->get_account_page_url();
-
-        if (empty($account_url)) {
+        if ($this->is_account_page_request()) {
             return;
         }
 
-        wp_safe_redirect($account_url);
-        exit;
+        if (!is_user_logged_in()) {
+            $this->redirect_to_account_page('', true);
+            return;
+        }
+
+        if ($this->current_user_is_admin()) {
+            return;
+        }
+
+        $access_requirement = $this->determine_page_access_requirement();
+
+        if ('teacher' === $access_requirement && !$this->current_user_is_teacher()) {
+            $this->redirect_to_account_page('restricted');
+        }
+
+        if ('student' === $access_requirement && $this->current_user_is_teacher()) {
+            $this->redirect_to_account_page('restricted');
+        }
     }
     
     private function is_alfawz_page() {
@@ -601,6 +615,84 @@ class Frontend {
         }
 
         return current_user_can('edit_posts');
+    }
+
+    private function current_user_is_admin() {
+        return is_user_logged_in() && current_user_can('manage_options');
+    }
+
+    private function determine_page_access_requirement() {
+        $teacher_shortcodes = [
+            'alfawz_teacher_dashboard',
+        ];
+
+        foreach ($teacher_shortcodes as $shortcode) {
+            if ($this->current_page_uses_shortcode($shortcode)) {
+                return 'teacher';
+            }
+        }
+
+        $student_shortcodes = [
+            'alfawz_dashboard',
+            'alfawz_reader',
+            'alfawz_memorizer',
+            'alfawz_memorization',
+            'alfawz_leaderboard',
+            'alfawz_profile',
+            'alfawz_settings',
+            'alfawz_game',
+            'alfawz_games',
+        ];
+
+        foreach ($student_shortcodes as $shortcode) {
+            if ($this->current_page_uses_shortcode($shortcode)) {
+                return 'student';
+            }
+        }
+
+        return null;
+    }
+
+    private function redirect_to_account_page($notice = '', $preserve_redirect = false) {
+        $account_url = $this->get_account_page_url();
+
+        if (empty($account_url)) {
+            return;
+        }
+
+        if (!empty($notice)) {
+            $account_url = add_query_arg('alfawz_notice[]', $notice, $account_url);
+        }
+
+        if ($preserve_redirect) {
+            $current_url = $this->get_current_page_url();
+            $current_url = wp_validate_redirect($current_url, '');
+
+            if (!empty($current_url)) {
+                $account_url = add_query_arg('redirect_to', $current_url, $account_url);
+            }
+        }
+
+        wp_safe_redirect($account_url);
+        exit;
+    }
+
+    private function get_current_page_url() {
+        $permalink = get_permalink();
+
+        if (!empty($permalink)) {
+            return $permalink;
+        }
+
+        if (isset($GLOBALS['wp']) && $GLOBALS['wp'] instanceof \WP) {
+            $request = $GLOBALS['wp']->request;
+
+            if (!empty($request)) {
+                return home_url(trailingslashit($request));
+            }
+        }
+
+        return home_url('/');
     }
     
     private function login_required_message() {
