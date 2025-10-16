@@ -239,22 +239,22 @@ if ( ! defined( 'ABSPATH' ) ) {
                 </div>
             </section>
 
-            <section id="alfawz-memorization-stats" class="grid grid-cols-1 gap-5 text-white sm:grid-cols-2">
-                <div class="rounded-3xl bg-gradient-to-br from-sky-500/80 to-sky-400/70 p-6 shadow-xl ring-1 ring-sky-100/60">
-                    <p class="text-sm uppercase tracking-[0.3em] text-white/90"><?php esc_html_e( 'Total verses', 'alfawzquran' ); ?></p>
-                    <p id="alfawz-memorization-stat-total" class="mt-2 text-3xl font-semibold">0</p>
+            <section id="alfawz-memorization-stats" class="grid grid-cols-1 gap-6 text-center text-white sm:grid-cols-2">
+                <div class="flex min-h-[220px] flex-col items-center justify-center rounded-3xl bg-gradient-to-br from-sky-500 via-cyan-400 to-blue-600 p-10 shadow-2xl ring-1 ring-sky-200/60">
+                    <p class="text-2xl uppercase tracking-[0.3em] text-white/90"><?php esc_html_e( 'Total verses', 'alfawzquran' ); ?></p>
+                    <p id="alfawz-memorization-stat-total" class="mt-4 text-6xl font-extrabold">0</p>
                 </div>
-                <div class="rounded-3xl bg-gradient-to-br from-emerald-500/80 to-teal-400/70 p-6 shadow-xl ring-1 ring-emerald-100/60">
-                    <p class="text-sm uppercase tracking-[0.3em] text-white/90"><?php esc_html_e( 'Memorised', 'alfawzquran' ); ?></p>
-                    <p id="alfawz-memorization-stat-memorized" class="mt-2 text-3xl font-semibold">0</p>
+                <div class="flex min-h-[220px] flex-col items-center justify-center rounded-3xl bg-gradient-to-br from-emerald-500 via-green-400 to-teal-600 p-10 shadow-2xl ring-1 ring-emerald-200/60">
+                    <p class="text-2xl uppercase tracking-[0.3em] text-white/90"><?php esc_html_e( 'Memorised', 'alfawzquran' ); ?></p>
+                    <p id="alfawz-memorization-stat-memorized" class="mt-4 text-6xl font-extrabold">0</p>
                 </div>
-                <div class="rounded-3xl bg-gradient-to-br from-rose-500/80 to-amber-400/70 p-6 shadow-xl ring-1 ring-rose-100/60">
-                    <p class="text-sm uppercase tracking-[0.3em] text-white/90"><?php esc_html_e( 'Remaining', 'alfawzquran' ); ?></p>
-                    <p id="alfawz-memorization-stat-remaining" class="mt-2 text-3xl font-semibold">0</p>
+                <div class="flex min-h-[220px] flex-col items-center justify-center rounded-3xl bg-gradient-to-br from-rose-500 via-fuchsia-400 to-amber-500 p-10 shadow-2xl ring-1 ring-rose-200/60">
+                    <p class="text-2xl uppercase tracking-[0.3em] text-white/90"><?php esc_html_e( 'Remaining', 'alfawzquran' ); ?></p>
+                    <p id="alfawz-memorization-stat-remaining" class="mt-4 text-6xl font-extrabold">0</p>
                 </div>
-                <div class="rounded-3xl bg-gradient-to-br from-purple-500/80 to-indigo-400/70 p-6 shadow-xl ring-1 ring-purple-100/60">
-                    <p class="text-sm uppercase tracking-[0.3em] text-white/90"><?php esc_html_e( 'Completion', 'alfawzquran' ); ?></p>
-                    <p id="alfawz-memorization-stat-completion" class="mt-2 text-3xl font-semibold">0%</p>
+                <div class="flex min-h-[220px] flex-col items-center justify-center rounded-3xl bg-gradient-to-br from-purple-500 via-violet-400 to-indigo-600 p-10 shadow-2xl ring-1 ring-purple-200/60">
+                    <p class="text-2xl uppercase tracking-[0.3em] text-white/90"><?php esc_html_e( 'Completion', 'alfawzquran' ); ?></p>
+                    <p id="alfawz-memorization-stat-completion" class="mt-4 text-6xl font-extrabold">0%</p>
                 </div>
             </section>
         </section>
