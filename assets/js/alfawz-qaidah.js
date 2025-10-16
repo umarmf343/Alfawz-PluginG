@@ -1156,6 +1156,13 @@
         const assignments = await apiRequest('qaidah/assignments');
         studentState.assignments = Array.isArray(assignments) ? assignments : [];
         renderAssignments();
+        const indicator = window.alfawzQaidahIndicator || null;
+        if (indicator && typeof indicator.syncAssignments === 'function') {
+          indicator.syncAssignments(studentState.assignments);
+        }
+        if (indicator && typeof indicator.markAssignmentsAsSeen === 'function') {
+          indicator.markAssignmentsAsSeen(studentState.assignments);
+        }
       } catch (error) {
         console.error('[AlfawzQuran] Failed to load assignments', error);
         if (emptyMessage) {

@@ -50,3 +50,27 @@
 .alfawz-bottom-nav__scroll-indicator--right {
   right: 0.5rem;
 }
+
+#alfawz-bottom-nav .alfawz-bottom-nav__badge {
+  position: absolute;
+  top: 0.35rem;
+  right: 0.45rem;
+  display: none;
+  min-width: 1.5rem;
+  padding: 0.15rem 0.4rem;
+  border-radius: 9999px;
+  background: linear-gradient(135deg, #dc2626, #f87171);
+  color: #fff7ed;
+  font-size: 0.65rem;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  text-align: center;
+  box-shadow: 0 4px 10px rgba(220, 38, 38, 0.28);
+}
+
+#alfawz-bottom-nav .alfawz-bottom-nav__badge.is-visible {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}

@@ -1,4 +1,6 @@
 (function () {
+  const data = window.alfawzBottomNavData || {};
+
   const normalizeUrl = (url) => {
     if (!url) {
       return '';
@@ -13,6 +15,85 @@
     } catch (error) {
       return url;
     }
+  };
+
+  const buildApiUrl = (path) => {
+    const base = typeof data.apiUrl === 'string' ? data.apiUrl : '';
+    if (!base) {
+      return '';
+    }
+    const trimmedBase = base.replace(/\/+$/, '/');
+    const cleanPath = String(path || '').replace(/^\/+/, '');
+    return `${trimmedBase}${cleanPath}`;
+  };
+
+  const storageKey = `alfawzQaidahSeen:${data.userId || 'guest'}`;
+
+  const readSeenAssignments = () => {
+    if (!window.localStorage) {
+      return {};
+    }
+    try {
+      const raw = window.localStorage.getItem(storageKey);
+      if (!raw) {
+        return {};
+      }
+      const parsed = JSON.parse(raw);
+      if (parsed && typeof parsed === 'object') {
+        return parsed;
+      }
+    } catch (error) {
+      // Ignore parsing/storage errors.
+    }
+    return {};
+  };
+
+  const writeSeenAssignments = (records) => {
+    if (!window.localStorage) {
+      return;
+    }
+    try {
+      window.localStorage.setItem(storageKey, JSON.stringify(records));
+    } catch (error) {
+      // Ignore storage errors (e.g. quota exceeded or private mode).
+    }
+  };
+
+  const getAssignmentSignature = (assignment) => {
+    if (!assignment || assignment.id === undefined || assignment.id === null) {
+      return 'seen';
+    }
+    if (assignment.updated) {
+      return String(assignment.updated);
+    }
+    if (assignment.status) {
+      return String(assignment.status);
+    }
+    if (assignment.is_new) {
+      return 'new';
+    }
+    return 'seen';
+  };
+
+  const getNewAssignmentCount = (assignments, seenRecords) => {
+    if (!Array.isArray(assignments)) {
+      return 0;
+    }
+    const seen = seenRecords || {};
+    let count = 0;
+
+    assignments.forEach((assignment) => {
+      if (!assignment || assignment.id === undefined || assignment.id === null) {
+        return;
+      }
+      const id = String(assignment.id);
+      const signature = getAssignmentSignature(assignment);
+      if (seen[id] !== signature) {
+        count += 1;
+      }
+    });
+
+    return count;
   };
 
   const setActiveLink = (links, target) => {
@@ -56,6 +137,147 @@
     }
   };
 
+  let qaidahIndicatorApi = null;
+  let pollTimer = null;
+  let visibilityListenerAttached = false;
+
+  const initQaidahIndicator = (nav) => {
+    const role = (nav.dataset.role || data.role || '').toLowerCase();
+    if (role !== 'student') {
+      return;
+    }
+
+    const badge = nav.querySelector('[data-qaidah-indicator]');
+    if (!badge) {
+      return;
+    }
+    const announcement = nav.querySelector('[data-qaidah-indicator-announcement]');
+
+    const labelText = (count) => {
+      const baseLabel = data.strings && data.strings.badgeLabel ? data.strings.badgeLabel : "new Qa'idah assignments";
+      if (count === 1) {
+        return `1 ${baseLabel}`;
+      }
+      return `${count} ${baseLabel}`;
+    };
+
+    let cachedAssignments = [];
+
+    const updateBadge = (count) => {
+      if (count > 0) {
+        badge.textContent = count > 9 ? '9+' : String(count);
+        badge.classList.add('is-visible');
+      } else {
+        badge.textContent = '';
+        badge.classList.remove('is-visible');
+      }
+      if (announcement) {
+        announcement.textContent = count > 0 ? labelText(count) : '';
+      }
+    };
+
+    const syncAssignments = (assignments) => {
+      cachedAssignments = Array.isArray(assignments) ? assignments : [];
+      const seen = readSeenAssignments();
+      const newCount = getNewAssignmentCount(cachedAssignments, seen);
+      updateBadge(newCount);
+      return newCount;
+    };
+
+    const markAssignmentsAsSeen = (assignments) => {
+      const list = Array.isArray(assignments) ? assignments : cachedAssignments;
+      if (!list.length) {
+        updateBadge(0);
+        return;
+      }
+
+      const seen = readSeenAssignments();
+      let changed = false;
+
+      list.forEach((assignment) => {
+        if (!assignment || assignment.id === undefined || assignment.id === null) {
+          return;
+        }
+        const id = String(assignment.id);
+        const signature = getAssignmentSignature(assignment);
+        if (seen[id] !== signature) {
+          seen[id] = signature;
+          changed = true;
+        }
+      });
+
+      if (changed) {
+        writeSeenAssignments(seen);
+      }
+
+      updateBadge(0);
+    };
+
+    const fetchAssignments = async () => {
+      const url = buildApiUrl('qaidah/assignments');
+      if (!url) {
+        return [];
+      }
+      const headers = {};
+      if (data.nonce) {
+        headers['X-WP-Nonce'] = data.nonce;
+      }
+      const response = await fetch(url, {
+        headers,
+        credentials: 'same-origin',
+      });
+      if (!response.ok) {
+        throw new Error(`Request failed with status ${response.status}`);
+      }
+      const payload = await response.json();
+      return Array.isArray(payload) ? payload : [];
+    };
+
+    const refresh = async () => {
+      if (typeof document !== 'undefined' && document.visibilityState === 'hidden') {
+        return;
+      }
+      try {
+        const assignments = await fetchAssignments();
+        syncAssignments(assignments);
+      } catch (error) {
+        console.error("[AlfawzQuran] Failed to refresh Qa'idah assignments", error);
+      }
+    };
+
+    const api = {
+      refresh,
+      syncAssignments,
+      markAssignmentsAsSeen,
+      getCachedAssignments: () => cachedAssignments.slice(),
+    };
+
+    qaidahIndicatorApi = api;
+    window.alfawzQaidahIndicator = api;
+
+    refresh();
+
+    if (!visibilityListenerAttached && typeof document !== 'undefined') {
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible' && qaidahIndicatorApi) {
+          qaidahIndicatorApi.refresh();
+        }
+      });
+      visibilityListenerAttached = true;
+    }
+
+    if (!pollTimer) {
+      const interval = typeof data.pollInterval === 'number' ? data.pollInterval : 60000;
+      if (interval > 0) {
+        pollTimer = setInterval(() => {
+          if (qaidahIndicatorApi) {
+            qaidahIndicatorApi.refresh();
+          }
+        }, Math.max(15000, interval));
+      }
+    }
+  };
+
   const initBottomNav = () => {
     const nav = document.getElementById('alfawz-bottom-nav');
     if (!nav) {
@@ -76,6 +298,7 @@
     }
 
     activateFromLocation(nav, links);
+    initQaidahIndicator(nav);
 
     nav.addEventListener('click', (event) => {
       const target = event.target.closest('a[data-slug]');
@@ -83,6 +306,9 @@
         return;
       }
       setActiveLink(links, target);
+      if (target.dataset.slug === 'qaidah' && qaidahIndicatorApi && typeof qaidahIndicatorApi.markAssignmentsAsSeen === 'function') {
+        qaidahIndicatorApi.markAssignmentsAsSeen();
+      }
     });
   };
 
