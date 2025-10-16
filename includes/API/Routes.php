@@ -58,9 +58,16 @@ class Routes {
     /**
      * User meta keys for the egg challenge.
      */
-    const EGG_CHALLENGE_COUNT_META      = 'egg_challenge_current_count';
-    const EGG_CHALLENGE_TARGET_META     = 'egg_challenge_target';
+    const EGG_CHALLENGE_COUNT_META       = 'egg_challenge_current_count';
+    const EGG_CHALLENGE_TARGET_META      = 'egg_challenge_target';
     const EGG_CHALLENGE_LAST_TARGET_META = 'alfawz_egg_last_completion_target';
+    const EGG_CHALLENGE_LAST_COMPLETION_META = 'alfawz_egg_last_completion_at';
+
+    /**
+     * Default and incremental values for the egg challenge.
+     */
+    const EGG_CHALLENGE_BASE_TARGET = 20;
+    const EGG_CHALLENGE_STEP        = 5;
 
     /**
      * Cached recitation snippet definitions sourced from the Tarteel-inspired library.
@@ -3589,7 +3596,7 @@ class Routes {
         $target = (int) get_user_meta( $user_id, self::EGG_CHALLENGE_TARGET_META, true );
 
         if ( $target <= 0 ) {
-            $target = 20;
+            $target = self::EGG_CHALLENGE_BASE_TARGET;
             update_user_meta( $user_id, self::EGG_CHALLENGE_TARGET_META, $target );
         }
 
@@ -3598,36 +3605,64 @@ class Routes {
             update_user_meta( $user_id, self::EGG_CHALLENGE_COUNT_META, 0 );
         }
 
-        $percentage      = $target > 0 ? round( ( $count / $target ) * 100, 2 ) : 0;
-        $previous_target = get_user_meta( $user_id, self::EGG_CHALLENGE_LAST_TARGET_META, true );
+        $percentage       = $target > 0 ? round( ( $count / $target ) * 100, 2 ) : 0;
+        $previous_target  = get_user_meta( $user_id, self::EGG_CHALLENGE_LAST_TARGET_META, true );
+        $last_completion  = get_user_meta( $user_id, self::EGG_CHALLENGE_LAST_COMPLETION_META, true );
+        $normalized_count = min( $count, $target );
 
         return [
-            'count'            => $count,
+            'count'            => $normalized_count,
             'target'           => $target,
             'percentage'       => min( 100, $percentage ),
+            'remaining'        => max( 0, $target - $normalized_count ),
             'previous_target'  => '' !== $previous_target ? (int) $previous_target : null,
+            'completed'        => false,
+            'next_target'      => $target,
+            'level'            => $this->calculate_egg_challenge_level( $target ),
+            'last_completion'  => $last_completion ? gmdate( 'c', strtotime( $last_completion ) ) : null,
+            'progress_label'   => sprintf( '%d / %d', $normalized_count, $target ),
         ];
+    }
+
+    /**
+     * Determine the egg challenge level based on the active target size.
+     */
+    private function calculate_egg_challenge_level( $target ) {
+        $target = (int) $target;
+        $base   = (int) self::EGG_CHALLENGE_BASE_TARGET;
+        $step   = max( 1, (int) self::EGG_CHALLENGE_STEP );
+
+        if ( $target <= $base ) {
+            return 1;
+        }
+
+        $progress = max( 0, $target - $base );
+
+        return 1 + (int) floor( $progress / $step );
     }
 
     /**
      * Increment the egg challenge counters.
      */
     private function increment_egg_challenge( $user_id ) {
-        $state   = $this->prepare_egg_challenge_state( $user_id );
-        $count   = (int) $state['count'] + 1;
-        $target  = (int) $state['target'];
-        $completed = false;
-        $previous_target = null;
+        $state            = $this->prepare_egg_challenge_state( $user_id );
+        $count            = (int) $state['count'] + 1;
+        $target           = (int) $state['target'];
+        $completed        = false;
+        $previous_target  = null;
+        $completed_at     = null;
 
         if ( $count >= $target ) {
-            $completed       = true;
-            $previous_target = $target;
-            $target         += 5;
-            $count           = 0;
+            $completed        = true;
+            $previous_target  = $target;
+            $target          += self::EGG_CHALLENGE_STEP;
+            $count            = 0;
+            $completed_at     = current_time( 'mysql', true );
 
             update_user_meta( $user_id, self::EGG_CHALLENGE_TARGET_META, $target );
             update_user_meta( $user_id, self::EGG_CHALLENGE_COUNT_META, $count );
             update_user_meta( $user_id, self::EGG_CHALLENGE_LAST_TARGET_META, $previous_target );
+            update_user_meta( $user_id, self::EGG_CHALLENGE_LAST_COMPLETION_META, $completed_at );
         } else {
             update_user_meta( $user_id, self::EGG_CHALLENGE_COUNT_META, $count );
         }
@@ -3638,8 +3673,14 @@ class Routes {
             'count'           => $count,
             'target'          => $target,
             'percentage'      => min( 100, $percentage ),
+            'remaining'       => max( 0, $target - $count ),
             'completed'       => $completed,
             'previous_target' => $previous_target,
+            'next_target'     => $target,
+            'level'           => $this->calculate_egg_challenge_level( $target ),
+            'progress_label'  => sprintf( '%d / %d', min( $count, $target ), $target ),
+            'completed_at'    => $completed_at ? gmdate( 'c', strtotime( $completed_at ) ) : null,
+            'last_completion' => $completed_at ? gmdate( 'c', strtotime( $completed_at ) ) : ( $state['last_completion'] ?? null ),
         ];
     }
 

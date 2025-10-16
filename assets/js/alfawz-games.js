@@ -251,17 +251,31 @@
     }
     const count = Number(state?.count || 0);
     const target = Math.max(1, Number(state?.target || 20));
-    const percentage = clampPercent(state?.percentage || (count / target) * 100);
-    const completed = percentage >= 100 || count >= target;
+    const percentage = clampPercent(state?.percentage ?? (target ? (count / target) * 100 : 0));
+    const completed = Boolean(state?.completed) || percentage >= 100 || count >= target;
+    const nextTarget = Number(state?.next_target || state?.target || target);
+    const previousTarget = Number(state?.previous_target || 0) || null;
 
     if (elements.egg.progress) {
       elements.egg.progress.style.width = `${percentage}%`;
     }
     if (elements.egg.label) {
-      elements.egg.label.textContent = `${formatNumber(Math.min(count, target))} / ${formatNumber(target)} ${strings.verses}`;
+      if (state?.progress_label) {
+        elements.egg.label.textContent = `${state.progress_label} ${strings.verses}`;
+      } else {
+        elements.egg.label.textContent = `${formatNumber(Math.min(count, target))} / ${formatNumber(target)} ${strings.verses}`;
+      }
     }
     if (elements.egg.message) {
-      elements.egg.message.textContent = completed ? strings.eggComplete : strings.eggInProgress;
+      if (completed && nextTarget) {
+        const hatchedLabel = previousTarget && previousTarget > 0 ? formatNumber(previousTarget) : formatNumber(Math.max(1, nextTarget - 5));
+        elements.egg.message.innerHTML = `${strings.eggComplete} <br /><span class="font-semibold">${hatchedLabel}</span> → <span class="font-semibold">${formatNumber(nextTarget)} ${strings.verses}</span>`;
+      } else if (Number.isFinite(state?.remaining) && state.remaining > 0) {
+        const remaining = formatNumber(state.remaining);
+        elements.egg.message.textContent = `${remaining} ${strings.verses.toLowerCase()} to go.`;
+      } else {
+        elements.egg.message.textContent = strings.eggInProgress;
+      }
     }
     if (elements.egg.emoji) {
       elements.egg.emoji.textContent = completed ? '🐣' : '🥚';
@@ -270,7 +284,7 @@
       elements.egg.card.classList.toggle('alfawz-egg-hatched', completed);
     }
     if (elements.egg.level) {
-      const level = Math.max(1, Math.ceil(target / 20));
+      const level = Number(state?.level || 0) || Math.max(1, Math.ceil(target / 20));
       elements.egg.level.textContent = `${strings.levelLabel} ${formatNumber(level)}`;
     }
   };

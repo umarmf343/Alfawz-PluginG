@@ -52,6 +52,14 @@ foreach ( $users as $user_id ) {
     delete_user_meta( $user_id, 'alfawz_pref_daily_target' );
     delete_user_meta( $user_id, 'alfawz_pref_enable_leaderboard' );
     delete_user_meta( $user_id, 'alfawz_reflection_last_mood' );
+    delete_user_meta( $user_id, 'daily_recited_verses' );
+    delete_user_meta( $user_id, 'alfawz_daily_recited_verses_log' );
+    delete_user_meta( $user_id, 'alfawz_daily_goal_last_reset' );
+    delete_user_meta( $user_id, 'alfawz_daily_goal_last_completion' );
+    delete_user_meta( $user_id, 'egg_challenge_current_count' );
+    delete_user_meta( $user_id, 'egg_challenge_target' );
+    delete_user_meta( $user_id, 'alfawz_egg_last_completion_target' );
+    delete_user_meta( $user_id, 'alfawz_egg_last_completion_at' );
 }
 
 // Clear any scheduled cron jobs
