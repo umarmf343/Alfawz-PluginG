@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320" role="img" aria-labelledby="title desc">
+  <title id="title">Brother silhouette avatar</title>
+  <desc id="desc">Illustrated silhouette of a Muslim man wearing a kufi cap.</desc>
+  <defs>
+    <radialGradient id="bgGradient" cx="50%" cy="35%" r="75%">
+      <stop offset="0%" stop-color="#fde7c6"/>
+      <stop offset="55%" stop-color="#f4c991"/>
+      <stop offset="100%" stop-color="#e4955c"/>
+    </radialGradient>
+    <linearGradient id="robeGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#4f2b1c"/>
+      <stop offset="100%" stop-color="#2d1610"/>
+    </linearGradient>
+    <linearGradient id="faceGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#f8d7b7"/>
+      <stop offset="100%" stop-color="#e3a66d"/>
+    </linearGradient>
+  </defs>
+  <circle cx="160" cy="160" r="160" fill="url(#bgGradient)"/>
+  <path d="M70 304c18-68 48-110 90-110s72 42 90 110z" fill="url(#robeGradient)"/>
+  <path d="M107 232c14-18 31-28 53-28s40 10 53 28c-12 10-32 16-53 16s-41-6-53-16z" fill="#1e0f0a" opacity="0.5"/>
+  <path d="M102 118c0-39 26-72 58-72s58 33 58 72c0 47-26 86-58 86s-58-39-58-86z" fill="url(#faceGradient)"/>
+  <path d="M90 120c0-49 32-88 70-88s70 39 70 88c0 9-1 18-3 26-12-17-40-29-67-29s-55 12-67 29c-2-8-3-17-3-26z" fill="#f0ebdf"/>
+  <path d="M113 86c10-8 25-13 39-13s29 5 39 13c-9-17-23-28-39-28s-30 11-39 28z" fill="#3b2a1f" opacity="0.3"/>
+  <path d="M96 144c11-15 34-25 64-25s53 10 64 25c-13 32-38 53-64 53s-51-21-64-53z" fill="#3b2318" opacity="0.1"/>
+</svg>

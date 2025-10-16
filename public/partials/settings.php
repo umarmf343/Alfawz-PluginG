@@ -9,6 +9,17 @@ $email_address    = $current_user instanceof WP_User ? $current_user->user_email
 $memorizer_link   = esc_url( home_url( '/alfawz-memorizer/' ) );
 $password_link    = esc_url( wp_lostpassword_url() );
 $donation_link    = esc_url( home_url( '/donate/' ) );
+$avatar_gender_meta = get_user_meta( get_current_user_id(), 'alfawz_avatar_gender', true );
+$avatar_gender      = in_array( $avatar_gender_meta, [ 'male', 'female' ], true ) ? $avatar_gender_meta : '';
+$avatar_choices     = [
+    'male'   => ALFAWZQURAN_PLUGIN_URL . 'assets/images/avatar-male.svg',
+    'female' => ALFAWZQURAN_PLUGIN_URL . 'assets/images/avatar-female.svg',
+];
+$avatar_preview_url = $avatar_gender && isset( $avatar_choices[ $avatar_gender ] )
+    ? $avatar_choices[ $avatar_gender ]
+    : get_avatar_url( get_current_user_id(), [ 'size' => 160 ] );
+$avatar_preview_url = esc_url( $avatar_preview_url );
+$avatar_default_alt = esc_attr__( 'Profile photo', 'alfawzquran' );
 ?>
 <section id="alfawz-settings" class="bg-stone-50 py-10 sm:py-14">
     <div class="mx-auto w-full max-w-4xl px-4 sm:px-6 lg:px-8">
@@ -48,6 +59,38 @@ $donation_link    = esc_url( home_url( '/donate/' ) );
                 </h2>
 
                 <form id="alfawz-settings-profile-form" class="space-y-4" novalidate>
+                    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-6">
+                        <div class="relative h-24 w-24 rounded-full border-2 border-emerald-100 bg-white shadow-sm sm:h-28 sm:w-28">
+                            <img
+                                id="alfawz-settings-avatar-preview"
+                                src="<?php echo $avatar_preview_url; ?>"
+                                alt="<?php echo $avatar_default_alt; ?>"
+                                class="h-full w-full rounded-full object-cover"
+                                data-default-avatar="<?php echo $avatar_preview_url; ?>"
+                                data-default-alt="<?php echo $avatar_default_alt; ?>"
+                            />
+                        </div>
+                        <div class="space-y-2">
+                            <p class="text-sm font-medium text-gray-800"><?php esc_html_e( 'Profile Photo', 'alfawzquran' ); ?></p>
+                            <p class="text-sm text-gray-600 max-w-sm">
+                                <?php esc_html_e( 'Choose a respectful silhouette that represents you. You can update this anytime.', 'alfawzquran' ); ?>
+                            </p>
+                            <div class="flex flex-wrap items-center gap-3">
+                                <button
+                                    type="button"
+                                    id="alfawz-settings-avatar-button"
+                                    class="inline-flex items-center rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                >
+                                    <?php esc_html_e( 'Upload Photo', 'alfawzquran' ); ?>
+                                </button>
+                                <span id="alfawz-settings-avatar-hint" class="text-xs text-gray-500">
+                                    <?php esc_html_e( 'We use curated Muslim silhouettes instead of file uploads for privacy.', 'alfawzquran' ); ?>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <input type="hidden" id="alfawz-avatar-choice" name="avatar_gender" value="<?php echo esc_attr( $avatar_gender ); ?>" />
+
                     <div>
                         <label for="alfawz-settings-full-name" class="block text-sm font-medium text-gray-700 mb-1"><?php esc_html_e( 'Full Name', 'alfawzquran' ); ?></label>
                         <input
@@ -84,6 +127,78 @@ $donation_link    = esc_url( home_url( '/donate/' ) );
                     </div>
                     <p id="alfawz-profile-message" class="hidden text-base" aria-live="polite"></p>
                 </form>
+                <div
+                    id="alfawz-avatar-modal"
+                    class="fixed inset-0 z-50 hidden"
+                    role="dialog"
+                    aria-modal="true"
+                    aria-labelledby="alfawz-avatar-modal-title"
+                >
+                    <div class="absolute inset-0 bg-slate-900/50" data-avatar-overlay></div>
+                    <div class="relative z-10 flex min-h-full items-center justify-center px-4 py-8 sm:px-6">
+                        <div class="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl sm:p-8" data-avatar-dialog>
+                            <div class="flex items-start justify-between gap-4">
+                                <div>
+                                    <h3 id="alfawz-avatar-modal-title" class="text-lg font-semibold text-gray-900">
+                                        <?php esc_html_e( 'Choose a profile photo', 'alfawzquran' ); ?>
+                                    </h3>
+                                    <p class="mt-1 text-sm text-gray-600">
+                                        <?php esc_html_e( 'Select the silhouette that feels most like you. Your choice updates instantly.', 'alfawzquran' ); ?>
+                                    </p>
+                                </div>
+                                <button
+                                    type="button"
+                                    class="rounded-full bg-gray-100 p-2 text-gray-500 transition hover:bg-gray-200 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                    data-avatar-cancel
+                                    aria-label="<?php esc_attr_e( 'Close avatar chooser', 'alfawzquran' ); ?>"
+                                >
+                                    ✕
+                                </button>
+                            </div>
+                            <div class="mt-6 grid gap-4 sm:grid-cols-2">
+                                <button
+                                    type="button"
+                                    class="group flex flex-col items-center gap-3 rounded-xl border border-gray-200 p-4 text-left transition hover:border-emerald-500 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                    data-avatar-option="male"
+                                    data-avatar-url="<?php echo esc_attr( $avatar_choices['male'] ); ?>"
+                                    aria-pressed="false"
+                                >
+                                    <img src="<?php echo esc_url( $avatar_choices['male'] ); ?>" alt="<?php esc_attr_e( 'Brother silhouette', 'alfawzquran' ); ?>" class="h-28 w-28 rounded-full border border-emerald-100 bg-emerald-50 p-2 shadow-sm transition group-[aria-pressed='true']:ring-2 group-[aria-pressed='true']:ring-emerald-500" />
+                                    <span class="text-sm font-semibold text-gray-800"><?php esc_html_e( 'Brother silhouette', 'alfawzquran' ); ?></span>
+                                    <span class="text-xs text-gray-500"><?php esc_html_e( 'Thobe & kufi inspired', 'alfawzquran' ); ?></span>
+                                </button>
+                                <button
+                                    type="button"
+                                    class="group flex flex-col items-center gap-3 rounded-xl border border-gray-200 p-4 text-left transition hover:border-emerald-500 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                    data-avatar-option="female"
+                                    data-avatar-url="<?php echo esc_attr( $avatar_choices['female'] ); ?>"
+                                    aria-pressed="false"
+                                >
+                                    <img src="<?php echo esc_url( $avatar_choices['female'] ); ?>" alt="<?php esc_attr_e( 'Sister silhouette', 'alfawzquran' ); ?>" class="h-28 w-28 rounded-full border border-rose-100 bg-rose-50 p-2 shadow-sm transition group-[aria-pressed='true']:ring-2 group-[aria-pressed='true']:ring-rose-500" />
+                                    <span class="text-sm font-semibold text-gray-800"><?php esc_html_e( 'Sister silhouette', 'alfawzquran' ); ?></span>
+                                    <span class="text-xs text-gray-500"><?php esc_html_e( 'Hijab & abaya inspired', 'alfawzquran' ); ?></span>
+                                </button>
+                            </div>
+                            <p class="mt-4 hidden text-sm" data-avatar-message></p>
+                            <div class="mt-6 flex items-center justify-end gap-3">
+                                <button
+                                    type="button"
+                                    class="rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-600 transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                    data-avatar-cancel
+                                >
+                                    <?php esc_html_e( 'Cancel', 'alfawzquran' ); ?>
+                                </button>
+                                <button
+                                    type="button"
+                                    class="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                    data-avatar-save
+                                >
+                                    <?php esc_html_e( 'Save', 'alfawzquran' ); ?>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </section>
 
             <section class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm" aria-labelledby="alfawz-settings-plan-heading" data-plan-url="<?php echo $memorizer_link; ?>">

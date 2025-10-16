@@ -3972,6 +3972,16 @@
     const profileSaveBtn = qs('#alfawz-settings-profile-save', profileForm);
     const profileStatus = qs('#alfawz-profile-status', root);
     const profileMessage = qs('#alfawz-profile-message', profileForm);
+    const avatarPreview = qs('#alfawz-settings-avatar-preview', profileForm?.parentElement);
+    const avatarButton = qs('#alfawz-settings-avatar-button', profileForm);
+    const avatarChoiceInput = qs('#alfawz-avatar-choice', profileForm);
+    const avatarModal = qs('#alfawz-avatar-modal', root);
+    const avatarOverlay = avatarModal?.querySelector('[data-avatar-overlay]');
+    const avatarDialog = avatarModal?.querySelector('[data-avatar-dialog]');
+    const avatarOptions = Array.from(avatarModal?.querySelectorAll('[data-avatar-option]') || []);
+    const avatarSaveBtn = avatarModal?.querySelector('[data-avatar-save]');
+    const avatarCancelButtons = Array.from(avatarModal?.querySelectorAll('[data-avatar-cancel]') || []);
+    const avatarMessage = avatarModal?.querySelector('[data-avatar-message]');
 
     const planSection = root.querySelector('[data-plan-url]');
     const planName = qs('#alfawz-current-plan-name', root);
@@ -4025,6 +4035,186 @@
       element.classList.add(status === 'error' ? 'text-red-600' : 'text-emerald-600');
     };
 
+    const avatarMap = wpData.avatars || {};
+    let avatarState = {
+      current: (avatarChoiceInput?.value || '').toLowerCase(),
+      pending: (avatarChoiceInput?.value || '').toLowerCase(),
+    };
+
+    const resetAvatarMessage = () => {
+      if (!avatarMessage) {
+        return;
+      }
+      avatarMessage.textContent = '';
+      avatarMessage.classList.add('hidden');
+      avatarMessage.classList.remove('text-red-600', 'text-emerald-600');
+    };
+
+    const updateAvatarOptionState = (value) => {
+      avatarOptions.forEach((option) => {
+        const { avatarOption } = option.dataset || {};
+        option.setAttribute('aria-pressed', avatarOption === value ? 'true' : 'false');
+      });
+    };
+
+    const applyAvatarSelection = (payload = {}) => {
+      const gender = String(payload.gender || payload.avatar_gender || avatarState.current || '').toLowerCase();
+      const mappedUrl = gender && avatarMap ? avatarMap[gender] : '';
+      const responseUrl = payload.url || payload.avatar_url;
+      const nextUrl = responseUrl || mappedUrl || avatarPreview?.dataset.activeAvatar || avatarPreview?.dataset.defaultAvatar || avatarPreview?.src;
+
+      avatarState = {
+        current: gender,
+        pending: gender,
+      };
+
+      if (avatarChoiceInput) {
+        avatarChoiceInput.value = gender || '';
+      }
+
+      if (avatarPreview) {
+        if (nextUrl) {
+          avatarPreview.src = nextUrl;
+          avatarPreview.dataset.activeAvatar = nextUrl;
+        } else if (avatarPreview.dataset.defaultAvatar) {
+          avatarPreview.src = avatarPreview.dataset.defaultAvatar;
+        }
+      }
+
+      updateAvatarOptionState(gender);
+      resetAvatarMessage();
+    };
+
+    const closeAvatarModal = () => {
+      if (!avatarModal) {
+        return;
+      }
+      avatarModal.classList.add('hidden');
+      avatarModal.setAttribute('aria-hidden', 'true');
+      document.removeEventListener('keydown', handleAvatarKeydown);
+    };
+
+    const handleAvatarKeydown = (event) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        closeAvatarModal();
+      }
+    };
+
+    const openAvatarModal = () => {
+      if (!avatarModal) {
+        return;
+      }
+      resetAvatarMessage();
+      avatarModal.classList.remove('hidden');
+      avatarModal.setAttribute('aria-hidden', 'false');
+      avatarState.pending = avatarState.current;
+      updateAvatarOptionState(avatarState.pending);
+      const focusTarget = avatarOptions.find((option) => option.dataset.avatarOption === avatarState.pending) || avatarOptions[0];
+      requestAnimationFrame(() => {
+        focusTarget?.focus();
+      });
+      document.addEventListener('keydown', handleAvatarKeydown);
+    };
+
+    const saveAvatarSelection = async () => {
+      if (!avatarModal) {
+        return;
+      }
+
+      const selected = avatarState.pending;
+      if (!selected) {
+        if (avatarMessage) {
+          avatarMessage.textContent = wpData.strings?.avatarMissing || 'Please choose a silhouette before saving.';
+          avatarMessage.classList.remove('hidden');
+          avatarMessage.classList.remove('text-emerald-600');
+          avatarMessage.classList.add('text-red-600');
+        } else {
+          showMessage(profileMessage, wpData.strings?.avatarMissing || 'Please choose a silhouette before saving.', 'error');
+        }
+        return;
+      }
+
+      const originalLabel = avatarSaveBtn?.textContent;
+      if (avatarSaveBtn) {
+        avatarSaveBtn.disabled = true;
+        avatarSaveBtn.textContent = wpData.strings?.saving || 'Saving…';
+      }
+
+      try {
+        const response = await apiRequest('user-profile', {
+          method: 'POST',
+          body: { avatar_gender: selected },
+        });
+        const avatarPayload = response?.avatar || {
+          gender: response?.avatar_gender,
+          url: response?.avatar_url,
+        };
+        applyAvatarSelection(avatarPayload);
+        showMessage(profileMessage, wpData.strings?.avatarSaved || 'Profile photo updated!', 'success');
+        closeAvatarModal();
+      } catch (error) {
+        console.warn('[AlfawzQuran] Unable to update avatar', error);
+        if (avatarMessage) {
+          avatarMessage.textContent = wpData.strings?.avatarError || 'Unable to update profile photo. Please try again.';
+          avatarMessage.classList.remove('hidden');
+          avatarMessage.classList.remove('text-emerald-600');
+          avatarMessage.classList.add('text-red-600');
+        } else {
+          showMessage(profileMessage, wpData.strings?.avatarError || 'Unable to update profile photo. Please try again.', 'error');
+        }
+      } finally {
+        if (avatarSaveBtn) {
+          avatarSaveBtn.disabled = false;
+          if (originalLabel) {
+            avatarSaveBtn.textContent = originalLabel;
+          }
+        }
+      }
+    };
+
+    avatarOptions.forEach((option) => {
+      option.addEventListener('click', () => {
+        const { avatarOption } = option.dataset || {};
+        if (!avatarOption) {
+          return;
+        }
+        avatarState.pending = avatarOption;
+        updateAvatarOptionState(avatarOption);
+        resetAvatarMessage();
+      });
+    });
+
+    avatarButton?.addEventListener('click', () => {
+      openAvatarModal();
+    });
+
+    avatarSaveBtn?.addEventListener('click', () => {
+      saveAvatarSelection();
+    });
+
+    avatarCancelButtons.forEach((button) => {
+      button.addEventListener('click', () => {
+        closeAvatarModal();
+      });
+    });
+
+    avatarOverlay?.addEventListener('click', () => {
+      closeAvatarModal();
+    });
+
+    avatarDialog?.addEventListener('click', (event) => {
+      event.stopPropagation();
+    });
+
+    avatarModal?.addEventListener('click', (event) => {
+      if (event.target === avatarModal) {
+        closeAvatarModal();
+      }
+    });
+
+    applyAvatarSelection({});
+
     const setActiveTextSize = (size) => {
       textSizeButtons.forEach((button) => {
         const { textSize } = button.dataset;
@@ -4075,6 +4265,13 @@
         }
         if (profile?.email && emailField) {
           emailField.value = profile.email;
+        }
+        if (profile) {
+          const avatarPayload = profile.avatar || {
+            gender: profile.avatar_gender,
+            url: profile.avatar_url,
+          };
+          applyAvatarSelection(avatarPayload);
         }
       } catch (error) {
         console.warn('[AlfawzQuran] Unable to load profile data', error);
@@ -4292,6 +4489,13 @@
         }
         if (response?.email && emailField) {
           emailField.value = response.email;
+        }
+        if (response) {
+          const avatarPayload = response.avatar || {
+            gender: response.avatar_gender,
+            url: response.avatar_url,
+          };
+          applyAvatarSelection(avatarPayload);
         }
         flashIndicator(profileStatus);
         showMessage(profileMessage, wpData.strings?.profileSaved || 'Profile updated!', 'success');

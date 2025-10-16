@@ -16,12 +16,15 @@ use function __;
 use function absint;
 use function apply_filters;
 use function number_format_i18n;
+use function esc_url_raw;
 use function rest_ensure_response;
 use function sanitize_key;
 use function sanitize_text_field;
 use function sanitize_textarea_field;
+use function get_avatar_url;
 use function get_option;
 use function get_user_meta;
+use function delete_user_meta;
 use function wp_strip_all_tags;
 use function wp_json_encode;
 use function wp_trim_words;
@@ -104,6 +107,74 @@ class Routes {
 
         add_action( 'rest_api_init', [ $this, 'register_routes' ] );
         add_action( 'alfawz_quran_daily_cron', [ $this, 'calculate_daily_streaks' ] );
+    }
+
+    /**
+     * Return the available bundled avatar silhouettes.
+     *
+     * @return array<string, string>
+     */
+    private function get_avatar_choices() {
+        return [
+            'male'   => ALFAWZQURAN_PLUGIN_URL . 'assets/images/avatar-male.svg',
+            'female' => ALFAWZQURAN_PLUGIN_URL . 'assets/images/avatar-female.svg',
+        ];
+    }
+
+    /**
+     * Normalise a user supplied avatar gender value.
+     *
+     * @param string $value Raw value from the request or user meta.
+     * @return string Normalised value (male, female) or empty string.
+     */
+    private function normalise_avatar_gender( $value ) {
+        $gender = strtolower( trim( (string) $value ) );
+        return in_array( $gender, [ 'male', 'female' ], true ) ? $gender : '';
+    }
+
+    /**
+     * Build the avatar response for a given user.
+     *
+     * @param int $user_id User identifier.
+     * @return array<string, mixed>
+     */
+    private function prepare_user_avatar( $user_id ) {
+        $choices = $this->get_avatar_choices();
+        $gender  = $this->normalise_avatar_gender( get_user_meta( $user_id, 'alfawz_avatar_gender', true ) );
+
+        if ( $gender && isset( $choices[ $gender ] ) ) {
+            return [
+                'type'   => 'silhouette',
+                'gender' => $gender,
+                'url'    => esc_url_raw( $choices[ $gender ] ),
+            ];
+        }
+
+        return [
+            'type'   => 'default',
+            'gender' => '',
+            'url'    => esc_url_raw( get_avatar_url( $user_id ) ),
+        ];
+    }
+
+    /**
+     * Prepare a consistent profile payload response.
+     *
+     * @param \WP_User $user WordPress user object.
+     * @return array<string, mixed>
+     */
+    private function prepare_profile_payload( \WP_User $user ) {
+        $avatar = $this->prepare_user_avatar( $user->ID );
+
+        return [
+            'display_name'  => $user->display_name,
+            'first_name'    => $user->first_name,
+            'last_name'     => $user->last_name,
+            'email'         => $user->user_email,
+            'avatar'        => $avatar,
+            'avatar_url'    => $avatar['url'],
+            'avatar_gender' => $avatar['gender'],
+        ];
     }
 
     /**
@@ -1303,7 +1374,9 @@ class Routes {
         // Add user display name and avatar
         $user_data = get_userdata( $user_id );
         $stats['display_name'] = $user_data ? $user_data->display_name : 'Guest';
-        $stats['avatar_url'] = get_avatar_url( $user_id );
+        $avatar_data = $this->prepare_user_avatar( $user_id );
+        $stats['avatar_url']    = $avatar_data['url'];
+        $stats['avatar_gender'] = $avatar_data['gender'];
         $stats['member_since'] = $user_data ? date( 'M Y', strtotime( $user_data->user_registered ) ) : 'N/A';
         $stats['daily_goal'] = $this->prepare_daily_goal_state( $user_id, $timezone_offset );
 
@@ -1468,12 +1541,7 @@ class Routes {
         }
 
         return new WP_REST_Response(
-            [
-                'display_name' => $user->display_name,
-                'first_name'   => $user->first_name,
-                'last_name'    => $user->last_name,
-                'email'        => $user->user_email,
-            ],
+            $this->prepare_profile_payload( $user ),
             200
         );
     }
@@ -1496,50 +1564,84 @@ class Routes {
             $params = $request->get_params();
         }
 
-        $full_name = isset( $params['full_name'] ) ? sanitize_text_field( $params['full_name'] ) : '';
+        $full_name      = isset( $params['full_name'] ) ? sanitize_text_field( $params['full_name'] ) : '';
+        $has_avatar_key = array_key_exists( 'avatar_gender', $params );
+        $avatar_raw     = $has_avatar_key ? $params['avatar_gender'] : '';
+        $avatar_gender  = $has_avatar_key ? $this->normalise_avatar_gender( $avatar_raw ) : '';
 
-        if ( '' === $full_name ) {
+        if ( '' === $full_name && ! $has_avatar_key ) {
             return new WP_REST_Response(
                 [
                     'success' => false,
-                    'message' => __( 'Please provide your full name.', 'alfawzquran' ),
+                    'message' => __( 'Please provide a field to update.', 'alfawzquran' ),
                 ],
                 400
             );
         }
 
-        $name_parts = preg_split( '/\s+/', trim( $full_name ) );
-        $first_name = $name_parts ? array_shift( $name_parts ) : '';
-        $last_name  = $name_parts ? implode( ' ', $name_parts ) : '';
-
-        $user_update = [
-            'ID'           => $user_id,
-            'display_name' => $full_name,
-        ];
-
-        if ( $first_name ) {
-            $user_update['first_name'] = $first_name;
-        }
-
-        if ( $last_name ) {
-            $user_update['last_name'] = $last_name;
-        }
-
-        $result = wp_update_user( $user_update );
-
-        if ( is_wp_error( $result ) ) {
+        if ( $has_avatar_key && '' !== $avatar_raw && '' === $avatar_gender ) {
             return new WP_REST_Response(
                 [
                     'success' => false,
-                    'message' => __( 'Unable to update your profile right now.', 'alfawzquran' ),
+                    'message' => __( 'Please choose a valid profile silhouette.', 'alfawzquran' ),
+                ],
+                400
+            );
+        }
+
+        if ( '' !== $full_name ) {
+            $name_parts = preg_split( '/\s+/', trim( $full_name ) );
+            $first_name = $name_parts ? array_shift( $name_parts ) : '';
+            $last_name  = $name_parts ? implode( ' ', $name_parts ) : '';
+
+            $user_update = [
+                'ID'           => $user_id,
+                'display_name' => $full_name,
+            ];
+
+            if ( $first_name ) {
+                $user_update['first_name'] = $first_name;
+            }
+
+            if ( $last_name ) {
+                $user_update['last_name'] = $last_name;
+            }
+
+            $result = wp_update_user( $user_update );
+
+            if ( is_wp_error( $result ) ) {
+                return new WP_REST_Response(
+                    [
+                        'success' => false,
+                        'message' => __( 'Unable to update your profile right now.', 'alfawzquran' ),
+                    ],
+                    500
+                );
+            }
+
+            update_user_meta( $user_id, 'nickname', $full_name );
+        }
+
+        if ( $has_avatar_key ) {
+            if ( $avatar_gender ) {
+                update_user_meta( $user_id, 'alfawz_avatar_gender', $avatar_gender );
+            } else {
+                delete_user_meta( $user_id, 'alfawz_avatar_gender' );
+            }
+        }
+
+        $user = get_userdata( $user_id );
+        if ( ! $user ) {
+            return new WP_REST_Response(
+                [
+                    'success' => false,
+                    'message' => __( 'Unable to load profile.', 'alfawzquran' ),
                 ],
                 500
             );
         }
 
-        update_user_meta( $user_id, 'nickname', $full_name );
-
-        return $this->get_user_profile( $request );
+        return new WP_REST_Response( $this->prepare_profile_payload( $user ), 200 );
     }
 
     public function get_user_preferences( WP_REST_Request $request ) {
@@ -2031,12 +2133,14 @@ class Routes {
         $users = get_users( $args );
 
         $students = array_map( function ( $user ) use ( $class_id ) {
+            $avatar = $this->prepare_user_avatar( $user->ID );
             return [
                 'id'        => (int) $user->ID,
                 'name'      => $user->display_name,
                 'email'     => $user->user_email,
                 'class_id'  => \get_user_meta( $user->ID, 'alfawz_class_id', true ),
-                'avatar'    => \get_avatar_url( $user->ID ),
+                'avatar'    => $avatar['url'],
+                'avatar_gender' => $avatar['gender'],
                 'is_assigned'=> $class_id ? ( \get_user_meta( $user->ID, 'alfawz_class_id', true ) === $class_id ) : false,
             ];
         }, $users );
@@ -2567,11 +2671,14 @@ class Routes {
                     continue;
                 }
 
+                $avatar = $this->prepare_user_avatar( $student_id );
+
                 $roster['students'][ $student_id ] = [
                     'id'          => $student_id,
                     'name'        => $user->display_name,
                     'email'       => $user->user_email,
-                    'avatar'      => get_avatar_url( $student_id ),
+                    'avatar'      => $avatar['url'],
+                    'avatar_gender' => $avatar['gender'],
                     'class_id'    => $class_id,
                     'class_label' => $class_label,
                     'streak'      => (int) get_user_meta( $student_id, 'alfawz_quran_current_streak', true ),
