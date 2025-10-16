@@ -44,7 +44,7 @@
 
 .alfawz-qaidah-board-list h2 {
   margin-top: 0;
-  font-size: 16px;
+  font-size: 1.7rem;
 }
 
 .alfawz-qaidah-board-items {
@@ -71,7 +71,7 @@
 }
 
 .alfawz-qaidah-board-items .board-meta {
-  font-size: 12px;
+  font-size: 1rem;
   color: #555d66;
 }
 
@@ -84,7 +84,7 @@
 
 .alfawz-qaidah-board-form h2 {
   margin-top: 0;
-  font-size: 18px;
+  font-size: 1.7rem;
 }
 
 .alfawz-qaidah-board-form .form-field {
@@ -167,12 +167,12 @@
 }
 
 .alfawz-student-label strong {
-  font-size: 14px;
+  font-size: 1.05rem;
   color: #111827;
 }
 
 .alfawz-student-meta {
-  font-size: 12px;
+  font-size: 1rem;
   color: #6b7280;
 }
 
@@ -235,14 +235,14 @@
 }
 
 .alfawz-card-label {
-  font-size: 12px;
+  font-size: 1rem;
   color: #6b7280;
   text-transform: uppercase;
   letter-spacing: 0.03em;
 }
 
 .alfawz-stat-number {
-  font-size: 24px;
+  font-size: 1.7rem;
   font-weight: 700;
   color: #1d2327;
 }
@@ -420,7 +420,7 @@
   left: 0;
   background: #111827;
   color: #fff;
-  font-size: 11px;
+  font-size: 1rem;
   padding: 2px 8px;
   border-radius: 12px;
   white-space: nowrap;
@@ -442,7 +442,7 @@
 
 .alfawz-hotspot-editor .hotspot-card h3 {
   margin-top: 0;
-  font-size: 15px;
+  font-size: 1.7rem;
 }
 
 .alfawz-hotspot-editor .hotspot-actions {
@@ -486,7 +486,7 @@
 }
 
 .alfawz-qaidah-board-form .alfawz-toolbar .dashicons {
-  font-size: 16px;
+  font-size: 1rem;
   line-height: 1;
 }
 
@@ -516,6 +516,6 @@
   border-radius: 999px;
   background: #f0f6fc;
   color: #1d4ed8;
-  font-size: 11px;
+  font-size: 1rem;
   font-weight: 600;
 }

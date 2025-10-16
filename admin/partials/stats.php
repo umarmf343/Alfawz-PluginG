@@ -136,7 +136,7 @@
 .alfawz-summary-card h3 {
     margin: 0 0 10px 0;
     color: #2d3748;
-    font-size: 14px;
+    font-size: 1.7rem;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -159,7 +159,7 @@
 .alfawz-users-table h2 {
     margin: 0 0 20px 0;
     color: #2d3748;
-    font-size: 1.5em;
+    font-size: 1.7rem;
     font-weight: 700;
 }
 
@@ -174,14 +174,14 @@
     padding: 4px 8px;
     border-radius: 4px;
     font-weight: 600;
-    font-size: 0.9em;
+    font-size: 1rem;
 }
 
 .alfawz-stat-badge {
     padding: 4px 8px;
     border-radius: 4px;
     font-weight: 600;
-    font-size: 0.9em;
+    font-size: 1rem;
     color: white;
 }
 
@@ -223,12 +223,12 @@
     }
     
     .wp-list-table {
-        font-size: 0.9em;
+        font-size: 1rem;
     }
-    
+
     .alfawz-stat-badge,
     .alfawz-hasanat-badge {
-        font-size: 0.8em;
+        font-size: 1rem;
         padding: 2px 6px;
     }
 }

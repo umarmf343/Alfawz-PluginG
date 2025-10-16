@@ -82,10 +82,15 @@
   --alfawz-max-width-6xl: min(1420px, 96vw);
   --alfawz-shell-padding: clamp(2rem, 3vw, 3.25rem);
   --alfawz-surface-padding: clamp(1.75rem, 2.6vw, 2.75rem);
-  --alfawz-text-base: clamp(1rem, 0.96rem + 0.24vw, 1.12rem);
-  --alfawz-text-small: clamp(0.9rem, 0.86rem + 0.18vw, 1.02rem);
-  --alfawz-text-xs: clamp(0.85rem, 0.82rem + 0.12vw, 0.95rem);
+  --alfawz-text-base: clamp(1.0625rem, 1rem + 0.32vw, 1.25rem);
+  --alfawz-text-small: clamp(1rem, 0.97rem + 0.28vw, 1.15rem);
+  --alfawz-text-compact: clamp(1rem, 0.95rem + 0.24vw, 1.1rem);
+  --alfawz-text-xs: clamp(1rem, 0.94rem + 0.2vw, 1.08rem);
   --alfawz-heading-wide: clamp(2.75rem, 2.15rem + 1.8vw, 3.75rem);
+  --alfawz-heading-xl: clamp(2.4rem, 2.1rem + 1.5vw, 3.2rem);
+  --alfawz-heading-lg: clamp(2.1rem, 1.9rem + 1.2vw, 3rem);
+  --alfawz-heading-md: clamp(1.9rem, 1.7rem + 0.9vw, 2.6rem);
+  --alfawz-heading-sm: clamp(1.7rem, 1.55rem + 0.7vw, 2.3rem);
 }
 
 #alfawz-account,
@@ -93,9 +98,34 @@
 #alfawz-reader,
 #alfawz-memorizer,
 #alfawz-teacher-dashboard {
-  --alfawz-text-base: clamp(1.05rem, 1rem + 0.32vw, 1.22rem);
-  --alfawz-text-small: clamp(0.98rem, 0.92rem + 0.26vw, 1.12rem);
-  --alfawz-text-xs: clamp(0.9rem, 0.86rem + 0.2vw, 1.02rem);
+  --alfawz-text-base: clamp(1.125rem, 1.05rem + 0.35vw, 1.3rem);
+  --alfawz-text-small: clamp(1.02rem, 0.99rem + 0.3vw, 1.18rem);
+  --alfawz-text-compact: clamp(1rem, 0.97rem + 0.26vw, 1.12rem);
+  --alfawz-text-xs: clamp(1rem, 0.95rem + 0.22vw, 1.08rem);
+}
+
+[id^="alfawz-"] h1,
+[id^="alfawz-"] .alfawz-heading-1 {
+  font-size: var(--alfawz-heading-xl);
+  line-height: 1.2;
+}
+
+[id^="alfawz-"] h2,
+[id^="alfawz-"] .alfawz-heading-2 {
+  font-size: var(--alfawz-heading-lg);
+  line-height: 1.25;
+}
+
+[id^="alfawz-"] h3,
+[id^="alfawz-"] .alfawz-heading-3 {
+  font-size: var(--alfawz-heading-md);
+  line-height: 1.28;
+}
+
+[id^="alfawz-"] h4,
+[id^="alfawz-"] .alfawz-heading-4 {
+  font-size: var(--alfawz-heading-sm);
+  line-height: 1.3;
 }
 
 .alfawz-surface {
@@ -403,7 +433,7 @@
 
 .alfawz-egg-message {
   margin: 0;
-  font-size: 0.9rem;
+  font-size: var(--alfawz-text-small);
   color: rgba(79, 13, 24, 0.7);
 }
 
@@ -453,7 +483,7 @@
 
 .alfawz-verse-meta {
   margin: 0;
-  font-size: 0.8rem;
+  font-size: var(--alfawz-text-compact);
   letter-spacing: 0.24em;
   text-transform: uppercase;
   color: rgba(79, 13, 24, 0.7);
@@ -550,13 +580,13 @@
 
 .alfawz-switch-title {
   font-weight: 700;
-  font-size: 0.95rem;
+  font-size: var(--alfawz-text-small);
   color: var(--alfawz-maroon-700);
   letter-spacing: 0.02em;
 }
 
 .alfawz-switch-hint {
-  font-size: 0.8rem;
+  font-size: var(--alfawz-text-compact);
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: rgba(79, 13, 24, 0.65);
@@ -575,7 +605,7 @@
 }
 
 .alfawz-progress-label {
-  font-size: 0.85rem;
+  font-size: var(--alfawz-text-small);
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: rgba(79, 13, 24, 0.72);
@@ -583,7 +613,7 @@
 
 .alfawz-progress-note {
   margin: 0;
-  font-size: 0.95rem;
+  font-size: var(--alfawz-text-small);
   color: rgba(68, 36, 38, 0.72);
 }
 
@@ -612,7 +642,7 @@
 
 .alfawz-surah-list__hint {
   margin: 0;
-  font-size: 0.9rem;
+  font-size: var(--alfawz-text-small);
   color: rgba(68, 36, 38, 0.7);
 }
 
@@ -663,7 +693,7 @@
 }
 
 .alfawz-surah-item__index {
-  font-size: 0.78rem;
+  font-size: var(--alfawz-text-compact);
   font-weight: 700;
   letter-spacing: 0.2em;
   text-transform: uppercase;
@@ -673,7 +703,7 @@
 .alfawz-surah-item__badge {
   padding: 0.15rem 0.65rem;
   border-radius: 999px;
-  font-size: 0.7rem;
+  font-size: var(--alfawz-text-compact);
   font-weight: 600;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -692,7 +722,7 @@
 .alfawz-surah-item__transliteration,
 .alfawz-surah-item__translation {
   margin: 0.6rem 0 0;
-  font-size: 0.95rem;
+  font-size: var(--alfawz-text-small);
   color: rgba(68, 36, 38, 0.75);
 }
 
@@ -715,7 +745,7 @@
   border: none;
   border-radius: 999px;
   padding: 0.55rem 1.1rem;
-  font-size: 0.85rem;
+  font-size: var(--alfawz-text-small);
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -745,7 +775,7 @@
 
 .alfawz-surah-item__focus-text,
 .alfawz-surah-item__play-text {
-  font-size: 0.75rem;
+  font-size: var(--alfawz-text-compact);
 }
 
 .alfawz-reader-controls {
@@ -758,7 +788,7 @@
 
 .alfawz-controls-heading {
   margin: 0;
-  font-size: 0.9rem;
+  font-size: var(--alfawz-text-small);
   letter-spacing: 0.3em;
   text-transform: uppercase;
   color: rgba(79, 13, 24, 0.72);
@@ -783,7 +813,7 @@
 
 .alfawz-field-label {
   font-weight: 600;
-  font-size: 0.95rem;
+  font-size: var(--alfawz-text-small);
   color: var(--alfawz-maroon-700);
 }
 
@@ -886,7 +916,7 @@
 
 .alfawz-audio-status {
   margin: 0.35rem 0 0;
-  font-size: 0.95rem;
+  font-size: var(--alfawz-text-small);
   color: rgba(68, 36, 38, 0.72);
 }
 
@@ -1012,7 +1042,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: 0.8rem;
+  font-size: var(--alfawz-text-compact);
   font-weight: 600;
   color: rgba(68, 36, 38, 0.75);
 }
@@ -1023,7 +1053,7 @@
   justify-content: center;
   padding: 0.35rem 0.8rem;
   border-radius: 999px;
-  font-size: 0.75rem;
+  font-size: var(--alfawz-text-compact);
   letter-spacing: 0.16em;
   text-transform: uppercase;
   font-weight: 700;
@@ -1046,7 +1076,7 @@
 
 .alfawz-audio-footnote {
   margin: 0;
-  font-size: 0.82rem;
+  font-size: var(--alfawz-text-small);
   color: rgba(68, 36, 38, 0.68);
 }
 
@@ -1121,7 +1151,7 @@
 }
 
 .alfawz-hero-stat-label {
-  font-size: 0.75rem;
+  font-size: var(--alfawz-text-compact);
   letter-spacing: 0.28em;
   text-transform: uppercase;
   color: rgba(255, 231, 214, 0.7);
@@ -1197,7 +1227,7 @@
 
 .alfawz-profile-label {
   margin-top: 0.85rem;
-  font-size: 0.85rem;
+  font-size: var(--alfawz-text-small);
   font-weight: 700;
   letter-spacing: 0.28em;
   text-transform: uppercase;
@@ -1332,7 +1362,7 @@
 
 .alfawz-timeline-detail {
   margin-top: 0.75rem;
-  font-size: 0.95rem;
+  font-size: var(--alfawz-text-small);
   line-height: 1.6;
   color: rgba(75, 13, 24, 0.72);
 }
@@ -1360,14 +1390,14 @@
 
 .alfawz-timeline-progress-label {
   margin-top: 0.75rem;
-  font-size: 0.95rem;
+  font-size: var(--alfawz-text-small);
   font-weight: 600;
   color: rgba(47, 8, 17, 0.65);
 }
 
 .alfawz-timeline-accent {
   margin-top: 0.75rem;
-  font-size: 0.95rem;
+  font-size: var(--alfawz-text-small);
   font-weight: 700;
   color: var(--alfawz-maroon-500);
   text-transform: uppercase;
@@ -1650,7 +1680,7 @@
 
 .alfawz-dashboard-eyebrow {
   margin: 0;
-  font-size: 0.75rem;
+  font-size: var(--alfawz-text-compact);
   letter-spacing: 0.32em;
   text-transform: uppercase;
   font-weight: 600;
@@ -1754,7 +1784,7 @@
 }
 
 .alfawz-dashboard-ring-label {
-  font-size: 0.75rem;
+  font-size: var(--alfawz-text-compact);
   letter-spacing: 0.3em;
   text-transform: uppercase;
   color: rgba(255, 244, 230, 0.7);
@@ -1767,13 +1797,13 @@
 }
 
 .alfawz-dashboard-ring-suffix {
-  font-size: 0.95rem;
+  font-size: var(--alfawz-text-small);
   color: rgba(255, 244, 230, 0.75);
 }
 
 .alfawz-dashboard-ring-note {
   margin: 0;
-  font-size: 0.95rem;
+  font-size: var(--alfawz-text-small);
   line-height: 1.6;
   color: rgba(255, 239, 229, 0.78);
 }
@@ -1851,7 +1881,7 @@
 
 .alfawz-dashboard-stat-label {
   margin: 0;
-  font-size: 0.8rem;
+  font-size: var(--alfawz-text-compact);
   letter-spacing: 0.24em;
   text-transform: uppercase;
   font-weight: 600;
@@ -1868,7 +1898,7 @@
 
 .alfawz-dashboard-stat-meta {
   margin: 0;
-  font-size: 0.85rem;
+  font-size: var(--alfawz-text-small);
   color: rgba(255, 244, 230, 0.75);
 }
 
@@ -1903,7 +1933,7 @@
 .alfawz-dashboard-section-header p {
   margin: 0.35rem 0 0;
   color: rgba(47, 8, 17, 0.7);
-  font-size: 0.98rem;
+  font-size: var(--alfawz-text-small);
 }
 
 .alfawz-dashboard-pill {
@@ -1912,7 +1942,7 @@
   gap: 0.35rem;
   border-radius: 999px;
   padding: 0.45rem 1rem;
-  font-size: 0.75rem;
+  font-size: var(--alfawz-text-compact);
   letter-spacing: 0.24em;
   text-transform: uppercase;
   font-weight: 700;
@@ -1976,7 +2006,7 @@
 
 .alfawz-dashboard-panel-eyebrow {
   margin: 0;
-  font-size: 0.75rem;
+  font-size: var(--alfawz-text-compact);
   letter-spacing: 0.28em;
   text-transform: uppercase;
   font-weight: 600;
@@ -2009,7 +2039,7 @@
   border-radius: 999px;
   background: rgba(168, 50, 84, 0.18);
   color: var(--alfawz-maroon-800);
-  font-size: 0.85rem;
+  font-size: var(--alfawz-text-small);
   font-weight: 700;
 }
 
@@ -2073,14 +2103,14 @@
 }
 
 .alfawz-dashboard-progress-meta {
-  font-size: 0.95rem;
+  font-size: var(--alfawz-text-small);
   font-weight: 600;
   color: rgba(47, 8, 17, 0.7);
 }
 
 .alfawz-dashboard-progress-note {
   margin: 0;
-  font-size: 0.98rem;
+  font-size: var(--alfawz-text-small);
   color: rgba(47, 8, 17, 0.68);
 }
 
@@ -2146,7 +2176,7 @@
 
 .alfawz-dashboard-list-meta {
   margin: 0;
-  font-size: 0.85rem;
+  font-size: var(--alfawz-text-small);
   color: rgba(47, 8, 17, 0.62);
 }
 
@@ -2337,7 +2367,7 @@
 
 .alfawz-verse-loader {
   text-align: center;
-  font-size: 0.95rem;
+  font-size: var(--alfawz-text-small);
   color: var(--alfawz-muted);
   border: 1px dashed rgba(16, 185, 129, 0.4);
   border-radius: var(--alfawz-radius-md);
@@ -2383,7 +2413,7 @@
 
 .alfawz-egg-heading {
   margin: 0;
-  font-size: 0.85rem;
+  font-size: var(--alfawz-text-small);
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: #92400e;
@@ -2466,7 +2496,7 @@
 
 .alfawz-verse-meta {
   margin: 0;
-  font-size: 0.85rem;
+  font-size: var(--alfawz-text-small);
   text-transform: uppercase;
   letter-spacing: 0.1em;
   color: rgba(15, 118, 110, 0.7);
@@ -2521,7 +2551,7 @@
 
 .alfawz-daily-title {
   margin: 0;
-  font-size: 0.9rem;
+  font-size: var(--alfawz-text-small);
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: #0f766e;
@@ -2536,7 +2566,7 @@
 
 .alfawz-daily-note {
   margin-top: 0.75rem;
-  font-size: 0.9rem;
+  font-size: var(--alfawz-text-small);
   color: rgba(15, 23, 42, 0.7);
 }
 
@@ -2746,7 +2776,7 @@
 }
 
 .alfawz-field-label {
-  font-size: 0.8rem;
+  font-size: var(--alfawz-text-compact);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -2760,7 +2790,7 @@
   border: 1px solid rgba(15, 118, 110, 0.16);
   padding: 0.65rem 0.9rem;
   background: rgba(255, 255, 255, 0.9);
-  font-size: 0.95rem;
+  font-size: var(--alfawz-text-small);
   color: var(--alfawz-text);
   transition: var(--alfawz-transition);
 }
@@ -2820,7 +2850,7 @@
 }
 
 .alfawz-switch-label {
-  font-size: 0.95rem;
+  font-size: var(--alfawz-text-small);
   font-weight: 600;
   color: var(--alfawz-text);
 }
@@ -3114,7 +3144,7 @@ body.alfawz-qaidah-modal-open {
   border-radius: 9999px;
   background: rgba(255, 224, 205, 0.95);
   color: #7a1a31;
-  font-size: 0.75rem;
+  font-size: var(--alfawz-text-compact);
   font-weight: 700;
   text-transform: uppercase;
   padding: 0.375rem 0.85rem;
@@ -3301,7 +3331,7 @@ body.alfawz-qaidah-modal-open {
 }
 
 .alfawz-settings-feedback {
-  font-size: 0.9rem;
+  font-size: var(--alfawz-text-small);
   font-weight: 600;
   color: var(--alfawz-muted);
   min-height: 1.5rem;
@@ -3337,7 +3367,7 @@ body.alfawz-qaidah-modal-open {
 }
 
 .alfawz-settings-metrics dt {
-  font-size: 0.8rem;
+  font-size: var(--alfawz-text-compact);
   font-weight: 600;
   text-transform: uppercase;
   color: rgba(15, 118, 110, 0.7);
@@ -3376,7 +3406,7 @@ body.alfawz-qaidah-modal-open {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: 0.8rem;
+  font-size: var(--alfawz-text-compact);
   color: var(--alfawz-muted);
 }
 
@@ -3436,7 +3466,7 @@ body.alfawz-qaidah-modal-open {
   background: rgba(248, 250, 252, 0.8);
   border: 1px solid rgba(148, 163, 184, 0.2);
   padding: 0.5rem 1rem;
-  font-size: 0.85rem;
+  font-size: var(--alfawz-text-small);
   color: var(--alfawz-muted);
 }
 
@@ -3449,7 +3479,7 @@ body.alfawz-qaidah-modal-open {
   border: 1px dashed rgba(16, 185, 129, 0.3);
   padding: 1.5rem;
   text-align: center;
-  font-size: 0.95rem;
+  font-size: var(--alfawz-text-small);
   color: var(--alfawz-muted);
   background: rgba(236, 253, 245, 0.5);
 }
@@ -3485,7 +3515,7 @@ body.alfawz-qaidah-modal-open {
 }
 
 .alfawz-game-card__subtitle {
-  font-size: 0.95rem;
+  font-size: var(--alfawz-text-small);
   color: var(--alfawz-muted);
 }
 
@@ -3496,13 +3526,13 @@ body.alfawz-qaidah-modal-open {
 }
 
 .alfawz-game-meta__reference {
-  font-size: 0.85rem;
+  font-size: var(--alfawz-text-small);
   font-weight: 600;
   color: #047857;
 }
 
 .alfawz-game-meta__translation {
-  font-size: 0.8rem;
+  font-size: var(--alfawz-text-compact);
   color: var(--alfawz-muted);
 }
 
@@ -3539,7 +3569,7 @@ body.alfawz-qaidah-modal-open {
   border-radius: var(--alfawz-radius-sm);
   background: rgba(255, 255, 255, 0.95);
   border: 1px solid rgba(15, 118, 110, 0.22);
-  font-size: 0.95rem;
+  font-size: var(--alfawz-text-small);
   font-weight: 600;
   color: var(--alfawz-text);
   cursor: grab;
@@ -3564,7 +3594,7 @@ body.alfawz-qaidah-modal-open {
   align-items: center;
   justify-content: center;
   color: rgba(15, 118, 110, 0.45);
-  font-size: 0.75rem;
+  font-size: var(--alfawz-text-compact);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -3600,7 +3630,7 @@ body.alfawz-qaidah-modal-open {
 }
 
 .alfawz-game-progress__label {
-  font-size: 0.8rem;
+  font-size: var(--alfawz-text-compact);
   color: var(--alfawz-muted);
 }
 
@@ -3612,7 +3642,7 @@ body.alfawz-qaidah-modal-open {
 }
 
 .alfawz-game-status {
-  font-size: 0.9rem;
+  font-size: var(--alfawz-text-small);
   font-weight: 600;
   min-height: 1.25rem;
   color: var(--alfawz-muted);
@@ -3640,7 +3670,7 @@ body.alfawz-qaidah-modal-open {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: 0.9rem;
+  font-size: var(--alfawz-text-small);
   color: var(--alfawz-muted);
 }
 
@@ -3657,7 +3687,7 @@ body.alfawz-qaidah-modal-open {
 }
 
 .alfawz-game-timer__label {
-  font-size: 0.75rem;
+  font-size: var(--alfawz-text-compact);
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: rgba(15, 118, 110, 0.65);
@@ -3670,7 +3700,7 @@ body.alfawz-qaidah-modal-open {
 }
 
 .alfawz-game-timer__note {
-  font-size: 0.75rem;
+  font-size: var(--alfawz-text-compact);
   color: var(--alfawz-muted);
   margin-top: 0.4rem;
 }
@@ -3686,7 +3716,7 @@ body.alfawz-qaidah-modal-open {
 
 .alfawz-game-unlock {
   min-height: 1.1rem;
-  font-size: 0.8rem;
+  font-size: var(--alfawz-text-compact);
   font-weight: 600;
   color: rgba(15, 118, 110, 0.75);
 }
@@ -3866,7 +3896,7 @@ body.alfawz-qaidah-modal-open {
 }
 
 .alfawz-hasanat-badge__label {
-  font-size: 0.65rem;
+  font-size: var(--alfawz-text-compact);
   letter-spacing: 0.24em;
   text-transform: uppercase;
   color: #065f46;
@@ -4010,7 +4040,7 @@ body.alfawz-qaidah-modal-open {
   padding: 0.4rem 1rem;
   border-radius: 999px;
   background: rgba(255, 244, 230, 0.15);
-  font-size: 0.88rem;
+  font-size: var(--alfawz-text-small);
   font-weight: 600;
   letter-spacing: 0.32em;
   text-transform: uppercase;
@@ -4061,7 +4091,7 @@ body.alfawz-qaidah-modal-open {
 }
 
 #alfawz-account .alfawz-account-hero__badge-text {
-  font-size: 0.9rem;
+  font-size: var(--alfawz-text-small);
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
@@ -4186,7 +4216,7 @@ body.alfawz-qaidah-modal-open {
   padding-left: 1.25rem;
   margin: 0;
   color: var(--alfawz-text);
-  font-size: 0.95rem;
+  font-size: var(--alfawz-text-small);
 }
 
 #alfawz-account .alfawz-login-form form {
@@ -4202,14 +4232,14 @@ body.alfawz-qaidah-modal-open {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 0.9rem;
+  font-size: var(--alfawz-text-small);
   color: var(--alfawz-muted);
 }
 
 #alfawz-account .alfawz-login-form label {
   display: block;
   font-weight: 600;
-  font-size: 0.92rem;
+  font-size: var(--alfawz-text-small);
   margin-bottom: 0.35rem;
   color: var(--alfawz-maroon-800);
 }
@@ -4222,7 +4252,7 @@ body.alfawz-qaidah-modal-open {
   border: 1px solid rgba(168, 50, 84, 0.18);
   background: rgba(255, 255, 255, 0.92);
   transition: var(--alfawz-transition);
-  font-size: 0.95rem;
+  font-size: var(--alfawz-text-small);
 }
 
 #alfawz-account .alfawz-login-form input[type='text']:focus,
@@ -4264,7 +4294,7 @@ body.alfawz-qaidah-modal-open {
   display: flex;
   flex-direction: column;
   gap: 0.45rem;
-  font-size: 0.9rem;
+  font-size: var(--alfawz-text-small);
   color: var(--alfawz-muted);
 }
 
@@ -4281,7 +4311,7 @@ body.alfawz-qaidah-modal-open {
 
 #alfawz-account .alfawz-account-note {
   margin: 0;
-  font-size: 0.86rem;
+  font-size: var(--alfawz-text-small);
   color: var(--alfawz-muted);
 }
 
@@ -4292,7 +4322,7 @@ body.alfawz-qaidah-modal-open {
   padding: 0.75rem 1.2rem;
   border-radius: 999px;
   font-weight: 600;
-  font-size: 0.95rem;
+  font-size: var(--alfawz-text-small);
   text-decoration: none;
   transition: transform 180ms ease, box-shadow 200ms ease, background-color 180ms ease, color 180ms ease;
 }
