@@ -203,7 +203,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
     <section class="alfawz-dashboard-columns" aria-labelledby="alfawz-insights" data-animate data-animate-delay="720">
         <h3 id="alfawz-insights" class="screen-reader-text"><?php esc_html_e( 'Personalised insights', 'alfawzquran' ); ?></h3>
-        <article class="alfawz-dashboard-panel" id="alfawz-smart-goal-card">
+        <article class="alfawz-dashboard-panel relative overflow-hidden" id="alfawz-smart-goal-card">
             <div class="alfawz-dashboard-section-header">
                 <h3><?php esc_html_e( 'Smart goal coach', 'alfawzquran' ); ?></h3>
                 <span class="alfawz-dashboard-pill" id="alfawz-smart-goal-trend"></span>
