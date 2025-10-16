@@ -216,12 +216,19 @@
 
     try {
       const response = await fetch(url, options);
+      const status = response.status;
+      const contentType = response.headers.get('content-type') || '';
+
       if (!response.ok) {
         const text = await response.text();
-        throw new Error(text || `Request failed with status ${response.status}`);
+        const snippet = text ? text.trim().slice(0, 300) : '';
+        const message = snippet
+          ? `Request failed with status ${status}: ${snippet}`
+          : `Request failed with status ${status}`;
+        throw new Error(message);
       }
 
-      if (response.status === 204) {
+      if (status === 204) {
         return null;
       }
 
@@ -229,7 +236,25 @@
         return response;
       }
 
-      return await response.json();
+      const bodyText = await response.text();
+
+      if (!contentType.toLowerCase().includes('json')) {
+        const snippet = bodyText ? bodyText.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 300) : '';
+        const message = snippet
+          ? `Expected a JSON response but received “${contentType || 'unknown'}”: ${snippet}`
+          : `Expected a JSON response but received “${contentType || 'unknown'}”.`;
+        throw new Error(message);
+      }
+
+      try {
+        return bodyText ? JSON.parse(bodyText) : null;
+      } catch (parseError) {
+        const snippet = bodyText.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 300);
+        const message = snippet
+          ? `Received malformed JSON: ${snippet}`
+          : 'Received malformed JSON response.';
+        throw new Error(message);
+      }
     } catch (error) {
       console.error('[AlfawzQuran] API error:', error);
       throw error;
