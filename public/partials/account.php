@@ -97,6 +97,53 @@ if ( $is_logged_in && $current_user instanceof WP_User ) {
     }
 }
 
+if ( ! function_exists( 'alfawz_customize_login_form_fields' ) ) {
+    /**
+     * Adds placeholders and accessibility attributes to the Alfawz login forms.
+     *
+     * @param string $form_html The rendered form HTML.
+     * @param array  $args      Arguments controlling how inputs are enhanced.
+     *
+     * @return string
+     */
+    function alfawz_customize_login_form_fields( $form_html, $args = [] ) {
+        $defaults = [
+            'id_username'          => '',
+            'id_password'          => '',
+            'placeholder_username' => '',
+            'placeholder_password' => '',
+        ];
+
+        $args = wp_parse_args( $args, $defaults );
+
+        if ( empty( $form_html ) ) {
+            return $form_html;
+        }
+
+        if ( ! empty( $args['id_username'] ) && ! empty( $args['placeholder_username'] ) ) {
+            $pattern     = sprintf( '/id="%s"/', preg_quote( $args['id_username'], '/' ) );
+            $replacement = sprintf(
+                'id="%1$s" placeholder="%2$s" autocomplete="username" inputmode="email" required aria-required="true"',
+                esc_attr( $args['id_username'] ),
+                esc_attr( $args['placeholder_username'] )
+            );
+            $form_html   = preg_replace( $pattern, $replacement, $form_html, 1 );
+        }
+
+        if ( ! empty( $args['id_password'] ) && ! empty( $args['placeholder_password'] ) ) {
+            $pattern     = sprintf( '/id="%s"/', preg_quote( $args['id_password'], '/' ) );
+            $replacement = sprintf(
+                'id="%1$s" placeholder="%2$s" autocomplete="current-password" required aria-required="true"',
+                esc_attr( $args['id_password'] ),
+                esc_attr( $args['placeholder_password'] )
+            );
+            $form_html   = preg_replace( $pattern, $replacement, $form_html, 1 );
+        }
+
+        return $form_html;
+    }
+}
+
 $student_form = '';
 $teacher_form = '';
 
@@ -118,6 +165,16 @@ if ( ! $is_logged_in ) {
         ]
     );
 
+    $student_form = alfawz_customize_login_form_fields(
+        $student_form,
+        [
+            'id_username'          => 'alfawz-student-username',
+            'id_password'          => 'alfawz-student-password',
+            'placeholder_username' => __( 'Enter your email address', 'alfawzquran' ),
+            'placeholder_password' => __( 'Enter your password', 'alfawzquran' ),
+        ]
+    );
+
     $teacher_form = wp_login_form(
         [
             'echo'           => false,
@@ -132,6 +189,16 @@ if ( ! $is_logged_in ) {
             'id_remember'    => 'alfawz-teacher-remember',
             'id_submit'      => 'alfawz-teacher-submit',
             'redirect'       => $teacher_redirect,
+        ]
+    );
+
+    $teacher_form = alfawz_customize_login_form_fields(
+        $teacher_form,
+        [
+            'id_username'          => 'alfawz-teacher-username',
+            'id_password'          => 'alfawz-teacher-password',
+            'placeholder_username' => __( 'Enter your email address', 'alfawzquran' ),
+            'placeholder_password' => __( 'Enter your password', 'alfawzquran' ),
         ]
     );
 }
