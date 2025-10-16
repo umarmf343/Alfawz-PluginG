@@ -2091,6 +2091,108 @@
   box-shadow: 0 34px 64px rgba(47, 8, 17, 0.24);
 }
 
+#alfawz-smart-goal-card {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background: linear-gradient(140deg, rgba(15, 23, 42, 0.96), rgba(76, 29, 149, 0.95)) !important;
+  border-color: rgba(244, 114, 182, 0.32);
+  color: #f8fafc;
+  box-shadow: 0 38px 72px rgba(15, 23, 42, 0.45);
+}
+
+#alfawz-smart-goal-card::before,
+#alfawz-smart-goal-card::after {
+  content: "";
+  position: absolute;
+  border-radius: 999px;
+  filter: blur(0);
+  opacity: 0.9;
+  z-index: 0;
+}
+
+#alfawz-smart-goal-card::before {
+  inset: -40% auto auto -20%;
+  width: clamp(16rem, 32vw, 24rem);
+  height: clamp(16rem, 32vw, 24rem);
+  background: radial-gradient(circle at center, rgba(244, 114, 182, 0.65), rgba(76, 29, 149, 0.05) 70%);
+}
+
+#alfawz-smart-goal-card::after {
+  inset: auto -30% -35% auto;
+  width: clamp(18rem, 34vw, 26rem);
+  height: clamp(18rem, 34vw, 26rem);
+  background: radial-gradient(circle at center, rgba(14, 165, 233, 0.55), rgba(15, 23, 42, 0) 65%);
+}
+
+#alfawz-smart-goal-card > * {
+  position: relative;
+  z-index: 1;
+}
+
+#alfawz-smart-goal-card .alfawz-dashboard-section-header h3 {
+  color: #fef3c7;
+}
+
+#alfawz-smart-goal-card .alfawz-dashboard-pill {
+  background: rgba(244, 114, 182, 0.25);
+  color: #fdf2f8;
+  border: 1px solid rgba(244, 114, 182, 0.35);
+}
+
+#alfawz-smart-goal-card .alfawz-dashboard-panel-body {
+  background: rgba(15, 23, 42, 0.55);
+  border: 1px solid rgba(248, 250, 252, 0.12);
+  color: rgba(224, 231, 255, 0.92);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 18px 40px rgba(8, 47, 73, 0.18);
+}
+
+#alfawz-smart-goal-card .alfawz-dashboard-metric {
+  background: linear-gradient(150deg, rgba(14, 165, 233, 0.48), rgba(244, 114, 182, 0.48));
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25), 0 24px 44px rgba(14, 116, 144, 0.22);
+}
+
+#alfawz-smart-goal-card .alfawz-dashboard-metric-label {
+  color: rgba(226, 232, 240, 0.85);
+}
+
+#alfawz-smart-goal-card .alfawz-dashboard-metric-value {
+  color: #fdf4ff;
+}
+
+#alfawz-smart-goal-card .alfawz-dashboard-metric-hint {
+  color: rgba(226, 232, 240, 0.78);
+}
+
+#alfawz-smart-goal-card .alfawz-dashboard-panel-note {
+  color: rgba(241, 245, 249, 0.82);
+}
+
+#alfawz-smart-goal-card .alfawz-dashboard-consistency {
+  background: rgba(15, 23, 42, 0.45);
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  box-shadow: 0 28px 56px rgba(12, 74, 110, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+
+#alfawz-smart-goal-card .alfawz-dashboard-consistency-message {
+  color: rgba(226, 232, 240, 0.9);
+}
+
+#alfawz-smart-goal-card .alfawz-dashboard-heatmap span {
+  background: rgba(244, 114, 182, 0.28);
+  color: #fdf2f8;
+  border: 1px solid rgba(251, 191, 36, 0.18);
+  box-shadow: 0 16px 28px rgba(190, 24, 93, 0.28);
+}
+
+#alfawz-smart-goal-card .alfawz-dashboard-heatmap span[data-level="none"] {
+  background: rgba(148, 163, 184, 0.24);
+  color: rgba(226, 232, 240, 0.6);
+  border-color: rgba(148, 163, 184, 0.3);
+  box-shadow: none;
+}
+
 .alfawz-dashboard-panel--accent {
   background: linear-gradient(160deg, rgba(255, 244, 230, 0.98), rgba(255, 231, 214, 0.9));
 }
