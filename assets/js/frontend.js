@@ -346,6 +346,23 @@
     return `${GWANI_ARCHIVE_DOWNLOAD_BASE}${paddedSurah}.mp3`;
   };
 
+  const buildProxiedAudioUrl = (reciter, surahId, verseId) => {
+    const safeReciter = (reciter || CDN_FALLBACK_RECITER || '').trim();
+    const numericSurah = Number(surahId);
+    const numericVerse = Number(verseId);
+
+    if (!safeReciter || !Number.isFinite(numericSurah) || !Number.isFinite(numericVerse)) {
+      return '';
+    }
+
+    if (numericSurah <= 0 || numericVerse <= 0) {
+      return '';
+    }
+
+    const encodedReciter = encodeURIComponent(safeReciter.toLowerCase());
+    return `${API_BASE}audio/${encodedReciter}/${numericSurah}/${numericVerse}.mp3`;
+  };
+
   const buildCdnAudioUrl = (reciter, surahId, verseId) => {
     const paddedSurah = padAudioFragment(surahId);
     const paddedVerse = padAudioFragment(verseId);
@@ -360,7 +377,7 @@
     if (isArchiveReciter(reciter)) {
       return buildArchiveVerseUrl(surahId, verseId);
     }
-    return buildCdnAudioUrl(reciter, surahId, verseId);
+    return buildProxiedAudioUrl(reciter, surahId, verseId) || buildCdnAudioUrl(reciter, surahId, verseId);
   };
 
   const verseCacheKey = (surahId, verseId) => {
