@@ -166,9 +166,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 
                 <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <p id="alfawz-memorization-repetitions" class="text-base font-medium text-indigo-600">0 / 20 <?php esc_html_e( 'Repetitions', 'alfawzquran' ); ?></p>
-                    <button type="button" id="repeat-btn" class="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-emerald-500 via-teal-500 to-sky-500 px-6 py-3 text-lg font-bold text-white shadow-lg transition hover:scale-[1.02] hover:from-emerald-400 hover:to-sky-400 focus:outline-none focus:ring-4 focus:ring-emerald-200 focus:ring-offset-2 focus:ring-offset-white disabled:cursor-not-allowed disabled:opacity-70">
-                        <span aria-hidden="true">🔁</span>
-                        <?php esc_html_e( 'Repeat verse', 'alfawzquran' ); ?>
+                    <button type="button" id="repeat-btn" class="group relative inline-flex w-full items-center justify-center gap-3 overflow-hidden rounded-3xl bg-gradient-to-r from-emerald-500 via-teal-500 to-sky-500 px-7 py-3.5 text-lg font-semibold text-white shadow-xl transition-all duration-300 ease-out hover:scale-[1.04] hover:from-teal-400 hover:via-sky-400 hover:to-cyan-400 focus:outline-none focus:ring-4 focus:ring-emerald-200/60 focus:ring-offset-2 focus:ring-offset-white disabled:cursor-not-allowed disabled:opacity-70">
+                        <span aria-hidden="true" class="transition-transform duration-300 group-hover:rotate-12">🔁</span>
+                        <span class="tracking-wide group-hover:drop-shadow"><?php esc_html_e( 'Repeat verse', 'alfawzquran' ); ?></span>
                     </button>
                 </div>
 
