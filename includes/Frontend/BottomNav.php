@@ -59,7 +59,9 @@ function alfawz_render_bottom_nav() {
     ?>
     <nav id="alfawz-bottom-nav" class="fixed bottom-0 left-0 right-0 z-50 bg-white/95 border-t border-gray-200 shadow-lg backdrop-blur" data-current="<?php echo esc_attr( $current ); ?>" aria-label="<?php esc_attr_e( 'Primary navigation', 'alfawzquran' ); ?>">
         <div class="mx-auto max-w-4xl">
-            <div class="alfawz-bottom-nav__list flex items-stretch gap-1 overflow-x-auto hide-scrollbar px-2 py-2" data-nav-scroll>
+            <div class="alfawz-bottom-nav__scroll-wrapper relative">
+                <span class="alfawz-bottom-nav__scroll-indicator alfawz-bottom-nav__scroll-indicator--left" aria-hidden="true">&#8249;</span>
+                <div class="alfawz-bottom-nav__list flex items-stretch gap-1 overflow-x-auto hide-scrollbar px-2 py-2 snap-x snap-mandatory scroll-smooth" data-nav-scroll>
                 <?php foreach ( $tabs as $tab ) :
                     $is_active = ! empty( $tab['active'] );
                     $classes   = 'alfawz-bottom-nav__tab flex min-w-[80px] min-h-[48px] flex-col items-center justify-center rounded-xl px-3 py-2 text-center text-xs transition-colors snap-center shrink-0';
@@ -70,6 +72,8 @@ function alfawz_render_bottom_nav() {
                         <span class="mt-1 text-[11px] font-medium leading-tight"><?php echo esc_html( $tab['label'] ); ?></span>
                     </a>
                 <?php endforeach; ?>
+                </div>
+                <span class="alfawz-bottom-nav__scroll-indicator alfawz-bottom-nav__scroll-indicator--right" aria-hidden="true">&#8250;</span>
             </div>
         </div>
     </nav>
@@ -102,6 +106,7 @@ function alfawz_get_nav_tabs( $role ) {
         'memorizer'   => [ 'slug' => 'memorizer', 'icon' => '🧠', 'label' => __( 'Memorization', 'alfawzquran' ) ],
         'qaidah'      => [ 'slug' => 'qaidah', 'icon' => '📚', 'label' => __( "Qa'idah", 'alfawzquran' ) ],
         'leaderboard' => [ 'slug' => 'leaderboard', 'icon' => '🏆', 'label' => __( 'Leaderboard', 'alfawzquran' ) ],
+        'game'        => [ 'slug' => 'game', 'icon' => '🎮', 'label' => __( 'Game', 'alfawzquran' ) ],
         'profile'     => [ 'slug' => 'profile', 'icon' => '👤', 'label' => __( 'Profile', 'alfawzquran' ) ],
         'teacher'     => [ 'slug' => 'teacher-dashboard', 'icon' => '🏫', 'label' => __( 'Teacher Dashboard', 'alfawzquran' ) ],
         'admin'       => [ 'slug' => 'admin-dashboard', 'icon' => '🛠️', 'label' => __( 'Admin Dashboard', 'alfawzquran' ) ],
@@ -110,11 +115,11 @@ function alfawz_get_nav_tabs( $role ) {
     $order = [];
 
     if ( 'teacher' === $role ) {
-        $order = [ 'dashboard', 'reader', 'memorizer', 'qaidah', 'teacher', 'profile' ];
+        $order = [ 'dashboard', 'reader', 'memorizer', 'qaidah', 'game', 'teacher', 'profile' ];
     } elseif ( 'admin' === $role ) {
-        $order = [ 'dashboard', 'reader', 'memorizer', 'qaidah', 'leaderboard', 'profile', 'teacher', 'admin' ];
+        $order = [ 'dashboard', 'reader', 'memorizer', 'qaidah', 'leaderboard', 'game', 'profile', 'teacher', 'admin' ];
     } else {
-        $order = [ 'dashboard', 'reader', 'memorizer', 'qaidah', 'leaderboard', 'profile' ];
+        $order = [ 'dashboard', 'reader', 'memorizer', 'qaidah', 'leaderboard', 'game', 'profile' ];
     }
 
     $current = alfawz_get_current_tab_slug();
