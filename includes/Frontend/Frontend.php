@@ -798,6 +798,31 @@ class Frontend {
             return;
         }
 
+        $requested_admin_access = false;
+
+        if (isset($_GET['redirect_to'])) {
+            $raw_redirect_to = wp_unslash($_GET['redirect_to']);
+            $raw_redirect_to = is_string($raw_redirect_to) ? rawurldecode($raw_redirect_to) : '';
+            $redirect_path = wp_parse_url($raw_redirect_to, PHP_URL_PATH);
+
+            if (is_string($redirect_path) && false !== strpos($redirect_path, 'wp-admin')) {
+                $requested_admin_access = true;
+            }
+        }
+
+        if (!$requested_admin_access && isset($_SERVER['REQUEST_URI'])) {
+            $request_uri = wp_unslash($_SERVER['REQUEST_URI']);
+            $request_path = wp_parse_url($request_uri, PHP_URL_PATH);
+
+            if (is_string($request_path) && false !== strpos($request_path, 'wp-admin')) {
+                $requested_admin_access = true;
+            }
+        }
+
+        if ($requested_admin_access) {
+            return;
+        }
+
         $notices = [];
 
         if (isset($_GET['redirect_to'])) {
