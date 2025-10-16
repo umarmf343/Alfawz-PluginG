@@ -4204,12 +4204,12 @@ body.alfawz-qaidah-modal-open {
   gap: 2.5rem;
   padding: 3rem;
   border-radius: var(--alfawz-radius-xl);
-  background: linear-gradient(135deg, rgba(47, 8, 17, 0.88), rgba(116, 31, 49, 0.72));
-  border: 1px solid rgba(255, 244, 230, 0.32);
+  background: linear-gradient(135deg, rgba(47, 8, 17, 0.95) 0%, rgba(116, 31, 49, 0.88) 52%, rgba(168, 50, 84, 0.82) 100%);
+  border: 1px solid rgba(255, 240, 224, 0.42);
   backdrop-filter: blur(18px);
-  color: #fff7ee;
+  color: #fffaf2;
   overflow: hidden;
-  box-shadow: 0 30px 60px rgba(47, 8, 17, 0.28);
+  box-shadow: 0 30px 70px rgba(35, 7, 16, 0.32);
 }
 
 #alfawz-account .alfawz-account-hero::before,
@@ -4246,6 +4246,11 @@ body.alfawz-qaidah-modal-open {
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
+  padding: 1.5rem;
+  border-radius: var(--alfawz-radius-lg);
+  background: linear-gradient(160deg, rgba(47, 8, 17, 0.42), rgba(47, 8, 17, 0.25));
+  box-shadow: 0 18px 38px rgba(17, 2, 6, 0.28);
+  backdrop-filter: blur(8px);
 }
 
 #alfawz-account .alfawz-account-hero__eyebrow {
@@ -4267,12 +4272,14 @@ body.alfawz-qaidah-modal-open {
   font-weight: 800;
   letter-spacing: -0.02em;
   line-height: 1.1;
+  color: #fffdf7;
+  text-shadow: 0 14px 35px rgba(17, 2, 6, 0.45);
 }
 
 #alfawz-account .alfawz-account-hero__subtitle {
   max-width: 32rem;
   font-size: clamp(1.18rem, 1.08rem + 0.24vw, 1.32rem);
-  color: rgba(255, 231, 214, 0.9);
+  color: rgba(255, 241, 228, 0.92);
   line-height: 1.7;
 }
 
@@ -4340,9 +4347,9 @@ body.alfawz-qaidah-modal-open {
   gap: 1.5rem;
   padding: 2rem;
   border-radius: var(--alfawz-radius-lg);
-  background: rgba(255, 244, 230, 0.78);
-  border: 1px solid rgba(168, 50, 84, 0.18);
-  box-shadow: 0 25px 55px rgba(47, 8, 17, 0.12);
+  background: rgba(255, 248, 241, 0.92);
+  border: 1px solid rgba(168, 50, 84, 0.16);
+  box-shadow: 0 25px 55px rgba(47, 8, 17, 0.14);
   backdrop-filter: blur(18px);
 }
 
@@ -4465,9 +4472,14 @@ body.alfawz-qaidah-modal-open {
   padding: 0.75rem 0.9rem;
   border-radius: 0.85rem;
   border: 1px solid rgba(168, 50, 84, 0.18);
-  background: rgba(255, 255, 255, 0.92);
+  background: rgba(255, 255, 255, 0.95);
   transition: var(--alfawz-transition);
   font-size: var(--alfawz-text-small);
+}
+
+#alfawz-account .alfawz-login-form input[type='text']::placeholder,
+#alfawz-account .alfawz-login-form input[type='password']::placeholder {
+  color: rgba(75, 13, 24, 0.58);
 }
 
 #alfawz-account .alfawz-login-form input[type='text']:focus,
