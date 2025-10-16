@@ -4,6 +4,7 @@
  * defines shared component primitives used across shortcodes.
  */
 
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Scheherazade+New:wght@400;700&display=swap');
 
 .font-arabic {
@@ -56,6 +57,12 @@
 
 
 :root {
+  --alfawz-font-body: 'Inter', 'SF Pro Text', 'SF Pro Display', 'Segoe UI', -apple-system,
+    BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+  --alfawz-font-heading: 'Plus Jakarta Sans', 'Inter', 'Segoe UI', -apple-system,
+    BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+  --alfawz-font-mono: 'JetBrains Mono', 'Fira Code', 'Source Code Pro', 'SFMono-Regular',
+    'Menlo', 'Monaco', Consolas, 'Liberation Mono', 'Courier New', monospace;
   --alfawz-maroon-900: #2f0811;
   --alfawz-maroon-800: #4b0d18;
   --alfawz-maroon-700: #741f31;
@@ -102,6 +109,59 @@
   --alfawz-text-small: clamp(1.02rem, 0.99rem + 0.3vw, 1.18rem);
   --alfawz-text-compact: clamp(1rem, 0.97rem + 0.26vw, 1.12rem);
   --alfawz-text-xs: clamp(1rem, 0.95rem + 0.22vw, 1.08rem);
+}
+
+#alfawz-account,
+#alfawz-dashboard,
+#alfawz-reader,
+#alfawz-memorizer,
+#alfawz-teacher-dashboard,
+#alfawz-leaderboard,
+#alfawz-qaidah-board,
+[id^="alfawz-"] {
+  font-family: var(--alfawz-font-body);
+  color: var(--alfawz-text);
+  line-height: 1.65;
+  font-feature-settings: 'liga' 1, 'kern' 1;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+[id^="alfawz-"] h1,
+[id^="alfawz-"] h2,
+[id^="alfawz-"] h3,
+[id^="alfawz-"] h4,
+[id^="alfawz-"] h5,
+[id^="alfawz-"] h6,
+.alfawz-heading-1,
+.alfawz-heading-2,
+.alfawz-heading-3,
+.alfawz-heading-4 {
+  font-family: var(--alfawz-font-heading);
+  font-weight: 700;
+  letter-spacing: -0.015em;
+}
+
+[id^="alfawz-"] code,
+[id^="alfawz-"] pre,
+[id^="alfawz-"] kbd,
+[id^="alfawz-"] samp {
+  font-family: var(--alfawz-font-mono);
+}
+
+[id^="alfawz-"] :where(button, input, select, textarea) {
+  font-family: inherit;
+}
+
+#alfawz-account .alfawz-dashboard-eyebrow,
+#alfawz-dashboard .alfawz-dashboard-eyebrow,
+#alfawz-reader .alfawz-dashboard-eyebrow,
+#alfawz-memorizer .alfawz-dashboard-eyebrow,
+#alfawz-leaderboard .alfawz-dashboard-eyebrow,
+#alfawz-teacher-dashboard .alfawz-dashboard-eyebrow {
+  font-family: var(--alfawz-font-heading);
+  letter-spacing: 0.32em;
 }
 
 [id^="alfawz-"] h1,
