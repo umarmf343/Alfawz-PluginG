@@ -139,7 +139,7 @@ function alfawz_quran_register_settings() {
 }
 
 .form-table .description {
-    font-size: 0.9em;
+    font-size: 1rem;
     color: #777;
     margin-top: 5px;
 }
