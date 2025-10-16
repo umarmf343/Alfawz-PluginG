@@ -82,17 +82,17 @@
   --alfawz-transition: all 220ms ease;
   --alfawz-text: #2f1c20;
   --alfawz-muted: #6b4a4f;
-  --alfawz-max-width-2xl: min(920px, 94vw);
-  --alfawz-max-width-3xl: min(1040px, 95vw);
-  --alfawz-max-width-4xl: min(1200px, 95vw);
-  --alfawz-max-width-5xl: min(1340px, 96vw);
-  --alfawz-max-width-6xl: min(1420px, 96vw);
+  --alfawz-max-width-2xl: min(100%, 100vw);
+  --alfawz-max-width-3xl: min(100%, 100vw);
+  --alfawz-max-width-4xl: min(100%, 100vw);
+  --alfawz-max-width-5xl: min(100%, 100vw);
+  --alfawz-max-width-6xl: min(100%, 100vw);
   --alfawz-shell-padding: clamp(2rem, 3vw, 3.25rem);
   --alfawz-surface-padding: clamp(1.75rem, 2.6vw, 2.75rem);
-  --alfawz-text-base: clamp(1.0625rem, 1rem + 0.32vw, 1.25rem);
-  --alfawz-text-small: clamp(1rem, 0.97rem + 0.28vw, 1.15rem);
-  --alfawz-text-compact: clamp(1rem, 0.95rem + 0.24vw, 1.1rem);
-  --alfawz-text-xs: clamp(1rem, 0.94rem + 0.2vw, 1.08rem);
+  --alfawz-text-base: clamp(1.2rem, 1.08rem + 0.36vw, 1.4rem);
+  --alfawz-text-small: clamp(1.125rem, 1.05rem + 0.3vw, 1.3rem);
+  --alfawz-text-compact: clamp(1.125rem, 1.03rem + 0.26vw, 1.25rem);
+  --alfawz-text-xs: clamp(1.125rem, 1.02rem + 0.22vw, 1.22rem);
   --alfawz-heading-wide: clamp(2.75rem, 2.15rem + 1.8vw, 3.75rem);
   --alfawz-heading-xl: clamp(2.4rem, 2.1rem + 1.5vw, 3.2rem);
   --alfawz-heading-lg: clamp(2.1rem, 1.9rem + 1.2vw, 3rem);
@@ -105,10 +105,10 @@
 #alfawz-reader,
 #alfawz-memorizer,
 #alfawz-teacher-dashboard {
-  --alfawz-text-base: clamp(1.125rem, 1.05rem + 0.35vw, 1.3rem);
-  --alfawz-text-small: clamp(1.02rem, 0.99rem + 0.3vw, 1.18rem);
-  --alfawz-text-compact: clamp(1rem, 0.97rem + 0.26vw, 1.12rem);
-  --alfawz-text-xs: clamp(1rem, 0.95rem + 0.22vw, 1.08rem);
+  --alfawz-text-base: clamp(1.25rem, 1.12rem + 0.38vw, 1.45rem);
+  --alfawz-text-small: clamp(1.125rem, 1.05rem + 0.32vw, 1.32rem);
+  --alfawz-text-compact: clamp(1.125rem, 1.04rem + 0.28vw, 1.28rem);
+  --alfawz-text-xs: clamp(1.125rem, 1.03rem + 0.24vw, 1.24rem);
 }
 
 #alfawz-account,
@@ -220,7 +220,7 @@
 
 #alfawz-recitation-assistant .alfawz-recitation-chip strong {
   font-family: var(--alfawz-font-heading);
-  font-size: 0.95rem;
+  font-size: var(--alfawz-text-small);
   color: var(--alfawz-maroon-800);
 }
 
@@ -5133,7 +5133,7 @@ body.alfawz-qaidah-modal-open {
 }
 
 .alfawz-dashboard-metric-label {
-  font-size: 0.75rem;
+  font-size: var(--alfawz-text-small);
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: rgba(255, 237, 213, 0.78);
@@ -5147,14 +5147,14 @@ body.alfawz-qaidah-modal-open {
 }
 
 .alfawz-dashboard-metric-hint {
-  font-size: 0.75rem;
+  font-size: var(--alfawz-text-small);
   color: rgba(255, 237, 213, 0.72);
   margin-top: 0.35rem;
 }
 
 .alfawz-dashboard-panel-note {
   margin-top: 1rem;
-  font-size: 0.85rem;
+  font-size: var(--alfawz-text-small);
   color: rgba(255, 237, 213, 0.78);
 }
 
@@ -5182,7 +5182,7 @@ body.alfawz-qaidah-modal-open {
 }
 
 .alfawz-dashboard-consistency-label {
-  font-size: 0.8rem;
+  font-size: var(--alfawz-text-small);
   text-transform: uppercase;
   letter-spacing: 0.1em;
   color: rgba(255, 237, 213, 0.82);
@@ -5191,7 +5191,7 @@ body.alfawz-qaidah-modal-open {
 
 .alfawz-dashboard-consistency-message {
   margin-top: 0.65rem;
-  font-size: 0.88rem;
+  font-size: var(--alfawz-text-small);
   color: rgba(255, 247, 237, 0.85);
 }
 
@@ -5209,7 +5209,7 @@ body.alfawz-qaidah-modal-open {
   align-items: center;
   justify-content: center;
   border-radius: 0.65rem;
-  font-size: 0.7rem;
+  font-size: var(--alfawz-text-small);
   font-weight: 600;
   color: rgba(118, 29, 49, 0.82);
   background: rgba(255, 255, 255, 0.18);
@@ -5253,7 +5253,7 @@ body.alfawz-qaidah-modal-open {
   border-radius: 1.25rem;
   background: rgba(255, 255, 255, 0.85);
   color: #7a2338;
-  font-size: 0.88rem;
+  font-size: var(--alfawz-text-small);
   box-shadow: 0 12px 30px rgba(70, 7, 26, 0.1);
 }
 
@@ -5267,7 +5267,7 @@ body.alfawz-qaidah-modal-open {
 }
 
 .alfawz-dashboard-reflection-item strong {
-  font-size: 0.78rem;
+  font-size: var(--alfawz-text-small);
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: #b54760;
@@ -5275,14 +5275,14 @@ body.alfawz-qaidah-modal-open {
 
 .alfawz-dashboard-reflection-item time {
   display: block;
-  font-size: 0.75rem;
+  font-size: var(--alfawz-text-small);
   color: rgba(105, 23, 44, 0.65);
   margin-top: 0.2rem;
 }
 
 .alfawz-dashboard-reflection-item p {
   margin-top: 0.5rem;
-  font-size: 0.92rem;
+  font-size: var(--alfawz-text-small);
   line-height: 1.5;
 }
 
@@ -5293,7 +5293,7 @@ body.alfawz-qaidah-modal-open {
   background: none;
   border: none;
   color: #b54760;
-  font-size: 0.75rem;
+  font-size: var(--alfawz-text-small);
   font-weight: 600;
   cursor: pointer;
 }
@@ -5327,7 +5327,7 @@ body.alfawz-qaidah-modal-open {
 }
 
 .alfawz-reflection-context {
-  font-size: 0.85rem;
+  font-size: var(--alfawz-text-small);
   color: rgba(93, 19, 37, 0.78);
   margin-top: 0.35rem;
 }
@@ -5364,7 +5364,7 @@ body.alfawz-qaidah-modal-open {
 
 .alfawz-reflection-label {
   display: block;
-  font-size: 0.85rem;
+  font-size: var(--alfawz-text-small);
   font-weight: 600;
   color: #4b0f21;
   margin-bottom: 0.4rem;
@@ -5378,7 +5378,7 @@ body.alfawz-qaidah-modal-open {
   padding: 0.95rem 1.05rem;
   min-height: 120px;
   resize: vertical;
-  font-size: 0.95rem;
+  font-size: var(--alfawz-text-small);
   color: #401022;
   box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
 }
@@ -5408,7 +5408,7 @@ body.alfawz-qaidah-modal-open {
 .alfawz-reflection-status {
   min-height: 1.2rem;
   margin-top: 0.55rem;
-  font-size: 0.8rem;
+  font-size: var(--alfawz-text-small);
   color: #79213b;
 }
 
@@ -5421,7 +5421,7 @@ body.alfawz-qaidah-modal-open {
 }
 
 .alfawz-reflection-history-title {
-  font-size: 0.95rem;
+  font-size: var(--alfawz-text-small);
   font-weight: 700;
   color: #5b1326;
   margin-bottom: 0.6rem;
@@ -5442,21 +5442,21 @@ body.alfawz-qaidah-modal-open {
 }
 
 .alfawz-reflection-item strong {
-  font-size: 0.78rem;
+  font-size: var(--alfawz-text-small);
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: #b54760;
 }
 
 .alfawz-reflection-item time {
-  font-size: 0.72rem;
+  font-size: var(--alfawz-text-small);
   color: rgba(112, 26, 46, 0.6);
   display: block;
   margin-top: 0.2rem;
 }
 
 .alfawz-reflection-item p {
-  font-size: 0.9rem;
+  font-size: var(--alfawz-text-small);
   color: #4d1224;
   margin-top: 0.35rem;
   line-height: 1.5;
@@ -5469,7 +5469,7 @@ body.alfawz-qaidah-modal-open {
   border: none;
   background: none;
   color: #c05369;
-  font-size: 0.75rem;
+  font-size: var(--alfawz-text-small);
   cursor: pointer;
 }
 
@@ -5478,7 +5478,7 @@ body.alfawz-qaidah-modal-open {
 }
 
 .alfawz-reflection-empty {
-  font-size: 0.78rem;
+  font-size: var(--alfawz-text-small);
   color: rgba(112, 26, 46, 0.72);
 }
 
