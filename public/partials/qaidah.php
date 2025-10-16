@@ -54,14 +54,14 @@ if ( ! defined( 'ABSPATH' ) ) {
                     </p>
                 </div>
             </article>
-            <article class="relative overflow-hidden rounded-[26px] bg-gradient-to-br from-[#0d9488]/90 via-[#22d3ee]/90 to-[#99f6e4]/80 p-6 text-white shadow-lg">
-                <div class="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(255,255,255,0.18),_transparent_60%)]"></div>
+            <article class="relative overflow-hidden rounded-[26px] bg-gradient-to-br from-[#0b3f4f] via-[#0f766e] to-[#14b8a6] p-6 text-white shadow-lg">
+                <div class="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.12),_transparent_65%)]"></div>
                 <div class="relative flex flex-col gap-3">
                     <span class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/30 text-2xl shadow-sm">🌟</span>
                     <h3 class="text-lg font-semibold">
                         <?php esc_html_e( 'Track your glow', 'alfawzquran' ); ?>
                     </h3>
-                    <p class="text-sm text-emerald-50">
+                    <p class="text-sm text-emerald-100">
                         <?php esc_html_e( 'Spot completed lessons instantly—finished cards shimmer so you know where to focus next.', 'alfawzquran' ); ?>
                     </p>
                 </div>
