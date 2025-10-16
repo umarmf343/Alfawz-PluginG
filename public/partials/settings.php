@@ -8,6 +8,7 @@ $display_name     = $current_user instanceof WP_User ? $current_user->display_na
 $email_address    = $current_user instanceof WP_User ? $current_user->user_email : '';
 $memorizer_link   = esc_url( home_url( '/alfawz-memorizer/' ) );
 $password_link    = esc_url( wp_lostpassword_url() );
+$donation_link    = esc_url( home_url( '/donate/' ) );
 ?>
 <section id="alfawz-settings" class="bg-stone-50 py-10 sm:py-14">
     <div class="mx-auto w-full max-w-4xl px-4 sm:px-6 lg:px-8">
@@ -20,6 +21,26 @@ $password_link    = esc_url( wp_lostpassword_url() );
         </header>
 
         <div class="space-y-8">
+            <section class="relative overflow-hidden rounded-2xl border border-fuchsia-200 bg-gradient-to-br from-rose-500 via-fuchsia-500 to-indigo-500 p-1 shadow-lg">
+                <div class="rounded-2xl bg-white/90 p-6 text-center sm:p-8">
+                    <div class="mx-auto mb-4 h-16 w-16 rounded-full bg-white/70 p-4 shadow-inner">
+                        <span class="block text-3xl" aria-hidden="true">🌟</span>
+                    </div>
+                    <h2 class="text-2xl font-extrabold text-gray-900 sm:text-3xl"><?php esc_html_e( 'Spread the Light of the Qur\'an', 'alfawzquran' ); ?></h2>
+                    <p class="mt-3 text-base text-gray-700 sm:text-lg">
+                        <?php esc_html_e( 'Your generosity helps us create inspiring lessons, support teachers, and keep this platform thriving for every learner.', 'alfawzquran' ); ?>
+                    </p>
+                    <p class="mt-4 text-sm font-medium uppercase tracking-wide text-fuchsia-700">
+                        <?php esc_html_e( 'Every contribution amplifies the impact of your memorization journey.', 'alfawzquran' ); ?>
+                    </p>
+                    <a href="<?php echo $donation_link; ?>" class="mt-6 inline-flex items-center justify-center rounded-full bg-gradient-to-r from-amber-400 via-orange-500 to-rose-500 px-6 py-3 text-base font-semibold text-white shadow-lg transition-transform duration-200 hover:scale-105 hover:shadow-xl">
+                        <?php esc_html_e( 'Donate Now', 'alfawzquran' ); ?>
+                    </a>
+                </div>
+                <div class="pointer-events-none absolute -right-16 -top-16 h-36 w-36 rounded-full bg-white/20 blur-3xl"></div>
+                <div class="pointer-events-none absolute -bottom-20 -left-10 h-40 w-40 rounded-full bg-white/10 blur-3xl"></div>
+            </section>
+
             <section class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm" aria-labelledby="alfawz-settings-profile-heading">
                 <h2 id="alfawz-settings-profile-heading" class="text-xl font-bold text-gray-800 mb-4 flex items-center">
                     <span class="mr-2" aria-hidden="true">👤</span>
