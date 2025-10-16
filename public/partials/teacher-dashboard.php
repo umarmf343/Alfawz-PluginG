@@ -39,33 +39,47 @@ $qaidah_markup = ob_get_clean();
                         </span>
                     </div>
                 </div>
-                <div class="relative w-full max-w-sm self-stretch rounded-3xl border border-[#f1d9c9] bg-gradient-to-br from-[#7b1e3c] via-[#a4425d] to-[#f7e7d6] p-6 text-white shadow-lg shadow-[#24040f]/40" data-alfawz-animate data-alfawz-delay="0.12">
-                    <div class="mb-6 flex items-center justify-between text-sm uppercase tracking-widest text-[#fbeadf]/80">
-                        <span><?php esc_html_e( 'Momentum tracker', 'alfawzquran' ); ?></span>
-                        <span><?php esc_html_e( 'Live sync', 'alfawzquran' ); ?></span>
+                <div class="relative w-full max-w-sm self-stretch overflow-hidden rounded-3xl border border-[#f5d5bf] bg-white/95 p-6 text-[#431125] shadow-xl shadow-[#2b0618]/15" data-alfawz-animate data-alfawz-delay="0.12">
+                    <div class="pointer-events-none absolute inset-x-6 -top-16 h-32 rounded-full bg-gradient-to-br from-[#ffe8d7] via-[#f9d9c5] to-[#f7b7b0] blur-3xl" aria-hidden="true"></div>
+                    <div class="relative flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <span class="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#f3d9c1] text-2xl shadow-sm shadow-[#f3d9c1]/60" aria-hidden="true">📈</span>
+                            <div>
+                                <p class="text-xs font-semibold uppercase tracking-[0.35em] text-[#7b1e3c]/80"><?php esc_html_e( 'Momentum tracker', 'alfawzquran' ); ?></p>
+                                <p class="mt-1 text-xl font-bold text-[#2f0a18]"><?php esc_html_e( 'Keep every class in flow', 'alfawzquran' ); ?></p>
+                            </div>
+                        </div>
+                        <span class="inline-flex items-center gap-1 rounded-full bg-[#f9ebe0] px-3 py-1 text-xs font-semibold text-[#7b1e3c]"><span class="h-2 w-2 rounded-full bg-[#34d399]" aria-hidden="true"></span><?php esc_html_e( 'Live sync', 'alfawzquran' ); ?></span>
                     </div>
-                    <div class="space-y-4">
-                        <div class="rounded-2xl bg-white/10 p-4" data-alfawz-animate data-alfawz-delay="0.18">
-                            <div class="flex items-center justify-between text-sm text-[#fbeadf]/80">
-                                <span><?php esc_html_e( 'Assignments shared', 'alfawzquran' ); ?></span>
-                                <span data-alfawz-metric="assignments" data-label="<?php esc_attr_e( 'assignments sent', 'alfawzquran' ); ?>"><?php esc_html_e( 'Loading…', 'alfawzquran' ); ?></span>
+                    <div class="relative mt-6 space-y-5">
+                        <div class="rounded-2xl border border-[#f5d5bf] bg-white/80 p-5 shadow-sm" data-alfawz-animate data-alfawz-delay="0.18">
+                            <div class="flex flex-wrap items-start justify-between gap-2 text-sm text-[#5a0f27]/80">
+                                <div>
+                                    <p class="font-semibold text-[#2f0a18]"><?php esc_html_e( 'Assignments shared', 'alfawzquran' ); ?></p>
+                                    <p class="text-xs uppercase tracking-widest text-[#b57b69]"><?php esc_html_e( 'Weekly delivery pace', 'alfawzquran' ); ?></p>
+                                </div>
+                                <span class="text-sm font-semibold text-[#7b1e3c]" data-alfawz-metric="assignments" data-label="<?php esc_attr_e( 'assignments sent', 'alfawzquran' ); ?>"><?php esc_html_e( 'Loading…', 'alfawzquran' ); ?></span>
                             </div>
-                            <div class="mt-3 h-2 rounded-full bg-white/20">
-                                <span class="block h-full w-3/4 rounded-full bg-gradient-to-r from-[#fbeadf] via-[#f3d9c1] to-[#f3b694] transition-all" aria-hidden="true"></span>
-                            </div>
-                        </div>
-                        <div class="rounded-2xl bg-white/10 p-4" data-alfawz-animate data-alfawz-delay="0.24">
-                            <div class="flex items-center justify-between text-sm text-[#fbeadf]/80">
-                                <span><?php esc_html_e( 'Students tracked', 'alfawzquran' ); ?></span>
-                                <span data-alfawz-metric="memorization" data-label="<?php esc_attr_e( 'students tracked', 'alfawzquran' ); ?>"><?php esc_html_e( 'Loading…', 'alfawzquran' ); ?></span>
-                            </div>
-                            <div class="mt-3 h-2 rounded-full bg-white/20">
-                                <span class="block h-full w-2/3 rounded-full bg-gradient-to-r from-[#fbeadf] via-[#f7c3aa] to-[#ef8d8f] transition-all" aria-hidden="true"></span>
+                            <div class="mt-4 h-2.5 rounded-full bg-[#fdf1e7]">
+                                <span class="block h-full w-3/4 rounded-full bg-gradient-to-r from-[#f6c8aa] via-[#f3a58d] to-[#ed7b77] transition-all" aria-hidden="true"></span>
                             </div>
                         </div>
-                        <p class="text-sm text-[#fbeadf]/80">
-                            <?php esc_html_e( 'Teacher tip: share encouraging voice notes after each Qa’idah to keep motivation high.', 'alfawzquran' ); ?>
-                        </p>
+                        <div class="rounded-2xl border border-[#f5d5bf] bg-white/80 p-5 shadow-sm" data-alfawz-animate data-alfawz-delay="0.24">
+                            <div class="flex flex-wrap items-start justify-between gap-2 text-sm text-[#5a0f27]/80">
+                                <div>
+                                    <p class="font-semibold text-[#2f0a18]"><?php esc_html_e( 'Students tracked', 'alfawzquran' ); ?></p>
+                                    <p class="text-xs uppercase tracking-widest text-[#b57b69]"><?php esc_html_e( 'Active memorisation loops', 'alfawzquran' ); ?></p>
+                                </div>
+                                <span class="text-sm font-semibold text-[#7b1e3c]" data-alfawz-metric="memorization" data-label="<?php esc_attr_e( 'students tracked', 'alfawzquran' ); ?>"><?php esc_html_e( 'Loading…', 'alfawzquran' ); ?></span>
+                            </div>
+                            <div class="mt-4 h-2.5 rounded-full bg-[#fdf1e7]">
+                                <span class="block h-full w-2/3 rounded-full bg-gradient-to-r from-[#f7d6ad] via-[#f3b5a2] to-[#ea8892] transition-all" aria-hidden="true"></span>
+                            </div>
+                        </div>
+                        <div class="rounded-2xl border border-dashed border-[#f3bda0] bg-[#fff7f1] p-5 text-sm text-[#5a0f27]/90" data-alfawz-animate data-alfawz-delay="0.3">
+                            <p class="font-semibold uppercase tracking-[0.25em] text-[#b57b69]/80"><?php esc_html_e( 'Teacher tip', 'alfawzquran' ); ?></p>
+                            <p class="mt-2 leading-relaxed text-[#431125]"><?php esc_html_e( 'Share encouraging voice notes after each Qa’idah to keep motivation high.', 'alfawzquran' ); ?></p>
+                        </div>
                     </div>
                 </div>
             </div>
