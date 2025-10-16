@@ -455,6 +455,61 @@
     });
   };
 
+  const memoCardVariants = [
+    {
+      background: 'from-[#fff5f7] via-[#ffe8f0] to-[#fde7ef]',
+      border: 'border-[#f9cfd9]',
+      title: 'text-[#5a0f27]',
+      meta: 'text-[#7b1e3c]/70',
+      metricBody: 'text-[#5a0f27]',
+      metricLabel: 'text-[#7b1e3c]/70',
+      metricValue: 'text-[#5a0f27]',
+      planRow: 'bg-white/60',
+      planTitle: 'text-[#5a0f27]',
+      planMeta: 'text-[#7b1e3c]/70',
+      extra: 'text-[#7b1e3c]/70',
+    },
+    {
+      background: 'from-[#eef3ff] via-[#dbe7ff] to-[#f5f8ff]',
+      border: 'border-[#c3d4ff]',
+      title: 'text-[#1f2a5b]',
+      meta: 'text-[#243764]/70',
+      metricBody: 'text-[#1f2a5b]',
+      metricLabel: 'text-[#243764]/70',
+      metricValue: 'text-[#1f2a5b]',
+      planRow: 'bg-white/60',
+      planTitle: 'text-[#1f2a5b]',
+      planMeta: 'text-[#243764]/70',
+      extra: 'text-[#243764]/70',
+    },
+    {
+      background: 'from-[#e9fbf1] via-[#d1f5e0] to-[#f2fff8]',
+      border: 'border-[#b4e8cc]',
+      title: 'text-[#1d4d3b]',
+      meta: 'text-[#236447]/70',
+      metricBody: 'text-[#1d4d3b]',
+      metricLabel: 'text-[#236447]/70',
+      metricValue: 'text-[#1d4d3b]',
+      planRow: 'bg-white/60',
+      planTitle: 'text-[#1d4d3b]',
+      planMeta: 'text-[#236447]/70',
+      extra: 'text-[#236447]/70',
+    },
+    {
+      background: 'from-[#fff7e6] via-[#ffe9c7] to-[#fff3d6]',
+      border: 'border-[#ffd8a8]',
+      title: 'text-[#5b3a0e]',
+      meta: 'text-[#8a5d16]/70',
+      metricBody: 'text-[#5b3a0e]',
+      metricLabel: 'text-[#8a5d16]/70',
+      metricValue: 'text-[#5b3a0e]',
+      planRow: 'bg-white/60',
+      planTitle: 'text-[#5b3a0e]',
+      planMeta: 'text-[#8a5d16]/70',
+      extra: 'text-[#8a5d16]/70',
+    },
+  ];
+
   const renderMemorization = () => {
     if (!memoList) {
       return;
@@ -464,7 +519,8 @@
 
     if (!state.memorization.length) {
       const empty = document.createElement('div');
-      empty.className = 'rounded-2xl border border-[#f1d9c9] bg-[#fdf5ea] px-6 py-6 text-center text-base text-[#7b1e3c]/80';
+      empty.className =
+        'rounded-2xl border border-[#c3d4ff] bg-gradient-to-br from-[#eef3ff] via-[#f6f0ff] to-[#fff7f0] px-6 py-6 text-center text-base text-[#243764]/80 shadow-md shadow-[#1b1f3b]/10';
       empty.setAttribute('data-alfawz-animate', 'scale');
       empty.textContent = strings.noPlans || '—';
       memoList.appendChild(empty);
@@ -473,15 +529,16 @@
     }
 
     state.memorization.forEach((entry, index) => {
+      const variant = memoCardVariants[index % memoCardVariants.length];
       const card = document.createElement('article');
-      card.className = 'rounded-2xl border border-[#f1d9c9] bg-white/90 p-6 shadow-md shadow-[#2b0618]/5 transition hover:-translate-y-0.5 hover:shadow-xl';
+      card.className = `rounded-2xl border ${variant.border} bg-gradient-to-br ${variant.background} p-6 shadow-lg shadow-[#2b0618]/10 transition hover:-translate-y-0.5 hover:shadow-2xl`;
       card.id = `memo-${entry.student.id}`;
       card.setAttribute('data-alfawz-animate', 'scale');
 
       const header = document.createElement('div');
       header.className = 'flex flex-wrap items-center justify-between gap-4';
       const title = document.createElement('div');
-      title.innerHTML = `<p class="text-lg font-semibold text-[#3d0b1e]">${entry.student.name || ''}</p><p class="text-sm text-[#7b1e3c]/70">${entry.student.class_label || ''}</p>`;
+      title.innerHTML = `<p class="text-lg font-semibold ${variant.title}">${entry.student.name || ''}</p><p class="text-sm ${variant.meta}">${entry.student.class_label || ''}</p>`;
 
       const streak = Number(entry.metrics?.streak || 0);
       const streakTheme = streak > 1 ? 'emerald' : 'amber';
@@ -493,7 +550,7 @@
       header.appendChild(streakBadge);
 
       const metrics = document.createElement('dl');
-      metrics.className = 'mt-4 grid grid-cols-1 gap-4 text-sm text-[#502032] sm:grid-cols-3';
+      metrics.className = `mt-4 grid grid-cols-1 gap-4 text-sm ${variant.metricBody} sm:grid-cols-3`;
 
       const metricItems = [
         {
@@ -512,7 +569,7 @@
 
       metricItems.forEach((metric) => {
         const block = document.createElement('div');
-        block.innerHTML = `<dt class="font-medium text-[#7b1e3c]/70">${metric.label}</dt><dd class="text-2xl font-semibold text-[#3d0b1e]">${metric.value}</dd>`;
+        block.innerHTML = `<dt class="font-medium ${variant.metricLabel}">${metric.label}</dt><dd class="text-2xl font-semibold ${variant.metricValue}">${metric.value}</dd>`;
         metrics.appendChild(block);
       });
 
@@ -523,17 +580,17 @@
         planList.className = 'mt-4 space-y-2';
         entry.plans.slice(0, 3).forEach((plan) => {
           const planRow = document.createElement('div');
-          planRow.className = 'flex flex-wrap items-center justify-between gap-3 rounded-xl bg-[#fdf5ea] px-4 py-3';
+          planRow.className = `flex flex-wrap items-center justify-between gap-3 rounded-xl px-4 py-3 shadow-sm shadow-[#1b1f3b]/5 ${variant.planRow}`;
           const totalVerses = Number(plan.total_verses || 0);
           const completedVerses = Number(plan.completed_verses || 0);
           const progress = totalVerses > 0 ? Math.round((completedVerses / totalVerses) * 100) : 0;
-          planRow.innerHTML = `<p class="text-base font-medium text-[#3d0b1e]">${plan.plan_name || strings.assignmentFallback || 'Qa’idah assignment'}</p><p class="text-sm text-[#7b1e3c]/70">${formatNumber(completedVerses)} / ${formatNumber(totalVerses)} • ${progress}%</p>`;
+          planRow.innerHTML = `<p class="text-base font-medium ${variant.planTitle}">${plan.plan_name || strings.assignmentFallback || 'Qa’idah assignment'}</p><p class="text-sm ${variant.planMeta}">${formatNumber(completedVerses)} / ${formatNumber(totalVerses)} • ${progress}%</p>`;
           planList.appendChild(planRow);
         });
 
         if (entry.plans.length > 3) {
           const extra = document.createElement('p');
-          extra.className = 'text-sm text-[#7b1e3c]/70';
+          extra.className = `text-sm ${variant.extra}`;
           const extraCount = entry.plans.length - 3;
           extra.textContent = `+${formatNumber(extraCount)} ${strings.activePlansUnit || strings.activePlansLabel || 'plans'}`;
           planList.appendChild(extra);
