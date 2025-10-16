@@ -97,7 +97,7 @@ class Frontend {
                 true
             );
 
-            $reader_url = home_url('/reader/');
+            $reader_url = home_url('/alfawz-reader/');
             if (function_exists('alfawz_get_bottom_nav_url')) {
                 $resolved_reader = \alfawz_get_bottom_nav_url('reader');
                 if (! empty($resolved_reader)) {
