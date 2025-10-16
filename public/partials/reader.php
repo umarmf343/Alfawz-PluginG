@@ -99,12 +99,53 @@ if ( ! defined( 'ABSPATH' ) ) {
                             <?php esc_html_e( 'Select a verse to share how it resonated with you.', 'alfawzquran' ); ?>
                         </p>
                     </div>
+<?php
+$reflection_moods = [
+    'grateful'   => [
+        'emoji' => '😊',
+        'label' => __( 'Grateful', 'alfawzquran' ),
+    ],
+    'focused'    => [
+        'emoji' => '🎯',
+        'label' => __( 'Focused', 'alfawzquran' ),
+    ],
+    'hopeful'    => [
+        'emoji' => '🌱',
+        'label' => __( 'Hopeful', 'alfawzquran' ),
+    ],
+    'reflective' => [
+        'emoji' => '🪞',
+        'label' => __( 'Reflective', 'alfawzquran' ),
+    ],
+    'striving'   => [
+        'emoji' => '🔥',
+        'label' => __( 'Striving', 'alfawzquran' ),
+    ],
+];
+?>
                     <div class="alfawz-reflection-moods" role="radiogroup" aria-label="<?php esc_attr_e( 'Select a reflection mood', 'alfawzquran' ); ?>">
-                        <button type="button" class="alfawz-reflection-mood" data-mood="grateful" aria-pressed="false">😊</button>
-                        <button type="button" class="alfawz-reflection-mood" data-mood="focused" aria-pressed="false">🎯</button>
-                        <button type="button" class="alfawz-reflection-mood" data-mood="hopeful" aria-pressed="false">🌱</button>
-                        <button type="button" class="alfawz-reflection-mood" data-mood="reflective" aria-pressed="false">🪞</button>
-                        <button type="button" class="alfawz-reflection-mood" data-mood="striving" aria-pressed="false">🔥</button>
+<?php
+$index = 0;
+foreach ( $reflection_moods as $mood_slug => $mood_data ) :
+    $emoji        = $mood_data['emoji'];
+    $label        = $mood_data['label'];
+    $tabindex     = 0 === $index ? '0' : '-1';
+    $index++;
+    ?>
+                        <button
+                            type="button"
+                            class="alfawz-reflection-mood"
+                            data-mood="<?php echo esc_attr( $mood_slug ); ?>"
+                            aria-pressed="false"
+                            aria-checked="false"
+                            role="radio"
+                            tabindex="<?php echo esc_attr( $tabindex ); ?>"
+                            aria-label="<?php echo esc_attr( $label ); ?>"
+                            title="<?php echo esc_attr( $label ); ?>"
+                        >
+                            <span aria-hidden="true"><?php echo esc_html( $emoji ); ?></span>
+                        </button>
+<?php endforeach; ?>
                     </div>
                 </div>
                 <div class="alfawz-reflection-body">

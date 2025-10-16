@@ -5411,7 +5411,8 @@ body.alfawz-qaidah-modal-open {
   transform: translateY(-2px);
 }
 
-.alfawz-reflection-mood[aria-pressed="true"] {
+.alfawz-reflection-mood[aria-pressed="true"],
+.alfawz-reflection-mood[aria-checked="true"] {
   background: linear-gradient(135deg, #fbbf24, #f97316);
   box-shadow: 0 12px 28px rgba(249, 115, 22, 0.28);
   color: #4b0f21;

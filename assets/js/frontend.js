@@ -1555,11 +1555,106 @@
       }
     };
 
+    function getEnabledReflectionMoodButtons() {
+      return reflectionMoodButtons.filter((button) => !button.disabled);
+    }
+
     function updateReflectionMoodButtons() {
+      if (!reflectionMoodButtons.length) {
+        return;
+      }
+
+      const enabledButtons = getEnabledReflectionMoodButtons();
+      let activeMood = reflectionState.activeMood || '';
+
+      if (
+        activeMood &&
+        !enabledButtons.some((button) => {
+          return (button.dataset.mood || '') === activeMood;
+        })
+      ) {
+        activeMood = '';
+        reflectionState.activeMood = '';
+      }
+
+      let hasSelected = false;
+
       reflectionMoodButtons.forEach((button) => {
         const mood = button.dataset.mood || '';
-        const pressed = Boolean(reflectionState.activeMood) && reflectionState.activeMood === mood;
-        button.setAttribute('aria-pressed', pressed ? 'true' : 'false');
+        const isSelected = Boolean(activeMood) && activeMood === mood;
+        const ariaPressed = isSelected ? 'true' : 'false';
+
+        button.setAttribute('aria-pressed', ariaPressed);
+        button.setAttribute('aria-checked', ariaPressed);
+        if (button.disabled) {
+          button.setAttribute('aria-disabled', 'true');
+        } else {
+          button.removeAttribute('aria-disabled');
+        }
+        button.tabIndex = isSelected ? 0 : -1;
+        if (isSelected) {
+          hasSelected = true;
+        }
+      });
+
+      if (!hasSelected) {
+        const fallback = enabledButtons[0];
+        if (fallback) {
+          fallback.tabIndex = 0;
+        }
+      }
+    }
+
+    function canInteractWithReflectionMoods() {
+      return Boolean(wpData.isLoggedIn) && Boolean(reflectionState.currentVerseKey) && !reflectionState.submitting;
+    }
+
+    function setActiveReflectionMood(mood, { toggle = true, focusTarget = null, suppressStatus = false } = {}) {
+      if (!canInteractWithReflectionMoods()) {
+        if (!wpData.isLoggedIn && !suppressStatus) {
+          setReflectionStatus(reflectionStrings.loginRequired);
+        }
+        return;
+      }
+
+      const normalizedMood = mood || '';
+      if (toggle && reflectionState.activeMood === normalizedMood) {
+        reflectionState.activeMood = '';
+      } else {
+        reflectionState.activeMood = normalizedMood;
+      }
+
+      updateReflectionMoodButtons();
+
+      if (focusTarget && typeof focusTarget.focus === 'function') {
+        focusTarget.focus();
+      }
+
+      syncReflectionControls();
+    }
+
+    function moveFocusBetweenReflectionMoods(currentButton, direction) {
+      const enabledButtons = getEnabledReflectionMoodButtons();
+      if (!enabledButtons.length) {
+        return;
+      }
+
+      const currentIndex = currentButton ? enabledButtons.indexOf(currentButton) : -1;
+      const count = enabledButtons.length;
+      const nextIndex = currentIndex === -1 ? (direction > 0 ? 0 : count - 1) : (currentIndex + direction + count) % count;
+      const nextButton = enabledButtons[nextIndex];
+      if (!nextButton) {
+        return;
+      }
+
+      if (typeof nextButton.focus === 'function') {
+        nextButton.focus();
+      }
+
+      setActiveReflectionMood(nextButton.dataset.mood || '', {
+        toggle: false,
+        focusTarget: nextButton,
+        suppressStatus: true,
       });
     }
 
@@ -1578,9 +1673,20 @@
         reflectionInput.disabled = disabled;
       }
 
+      const moodsDisabled = disabled || reflectionState.submitting;
       reflectionMoodButtons.forEach((button) => {
-        button.disabled = disabled || reflectionState.submitting;
+        button.disabled = moodsDisabled;
+        if (moodsDisabled) {
+          button.setAttribute('aria-disabled', 'true');
+          button.tabIndex = -1;
+        } else {
+          button.removeAttribute('aria-disabled');
+        }
       });
+
+      if (!moodsDisabled) {
+        updateReflectionMoodButtons();
+      }
 
       if (reflectionSaveButton) {
         const hasContent = Boolean(reflectionInput?.value?.trim());
@@ -1809,18 +1915,37 @@
 
     reflectionMoodButtons.forEach((button) => {
       button.addEventListener('click', () => {
-        if (!wpData.isLoggedIn || reflectionState.submitting || !reflectionState.currentVerseKey) {
-          if (!wpData.isLoggedIn) {
-            setReflectionStatus(reflectionStrings.loginRequired);
-          }
+        setActiveReflectionMood(button.dataset.mood || '', {
+          toggle: true,
+          focusTarget: button,
+        });
+      });
+
+      button.addEventListener('keydown', (event) => {
+        const key = event.key;
+        if (key === ' ' || key === 'Spacebar' || key === 'Enter') {
+          event.preventDefault();
+          setActiveReflectionMood(button.dataset.mood || '', {
+            toggle: true,
+            focusTarget: button,
+          });
           return;
         }
-        const mood = button.dataset.mood || '';
-        reflectionState.activeMood = reflectionState.activeMood === mood ? '' : mood;
-        updateReflectionMoodButtons();
-        syncReflectionControls();
+
+        if (key === 'ArrowRight' || key === 'ArrowDown') {
+          event.preventDefault();
+          moveFocusBetweenReflectionMoods(button, 1);
+          return;
+        }
+
+        if (key === 'ArrowLeft' || key === 'ArrowUp') {
+          event.preventDefault();
+          moveFocusBetweenReflectionMoods(button, -1);
+        }
       });
     });
+
+    updateReflectionMoodButtons();
 
     reflectionInput?.addEventListener('input', () => {
       if (!reflectionState.submitting) {
