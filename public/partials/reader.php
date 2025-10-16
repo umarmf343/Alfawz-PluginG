@@ -4,6 +4,26 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 ?>
 <div id="alfawz-reader" class="alfawz-reader-shell alfawz-no-scrollbar px-4 pt-8 sm:px-6">
+    <div class="alfawz-reader-controls mx-auto mt-10 max-w-3xl" aria-labelledby="alfawz-reader-label">
+        <h2 id="alfawz-reader-label" class="alfawz-controls-heading">
+            <?php esc_html_e( 'Select a surah and ayah', 'alfawzquran' ); ?>
+        </h2>
+        <div class="alfawz-controls-grid">
+            <label class="alfawz-field">
+                <span class="alfawz-field-label"><?php esc_html_e( 'Surah', 'alfawzquran' ); ?></span>
+                <select id="alfawz-surah-select" class="alfawz-select">
+                    <option value=""><?php esc_html_e( 'Loading…', 'alfawzquran' ); ?></option>
+                </select>
+            </label>
+            <label class="alfawz-field">
+                <span class="alfawz-field-label"><?php esc_html_e( 'Verse', 'alfawzquran' ); ?></span>
+                <select id="alfawz-verse-select" class="alfawz-select" disabled>
+                    <option value=""><?php esc_html_e( 'Select a surah first', 'alfawzquran' ); ?></option>
+                </select>
+            </label>
+        </div>
+    </div>
+
     <div class="alfawz-reader-surface mx-auto max-w-3xl px-5 py-10 sm:px-8" aria-live="polite" aria-busy="true">
         <div id="alfawz-confetti-host" class="alfawz-confetti-host" aria-hidden="true"></div>
         <div id="alfawz-verse-loader" class="alfawz-verse-loader">
@@ -124,26 +144,6 @@ if ( ! defined( 'ABSPATH' ) ) {
                 <div id="alfawz-surah-list-body" class="alfawz-surah-list__body"></div>
             </div>
         </article>
-    </div>
-
-    <div class="alfawz-reader-controls mx-auto mt-10 max-w-3xl" aria-labelledby="alfawz-reader-label">
-        <h2 id="alfawz-reader-label" class="alfawz-controls-heading">
-            <?php esc_html_e( 'Select a surah and ayah', 'alfawzquran' ); ?>
-        </h2>
-        <div class="alfawz-controls-grid">
-            <label class="alfawz-field">
-                <span class="alfawz-field-label"><?php esc_html_e( 'Surah', 'alfawzquran' ); ?></span>
-                <select id="alfawz-surah-select" class="alfawz-select">
-                    <option value=""><?php esc_html_e( 'Loading…', 'alfawzquran' ); ?></option>
-                </select>
-            </label>
-            <label class="alfawz-field">
-                <span class="alfawz-field-label"><?php esc_html_e( 'Verse', 'alfawzquran' ); ?></span>
-                <select id="alfawz-verse-select" class="alfawz-select" disabled>
-                    <option value=""><?php esc_html_e( 'Select a surah first', 'alfawzquran' ); ?></option>
-                </select>
-            </label>
-        </div>
     </div>
 
     <div id="alfawz-audio-panel" class="alfawz-audio-panel mx-auto mt-12 max-w-3xl" aria-live="polite">
