@@ -74,3 +74,22 @@
   align-items: center;
   justify-content: center;
 }
+
+#alfawz-bottom-nav .alfawz-bottom-nav__badge.is-pop {
+  animation: alfawzBadgePop 0.4s ease-out;
+}
+
+@keyframes alfawzBadgePop {
+  0% {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
