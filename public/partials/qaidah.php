@@ -40,40 +40,44 @@ if ( ! defined( 'ABSPATH' ) ) {
             <div class="qaidah-hero-glow" aria-hidden="true"></div>
         </div>
 
-        <section class="grid gap-4 md:grid-cols-3" aria-label="<?php esc_attr_e( 'Qa’idah learning highlights', 'alfawzquran' ); ?>">
-            <article class="relative overflow-hidden rounded-[26px] bg-gradient-to-br from-[#f8dce2] via-[#fde9d6] to-[#f4f9f6] p-6 text-[#3f1d4f] shadow-lg">
-                <div class="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full bg-[#f59e0b]/30 blur-2xl"></div>
-                <div class="pointer-events-none absolute -bottom-10 -left-12 h-36 w-36 rounded-full bg-[#ec4899]/20 blur-3xl"></div>
-                <div class="relative flex flex-col gap-3">
-                    <span class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/70 text-2xl shadow-sm">🎧</span>
-                    <h3 class="text-lg font-semibold">
+        <section class="grid gap-6 md:grid-cols-3" aria-label="<?php esc_attr_e( 'Qa’idah learning highlights', 'alfawzquran' ); ?>">
+            <article class="relative overflow-hidden rounded-[26px] bg-gradient-to-br from-rose-200 via-fuchsia-200 to-sky-200 p-8 text-slate-900 shadow-xl">
+                <div class="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-white/40 blur-3xl"></div>
+                <div class="pointer-events-none absolute -bottom-14 -left-14 h-48 w-48 rounded-full bg-pink-300/40 blur-3xl"></div>
+                <div class="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(255,255,255,0.45),_transparent_60%)]"></div>
+                <div class="relative flex flex-col gap-5">
+                    <span class="inline-flex h-16 w-16 items-center justify-center rounded-full bg-white/80 text-4xl shadow-lg">🎧</span>
+                    <h3 class="text-4xl font-semibold leading-tight">
                         <?php esc_html_e( 'Listen & repeat', 'alfawzquran' ); ?>
                     </h3>
-                    <p class="text-sm text-[#5d3f5b]">
+                    <p class="text-2xl leading-relaxed text-slate-700">
                         <?php esc_html_e( 'Follow the glowing markers and echo your teacher’s voice for crisp articulation.', 'alfawzquran' ); ?>
                     </p>
                 </div>
             </article>
-            <article class="relative overflow-hidden rounded-[26px] bg-gradient-to-br from-[#0b3f4f] via-[#0f766e] to-[#14b8a6] p-6 text-white shadow-lg">
-                <div class="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.12),_transparent_65%)]"></div>
-                <div class="relative flex flex-col gap-3">
-                    <span class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/30 text-2xl shadow-sm">🌟</span>
-                    <h3 class="text-lg font-semibold">
+            <article class="relative overflow-hidden rounded-[26px] bg-gradient-to-br from-sky-500 via-indigo-500 to-violet-500 p-8 text-white shadow-xl">
+                <div class="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.18),_transparent_70%)]"></div>
+                <div class="pointer-events-none absolute -bottom-16 -right-20 h-48 w-48 rounded-full bg-cyan-300/40 blur-3xl"></div>
+                <div class="relative flex flex-col gap-5">
+                    <span class="inline-flex h-16 w-16 items-center justify-center rounded-full bg-white/30 text-4xl text-sky-800 shadow-lg">🌟</span>
+                    <h3 class="text-4xl font-semibold leading-tight text-white">
                         <?php esc_html_e( 'Track your glow', 'alfawzquran' ); ?>
                     </h3>
-                    <p class="text-sm text-emerald-100">
+                    <p class="text-2xl leading-relaxed text-sky-50">
                         <?php esc_html_e( 'Spot completed lessons instantly—finished cards shimmer so you know where to focus next.', 'alfawzquran' ); ?>
                     </p>
                 </div>
             </article>
-            <article class="relative overflow-hidden rounded-[26px] bg-gradient-to-br from-[#fef3c7] via-[#fde68a] to-[#fbcfe8] p-6 text-[#4c1d1d] shadow-lg">
-                <div class="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_bottom,_rgba(250,204,21,0.22),_transparent_55%)]"></div>
-                <div class="relative flex flex-col gap-3">
-                    <span class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/70 text-2xl shadow-sm">🎉</span>
-                    <h3 class="text-lg font-semibold">
+            <article class="relative overflow-hidden rounded-[26px] bg-gradient-to-br from-amber-200 via-orange-200 to-rose-200 p-8 text-stone-900 shadow-xl">
+                <div class="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_bottom,_rgba(255,255,255,0.35),_transparent_60%)]"></div>
+                <div class="pointer-events-none absolute -top-12 -left-16 h-40 w-40 rounded-full bg-amber-100/60 blur-3xl"></div>
+                <div class="pointer-events-none absolute -bottom-16 -right-16 h-48 w-48 rounded-full bg-rose-300/40 blur-3xl"></div>
+                <div class="relative flex flex-col gap-5">
+                    <span class="inline-flex h-16 w-16 items-center justify-center rounded-full bg-white/80 text-4xl shadow-lg">🎉</span>
+                    <h3 class="text-4xl font-semibold leading-tight">
                         <?php esc_html_e( 'Celebrate mastery', 'alfawzquran' ); ?>
                     </h3>
-                    <p class="text-sm text-[#6f3b1f]">
+                    <p class="text-2xl leading-relaxed text-stone-700">
                         <?php esc_html_e( 'Earn vibrant badges as you complete sets and share wins with classmates and family.', 'alfawzquran' ); ?>
                     </p>
                 </div>
