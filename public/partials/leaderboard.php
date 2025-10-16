@@ -3,13 +3,13 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 ?>
-<div id="alfawz-leaderboard" class="relative mx-auto max-w-6xl overflow-hidden rounded-[2.75rem] border border-[#f4d3c4]/70 bg-gradient-to-br from-[#fff4e6]/95 via-white/94 to-[#ffe7d6]/92 p-1 shadow-[0_40px_80px_rgba(47,8,17,0.18)]">
+<div id="alfawz-leaderboard" class="alfawz-leaderboard-shell relative mx-auto max-w-6xl overflow-hidden rounded-[2.75rem] border border-[#f4d3c4]/70 bg-gradient-to-br from-[#fff4e6]/95 via-white/94 to-[#ffe7d6]/92 p-1 shadow-[0_40px_80px_rgba(47,8,17,0.18)]">
     <div class="absolute -left-32 top-10 h-64 w-64 rounded-full bg-[#741f31]/10 blur-3xl"></div>
     <div class="absolute -right-16 -bottom-24 h-72 w-72 rounded-full bg-[#f59f82]/20 blur-3xl"></div>
-    <div class="relative space-y-12 rounded-[2.65rem] bg-white/70 p-6 sm:p-10 lg:p-12">
+    <div class="alfawz-leaderboard-inner relative space-y-12 rounded-[2.65rem] bg-white/70 p-6 sm:p-10 lg:p-12">
         <header class="alfawz-leaderboard-hero relative overflow-hidden rounded-[2.5rem] px-8 py-10 sm:px-10 sm:py-12">
             <div class="relative flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
-                <div class="space-y-5 text-[#fff7ee]">
+                <div class="alfawz-leaderboard-hero-copy space-y-5 text-[#fff7ee]">
                     <p class="text-xs font-semibold uppercase tracking-[0.35em] text-[#ffe7d6]/80">
                         <?php esc_html_e( 'Students leaderboard', 'alfawzquran' ); ?>
                     </p>
@@ -20,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
                         <?php esc_html_e( 'Watch classmates climb the ranks in real time with standings that refresh straight from the Alfawz REST endpoint.', 'alfawzquran' ); ?>
                     </p>
                 </div>
-                <div class="flex flex-col items-stretch gap-5 text-[#fff7ee] lg:w-72">
+                <div class="alfawz-leaderboard-hero-aside flex flex-col items-stretch gap-5 text-[#fff7ee] lg:w-72">
                     <div class="grid grid-cols-2 gap-4 sm:grid-cols-3">
                         <div class="rounded-3xl bg-white/10 p-5 text-center shadow-lg backdrop-blur">
                             <p class="text-[0.7rem] font-semibold uppercase tracking-[0.3em] text-[#ffe7d6]/70">
@@ -59,7 +59,7 @@ if ( ! defined( 'ABSPATH' ) ) {
                 </div>
             </div>
         </header>
-        <section class="space-y-6" aria-labelledby="alfawz-leaderboard-podium-heading">
+        <section class="alfawz-leaderboard-section space-y-6" aria-labelledby="alfawz-leaderboard-podium-heading">
             <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                     <p class="text-xs font-semibold uppercase tracking-[0.35em] text-[#741f31]/70">
@@ -77,7 +77,7 @@ if ( ! defined( 'ABSPATH' ) ) {
                 <div id="alfawz-leaderboard-podium" class="grid gap-5 md:grid-cols-2 lg:grid-cols-3" aria-live="polite" aria-busy="true"></div>
             </div>
         </section>
-        <section class="space-y-4" aria-labelledby="alfawz-leaderboard-standings">
+        <section class="alfawz-leaderboard-section space-y-4" aria-labelledby="alfawz-leaderboard-standings">
             <div class="flex flex-col gap-2">
                 <h3 id="alfawz-leaderboard-standings" class="text-xl font-semibold text-[#2f0811] sm:text-2xl">
                     <?php esc_html_e( 'Full standings', 'alfawzquran' ); ?>
@@ -103,7 +103,7 @@ if ( ! defined( 'ABSPATH' ) ) {
                 </div>
             </div>
         </section>
-        <section class="rounded-[2.4rem] border border-[#f5d0c5]/80 bg-gradient-to-br from-white/95 via-[#fff4e6]/90 to-[#ffe7d6]/85 p-8 sm:p-10" aria-labelledby="alfawz-leaderboard-callout">
+        <section class="alfawz-leaderboard-section rounded-[2.4rem] border border-[#f5d0c5]/80 bg-gradient-to-br from-white/95 via-[#fff4e6]/90 to-[#ffe7d6]/85 p-8 sm:p-10" aria-labelledby="alfawz-leaderboard-callout">
             <div class="grid gap-8 lg:grid-cols-[1.4fr_1fr] lg:items-center">
                 <div class="space-y-4 text-[#4b0d18]">
                     <p class="text-xs font-semibold uppercase tracking-[0.35em] text-[#741f31]/70">

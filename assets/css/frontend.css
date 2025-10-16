@@ -200,6 +200,100 @@
   isolation: isolate;
 }
 
+#alfawz-leaderboard.alfawz-leaderboard-shell {
+  max-width: min(1680px, 96vw);
+  margin-left: auto;
+  margin-right: auto;
+  padding: clamp(1.5rem, 3vw, 2.75rem);
+}
+
+#alfawz-leaderboard .alfawz-leaderboard-inner {
+  padding: clamp(1.75rem, 3vw, 3rem);
+  border-radius: calc(var(--alfawz-radius-xl) - 0.35rem);
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55);
+}
+
+#alfawz-leaderboard .alfawz-leaderboard-inner > * + * {
+  margin-top: clamp(2rem, 3vw, 3.25rem);
+}
+
+#alfawz-leaderboard .alfawz-leaderboard-hero {
+  padding: clamp(2rem, 3vw + 1rem, 3.6rem) clamp(1.75rem, 3vw, 3.2rem);
+}
+
+#alfawz-leaderboard .alfawz-leaderboard-hero-copy h1 {
+  color: #fffaf4;
+}
+
+#alfawz-leaderboard .alfawz-leaderboard-hero-copy p {
+  color: rgba(255, 246, 238, 0.92);
+}
+
+#alfawz-leaderboard .alfawz-leaderboard-hero-copy p:first-child,
+#alfawz-leaderboard .alfawz-leaderboard-hero-aside p,
+#alfawz-leaderboard #alfawz-leaderboard-updated {
+  color: rgba(255, 241, 227, 0.82);
+}
+
+#alfawz-leaderboard .alfawz-leaderboard-hero-aside button {
+  color: #fff7ee;
+  border-color: rgba(255, 241, 227, 0.45);
+  background: rgba(255, 241, 227, 0.12);
+}
+
+#alfawz-leaderboard .alfawz-leaderboard-hero-aside button:hover,
+#alfawz-leaderboard .alfawz-leaderboard-hero-aside button:focus-visible {
+  background: rgba(255, 241, 227, 0.22);
+}
+
+#alfawz-leaderboard .alfawz-leaderboard-section p,
+#alfawz-leaderboard .alfawz-leaderboard-section li {
+  color: #3f1321;
+}
+
+#alfawz-leaderboard .alfawz-leaderboard-section strong,
+#alfawz-leaderboard .alfawz-leaderboard-section h2,
+#alfawz-leaderboard .alfawz-leaderboard-section h3 {
+  color: #2f0811;
+}
+
+#alfawz-leaderboard .alfawz-leaderboard-section table thead {
+  color: #571425;
+  background: rgba(255, 244, 230, 0.96);
+}
+
+#alfawz-leaderboard .alfawz-leaderboard-section table tbody td {
+  color: #42111d;
+}
+
+#alfawz-leaderboard .alfawz-leaderboard-section table tbody td:first-child {
+  color: #6d1d30;
+}
+
+#alfawz-leaderboard .alfawz-leaderboard-section table tbody tr:hover,
+#alfawz-leaderboard .alfawz-leaderboard-section table tbody tr:focus-within {
+  background: rgba(255, 236, 220, 0.7);
+}
+
+#alfawz-leaderboard .alfawz-leaderboard-section #alfawz-leaderboard-empty {
+  color: #5b1a2d;
+}
+
+@media (min-width: 1024px) {
+  #alfawz-leaderboard.alfawz-leaderboard-shell {
+    padding: clamp(2rem, 4vw, 3.25rem);
+  }
+
+  #alfawz-leaderboard .alfawz-leaderboard-inner {
+    padding: clamp(2.25rem, 3.5vw, 3.5rem);
+  }
+
+  #alfawz-leaderboard .alfawz-leaderboard-hero {
+    padding: clamp(2.5rem, 3.5vw, 3.9rem) clamp(2rem, 3.5vw, 3.6rem);
+  }
+}
+
 #alfawz-recitation-assistant.is-listening {
   box-shadow: 0 30px 60px rgba(79, 70, 229, 0.2), 0 16px 32px rgba(244, 114, 182, 0.15);
   border-color: rgba(79, 70, 229, 0.45);
