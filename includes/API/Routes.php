@@ -2020,7 +2020,7 @@ class Routes {
         $params = $request->get_json_params();
         $role   = isset( $params['role'] ) ? sanitize_text_field( $params['role'] ) : '';
 
-        $allowed_roles = apply_filters( 'alfawz_admin_allowed_roles', [ 'student', 'teacher', 'subscriber' ] );
+        $allowed_roles = apply_filters( 'alfawz_admin_allowed_roles', [ 'student', 'teacher', 'alfawz_admin', 'subscriber' ] );
 
         if ( ! in_array( $role, $allowed_roles, true ) ) {
             return new WP_Error( 'rest_invalid_role', __( 'Invalid role supplied.', 'alfawzquran' ), [ 'status' => 400 ] );

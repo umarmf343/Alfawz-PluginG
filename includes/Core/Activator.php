@@ -122,21 +122,12 @@ class Activator {
 
         self::create_pages();
 
+        require_once ALFAWZQURAN_PLUGIN_PATH . 'includes/Core/Roles.php';
+        $roles = new Roles();
+        $roles->register_roles();
+
         // Log activation
         error_log('AlfawzQuran Plugin activated successfully');
-
-        $admin_role = get_role( 'administrator' );
-        if ( $admin_role && ! $admin_role->has_cap( 'alfawz_admin' ) ) {
-            $admin_role->add_cap( 'alfawz_admin' );
-        }
-
-        $teacher_cap_roles = apply_filters( 'alfawz_teacher_capability_roles', [ 'teacher', 'editor' ] );
-        foreach ( $teacher_cap_roles as $role_key ) {
-            $role = get_role( $role_key );
-            if ( $role && ! $role->has_cap( 'alfawz_teacher' ) ) {
-                $role->add_cap( 'alfawz_teacher' );
-            }
-        }
     }
 
     /**
@@ -194,6 +185,11 @@ class Activator {
                 'slug'      => 'alfawz-teacher-dashboard',
                 'title'     => __( 'Alfawz Teacher Dashboard', 'alfawzquran' ),
                 'shortcode' => '[alfawz_teacher_dashboard]',
+            ],
+            [
+                'slug'      => 'alfawz-admin-dashboard',
+                'title'     => __( 'Alfawz Admin Console', 'alfawzquran' ),
+                'shortcode' => '[alfawz_admin_portal]',
             ],
         ];
 

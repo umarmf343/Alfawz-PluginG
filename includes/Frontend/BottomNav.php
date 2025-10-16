@@ -105,12 +105,12 @@ function alfawz_get_user_role() {
 
     $user = wp_get_current_user();
 
-    if ( user_can( $user, 'manage_options' ) ) {
+    if ( user_can( $user, 'manage_options' ) || user_can( $user, 'alfawz_admin' ) ) {
         return 'admin';
     }
 
     $teacher_roles = apply_filters( 'alfawz_teacher_roles', [ 'teacher', 'editor' ] );
-    if ( array_intersect( $teacher_roles, (array) $user->roles ) || user_can( $user, 'edit_posts' ) ) {
+    if ( array_intersect( $teacher_roles, (array) $user->roles ) || user_can( $user, 'alfawz_teacher' ) || user_can( $user, 'edit_posts' ) ) {
         return 'teacher';
     }
 

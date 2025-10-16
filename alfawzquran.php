@@ -52,6 +52,7 @@ register_deactivation_hook( __FILE__, 'deactivate_alfawz_quran' );
  */
 require ALFAWZQURAN_PLUGIN_PATH . 'includes/Core/Loader.php';
 require_once ALFAWZQURAN_PLUGIN_PATH . 'includes/Core/ErrorHandler.php';
+require_once ALFAWZQURAN_PLUGIN_PATH . 'includes/Core/Roles.php';
 
 /**
  * Begins execution of the plugin.
@@ -67,6 +68,9 @@ function run_alfawz_quran() {
 
     $error_handler = new AlfawzQuran\Core\ErrorHandler();
     $error_handler->register();
+
+    $roles = new AlfawzQuran\Core\Roles();
+    $loader->add_action( 'init', $roles, 'register_roles' );
 
     // Load Qa'idah board registration
     require_once ALFAWZQURAN_PLUGIN_PATH . 'includes/Core/QaidahBoards.php';

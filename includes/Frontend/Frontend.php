@@ -41,6 +41,7 @@ class Frontend {
         add_shortcode('alfawz_games', [$this, 'games_shortcode']);
         add_shortcode('alfawz_qaidah', [$this, 'qaidah_shortcode']);
         add_shortcode('alfawz_teacher_dashboard', [$this, 'teacher_dashboard_shortcode']);
+        add_shortcode('alfawz_admin_portal', [$this, 'admin_portal_shortcode']);
         add_shortcode('alfawz_account', [$this, 'account_shortcode']);
     }
 
@@ -420,11 +421,15 @@ class Frontend {
 
         $access_requirement = $this->determine_page_access_requirement();
 
+        if ('admin' === $access_requirement && !$this->current_user_is_admin()) {
+            $this->redirect_to_account_page('restricted');
+        }
+
         if ('teacher' === $access_requirement && !$this->current_user_is_teacher()) {
             $this->redirect_to_account_page('restricted');
         }
 
-        if ('student' === $access_requirement && $this->current_user_is_teacher()) {
+        if ('student' === $access_requirement && !$this->current_user_is_student()) {
             $this->redirect_to_account_page('restricted');
         }
     }
@@ -447,6 +452,7 @@ class Frontend {
             'alfawz_games',
             'alfawz_qaidah',
             'alfawz_teacher_dashboard',
+            'alfawz_admin_portal',
             'alfawz_account'
         ];
 
@@ -604,6 +610,22 @@ class Frontend {
         return ob_get_clean();
     }
 
+    public function admin_portal_shortcode($atts) {
+        if (!is_user_logged_in()) {
+            return $this->login_required_message();
+        }
+
+        if (!$this->current_user_is_admin()) {
+            return '<div class="alfawz-login-required"><div class="alfawz-login-card"><h3>' . esc_html__('Access denied.', 'alfawzquran') . '</h3><p>' . esc_html__('This control room is limited to Alfawz administrators.', 'alfawzquran') . '</p></div></div>';
+        }
+
+        $this->active_view = 'admin-dashboard';
+
+        ob_start();
+        include ALFAWZQURAN_PLUGIN_PATH . 'public/partials/admin-portal.php';
+        return ob_get_clean();
+    }
+
     private function determine_qaidah_role() {
         if ($this->current_user_is_teacher()) {
             return 'teacher';
@@ -663,24 +685,67 @@ class Frontend {
             return false;
         }
 
-        if (current_user_can('manage_options')) {
+        if (current_user_can('manage_options') || current_user_can('alfawz_admin')) {
+            return true;
+        }
+
+        if (current_user_can('alfawz_teacher')) {
             return true;
         }
 
         $user = wp_get_current_user();
 
-        if (in_array('teacher', (array) $user->roles, true)) {
+        if ($user && in_array('teacher', (array) $user->roles, true)) {
             return true;
         }
 
         return current_user_can('edit_posts');
     }
 
+    private function current_user_is_student() {
+        if (!is_user_logged_in()) {
+            return false;
+        }
+
+        if ($this->current_user_is_admin()) {
+            return true;
+        }
+
+        if (current_user_can('alfawz_student')) {
+            return true;
+        }
+
+        $user = wp_get_current_user();
+
+        if ($user) {
+            $roles = (array) $user->roles;
+            if (array_intersect(['student', 'subscriber'], $roles)) {
+                return true;
+            }
+        }
+
+        return !$this->current_user_is_teacher();
+    }
+
     private function current_user_is_admin() {
-        return is_user_logged_in() && current_user_can('manage_options');
+        if (!is_user_logged_in()) {
+            return false;
+        }
+
+        return current_user_can('manage_options') || current_user_can('alfawz_admin');
     }
 
     private function determine_page_access_requirement() {
+        $admin_shortcodes = [
+            'alfawz_admin_portal',
+        ];
+
+        foreach ($admin_shortcodes as $shortcode) {
+            if ($this->current_page_uses_shortcode($shortcode)) {
+                return 'admin';
+            }
+        }
+
         $teacher_shortcodes = [
             'alfawz_teacher_dashboard',
         ];
