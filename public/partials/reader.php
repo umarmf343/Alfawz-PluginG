@@ -108,6 +108,14 @@ if ( ! defined( 'ABSPATH' ) ) {
                 </div>
             </section>
 
+            <div id="alfawz-surah-full-view" class="alfawz-surah-list hidden" aria-live="polite" aria-labelledby="alfawz-surah-full-heading">
+                <div class="alfawz-surah-list__intro">
+                    <h4 id="alfawz-surah-full-heading"><?php esc_html_e( 'All verses in this surah', 'alfawzquran' ); ?></h4>
+                    <p class="alfawz-surah-list__hint"><?php esc_html_e( 'Tap a verse to focus it or play the recitation.', 'alfawzquran' ); ?></p>
+                </div>
+                <div id="alfawz-surah-list-body" class="alfawz-surah-list__body"></div>
+            </div>
+
             <section
                 id="alfawz-reflection-widget"
                 class="alfawz-reflection-widget"
@@ -202,13 +210,6 @@ foreach ( $reflection_moods as $mood_slug => $mood_data ) :
                 </div>
             </section>
 
-            <div id="alfawz-surah-full-view" class="alfawz-surah-list hidden" aria-live="polite" aria-labelledby="alfawz-surah-full-heading">
-                <div class="alfawz-surah-list__intro">
-                    <h4 id="alfawz-surah-full-heading"><?php esc_html_e( 'All verses in this surah', 'alfawzquran' ); ?></h4>
-                    <p class="alfawz-surah-list__hint"><?php esc_html_e( 'Tap a verse to focus it or play the recitation.', 'alfawzquran' ); ?></p>
-                </div>
-                <div id="alfawz-surah-list-body" class="alfawz-surah-list__body"></div>
-            </div>
         </article>
     </div>
 
