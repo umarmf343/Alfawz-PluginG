@@ -63,7 +63,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 
             <div id="alfawz-surah-view-toggle" class="alfawz-view-toggle" role="group" aria-label="<?php esc_attr_e( 'Toggle surah display mode', 'alfawzquran' ); ?>">
                 <label class="alfawz-switch" for="alfawz-surah-toggle">
-                    <input type="checkbox" id="alfawz-surah-toggle" />
+                    <input
+                        type="checkbox"
+                        id="alfawz-surah-toggle"
+                        aria-expanded="false"
+                        aria-controls="alfawz-surah-full-view"
+                    />
                     <span class="alfawz-switch-track" aria-hidden="true">
                         <span class="alfawz-switch-indicator"></span>
                     </span>

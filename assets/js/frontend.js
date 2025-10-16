@@ -3128,11 +3128,13 @@
       await logVerseProgress(currentSurahId, nextVerse);
     };
 
-    const handleSurahToggleChange = async () => {
-      showFullSurah = !showFullSurah;
+    const handleSurahToggleChange = async (event) => {
+      const nextState =
+        typeof event?.target?.checked === 'boolean' ? event.target.checked : !showFullSurah;
+      showFullSurah = Boolean(nextState);
       updateSurahModeUI();
       if (showFullSurah && currentSurahId) {
-        ensureSurahView(currentSurahId, currentVerseId || null);
+        await ensureSurahView(currentSurahId, currentVerseId || null);
       }
     };
 
