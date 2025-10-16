@@ -57,7 +57,7 @@ if ( isset( $_GET['alfawz_notice'] ) ) {
             $notices[] = [
                 'type'    => 'warning',
                 'icon'    => '🚫',
-                'message' => __( 'Dashboard access is reserved for administrators. Use the Alfawz tools below instead.', 'alfawzquran' ),
+                'message' => __( 'That area is reserved for a different role. Choose one of your available Alfawz tools below.', 'alfawzquran' ),
             ];
         } elseif ( 'check_email' === $notice_key ) {
             $notices[] = [
@@ -136,7 +136,10 @@ if ( ! $is_logged_in ) {
     );
 }
 ?>
-<div id="alfawz-account" class="alfawz-account-shell mx-auto max-w-5xl px-4 py-12 text-slate-900 sm:px-8 lg:px-0">
+<div id="alfawz-account" class="alfawz-account-shell relative mx-auto max-w-5xl overflow-hidden px-4 py-12 text-slate-900 sm:px-8 lg:px-0">
+    <div class="alfawz-account-backdrop" aria-hidden="true"></div>
+    <div class="alfawz-account-aurora" aria-hidden="true"></div>
+    <div class="alfawz-account-aurora alfawz-account-aurora--accent" aria-hidden="true"></div>
     <?php if ( ! empty( $notices ) ) : ?>
         <div class="alfawz-account-alerts" role="status">
             <?php foreach ( $notices as $notice ) :
@@ -157,8 +160,6 @@ if ( ! $is_logged_in ) {
             <?php endforeach; ?>
         </div>
     <?php endif; ?>
-    <div class="pointer-events-none absolute inset-x-6 -top-10 bottom-0 -z-10 rounded-[3rem] bg-gradient-to-br from-[#f8efe5]/70 via-[#fff4e6]/95 to-white/40 blur-3xl"></div>
-
     <section class="alfawz-account-hero" data-animate="fade">
         <div class="alfawz-account-hero__content">
             <span class="alfawz-account-hero__eyebrow"><?php esc_html_e( 'Welcome back to Alfawz', 'alfawzquran' ); ?></span>

@@ -88,6 +88,16 @@
   --alfawz-heading-wide: clamp(2.75rem, 2.15rem + 1.8vw, 3.75rem);
 }
 
+#alfawz-account,
+#alfawz-dashboard,
+#alfawz-reader,
+#alfawz-memorizer,
+#alfawz-teacher-dashboard {
+  --alfawz-text-base: clamp(1.05rem, 1rem + 0.32vw, 1.22rem);
+  --alfawz-text-small: clamp(0.98rem, 0.92rem + 0.26vw, 1.12rem);
+  --alfawz-text-xs: clamp(0.9rem, 0.86rem + 0.2vw, 1.02rem);
+}
+
 .alfawz-surface {
   background: var(--alfawz-surface);
   border-radius: var(--alfawz-radius-lg);
@@ -3897,6 +3907,50 @@ body.alfawz-qaidah-modal-open {
 #alfawz-account {
   position: relative;
   isolation: isolate;
+  padding: clamp(2.75rem, 3.2vw, 3.5rem) clamp(1.75rem, 4vw, 3rem);
+  border-radius: var(--alfawz-radius-xl);
+  background: linear-gradient(145deg, rgba(255, 244, 230, 0.92), rgba(255, 244, 230, 0.75)),
+    radial-gradient(circle at top right, rgba(168, 50, 84, 0.15), transparent 55%);
+  border: 1px solid rgba(255, 244, 230, 0.55);
+  box-shadow: var(--alfawz-shadow-strong);
+  overflow: hidden;
+}
+
+.alfawz-account-backdrop {
+  position: absolute;
+  inset: -40% -25% -45% -25%;
+  background: radial-gradient(circle at 15% 20%, rgba(245, 159, 130, 0.55), transparent 60%),
+    radial-gradient(circle at 80% 80%, rgba(116, 31, 49, 0.45), transparent 65%);
+  filter: blur(90px);
+  opacity: 0.85;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.alfawz-account-aurora {
+  position: absolute;
+  width: 520px;
+  height: 520px;
+  top: -18%;
+  right: -8%;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, rgba(255, 244, 230, 0.75), transparent 68%);
+  filter: blur(0);
+  opacity: 0.7;
+  pointer-events: none;
+  animation: alfawz-aurora 18s ease-in-out infinite;
+  mix-blend-mode: screen;
+}
+
+.alfawz-account-aurora--accent {
+  top: auto;
+  bottom: -22%;
+  right: auto;
+  left: -12%;
+  width: 460px;
+  height: 460px;
+  background: radial-gradient(circle at 60% 40%, rgba(168, 50, 84, 0.4), transparent 70%);
+  animation-direction: reverse;
 }
 
 #alfawz-account .alfawz-account-hero {
@@ -3905,10 +3959,12 @@ body.alfawz-qaidah-modal-open {
   gap: 2.5rem;
   padding: 3rem;
   border-radius: var(--alfawz-radius-xl);
-  background: linear-gradient(135deg, rgba(47, 8, 17, 0.96), rgba(116, 31, 49, 0.92));
+  background: linear-gradient(135deg, rgba(47, 8, 17, 0.88), rgba(116, 31, 49, 0.72));
+  border: 1px solid rgba(255, 244, 230, 0.32);
+  backdrop-filter: blur(18px);
   color: #fff7ee;
   overflow: hidden;
-  box-shadow: var(--alfawz-shadow);
+  box-shadow: 0 30px 60px rgba(47, 8, 17, 0.28);
 }
 
 #alfawz-account .alfawz-account-hero::before,
@@ -3954,7 +4010,7 @@ body.alfawz-qaidah-modal-open {
   padding: 0.4rem 1rem;
   border-radius: 999px;
   background: rgba(255, 244, 230, 0.15);
-  font-size: 0.78rem;
+  font-size: 0.88rem;
   font-weight: 600;
   letter-spacing: 0.32em;
   text-transform: uppercase;
@@ -3962,7 +4018,7 @@ body.alfawz-qaidah-modal-open {
 }
 
 #alfawz-account .alfawz-account-hero__title {
-  font-size: clamp(2.2rem, 4vw, 3.2rem);
+  font-size: clamp(2.4rem, 4.2vw, 3.4rem);
   font-weight: 800;
   letter-spacing: -0.02em;
   line-height: 1.1;
@@ -3970,7 +4026,7 @@ body.alfawz-qaidah-modal-open {
 
 #alfawz-account .alfawz-account-hero__subtitle {
   max-width: 32rem;
-  font-size: 1.05rem;
+  font-size: clamp(1.18rem, 1.08rem + 0.24vw, 1.32rem);
   color: rgba(255, 231, 214, 0.9);
   line-height: 1.7;
 }
@@ -4039,9 +4095,10 @@ body.alfawz-qaidah-modal-open {
   gap: 1.5rem;
   padding: 2rem;
   border-radius: var(--alfawz-radius-lg);
-  background: rgba(255, 244, 230, 0.92);
-  border: 1px solid rgba(168, 50, 84, 0.14);
-  box-shadow: 0 25px 50px rgba(47, 8, 17, 0.08);
+  background: rgba(255, 244, 230, 0.78);
+  border: 1px solid rgba(168, 50, 84, 0.18);
+  box-shadow: 0 25px 55px rgba(47, 8, 17, 0.12);
+  backdrop-filter: blur(18px);
 }
 
 #alfawz-account .alfawz-account-card--compact {
@@ -4271,6 +4328,10 @@ body.alfawz-qaidah-modal-open {
 }
 
 @media (max-width: 640px) {
+  #alfawz-account {
+    padding: 2.25rem 1.5rem;
+  }
+
   #alfawz-account .alfawz-account-hero {
     padding: 2.25rem;
   }
