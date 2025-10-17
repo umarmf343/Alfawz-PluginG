@@ -31,10 +31,19 @@ if ( ! defined( 'ABSPATH' ) ) {
             <?php esc_html_e( 'Select a surah and verse to begin your recitation.', 'alfawzquran' ); ?>
         </div>
         <article id="alfawz-verse-container" class="alfawz-verse-card hidden" aria-labelledby="alfawz-verse-heading">
-            <div id="alfawz-egg-widget" class="alfawz-egg-widget" aria-live="polite">
+            <div id="alfawz-egg-widget" data-phase="egg" class="alfawz-egg-widget" aria-live="polite">
                 <div class="alfawz-egg-visual">
                     <div id="alfawz-egg-emoji" class="alfawz-egg-emoji" role="img" aria-label="<?php esc_attr_e( 'Egg progress', 'alfawzquran' ); ?>">🥚</div>
                     <div class="alfawz-egg-sparkle" aria-hidden="true"></div>
+                    <div id="alfawz-growth-visual" class="alfawz-growth-visual" aria-hidden="true">
+                        <div class="alfawz-growth-trunk"></div>
+                        <div class="alfawz-growth-canopy"></div>
+                        <span class="alfawz-growth-leaf" data-leaf="1"></span>
+                        <span class="alfawz-growth-leaf" data-leaf="2"></span>
+                        <span class="alfawz-growth-leaf" data-leaf="3"></span>
+                        <span class="alfawz-growth-leaf" data-leaf="4"></span>
+                        <span class="alfawz-growth-leaf" data-leaf="5"></span>
+                    </div>
                 </div>
                 <div class="alfawz-egg-progress">
                     <div class="alfawz-progress-track" aria-hidden="true">

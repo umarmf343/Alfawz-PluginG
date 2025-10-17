@@ -71,6 +71,8 @@ class Routes {
      */
     const EGG_CHALLENGE_BASE_TARGET = 20;
     const EGG_CHALLENGE_STEP        = 5;
+    const EGG_CHALLENGE_MAX_LEVEL   = 5;
+    const TREE_CHALLENGE_MAX_STAGE  = 5;
 
     /**
      * Cached recitation snippet definitions sourced from the Tarteel-inspired library.
@@ -3681,6 +3683,7 @@ class Routes {
         $previous_target  = get_user_meta( $user_id, self::EGG_CHALLENGE_LAST_TARGET_META, true );
         $last_completion  = get_user_meta( $user_id, self::EGG_CHALLENGE_LAST_COMPLETION_META, true );
         $normalized_count = min( $count, $target );
+        $phase_info       = $this->resolve_egg_challenge_phase( $target, $previous_target );
 
         return [
             'count'            => $normalized_count,
@@ -3693,6 +3696,10 @@ class Routes {
             'level'            => $this->calculate_egg_challenge_level( $target ),
             'last_completion'  => $last_completion ? gmdate( 'c', strtotime( $last_completion ) ) : null,
             'progress_label'   => sprintf( '%d / %d', $normalized_count, $target ),
+            'phase'            => $phase_info['phase'],
+            'growth_stage'     => $phase_info['growth_stage'],
+            'growth_completed' => $phase_info['growth_completed'],
+            'max_growth_stage' => $phase_info['max_growth_stage'],
         ];
     }
 
@@ -3711,6 +3718,49 @@ class Routes {
         $progress = max( 0, $target - $base );
 
         return 1 + (int) floor( $progress / $step );
+    }
+
+    /**
+     * Determine whether the user should see the egg challenge or the growth challenge.
+     *
+     * @param int      $target          The active target for the challenge.
+     * @param int|null $previous_target The most recently completed target.
+     *
+     * @return array{phase:string,growth_stage:int,growth_completed:int,max_growth_stage:int}
+     */
+    private function resolve_egg_challenge_phase( $target, $previous_target = null ) {
+        $target          = (int) $target;
+        $has_previous    = null !== $previous_target && '' !== $previous_target;
+        $previous_target = $has_previous ? (int) $previous_target : null;
+        $step            = max( 1, (int) self::EGG_CHALLENGE_STEP );
+        $max_level       = max( 1, (int) self::EGG_CHALLENGE_MAX_LEVEL );
+        $final_egg       = (int) self::EGG_CHALLENGE_BASE_TARGET + ( ( $max_level - 1 ) * $step );
+        $max_stage       = max( 1, (int) self::TREE_CHALLENGE_MAX_STAGE );
+
+        $phase = 'egg';
+        if ( $target > $final_egg || ( $previous_target && $previous_target >= $final_egg ) ) {
+            $phase = 'growth';
+        }
+
+        $completed_stages = 0;
+        $active_stage     = 0;
+
+        if ( 'growth' === $phase ) {
+            $effective_completed = $previous_target && $previous_target >= $final_egg
+                ? $previous_target
+                : max( $final_egg, $target - $step );
+
+            $completed_stages = (int) floor( max( 0, $effective_completed - $final_egg ) / $step );
+            $completed_stages = max( 0, min( $completed_stages, $max_stage ) );
+            $active_stage     = max( 1, min( $completed_stages + 1, $max_stage ) );
+        }
+
+        return [
+            'phase'            => $phase,
+            'growth_stage'     => $active_stage,
+            'growth_completed' => $completed_stages,
+            'max_growth_stage' => $max_stage,
+        ];
     }
 
     /**
@@ -3739,7 +3789,8 @@ class Routes {
             update_user_meta( $user_id, self::EGG_CHALLENGE_COUNT_META, $count );
         }
 
-        $percentage = $target > 0 ? round( ( $count / $target ) * 100, 2 ) : 0;
+        $percentage  = $target > 0 ? round( ( $count / $target ) * 100, 2 ) : 0;
+        $phase_info  = $this->resolve_egg_challenge_phase( $target, $previous_target ?? $state['previous_target'] ?? null );
 
         return [
             'count'           => $count,
@@ -3753,6 +3804,10 @@ class Routes {
             'progress_label'  => sprintf( '%d / %d', min( $count, $target ), $target ),
             'completed_at'    => $completed_at ? gmdate( 'c', strtotime( $completed_at ) ) : null,
             'last_completion' => $completed_at ? gmdate( 'c', strtotime( $completed_at ) ) : ( $state['last_completion'] ?? null ),
+            'phase'           => $phase_info['phase'],
+            'growth_stage'    => $phase_info['growth_stage'],
+            'growth_completed' => $phase_info['growth_completed'],
+            'max_growth_stage' => $phase_info['max_growth_stage'],
         ];
     }
 
