@@ -22,6 +22,8 @@
     endInput: root.querySelector('#alfawz-memorization-end'),
     beginButton: root.querySelector('#alfawz-memorization-begin'),
     formStatus: root.querySelector('#alfawz-memorization-form-status'),
+    savedPlanButton: root.querySelector('#alfawz-memorization-save-plan'),
+    savedPlansSelect: root.querySelector('#alfawz-memorization-saved-plans'),
     emptyState: root.querySelector('#alfawz-memorization-empty'),
     activeState: root.querySelector('#alfawz-memorization-active'),
     planLabel: root.querySelector('#alfawz-memorization-plan-label'),
@@ -74,7 +76,10 @@
       el.audioButton?.querySelector('span:last-child')?.textContent?.trim() ||
       wpData.playAudioLabel ||
       'Play verse audio',
+    savedPlans: [],
   };
+
+  const SAVED_PLANS_KEY = 'alfawz_memo_saved_plans';
 
   const broadcast = (name, detail = {}) => {
     if (typeof document === 'undefined') {
@@ -236,6 +241,143 @@
     if (end < start) {
       el.endInput.value = start;
     }
+  };
+
+  const loadSavedPlans = () => {
+    if (typeof window === 'undefined' || !window.localStorage) {
+      return [];
+    }
+    try {
+      const raw = window.localStorage.getItem(SAVED_PLANS_KEY);
+      if (!raw) {
+        return [];
+      }
+      const parsed = JSON.parse(raw);
+      if (!Array.isArray(parsed)) {
+        return [];
+      }
+      return parsed
+        .map((plan) => ({
+          id: String(plan?.id || plan?.key || ''),
+          surahId: Number(plan?.surahId || plan?.surah_id || 0),
+          start: Number(plan?.start || plan?.start_verse || 0),
+          end: Number(plan?.end || plan?.end_verse || 0),
+          label: String(plan?.label || ''),
+        }))
+        .filter((plan) => plan.id && plan.surahId && plan.start && plan.end);
+    } catch (error) {
+      console.warn('[Alfawz Memorization] Unable to load saved plans', error);
+      return [];
+    }
+  };
+
+  const persistSavedPlans = () => {
+    if (typeof window === 'undefined' || !window.localStorage) {
+      return;
+    }
+    try {
+      const payload = state.savedPlans.map((plan) => ({
+        id: plan.id,
+        surahId: plan.surahId,
+        start: plan.start,
+        end: plan.end,
+        label: plan.label,
+      }));
+      window.localStorage.setItem(SAVED_PLANS_KEY, JSON.stringify(payload));
+    } catch (error) {
+      console.warn('[Alfawz Memorization] Unable to persist saved plans', error);
+    }
+  };
+
+  const getSavedPlanLabel = (plan) => {
+    if (!plan) {
+      return '';
+    }
+    if (plan.label) {
+      return plan.label;
+    }
+    const surah = state.surahMap.get(plan.surahId);
+    const prefix = surah ? surah.englishName : `Surah ${plan.surahId}`;
+    return `${prefix} • Ayah ${plan.start}-${plan.end}`;
+  };
+
+  const renderSavedPlanOptions = () => {
+    if (!el.savedPlansSelect) {
+      return;
+    }
+    const placeholder = document.createElement('option');
+    placeholder.value = '';
+    placeholder.disabled = true;
+    placeholder.selected = true;
+    placeholder.textContent = state.savedPlans.length
+      ? wpData.chooseSavedPlanLabel || 'Choose a saved plan'
+      : wpData.noSavedPlansLabel || 'No saved plans yet';
+
+    el.savedPlansSelect.innerHTML = '';
+    el.savedPlansSelect.appendChild(placeholder);
+
+    state.savedPlans.forEach((plan) => {
+      const option = document.createElement('option');
+      option.value = plan.id;
+      option.textContent = getSavedPlanLabel(plan);
+      el.savedPlansSelect.appendChild(option);
+    });
+
+    el.savedPlansSelect.disabled = state.savedPlans.length === 0;
+  };
+
+  const saveCurrentPlanToLibrary = () => {
+    if (!el.surahSelect || !el.startInput || !el.endInput) {
+      return;
+    }
+    const surahId = Number(el.surahSelect.value || 0);
+    const start = Number(el.startInput.value || 0);
+    const end = Number(el.endInput.value || 0);
+    if (!surahId || !start || !end || end < start) {
+      setStatus(wpData.planSaveError || 'Unable to save this plan. Please check your selections and try again.', 'error');
+      return;
+    }
+    const key = `${surahId}:${start}-${end}`;
+    const surah = state.surahMap.get(surahId);
+    const label = surah ? `${surah.englishName} • Ayah ${start}-${end}` : `Surah ${surahId} • Ayah ${start}-${end}`;
+    const planData = {
+      id: key,
+      surahId,
+      start,
+      end,
+      label,
+    };
+    const existingIndex = state.savedPlans.findIndex((plan) => plan.id === planData.id);
+    if (existingIndex >= 0) {
+      state.savedPlans.splice(existingIndex, 1);
+    }
+    state.savedPlans.unshift(planData);
+    if (state.savedPlans.length > 20) {
+      state.savedPlans = state.savedPlans.slice(0, 20);
+    }
+    persistSavedPlans();
+    renderSavedPlanOptions();
+    setStatus(wpData.planSavedMessage || 'Plan saved for quick access!', 'success');
+  };
+
+  const applySavedPlanToForm = (planId) => {
+    if (!planId || !el.surahSelect || !el.startInput || !el.endInput) {
+      return;
+    }
+    const plan = state.savedPlans.find((entry) => entry.id === planId);
+    if (!plan) {
+      return;
+    }
+    el.surahSelect.value = String(plan.surahId);
+    constrainRangeInputs();
+    el.startInput.value = plan.start;
+    el.endInput.value = plan.end;
+    setStatus(wpData.planLoadedMessage || 'Plan loaded! Ready to begin.', 'muted');
+  };
+
+  const initSavedPlans = () => {
+    state.savedPlans = loadSavedPlans();
+    renderSavedPlanOptions();
   };
 
   const fetchPlans = async () => {
@@ -1028,6 +1170,18 @@
     el.startInput?.addEventListener('input', constrainRangeInputs);
     el.endInput?.addEventListener('input', constrainRangeInputs);
 
+    el.savedPlanButton?.addEventListener('click', () => {
+      saveCurrentPlanToLibrary();
+    });
+
+    el.savedPlansSelect?.addEventListener('change', (event) => {
+      const selectValue = event.target?.value || '';
+      applySavedPlanToForm(selectValue);
+      if (event.target && typeof event.target.selectedIndex === 'number') {
+        event.target.selectedIndex = 0;
+      }
+    });
+
     el.repeatButton?.addEventListener('click', () => {
       if (!state.currentVerse || state.modalOpen) {
         return;
@@ -1078,6 +1232,7 @@
 
   const init = async () => {
     await populateSurahSelect();
+    initSavedPlans();
     constrainRangeInputs();
     updateTranslationToggleLabel();
     updateSurahToggleLabel();

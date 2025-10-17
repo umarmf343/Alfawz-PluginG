@@ -88,6 +88,18 @@ if ( ! defined( 'ABSPATH' ) ) {
                     <?php esc_html_e( 'Begin memorising', 'alfawzquran' ); ?>
                 </button>
                 <p id="alfawz-memorization-form-status" class="text-sm font-medium text-indigo-700"></p>
+                <div class="flex flex-col gap-4 border-t border-slate-200 pt-4 sm:flex-row sm:items-end sm:justify-between">
+                    <button type="button" id="alfawz-memorization-save-plan" class="inline-flex items-center justify-center gap-2 rounded-2xl border border-indigo-200 bg-indigo-50 px-5 py-3 text-base font-semibold text-indigo-700 shadow-sm transition hover:bg-indigo-100 focus:outline-none focus:ring-2 focus:ring-indigo-200 focus:ring-offset-2 focus:ring-offset-white">
+                        <span aria-hidden="true">💾</span>
+                        <span><?php esc_html_e( 'Save this plan', 'alfawzquran' ); ?></span>
+                    </button>
+                    <label class="flex w-full flex-col gap-2 text-sm font-medium text-slate-600 sm:w-auto">
+                        <span><?php esc_html_e( 'Load a saved plan', 'alfawzquran' ); ?></span>
+                        <select id="alfawz-memorization-saved-plans" class="w-full min-w-[220px] rounded-2xl border border-slate-200 bg-white px-4 py-3 text-base text-slate-800 shadow-sm transition focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-200">
+                            <option value="" selected disabled><?php esc_html_e( 'No saved plans yet', 'alfawzquran' ); ?></option>
+                        </select>
+                    </label>
+                </div>
             </form>
         </section>
 
