@@ -878,6 +878,7 @@
   justify-content: center;
 }
 
+
 .alfawz-verse-panel__content {
   display: grid;
   gap: clamp(1.5rem, 4vw, 2.5rem);
@@ -892,26 +893,29 @@
   text-decoration: none;
 }
 
+/* Reader verse typography */
 .alfawz-arabic {
   font-family: 'Scheherazade New', 'Amiri', serif;
-  font-size: clamp(4.5rem, 9vw, 6.5rem);
-  line-height: 1.6;
+  font-size: clamp(5rem, 10vw, 7.5rem);
+  line-height: 1.75;
   color: var(--alfawz-maroon-800);
 }
 
 #alfawz-arabic-text {
-  font-size: 4rem;
+  font-size: clamp(5rem, 10vw, 7rem);
 }
 
 .alfawz-transliteration {
   margin-top: 1.25rem;
-  font-size: clamp(1.6rem, 3.8vw, 2.2rem);
+  font-size: clamp(1.8rem, 4.2vw, 2.5rem);
+  line-height: 1.8;
   color: rgba(79, 13, 24, 0.78);
 }
 
 .alfawz-translation {
   margin-top: 0.75rem;
-  font-size: clamp(1.5rem, 3.6vw, 2.1rem);
+  font-size: clamp(1.75rem, 4vw, 2.4rem);
+  line-height: 1.85;
   font-style: italic;
   color: rgba(68, 36, 38, 0.75);
 }
@@ -1144,18 +1148,20 @@
   color: rgba(79, 13, 24, 0.78);
 }
 
+/* Surah list typography */
 .alfawz-surah-item__arabic {
   margin: 0;
   font-family: 'Scheherazade New', 'Amiri', serif;
-  font-size: clamp(1.9rem, 3vw, 2.4rem);
-  line-height: 1.55;
+  font-size: clamp(2.3rem, 4vw, 3rem);
+  line-height: 1.65;
   color: var(--alfawz-maroon-800);
 }
 
 .alfawz-surah-item__transliteration,
 .alfawz-surah-item__translation {
   margin: 0.6rem 0 0;
-  font-size: var(--alfawz-text-small);
+  font-size: clamp(1.45rem, 2.8vw, 1.85rem);
+  line-height: 1.75;
   color: rgba(68, 36, 38, 0.75);
 }
 
