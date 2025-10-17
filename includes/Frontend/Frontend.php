@@ -144,6 +144,9 @@ class Frontend {
                     'gamePanelLevelLabel' => __('Level', 'alfawzquran'),
                     'gamePanelBadgeSingular' => __('badge unlocked', 'alfawzquran'),
                     'gamePanelBadgePlural' => __('badges unlocked', 'alfawzquran'),
+                    'gamePanelPlayQuestLabel' => __('Play quest', 'alfawzquran'),
+                    'gamePanelResumeQuestLabel' => __('Play again', 'alfawzquran'),
+                    'gamePanelPlayQuestHint' => __('Launch the activity to keep your momentum glowing.', 'alfawzquran'),
                 ],
             ]);
 

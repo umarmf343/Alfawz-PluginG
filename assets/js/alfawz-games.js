@@ -16,6 +16,9 @@
     levelLabel: wpData.strings?.gamePanelLevelLabel || 'Level',
     badgeSingular: wpData.strings?.gamePanelBadgeSingular || 'badge unlocked',
     badgePlural: wpData.strings?.gamePanelBadgePlural || 'badges unlocked',
+    playQuest: wpData.strings?.gamePanelPlayQuestLabel || 'Play quest',
+    resumeQuest: wpData.strings?.gamePanelResumeQuestLabel || 'Play again',
+    playHint: wpData.strings?.gamePanelPlayQuestHint || 'Launch the activity to keep your momentum glowing.',
   };
 
   const root = document.querySelector('#alfawz-game-panel');
@@ -51,6 +54,19 @@
   const timezoneOffset = () => -new Date().getTimezoneOffset();
   const formatNumber = (value) => new Intl.NumberFormat().format(Number(value || 0));
   const clampPercent = (value) => Math.max(0, Math.min(100, Number(value || 0)));
+
+  const resolveQuestLaunchUrl = (quest = {}) => {
+    if (quest.play_url) {
+      return quest.play_url;
+    }
+    if (quest.id === 'memorize-verse' && wpData.memorizerUrl) {
+      return wpData.memorizerUrl;
+    }
+    if (wpData.readerUrl) {
+      return wpData.readerUrl;
+    }
+    return '';
+  };
 
   const buildApiUrl = (path) => `${API_BASE}${path.replace(/^\//, '')}`;
 
@@ -291,58 +307,135 @@
 
   const renderQuest = (quest) => {
     const item = document.createElement('div');
-    item.className = 'alfawz-quest-item relative overflow-hidden rounded-3xl border border-[#8b1e3f]/15 bg-white/95 p-5 shadow-xl shadow-[#2e0715]/10 transition-transform duration-300 hover:-translate-y-1 hover:shadow-2xl';
+    item.className =
+      'alfawz-quest-item group relative overflow-hidden rounded-[32px] border border-[#f4cbd9]/70 bg-gradient-to-br from-white/95 via-[#fff5f8]/95 to-[#ffe7ef]/90 p-6 text-[#4d081d] shadow-xl shadow-[#2e0715]/15 transition-transform duration-300 hover:-translate-y-1 hover:shadow-2xl focus-within:-translate-y-1 focus-within:shadow-2xl';
     item.dataset.questId = quest.id || '';
 
     const status = quest.status || 'in_progress';
     const isCompleted = status === 'completed' || status === 'complete';
 
+    const halo = document.createElement('div');
+    halo.className =
+      'pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.55),_transparent_65%)] opacity-60 transition-opacity duration-500 group-hover:opacity-100';
+    halo.style.zIndex = '0';
+    item.appendChild(halo);
+
+    const sparkle = document.createElement('span');
+    sparkle.className =
+      'pointer-events-none absolute -top-12 -right-8 h-32 w-32 rounded-full bg-[#ffd9e5]/55 blur-3xl opacity-70 transition-opacity duration-500 group-hover:opacity-100';
+    sparkle.style.zIndex = '0';
+    item.appendChild(sparkle);
+
     const header = document.createElement('div');
-    header.className = 'flex items-center';
+    header.className = 'relative z-[2] flex items-center';
     item.appendChild(header);
 
     const badge = document.createElement('div');
-    badge.className = `mr-4 flex h-12 w-12 flex-none items-center justify-center rounded-2xl text-2xl ${
-      isCompleted ? 'bg-[#8b1e3f] text-white shadow-lg shadow-[#4d081d]/25' : 'bg-[#fbe0e8] text-[#8b1e3f] shadow-inner'
+    badge.className = `relative z-[2] mr-4 flex h-12 w-12 flex-none items-center justify-center rounded-2xl text-2xl shadow-lg ${
+      isCompleted
+        ? 'bg-[#8b1e3f] text-white shadow-[#4d081d]/25'
+        : 'bg-[#fbe0e8] text-[#8b1e3f] shadow-[#4d081d]/5'
     }`;
     badge.textContent = isCompleted ? '✓' : quest.icon || '☆';
     header.appendChild(badge);
 
     const info = document.createElement('div');
-    info.className = 'flex-1';
+    info.className = 'relative z-[2] flex-1';
     header.appendChild(info);
 
     const title = document.createElement('p');
-    title.className = 'text-lg font-bold text-[#4d081d]';
+    title.className = 'text-lg font-black tracking-tight text-[#4d081d] sm:text-xl';
     title.textContent = quest.title || '';
     info.appendChild(title);
 
     if (quest.description) {
       const description = document.createElement('p');
-      description.className = 'mt-1 text-base text-[#b4637a]';
+      description.className = 'relative mt-2 text-sm font-medium text-[#b4637a]/95 sm:text-base';
       description.textContent = quest.description;
       info.appendChild(description);
     }
 
     const reward = document.createElement('div');
-    reward.className = 'mt-3 inline-flex items-center rounded-full bg-[#fde8ef] px-3 py-1 text-sm font-semibold text-[#8b1e3f] shadow-sm';
+    reward.className =
+      'relative z-[2] mt-4 inline-flex items-center gap-2 rounded-full bg-white/75 px-4 py-1 text-sm font-semibold text-[#8b1e3f] shadow-inner shadow-white/50 backdrop-blur';
+    const rewardIcon = document.createElement('span');
+    rewardIcon.className = 'text-base';
+    rewardIcon.textContent = '✨';
+    reward.appendChild(rewardIcon);
+    const rewardLabel = document.createElement('span');
     if (Number.isFinite(quest.reward)) {
-      reward.textContent = `+${formatNumber(quest.reward)} Hasanat`;
+      rewardLabel.textContent = `+${formatNumber(quest.reward)} Hasanat`;
     } else {
-      reward.textContent = quest.reward_label || strings.rewardAwaiting;
+      rewardLabel.textContent = quest.reward_label || strings.rewardAwaiting;
     }
+    reward.appendChild(rewardLabel);
     item.appendChild(reward);
 
     if (quest.target) {
       const { wrapper, percentage } = buildProgressBar(quest.progress || 0, quest.target);
-      wrapper.classList.add('mt-4');
+      wrapper.classList.add('relative', 'z-[2]', 'mt-5');
       item.appendChild(wrapper);
 
       const caption = document.createElement('p');
-      caption.className = 'mt-2 text-sm font-semibold text-[#7a0f32]';
+      caption.className = 'relative z-[2] mt-3 text-sm font-semibold text-[#7a0f32]';
       const value = `${formatNumber(Math.min(quest.progress || 0, quest.target))} / ${formatNumber(quest.target)}`;
       caption.textContent = isCompleted ? `${strings.completed} • ${value}` : `${value} • ${percentage.toFixed(0)}%`;
       item.appendChild(caption);
+    }
+
+    const actions = document.createElement('div');
+    actions.className = 'relative z-[2] mt-5 flex flex-wrap items-center gap-3';
+
+    const playButton = document.createElement('button');
+    playButton.type = 'button';
+    playButton.className =
+      'alfawz-quest-play-button inline-flex items-center gap-3 rounded-full px-5 py-2 text-sm font-semibold uppercase tracking-[0.18em] text-white';
+    const playIcon = document.createElement('span');
+    playIcon.className = 'alfawz-quest-play-icon';
+    playIcon.textContent = '▶';
+    const playLabel = document.createElement('span');
+    playLabel.className = 'whitespace-nowrap';
+    playLabel.textContent = isCompleted ? strings.resumeQuest : strings.playQuest;
+    playButton.append(playIcon, playLabel);
+    const ariaLabelParts = [playLabel.textContent];
+    if (quest.title) {
+      ariaLabelParts.push(quest.title);
+    }
+    playButton.setAttribute('aria-label', ariaLabelParts.join(' – '));
+
+    const launchUrl = resolveQuestLaunchUrl(quest);
+    if (launchUrl) {
+      playButton.addEventListener('click', () => {
+        playButton.classList.add('is-launching');
+        const opened = window.open(launchUrl, '_blank', 'noopener');
+        if (!opened) {
+          window.location.href = launchUrl;
+        }
+        window.dispatchEvent(
+          new CustomEvent('alfawz:quest-launch', {
+            detail: {
+              questId: quest.id || null,
+              url: launchUrl,
+            },
+          })
+        );
+        window.setTimeout(() => {
+          playButton.classList.remove('is-launching');
+        }, 720);
+      });
+    } else {
+      playButton.disabled = true;
+      playButton.setAttribute('aria-disabled', 'true');
+    }
+
+    actions.appendChild(playButton);
+    item.appendChild(actions);
+
+    if (strings.playHint) {
+      const hint = document.createElement('p');
+      hint.className = 'relative z-[2] mt-2 text-xs font-semibold uppercase tracking-[0.32em] text-[#b4637a]/75';
+      hint.textContent = strings.playHint;
+      item.appendChild(hint);
     }
 
     if (isCompleted) {

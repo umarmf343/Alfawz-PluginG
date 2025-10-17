@@ -1484,6 +1484,7 @@ class Routes {
             'progress'    => $daily_count,
             'target'      => $daily_target,
             'status'      => $daily_count >= $daily_target ? 'completed' : 'in_progress',
+            'play_url'    => home_url( '/alfawz-reader/' ),
         ];
 
         $memorisation_reps = (int) ( $daily_summary['memorization_repetitions'] ?? 0 );
@@ -1495,6 +1496,7 @@ class Routes {
             'progress'    => $memorisation_reps,
             'target'      => 20,
             'status'      => $memorisation_reps >= 20 ? 'completed' : 'in_progress',
+            'play_url'    => home_url( '/alfawz-memorizer/' ),
         ];
 
         $hasanat_today = (int) ( $daily_summary['hasanat'] ?? 0 );
@@ -1506,6 +1508,7 @@ class Routes {
             'progress'    => $hasanat_today,
             'target'      => 500,
             'status'      => $hasanat_today >= 500 ? 'completed' : 'in_progress',
+            'play_url'    => home_url( '/alfawz-reader/' ),
         ];
 
         return new \WP_REST_Response(
