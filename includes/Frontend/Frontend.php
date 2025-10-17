@@ -186,6 +186,11 @@ class Frontend {
                 'showTranslationLabel' => __('Show translation', 'alfawzquran'),
                 'versesLabel' => __('Verses', 'alfawzquran'),
                 'repetitionLabel' => __('Repetitions', 'alfawzquran'),
+                'planSavedMessage' => __('Plan saved for quick access!', 'alfawzquran'),
+                'planSaveError' => __('Unable to save this plan. Please check your selections and try again.', 'alfawzquran'),
+                'planLoadedMessage' => __('Plan loaded! Ready to begin.', 'alfawzquran'),
+                'chooseSavedPlanLabel' => __('Choose a saved plan', 'alfawzquran'),
+                'noSavedPlansLabel' => __('No saved plans yet', 'alfawzquran'),
             ]);
 
             wp_localize_script('alfawz-recitation', 'alfawzRecitationData', [
