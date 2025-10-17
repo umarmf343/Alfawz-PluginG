@@ -294,6 +294,10 @@
       return;
     }
 
+    if (document.body) {
+      document.body.classList.add('has-alfawz-bottom-nav');
+    }
+
     const links = nav.querySelectorAll('a[data-slug]');
     if (links.length === 0) {
       return;
@@ -305,6 +309,23 @@
       scroller.classList.toggle('snap-x', hasOverflow);
       scroller.classList.toggle('snap-mandatory', hasOverflow);
       scroller.classList.toggle('scroll-smooth', hasOverflow);
+
+      const handleWheelScroll = (event) => {
+        if (!event) {
+          return;
+        }
+
+        const deltaY = event.deltaY;
+        const deltaX = event.deltaX;
+        if (Math.abs(deltaY) <= Math.abs(deltaX)) {
+          return;
+        }
+
+        scroller.scrollBy({ left: deltaY, behavior: 'smooth' });
+        event.preventDefault();
+      };
+
+      scroller.addEventListener('wheel', handleWheelScroll, { passive: false });
     }
 
     activateFromLocation(nav, links);
