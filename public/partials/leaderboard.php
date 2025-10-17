@@ -62,14 +62,14 @@ if ( ! defined( 'ABSPATH' ) ) {
         <section class="space-y-6" aria-labelledby="alfawz-leaderboard-podium-heading">
             <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                    <p class="text-xs font-semibold uppercase tracking-[0.35em] text-[#741f31]/70">
+                    <p class="text-xs font-semibold uppercase tracking-[0.35em] text-[#d26c86]/70">
                         <?php esc_html_e( 'Top reciters', 'alfawzquran' ); ?>
                     </p>
-                    <h2 id="alfawz-leaderboard-podium-heading" class="text-2xl font-semibold text-[#2f0811] sm:text-3xl">
+                    <h2 id="alfawz-leaderboard-podium-heading" class="text-2xl font-semibold text-[#8e2f46] sm:text-3xl">
                         <?php esc_html_e( 'Weekly podium', 'alfawzquran' ); ?>
                     </h2>
                 </div>
-                <p class="max-w-lg text-sm text-[#4b0d18]/70">
+                <p class="max-w-lg text-sm text-[#b14f6a]/70">
                     <?php esc_html_e( 'Highlighting the top three students based on verses recited this week. Encourage them with a shoutout or catch up with extra practice time.', 'alfawzquran' ); ?>
                 </p>
             </div>
@@ -80,36 +80,36 @@ if ( ! defined( 'ABSPATH' ) ) {
         <section class="space-y-6" aria-labelledby="alfawz-leaderboard-standings">
             <div class="flex flex-col gap-6 rounded-[2.2rem] border border-[#f4d3c4]/70 bg-gradient-to-br from-white/95 via-[#fff4e6]/92 to-[#ffe7d6]/88 p-6 sm:flex-row sm:items-center sm:justify-between sm:gap-8 sm:p-8">
                 <div class="space-y-2 max-w-2xl">
-                    <p class="inline-flex items-center gap-2 rounded-full bg-[#fbe4d6]/80 px-4 py-2 text-xs font-semibold uppercase tracking-[0.35em] text-[#741f31]/80 shadow-inner">
+                    <p class="inline-flex items-center gap-2 rounded-full bg-[#fbe4d6]/80 px-4 py-2 text-xs font-semibold uppercase tracking-[0.35em] text-[#d26c86]/80 shadow-inner">
                         <span class="h-2 w-2 rounded-full bg-[#a83254]" aria-hidden="true"></span>
                         <?php esc_html_e( 'Leaderboard insights', 'alfawzquran' ); ?>
                     </p>
-                    <h3 id="alfawz-leaderboard-standings" class="text-2xl font-semibold text-[#2f0811] sm:text-3xl">
+                    <h3 id="alfawz-leaderboard-standings" class="text-2xl font-semibold text-[#8e2f46] sm:text-3xl">
                         <?php esc_html_e( 'Full standings', 'alfawzquran' ); ?>
                     </h3>
-                    <p class="text-sm leading-relaxed text-[#4b0d18]/75">
+                    <p class="text-sm leading-relaxed text-[#b14f6a]/75">
                         <?php esc_html_e( 'Track progress for every participant and celebrate milestones together. Percentages compare each reciter to the current leader.', 'alfawzquran' ); ?>
                     </p>
                 </div>
-                <dl class="grid w-full max-w-md grid-cols-1 gap-3 text-sm text-[#4b0d18]/80 sm:max-w-none sm:grid-cols-3">
+                <dl class="grid w-full max-w-md grid-cols-1 gap-3 text-sm text-[#b14f6a]/80 sm:max-w-none sm:grid-cols-3">
                     <div class="group relative overflow-hidden rounded-2xl border border-white/40 bg-white/70 px-5 py-4 shadow-[0_20px_40px_rgba(47,8,17,0.08)]">
                         <div class="absolute -top-6 -right-6 h-16 w-16 rounded-full bg-[#f6d8c9]/80 blur-xl transition-all duration-500 group-hover:scale-125" aria-hidden="true"></div>
-                        <dt class="text-[0.65rem] font-semibold uppercase tracking-[0.3em] text-[#741f31]/70"><?php esc_html_e( 'Momentum', 'alfawzquran' ); ?></dt>
-                        <dd class="mt-2 text-base font-semibold text-[#2f0811]">
+                        <dt class="text-[0.65rem] font-semibold uppercase tracking-[0.3em] text-[#d26c86]/70"><?php esc_html_e( 'Momentum', 'alfawzquran' ); ?></dt>
+                        <dd class="mt-2 text-base font-semibold text-[#8e2f46]">
                             <?php esc_html_e( 'Live updates', 'alfawzquran' ); ?>
                         </dd>
                     </div>
                     <div class="group relative overflow-hidden rounded-2xl border border-white/40 bg-white/70 px-5 py-4 shadow-[0_20px_40px_rgba(47,8,17,0.08)]">
                         <div class="absolute -top-6 -right-6 h-16 w-16 rounded-full bg-[#fbe4d6]/80 blur-xl transition-all duration-500 group-hover:scale-125" aria-hidden="true"></div>
-                        <dt class="text-[0.65rem] font-semibold uppercase tracking-[0.3em] text-[#741f31]/70"><?php esc_html_e( 'Recognition', 'alfawzquran' ); ?></dt>
-                        <dd class="mt-2 text-base font-semibold text-[#2f0811]">
+                        <dt class="text-[0.65rem] font-semibold uppercase tracking-[0.3em] text-[#d26c86]/70"><?php esc_html_e( 'Recognition', 'alfawzquran' ); ?></dt>
+                        <dd class="mt-2 text-base font-semibold text-[#8e2f46]">
                             <?php esc_html_e( 'Celebrate wins', 'alfawzquran' ); ?>
                         </dd>
                     </div>
                     <div class="group relative overflow-hidden rounded-2xl border border-white/40 bg-white/70 px-5 py-4 shadow-[0_20px_40px_rgba(47,8,17,0.08)]">
                         <div class="absolute -top-6 -right-6 h-16 w-16 rounded-full bg-[#ffe7d6]/80 blur-xl transition-all duration-500 group-hover:scale-125" aria-hidden="true"></div>
-                        <dt class="text-[0.65rem] font-semibold uppercase tracking-[0.3em] text-[#741f31]/70"><?php esc_html_e( 'Community', 'alfawzquran' ); ?></dt>
-                        <dd class="mt-2 text-base font-semibold text-[#2f0811]">
+                        <dt class="text-[0.65rem] font-semibold uppercase tracking-[0.3em] text-[#d26c86]/70"><?php esc_html_e( 'Community', 'alfawzquran' ); ?></dt>
+                        <dd class="mt-2 text-base font-semibold text-[#8e2f46]">
                             <?php esc_html_e( 'Encourage du’a', 'alfawzquran' ); ?>
                         </dd>
                     </div>
@@ -120,7 +120,7 @@ if ( ! defined( 'ABSPATH' ) ) {
                 <div class="pointer-events-none absolute -bottom-24 -left-16 h-64 w-64 rounded-full bg-[#f6d8c9]/75 blur-3xl" aria-hidden="true"></div>
                 <div class="relative overflow-x-auto">
                     <table class="min-w-full border-separate border-spacing-y-1 text-left">
-                        <thead class="bg-[#fff4e6]/90 text-[0.7rem] font-semibold uppercase tracking-[0.35em] text-[#741f31]/80">
+                        <thead class="bg-[#fff4e6]/90 text-[0.7rem] font-semibold uppercase tracking-[0.35em] text-[#d26c86]/80">
                             <tr>
                                 <th scope="col" class="px-6 py-4"><?php esc_html_e( 'Rank', 'alfawzquran' ); ?></th>
                                 <th scope="col" class="px-6 py-4"><?php esc_html_e( 'Reciter', 'alfawzquran' ); ?></th>
@@ -128,21 +128,21 @@ if ( ! defined( 'ABSPATH' ) ) {
                                 <th scope="col" class="px-6 py-4 text-right"><?php esc_html_e( 'Hasanat', 'alfawzquran' ); ?></th>
                             </tr>
                         </thead>
-                        <tbody id="alfawz-leaderboard-body" class="align-middle text-base text-[#4b0d18]" aria-live="polite" aria-busy="true"></tbody>
+                        <tbody id="alfawz-leaderboard-body" class="align-middle text-base text-[#b14f6a]" aria-live="polite" aria-busy="true"></tbody>
                     </table>
                 </div>
-                <div id="alfawz-leaderboard-empty" class="relative hidden px-6 py-10 text-center text-base font-medium text-[#741f31]">
+                <div id="alfawz-leaderboard-empty" class="relative hidden px-6 py-10 text-center text-base font-medium text-[#d26c86]">
                     <?php esc_html_e( 'No reciters have logged progress yet. Encourage your students to submit their first verses!', 'alfawzquran' ); ?>
                 </div>
             </div>
         </section>
         <section class="rounded-[2.4rem] border border-[#f5d0c5]/80 bg-gradient-to-br from-white/95 via-[#fff4e6]/90 to-[#ffe7d6]/85 p-8 sm:p-10" aria-labelledby="alfawz-leaderboard-callout">
             <div class="grid gap-8 lg:grid-cols-[1.4fr_1fr] lg:items-center">
-                <div class="space-y-4 text-[#4b0d18]">
-                    <p class="text-xs font-semibold uppercase tracking-[0.35em] text-[#741f31]/70">
+                <div class="space-y-4 text-[#b14f6a]">
+                    <p class="text-xs font-semibold uppercase tracking-[0.35em] text-[#d26c86]/70">
                         <?php esc_html_e( 'Keep the momentum', 'alfawzquran' ); ?>
                     </p>
-                    <h3 id="alfawz-leaderboard-callout" class="text-2xl font-semibold text-[#2f0811] sm:text-3xl">
+                    <h3 id="alfawz-leaderboard-callout" class="text-2xl font-semibold text-[#8e2f46] sm:text-3xl">
                         <?php esc_html_e( 'How ranking works', 'alfawzquran' ); ?>
                     </h3>
                     <ul class="space-y-3 text-base leading-relaxed">
