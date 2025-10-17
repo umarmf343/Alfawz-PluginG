@@ -235,6 +235,11 @@ if ( ! defined( 'ABSPATH' ) ) {
                             </button>
                         </div>
                         <p id="alfawz-recitation-status" class="text-sm text-slate-500"><?php esc_html_e( 'Tap begin listening when you are ready to recite.', 'alfawzquran' ); ?></p>
+                        <div id="alfawz-recitation-visualizer" class="alfawz-recitation-visualizer mt-4 hidden" aria-hidden="true">
+                            <?php for ( $bar = 0; $bar < 24; $bar++ ) : ?>
+                                <span class="alfawz-recitation-visualizer-bar" data-bar="<?php echo esc_attr( $bar ); ?>"></span>
+                            <?php endfor; ?>
+                        </div>
                         <div class="rounded-3xl border border-slate-200/80 bg-gradient-to-br from-indigo-50 to-rose-50 p-6 text-center shadow-inner">
                             <p class="text-3xl font-semibold uppercase tracking-[0.3em] text-indigo-500"><?php esc_html_e( 'Accuracy score', 'alfawzquran' ); ?></p>
                             <p id="alfawz-recitation-score-value" class="mt-2 text-[6.75rem] font-bold text-slate-900">--</p>
