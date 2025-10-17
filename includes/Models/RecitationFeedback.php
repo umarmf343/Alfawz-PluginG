@@ -1,11 +1,15 @@
 <?php
 namespace AlfawzQuran\Models;
 
+use function array_filter;
+use function array_values;
 use function current_time;
 use function get_user_meta;
 use function is_array;
+use function is_object;
 use function maybe_unserialize;
 use function update_user_meta;
+use function wp_check_invalid_utf8;
 use function wp_json_encode;
 
 /**
@@ -82,11 +86,21 @@ class RecitationFeedback {
             return [];
         }
 
-        if ( $limit && count( $raw ) > self::MAX_ENTRIES ) {
-            return array_slice( $raw, 0, self::MAX_ENTRIES );
+        $history = array_map( [ $this, 'sanitize_history_value' ], $raw );
+        $history = array_values(
+            array_filter(
+                $history,
+                static function ( $entry ) {
+                    return is_array( $entry );
+                }
+            )
+        );
+
+        if ( $limit && count( $history ) > self::MAX_ENTRIES ) {
+            return array_slice( $history, 0, self::MAX_ENTRIES );
         }
 
-        return $raw;
+        return $history;
     }
 
     /**
@@ -114,10 +128,46 @@ class RecitationFeedback {
         $sanitized = [];
         foreach ( $allowed_keys as $key ) {
             if ( array_key_exists( $key, $payload ) ) {
-                $sanitized[ $key ] = $payload[ $key ];
+                $sanitized[ $key ] = $this->sanitize_history_value( $payload[ $key ] );
             }
         }
 
         return $sanitized;
+    }
+
+    /**
+     * Recursively sanitise stored feedback values to ensure they are JSON safe.
+     *
+     * @param mixed $value Raw history value.
+     * @return mixed
+     */
+    private function sanitize_history_value( $value ) {
+        if ( is_string( $value ) ) {
+            $sanitized = wp_check_invalid_utf8( $value, true );
+
+            if ( '' === $sanitized ) {
+                return '';
+            }
+
+            $sanitized = preg_replace( '/[\x00-\x1F\x7F]+/u', '', $sanitized );
+
+            return is_string( $sanitized ) ? $sanitized : '';
+        }
+
+        if ( is_array( $value ) ) {
+            foreach ( $value as $key => $item ) {
+                $value[ $key ] = $this->sanitize_history_value( $item );
+            }
+
+            return $value;
+        }
+
+        if ( is_object( $value ) ) {
+            $object_vars = get_object_vars( $value );
+
+            return $this->sanitize_history_value( $object_vars );
+        }
+
+        return $value;
     }
 }
