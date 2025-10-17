@@ -308,6 +308,18 @@
     const apiAudioSecondary = Array.isArray(apiAudioSecondaryRaw)
       ? apiAudioSecondaryRaw.filter((entry) => typeof entry === 'string' && entry)
       : [];
+    const isBismillah = Boolean(payload.isBismillah ?? payload.is_bismillah ?? false);
+    const displayVerseNumberRaw = payload.displayVerseNumber ?? payload.display_verse_number;
+    const parsedDisplayNumber =
+      displayVerseNumberRaw === undefined || displayVerseNumberRaw === null
+        ? null
+        : Number(displayVerseNumberRaw);
+    const displayVerseNumber = Number.isFinite(parsedDisplayNumber)
+      ? parsedDisplayNumber
+      : isBismillah
+      ? 0
+      : verseId;
+    const displayVerseLabel = payload.displayVerseLabel ?? payload.display_verse_label ?? '';
 
     const reciter = currentReciter || RECITER_EDITION || CDN_FALLBACK_RECITER;
     const computedAudio = buildAudioUrl(reciter, surahId, verseId) || apiAudio || '';
@@ -334,7 +346,65 @@
       totalVerses,
       audio: computedAudio,
       audioSecondary,
+      isBismillah,
+      displayVerseNumber,
+      displayVerseLabel,
     };
+  };
+
+  const parseDisplayNumber = (value) => {
+    if (value === undefined || value === null) {
+      return null;
+    }
+    const numeric = Number(value);
+    return Number.isFinite(numeric) ? numeric : null;
+  };
+
+  const isVerseBismillah = (verse) => Boolean(verse?.isBismillah ?? verse?.is_bismillah);
+
+  const getDisplayVerseNumber = (verse) => {
+    if (!verse) {
+      return null;
+    }
+    const preferred = parseDisplayNumber(
+      verse.displayVerseNumber ?? verse.display_verse_number ?? null,
+    );
+    if (preferred !== null) {
+      return preferred;
+    }
+    return parseDisplayNumber(verse.verseId ?? verse.verse_id ?? null);
+  };
+
+  const getDisplayVerseLabel = (verse, strings = {}) => {
+    if (!verse) {
+      return '';
+    }
+
+    const label = verse.displayVerseLabel ?? verse.display_verse_label;
+    if (label) {
+      return label;
+    }
+
+    const ayahLabel = strings.ayahLabel || 'Ayah';
+    const bismillahLabel = strings.bismillahLabel || 'Bismillah';
+    const number = getDisplayVerseNumber(verse);
+
+    if (number === null) {
+      return ayahLabel;
+    }
+
+    if (number <= 0) {
+      if (isVerseBismillah(verse)) {
+        return bismillahLabel;
+      }
+      const fallback = parseDisplayNumber(verse.verseId ?? verse.verse_id ?? null);
+      if (fallback) {
+        return `${ayahLabel} ${fallback}`;
+      }
+      return ayahLabel;
+    }
+
+    return `${ayahLabel} ${number}`;
   };
 
   const padAudioFragment = (value) => {
@@ -1368,6 +1438,8 @@
       surahError: wpData.strings?.surahError || 'Unable to load the full surah right now. Please try again.',
       toggleOff: wpData.strings?.toggleVerseMode || 'Navigate verse by verse',
       toggleOn: wpData.strings?.toggleSurahMode || 'All verses visible at once',
+      ayahLabel: wpData.strings?.ayahLabel || 'Ayah',
+      bismillahLabel: wpData.strings?.bismillahLabel || 'Bismillah',
     };
 
     const reflectionStrings = {
@@ -1430,7 +1502,9 @@
         surah?.englishNameTranslation ||
         surah?.name ||
         (surahId ? `Surah ${surahId}` : 'This surah');
-      reflectionContext.textContent = `Reflect on ${surahName} · Ayah ${verseId}`;
+      const verseLabel = verse ? getDisplayVerseLabel(verse, strings) : '';
+      const displayLabel = verseLabel || (verseId ? `${strings.ayahLabel} ${verseId}` : strings.ayahLabel);
+      reflectionContext.textContent = `Reflect on ${surahName} · ${displayLabel}`;
     };
 
     const updateDashboardReflections = (reflection) => {
@@ -2411,8 +2485,9 @@
       setAudioProgress(0);
       updateAudioTimes(0, 0);
       const surahName = verse?.surahName || currentSurah?.englishName || `Surah ${surahId}`;
+      const verseLabel = verse ? getDisplayVerseLabel(verse, strings) : `${strings.ayahLabel} ${verseId}`;
       const sourceMeta = getAudioSourceMeta();
-      setAudioLabel(`${surahName} • Ayah ${verseId}`);
+      setAudioLabel(`${surahName} • ${verseLabel}`);
       setAudioStatus('Loading recitation…');
       setAudioSourceBadge(sourceMeta.resolvingLabel, 'emerald');
       updateAudioToggle();
@@ -2672,7 +2747,9 @@
         item.className = 'alfawz-surah-item';
         item.setAttribute('tabindex', '0');
         item.setAttribute('role', 'button');
-        item.setAttribute('aria-label', `${strings.focusAyah} ${verse.verseId}`);
+        const verseLabel = getDisplayVerseLabel(verse, strings);
+        const announcement = verseLabel || `${strings.ayahLabel} ${verse.verseId}`;
+        item.setAttribute('aria-label', `${strings.focusAyah} ${announcement}`);
         if (Number(verse.verseId) === Number(activeVerseId)) {
           item.classList.add('is-active');
           item.setAttribute('aria-current', 'true');
@@ -2684,7 +2761,7 @@
         header.className = 'alfawz-surah-item__header';
         const index = document.createElement('span');
         index.className = 'alfawz-surah-item__index';
-        index.textContent = `Ayah ${verse.verseId}`;
+        index.textContent = verseLabel || `${strings.ayahLabel} ${verse.verseId}`;
         header.appendChild(index);
         if (verse.juz) {
           const juz = document.createElement('span');
@@ -2722,7 +2799,7 @@
         focusButton.type = 'button';
         focusButton.className = 'alfawz-surah-item__focus';
         focusButton.innerHTML = '<span aria-hidden="true">🕯️</span><span class="alfawz-surah-item__focus-text">Focus</span>';
-        focusButton.setAttribute('aria-label', `${strings.focusAyah} ${verse.verseId}`);
+        focusButton.setAttribute('aria-label', `${strings.focusAyah} ${verseLabel || verse.verseId}`);
         focusButton.addEventListener('click', async (event) => {
           event.stopPropagation();
           if (!currentSurahId || isLoading) {
@@ -2737,7 +2814,7 @@
         playButton.type = 'button';
         playButton.className = 'alfawz-surah-item__play';
         playButton.innerHTML = '<span aria-hidden="true">▶</span><span class="alfawz-surah-item__play-text">Play</span>';
-        playButton.setAttribute('aria-label', `${strings.playAyah} ${verse.verseId}`);
+        playButton.setAttribute('aria-label', `${strings.playAyah} ${verseLabel || verse.verseId}`);
         playButton.addEventListener('click', async (event) => {
           event.stopPropagation();
           if (!currentSurahId || isLoading) {
@@ -3023,6 +3100,8 @@
           verseSelect.value = String(verseId);
         }
         const totalVerses = verse.totalVerses || Number(surah.numberOfAyahs || surah.ayahs || 0);
+        const displayNumber = getDisplayVerseNumber(verse);
+        const verseLabel = getDisplayVerseLabel(verse, strings);
         if (verseId > 1) {
           primeVerse(surahId, verseId - 1, { immediate: true });
         }
@@ -3031,10 +3110,14 @@
         }
         safeSetText(heading, verse.surahName || `Surah ${surah.englishName || surah.englishNameTranslation || surah.name || surahId}`);
         const metaParts = [];
-        if (totalVerses) {
-          metaParts.push(`Ayah ${verseId} / ${totalVerses}`);
+        if (totalVerses && displayNumber && displayNumber > 0) {
+          metaParts.push(`${strings.ayahLabel} ${displayNumber} / ${totalVerses}`);
+        } else if (displayNumber && displayNumber > 0) {
+          metaParts.push(`${strings.ayahLabel} ${displayNumber}`);
+        } else if (verseLabel) {
+          metaParts.push(verseLabel);
         } else {
-          metaParts.push(`Ayah ${verseId}`);
+          metaParts.push(`${strings.ayahLabel} ${verseId}`);
         }
         if (verse.juz) {
           metaParts.push(`Juz ${verse.juz}`);

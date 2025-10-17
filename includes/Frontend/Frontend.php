@@ -147,6 +147,12 @@ class Frontend {
                     'gamePanelLockedLabel' => __('Locked', 'alfawzquran'),
                     'gamePanelPlayNow' => __('Play Now', 'alfawzquran'),
                     'gamePanelKeepGoing' => __('Keep Going', 'alfawzquran'),
+                    'playAyah'          => __('Play this ayah', 'alfawzquran'),
+                    'focusAyah'         => __('Focus this ayah', 'alfawzquran'),
+                    'toggleVerseMode'   => __('Navigate verse by verse', 'alfawzquran'),
+                    'toggleSurahMode'   => __('All verses visible at once', 'alfawzquran'),
+                    'ayahLabel'         => __('Ayah', 'alfawzquran'),
+                    'bismillahLabel'    => __('Bismillah', 'alfawzquran'),
                 ],
             ]);
 
