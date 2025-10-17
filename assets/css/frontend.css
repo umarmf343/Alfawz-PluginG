@@ -2157,6 +2157,19 @@
   overflow: hidden;
 }
 
+.alfawz-dashboard-stat[data-stat="hasanat"] {
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.alfawz-dashboard-stat[data-stat="hasanat"] .alfawz-dashboard-stat-copy {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+}
+
 .alfawz-dashboard-stat::after {
   content: '';
   position: absolute;
@@ -2214,6 +2227,12 @@
   margin: 0;
   font-size: var(--alfawz-text-small);
   color: rgba(255, 244, 230, 0.75);
+}
+
+@media (min-width: 640px) and (max-width: 1079.98px) {
+  .alfawz-dashboard-stat[data-stat="hasanat"] {
+    margin-top: 0.75rem;
+  }
 }
 
 .alfawz-dashboard-routine {
