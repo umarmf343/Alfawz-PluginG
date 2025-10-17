@@ -48,15 +48,6 @@ if ( ! defined( 'ABSPATH' ) ) {
             </div>
 
             <div class="alfawz-verse-main">
-                <button
-                    type="button"
-                    id="alfawz-prev-verse"
-                    class="alfawz-verse-nav"
-                    aria-label="<?php esc_attr_e( 'Previous verse', 'alfawzquran' ); ?>"
-                    disabled
-                >
-                    ◁
-                </button>
                 <div class="alfawz-verse-main__content">
                     <header class="alfawz-verse-header" aria-live="polite">
                         <p id="alfawz-verse-meta" class="alfawz-verse-meta"></p>
@@ -64,9 +55,29 @@ if ( ! defined( 'ABSPATH' ) ) {
                     </header>
 
                     <div id="alfawz-verse-content" class="alfawz-verse-panel">
-                        <p id="alfawz-arabic-text" class="alfawz-arabic" dir="rtl" lang="ar"></p>
-                        <p id="alfawz-transliteration" class="alfawz-transliteration"></p>
-                        <p id="alfawz-translation" class="alfawz-translation"></p>
+                        <button
+                            type="button"
+                            id="alfawz-prev-verse"
+                            class="alfawz-verse-nav"
+                            aria-label="<?php esc_attr_e( 'Previous verse', 'alfawzquran' ); ?>"
+                            disabled
+                        >
+                            ◁
+                        </button>
+                        <div class="alfawz-verse-panel__content">
+                            <p id="alfawz-arabic-text" class="alfawz-arabic" dir="rtl" lang="ar"></p>
+                            <p id="alfawz-transliteration" class="alfawz-transliteration"></p>
+                            <p id="alfawz-translation" class="alfawz-translation"></p>
+                        </div>
+                        <button
+                            type="button"
+                            id="alfawz-next-verse"
+                            class="alfawz-verse-nav"
+                            aria-label="<?php esc_attr_e( 'Next verse', 'alfawzquran' ); ?>"
+                            disabled
+                        >
+                            ▷
+                        </button>
                     </div>
                     <div class="alfawz-verse-toggles" role="group" aria-label="<?php esc_attr_e( 'Toggle verse details', 'alfawzquran' ); ?>">
                         <button
@@ -93,15 +104,6 @@ if ( ! defined( 'ABSPATH' ) ) {
                         </button>
                     </div>
                 </div>
-                <button
-                    type="button"
-                    id="alfawz-next-verse"
-                    class="alfawz-verse-nav"
-                    aria-label="<?php esc_attr_e( 'Next verse', 'alfawzquran' ); ?>"
-                    disabled
-                >
-                    ▷
-                </button>
             </div>
 
             <div id="alfawz-surah-view-toggle" class="alfawz-view-toggle" role="group" aria-label="<?php esc_attr_e( 'Toggle surah display mode', 'alfawzquran' ); ?>">
