@@ -60,10 +60,10 @@ if ( ! defined( 'ABSPATH' ) ) {
                 <div class="pointer-events-none absolute -bottom-16 -right-20 h-48 w-48 rounded-full bg-cyan-300/40 blur-3xl"></div>
                 <div class="relative flex flex-col gap-5">
                     <span class="inline-flex h-16 w-16 items-center justify-center rounded-full bg-white/30 text-4xl text-sky-800 shadow-lg">🌟</span>
-                    <h3 class="text-4xl font-semibold leading-tight text-white">
+                    <h3 class="text-4xl font-semibold leading-tight text-amber-100">
                         <?php esc_html_e( 'Track your glow', 'alfawzquran' ); ?>
                     </h3>
-                    <p class="text-2xl leading-relaxed text-sky-50">
+                    <p class="text-2xl leading-relaxed text-amber-50">
                         <?php esc_html_e( 'Spot completed lessons instantly—finished cards shimmer so you know where to focus next.', 'alfawzquran' ); ?>
                     </p>
                 </div>
