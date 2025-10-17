@@ -289,6 +289,169 @@ if ( ! defined( 'ABSPATH' ) ) {
                 </div>
             </section>
 
+            <section
+                aria-label="<?php esc_attr_e( 'Daily Ayah Meaning Quest mini-game', 'alfawzquran' ); ?>"
+                class="space-y-6"
+                id="alfawz-verse-quest"
+            >
+                <div class="relative overflow-hidden rounded-[36px] border border-[#3f1025]/30 bg-gradient-to-br from-[#3d0c1e] via-[#701836] to-[#f6c3c1] p-6 text-[#fff9f4] shadow-[0_36px_120px_-42px_rgba(33,8,19,0.85)] sm:p-9">
+                    <div class="pointer-events-none absolute -left-24 top-10 h-56 w-56 rounded-full bg-[#ffd7e2]/30 blur-3xl"></div>
+                    <div class="pointer-events-none absolute -right-16 bottom-0 h-60 w-60 rounded-full bg-[#ffe7c6]/25 blur-[110px]"></div>
+                    <div class="relative flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+                        <div class="max-w-2xl space-y-4">
+                            <div class="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-white/20 text-4xl shadow-lg" aria-hidden="true">📜</div>
+                            <div class="space-y-2">
+                                <h2 class="text-3xl font-black tracking-tight sm:text-[42px]">
+                                    <?php esc_html_e( 'Daily Ayah Meaning Quest', 'alfawzquran' ); ?>
+                                </h2>
+                                <p class="text-base font-medium text-[#ffe5df] sm:text-lg">
+                                    <?php
+                                    esc_html_e(
+                                        'Unlock one radiant verse each day, discover its meaning, and keep your heart engaged with joyful reflection prompts.',
+                                        'alfawzquran'
+                                    );
+                                    ?>
+                                </p>
+                            </div>
+                            <div class="inline-flex items-center gap-2 rounded-full bg-white/15 px-4 py-2 text-xs font-semibold uppercase tracking-[0.26em] text-[#ffe1d9]">
+                                <span class="h-2 w-2 rounded-full bg-[#ffe1d9]"></span>
+                                <?php esc_html_e( 'One verse. One meaning. One heart shift.', 'alfawzquran' ); ?>
+                            </div>
+                        </div>
+                        <div class="flex flex-col items-start gap-4">
+                            <button
+                                id="alfawz-verse-play"
+                                type="button"
+                                class="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#ffe8b9] via-[#f7a7b7] to-[#ff90c2] px-6 py-3 text-sm font-semibold text-[#3d0c1e] shadow-lg shadow-black/25 transition-all duration-300 hover:-translate-y-1 hover:brightness-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#3d0c1e]"
+                            >
+                                <span aria-hidden="true" class="text-base" data-role="verse-play-icon">▶</span>
+                                <span data-role="verse-play-label"><?php esc_html_e( 'Play Game', 'alfawzquran' ); ?></span>
+                            </button>
+                            <p id="alfawz-verse-last-played" class="text-sm font-semibold text-[#ffe7df]/80">
+                                <?php esc_html_e( 'Last played: Not yet', 'alfawzquran' ); ?>
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="relative mt-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
+                        <div class="group relative overflow-hidden rounded-3xl border border-white/25 bg-white/10 p-5 text-left shadow-lg shadow-black/15">
+                            <div class="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
+                            <p class="text-xs font-semibold uppercase tracking-[0.32em] text-white/70">
+                                <?php esc_html_e( 'Day Streak', 'alfawzquran' ); ?>
+                            </p>
+                            <p class="mt-3 text-3xl font-black text-white drop-shadow-sm" data-verse-stat="streak">0</p>
+                        </div>
+                        <div class="group relative overflow-hidden rounded-3xl border border-white/25 bg-white/10 p-5 text-left shadow-lg shadow-black/15">
+                            <div class="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
+                            <p class="text-xs font-semibold uppercase tracking-[0.32em] text-white/70">
+                                <?php esc_html_e( 'Verses Mastered', 'alfawzquran' ); ?>
+                            </p>
+                            <p class="mt-3 text-3xl font-black text-white drop-shadow-sm" data-verse-stat="completed">0</p>
+                        </div>
+                        <div class="group relative overflow-hidden rounded-3xl border border-white/25 bg-white/10 p-5 text-left shadow-lg shadow-black/15">
+                            <div class="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
+                            <p class="text-xs font-semibold uppercase tracking-[0.32em] text-white/70">
+                                <?php esc_html_e( 'Answer Accuracy', 'alfawzquran' ); ?>
+                            </p>
+                            <p class="mt-3 text-3xl font-black text-white drop-shadow-sm" data-verse-stat="accuracy">0%</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div
+                    id="alfawz-verse-stage"
+                    class="hidden space-y-6 rounded-[36px] border border-[#4d081d]/15 bg-gradient-to-br from-[#fff6f8]/95 via-[#fff1f5]/95 to-[#fff9f2]/95 p-6 shadow-[0_34px_90px_-42px_rgba(139,30,63,0.45)] sm:p-10"
+                >
+                    <div class="grid grid-cols-1 gap-6 lg:grid-cols-[1.5fr_1fr]">
+                        <article class="relative overflow-hidden rounded-[30px] border border-[#ffd6de]/70 bg-white/90 p-6 text-[#4d081d] shadow-xl shadow-[#4d081d]/10">
+                            <div class="pointer-events-none absolute -top-24 right-6 h-44 w-44 rounded-full bg-[#ffe7c6]/40 blur-3xl"></div>
+                            <div class="pointer-events-none absolute -bottom-24 left-8 h-48 w-48 rounded-full bg-[#ffd7e2]/40 blur-3xl"></div>
+                            <div class="relative space-y-4">
+                                <div class="flex flex-wrap items-center justify-between gap-3">
+                                    <div class="space-y-1">
+                                        <p class="text-sm font-semibold uppercase tracking-[0.26em] text-[#b4637a]" data-role="verse-theme">
+                                            <?php esc_html_e( 'Today’s Focus · Heartfelt Reliance', 'alfawzquran' ); ?>
+                                        </p>
+                                        <h3 class="text-2xl font-black tracking-tight" data-role="verse-title">
+                                            <?php esc_html_e( 'Surah Al-Fatihah · Ayah 5', 'alfawzquran' ); ?>
+                                        </h3>
+                                    </div>
+                                    <span class="inline-flex items-center gap-2 rounded-full bg-[#fdf2f8] px-4 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-[#b4637a]"><span class="h-2 w-2 rounded-full bg-[#b4637a]"></span><?php esc_html_e( 'Daily verse unlocked', 'alfawzquran' ); ?></span>
+                                </div>
+                                <div class="space-y-3 rounded-3xl border border-white/60 bg-white/90 p-5 shadow-inner">
+                                    <p class="text-2xl font-black leading-relaxed" data-role="verse-arabic">
+                                        <?php esc_html_e( 'إِيَّاكَ نَعْبُدُ وَإِيَّاكَ نَسْتَعِينُ', 'alfawzquran' ); ?>
+                                    </p>
+                                    <p class="text-sm font-semibold uppercase tracking-[0.28em] text-[#b4637a]" data-role="verse-transliteration">
+                                        <?php esc_html_e( 'Iyyaka naʿbudu wa iyyaka nastaʿin', 'alfawzquran' ); ?>
+                                    </p>
+                                    <p class="text-base font-medium text-[#7a0f32]" data-role="verse-translation">
+                                        <?php esc_html_e( 'You alone we worship and You alone we ask for help.', 'alfawzquran' ); ?>
+                                    </p>
+                                </div>
+                                <p class="text-sm font-semibold text-[#b4637a]" data-role="verse-reference">
+                                    <?php esc_html_e( 'Surah Al-Fatihah · Ayah 5', 'alfawzquran' ); ?>
+                                </p>
+                            </div>
+                        </article>
+
+                        <aside class="relative flex flex-col gap-5 overflow-hidden rounded-[30px] border border-[#4d081d]/10 bg-gradient-to-br from-[#4d081d]/10 via-[#f8d8e4]/90 to-[#fff5f7]/95 p-6 text-[#4d081d] shadow-[0_24px_60px_-30px_rgba(77,8,29,0.45)]">
+                            <div class="pointer-events-none absolute -top-16 left-6 h-40 w-40 rounded-full bg-[#ffd6de]/50 blur-3xl"></div>
+                            <div class="pointer-events-none absolute -bottom-20 right-4 h-40 w-40 rounded-full bg-[#ffe8c9]/40 blur-3xl"></div>
+                            <div class="relative space-y-4">
+                                <p
+                                    id="alfawz-verse-status"
+                                    class="rounded-3xl border px-5 py-4 text-sm font-semibold shadow-inner transition-all duration-300"
+                                >
+                                    <?php esc_html_e( 'Tap “Play Game” to reveal today’s ayah quest.', 'alfawzquran' ); ?>
+                                </p>
+                                <p id="alfawz-verse-question" class="text-lg font-bold leading-relaxed text-[#5f0d26]">
+                                    <?php esc_html_e( 'Which insight best captures today’s ayah meaning?', 'alfawzquran' ); ?>
+                                </p>
+                                <div id="alfawz-verse-options" class="grid grid-cols-1 gap-3">
+                                    <p class="rounded-3xl border border-dashed border-[#f4c7d3] bg-white/70 px-4 py-3 text-sm font-semibold text-[#b4637a] shadow-inner">
+                                        <?php esc_html_e( 'Your answer choices will appear once you begin.', 'alfawzquran' ); ?>
+                                    </p>
+                                </div>
+                                <div
+                                    id="alfawz-verse-summary"
+                                    class="hidden space-y-3 rounded-3xl border border-[#ffd6de]/80 bg-white/85 px-5 py-4 text-sm font-semibold text-[#4d081d] shadow-inner"
+                                >
+                                    <h3 class="text-base font-bold text-[#5f0d26]">
+                                        <?php esc_html_e( 'Meaning Spotlight', 'alfawzquran' ); ?>
+                                    </h3>
+                                    <p id="alfawz-verse-summary-text" class="leading-relaxed text-[#7a0f32]"></p>
+                                    <p id="alfawz-verse-option-summary" class="hidden leading-relaxed text-[#7a0f32]/90"></p>
+                                </div>
+                            </div>
+                        </aside>
+                    </div>
+
+                    <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+                        <div class="space-y-4 rounded-[30px] border border-[#ffd6de]/70 bg-white/85 p-6 text-[#4d081d] shadow-inner" id="alfawz-verse-keywords">
+                            <h3 class="flex items-center gap-3 text-lg font-bold text-[#4d081d]">
+                                <span class="inline-flex h-9 w-9 items-center justify-center rounded-2xl bg-[#fde8ef] text-lg shadow-inner" aria-hidden="true">✨</span>
+                                <?php esc_html_e( 'Key Word Glow', 'alfawzquran' ); ?>
+                            </h3>
+                            <p class="rounded-3xl border border-dashed border-[#f4c7d3] bg-white/70 px-4 py-3 text-sm font-semibold text-[#b4637a] shadow-inner">
+                                <?php esc_html_e( 'Meaning cards will shimmer here once you start the quest.', 'alfawzquran' ); ?>
+                            </p>
+                        </div>
+                        <div class="space-y-4 rounded-[30px] border border-[#f4c7d3]/80 bg-[#fdf2f8]/90 p-6 text-[#4d081d] shadow-inner">
+                            <h3 class="flex items-center gap-3 text-lg font-bold text-[#4d081d]">
+                                <span class="inline-flex h-9 w-9 items-center justify-center rounded-2xl bg-[#ffe7d6] text-lg shadow-inner" aria-hidden="true">📝</span>
+                                <?php esc_html_e( 'Reflection Prompts', 'alfawzquran' ); ?>
+                            </h3>
+                            <ul class="space-y-3" id="alfawz-verse-reflection-list">
+                                <li class="rounded-3xl border border-dashed border-[#f4c7d3] bg-white/70 px-4 py-3 text-sm font-semibold text-[#b4637a] shadow-inner">
+                                    <?php esc_html_e( 'You’ll unlock personalised prompts after playing the game.', 'alfawzquran' ); ?>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
             <header class="relative overflow-hidden rounded-[34px] bg-gradient-to-br from-[#5f0d26] via-[#8d1f3f] to-[#f4d6c7] p-8 text-center text-[#fff8f2] shadow-2xl">
                 <div class="pointer-events-none absolute -left-10 -top-10 h-40 w-40 rounded-full bg-white/20 blur-2xl"></div>
                 <div class="pointer-events-none absolute -right-6 top-6 h-28 w-28 rounded-full bg-[#fbeadd]/40 blur-xl"></div>

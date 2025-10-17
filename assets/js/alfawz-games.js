@@ -33,6 +33,20 @@
       wpData.strings?.puzzleUnlockHint
       || 'Complete three puzzles today to unlock the “Night of Tranquility” weekly challenge.',
 
+    versePlay: wpData.strings?.verseQuestPlay || 'Play Game',
+    verseResume: wpData.strings?.verseQuestResume || 'Review Meaning',
+    verseCelebrate: wpData.strings?.verseQuestCelebrate || 'Meaning Mastered',
+    verseIdle: wpData.strings?.verseQuestIdle || 'Tap “Play Game” to reveal today’s ayah meaning quest.',
+    verseActive: wpData.strings?.verseQuestActive || 'Choose the insight that best matches today’s ayah.',
+    verseTryAgain:
+      wpData.strings?.verseQuestTryAgain || 'Reflect once more and try a different insight.',
+    verseSuccess: wpData.strings?.verseQuestSuccess || 'MashaAllah! You unlocked today’s ayah meaning.',
+    verseCompleted:
+      wpData.strings?.verseQuestCompleted
+      || 'You embraced today’s ayah meaning—return tomorrow for a new verse.',
+    verseNeverPlayed: wpData.strings?.verseQuestNeverPlayed || 'Not yet',
+    verseLastPlayed: wpData.strings?.verseQuestLastPlayed || 'Last played',
+
     gardenPlay: wpData.strings?.gardenPlay || 'Play Game',
     gardenResume: wpData.strings?.gardenResume || 'Keep Cultivating',
     gardenCelebrate: wpData.strings?.gardenCelebrate || 'Garden Flourishing',
@@ -153,6 +167,33 @@
       translation: root.querySelector('[data-role="puzzle-translation"]'),
       unlock: root.querySelector('#alfawz-puzzle-unlock'),
     },
+    verseQuest: {
+      section: root.querySelector('#alfawz-verse-quest'),
+      playButton: root.querySelector('#alfawz-verse-play'),
+      playIcon: root.querySelector('#alfawz-verse-play [data-role="verse-play-icon"]'),
+      playLabel: root.querySelector('#alfawz-verse-play [data-role="verse-play-label"]'),
+      stage: root.querySelector('#alfawz-verse-stage'),
+      status: root.querySelector('#alfawz-verse-status'),
+      options: root.querySelector('#alfawz-verse-options'),
+      question: root.querySelector('#alfawz-verse-question'),
+      summary: root.querySelector('#alfawz-verse-summary'),
+      summaryText: root.querySelector('#alfawz-verse-summary-text'),
+      optionSummary: root.querySelector('#alfawz-verse-option-summary'),
+      verseTitle: root.querySelector('[data-role="verse-title"]'),
+      verseTheme: root.querySelector('[data-role="verse-theme"]'),
+      verseArabic: root.querySelector('[data-role="verse-arabic"]'),
+      verseTransliteration: root.querySelector('[data-role="verse-transliteration"]'),
+      verseTranslation: root.querySelector('[data-role="verse-translation"]'),
+      verseReference: root.querySelector('[data-role="verse-reference"]'),
+      keywords: root.querySelector('#alfawz-verse-keywords'),
+      reflectionList: root.querySelector('#alfawz-verse-reflection-list'),
+      lastPlayed: root.querySelector('#alfawz-verse-last-played'),
+      stats: {
+        streak: root.querySelector('[data-verse-stat="streak"]'),
+        completed: root.querySelector('[data-verse-stat="completed"]'),
+        accuracy: root.querySelector('[data-verse-stat="accuracy"]'),
+      },
+    },
   };
 
   let latestEggState = null;
@@ -267,6 +308,22 @@
     }
     return array;
   };
+
+  const resolveStorage = () => {
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        const testKey = '__alfawzVerseQuest__';
+        window.localStorage.setItem(testKey, '1');
+        window.localStorage.removeItem(testKey);
+        return window.localStorage;
+      }
+    } catch (error) {
+      return null;
+    }
+    return null;
+  };
+
+  const persistentStorage = resolveStorage();
 
 
   // Virtue Garden Tycoon mini-game
@@ -2111,8 +2168,686 @@
     });
   };
 
+  const verseQuestStorageKey = 'alfawzVerseQuestProgress';
+  const defaultVerseQuestProgress = () => ({
+    streak: 0,
+    lastCompleted: null,
+    totalAttempts: 0,
+    correctAttempts: 0,
+    completions: 0,
+    lastVerseId: null,
+    lastOptionId: null,
+  });
+  const loadVerseQuestProgress = () => {
+    const defaults = defaultVerseQuestProgress();
+    if (!persistentStorage) {
+      return defaults;
+    }
+    try {
+      const raw = persistentStorage.getItem(verseQuestStorageKey);
+      if (!raw) {
+        return defaults;
+      }
+      const parsed = JSON.parse(raw);
+      return { ...defaults, ...parsed };
+    } catch (error) {
+      return defaults;
+    }
+  };
+  const saveVerseQuestProgress = (progress) => {
+    if (!persistentStorage) {
+      return;
+    }
+    try {
+      persistentStorage.setItem(verseQuestStorageKey, JSON.stringify(progress));
+    } catch (error) {
+      // Ignore write errors (private mode, etc.)
+    }
+  };
+  const formatFriendlyDate = (value) => {
+    if (!value) {
+      return strings.verseNeverPlayed;
+    }
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) {
+      return strings.verseNeverPlayed;
+    }
+    const locale = wpData.locale || document.documentElement?.lang || undefined;
+    try {
+      return new Intl.DateTimeFormat(locale || undefined, { dateStyle: 'medium' }).format(date);
+    } catch (error) {
+      return date.toISOString().slice(0, 10);
+    }
+  };
+  const verseStatusStyles = {
+    idle: ['border-dashed', 'border-[#f0bac7]', 'bg-white/70', 'text-[#7a0f32]'],
+    active: ['border', 'border-[#f7cbd7]', 'bg-[#fff1f7]/90', 'text-[#5f0d26]', 'shadow-lg', 'shadow-[#4d081d]/10'],
+    warning: ['border', 'border-[#f28a9c]', 'bg-[#ffe5ec]/90', 'text-[#8b1e3f]'],
+    success: [
+      'border',
+      'border-[#ffd6de]',
+      'bg-gradient-to-r',
+      'from-[#ffe9f2]/95',
+      'via-[#fff4f7]/95',
+      'to-[#fffdf7]/95',
+      'text-[#4d081d]',
+      'shadow-lg',
+      'shadow-[#4d081d]/15',
+    ],
+  };
+  let verseStatusAppliedClasses = [];
+  const verseQuestLibrary = [
+    {
+      id: 'fatihah-5',
+      surah: 'Al-Fātiḥah',
+      ayah: 5,
+      theme: 'Exclusive Worship',
+      arabic: 'إِيَّاكَ نَعْبُدُ وَإِيَّاكَ نَسْتَعِينُ',
+      transliteration: 'Iyyāka naʿbudu wa iyyāka nastaʿīn',
+      translation: 'You alone we worship and You alone we ask for help.',
+      reference: 'Surah Al-Fātiḥah · Ayah 5',
+      summary:
+        'The verse anchors the believer in single-hearted devotion, tying every act of worship and request for aid to Allah alone.',
+      question: 'Which insight best captures the heart of this ayah?',
+      options: [
+        {
+          id: 'fatihah-5-exclusive',
+          text: 'It calls us to devote worship solely to Allah and seek His help before all else.',
+          correct: true,
+          explanation:
+            'By pairing worship and seeking assistance, the ayah reminds us that true reliance begins with sincere devotion to Allah.',
+        },
+        {
+          id: 'fatihah-5-charity',
+          text: 'It emphasises giving charity quietly to avoid showing off.',
+          correct: false,
+          hint: 'Reflect on how the verse speaks directly to Allah.',
+        },
+        {
+          id: 'fatihah-5-time',
+          text: 'It instructs believers to organise their time for daily chores.',
+          correct: false,
+          hint: 'The focus is on worship and reliance, not schedules.',
+        },
+      ],
+      keywords: [
+        { word: 'إِيَّاكَ', meaning: 'Only You' },
+        { word: 'نَعْبُدُ', meaning: 'We worship' },
+        { word: 'نَسْتَعِينُ', meaning: 'We seek help' },
+      ],
+      reflections: [
+        'Begin your next salah by whispering this ayah with deeper focus.',
+        'List one challenge today where you will seek Allah’s help first.',
+        'Share the ayah’s meaning with a family member this evening.',
+      ],
+    },
+    {
+      id: 'baqarah-286',
+      surah: 'Al-Baqarah',
+      ayah: 286,
+      theme: 'Merciful Measure',
+      arabic:
+        'لَا يُكَلِّفُ ٱللَّهُ نَفْسًا إِلَّا وُسْعَهَا ۚ لَهَا مَا كَسَبَتْ وَعَلَيْهَا مَا ٱكْتَسَبَتْ... لَا تُحَمِّلْنَا مَا لَا طَاقَةَ لَنَا بِهِ',
+      transliteration:
+        'Lā yukallifu-llāhu nafsan illā wusʿahā... lā tuḥammilnā mā lā ṭāqata lanā bih',
+      translation: 'Allah does not burden a soul beyond what it can bear... do not burden us with what we have no strength to bear.',
+      reference: 'Surah Al-Baqarah · Ayah 286',
+      summary:
+        'Allah reassures believers that every test is measured with mercy, urging us to seek His pardon, help, and gentle support.',
+      question: 'What does this closing verse reassure your heart with?',
+      options: [
+        {
+          id: 'baqarah-286-mercy',
+          text: 'Every test is within our capacity and accompanied by divine support.',
+          correct: true,
+          explanation:
+            'Allah tailors each burden to our ability and invites us to keep asking for His forgiveness, pardon, and help.',
+        },
+        {
+          id: 'baqarah-286-warning',
+          text: 'Believers are warned that hardships come only as punishment.',
+          correct: false,
+          hint: 'Notice the hopeful duas that flow right after the reassurance.',
+        },
+        {
+          id: 'baqarah-286-wealth',
+          text: 'It commands believers to increase wealth before helping others.',
+          correct: false,
+          hint: 'The verse is about burdens and trust in Allah, not wealth planning.',
+        },
+      ],
+      keywords: [
+        { word: 'يُكَلِّفُ', meaning: 'Burden or charge' },
+        { word: 'وُسْعَهَا', meaning: 'Its capacity' },
+        { word: 'ٱعْفُ', meaning: 'Pardon' },
+      ],
+      reflections: [
+        'Recall a past difficulty and note how Allah carried you through it.',
+        'Repeat the supplication “رَبَّنَا وَلَا تُحَمِّلْنَا مَا لَا طَاقَةَ لَنَا بِهِ”.',
+        'Encourage someone facing hardship with this ayah today.',
+      ],
+    },
+    {
+      id: 'sharh-5',
+      surah: 'Ash-Sharḥ',
+      ayah: 5,
+      theme: 'Hope in Hardship',
+      arabic: 'فَإِنَّ مَعَ الْعُسْرِ يُسْرًا',
+      transliteration: 'Fa-inna maʿa l-ʿusri yusra',
+      translation: 'Truly, with hardship comes ease.',
+      reference: 'Surah Ash-Sharḥ · Ayah 5',
+      summary: 'Allah pairs every challenge with ease, assuring hearts that relief is woven into struggle.',
+      question: 'What promise does this ayah sew into your day?',
+      options: [
+        {
+          id: 'sharh-5-hope',
+          text: 'Every hardship carries its own ease alongside it.',
+          correct: true,
+          explanation: 'The verse declares that ease accompanies, not just follows, the hardship—so keep trusting Allah.',
+        },
+        {
+          id: 'sharh-5-delay',
+          text: 'Ease will only come many years after every hardship.',
+          correct: false,
+          hint: 'Read the ayah carefully; it says “with” hardship, not after it.',
+        },
+        {
+          id: 'sharh-5-effort',
+          text: 'Ease belongs only to people who never make mistakes.',
+          correct: false,
+          hint: 'The verse comforts every striving believer, even when they stumble.',
+        },
+      ],
+      keywords: [
+        { word: 'الْعُسْرِ', meaning: 'The hardship' },
+        { word: 'يُسْرًا', meaning: 'An ease' },
+      ],
+      reflections: [
+        'Pair this ayah with a personal dua for someone in difficulty.',
+        'Journal one blessing that has appeared alongside a current challenge.',
+        'Repeat the ayah slowly after each prayer today.',
+      ],
+    },
+    {
+      id: 'hujurat-10',
+      surah: 'Al-Ḥujurāt',
+      ayah: 10,
+      theme: 'Sacred Brotherhood',
+      arabic: 'إِنَّمَا الْمُؤْمِنُونَ إِخْوَةٌ فَأَصْلِحُوا بَيْنَ أَخَوَيْكُمْ وَاتَّقُوا اللَّهَ لَعَلَّكُمْ تُرْحَمُونَ',
+      transliteration: 'Innamā l-muʾminūna ikhwatun fa-aṣliḥū bayna akhawaykum wattaqū llāha laʿallakum turḥamūn',
+      translation: 'The believers are but siblings, so make peace between your brothers and be mindful of Allah so you may receive mercy.',
+      reference: 'Surah Al-Ḥujurāt · Ayah 10',
+      summary: 'The ayah commands believers to guard unity, heal rifts, and seek Allah’s mercy through peacemaking.',
+      question: 'How does this verse guide your relationships?',
+      options: [
+        {
+          id: 'hujurat-10-peace',
+          text: 'It calls believers to mend conflicts and treat each other like family.',
+          correct: true,
+          explanation: 'Brotherhood in faith is sacred; healing tensions is an act of taqwa that invites Allah’s mercy.',
+        },
+        {
+          id: 'hujurat-10-competition',
+          text: 'It encourages constant rivalry between believers.',
+          correct: false,
+          hint: 'The verse emphasises reconciliation, not competition.',
+        },
+        {
+          id: 'hujurat-10-solitude',
+          text: 'It suggests isolating yourself from community to protect your iman.',
+          correct: false,
+          hint: 'Notice the command to reconcile between “brothers”.',
+        },
+      ],
+      keywords: [
+        { word: 'إِخْوَةٌ', meaning: 'Siblings in faith' },
+        { word: 'فَأَصْلِحُوا', meaning: 'So reconcile' },
+        { word: 'ٱتَّقُوا', meaning: 'Be mindful of Allah' },
+      ],
+      reflections: [
+        'Reach out to someone you have been distant from and offer a warm greeting.',
+        'Make dua tonight for unity in the ummah and your local community.',
+        'Practice saying “I’m sorry” first when tensions arise today.',
+      ],
+    },
+    {
+      id: 'ikhlas-1',
+      surah: 'Al-Ikhlāṣ',
+      ayah: 1,
+      theme: 'Pure Oneness',
+      arabic: 'قُلْ هُوَ اللَّهُ أَحَدٌ',
+      transliteration: 'Qul huwa llāhu aḥad',
+      translation: 'Say, He is Allah, the One.',
+      reference: 'Surah Al-Ikhlāṣ · Ayah 1',
+      summary: 'This ayah proclaims the absolute oneness of Allah, inviting hearts to sincere, undivided worship.',
+      question: 'What central belief does this ayah renew?',
+      options: [
+        {
+          id: 'ikhlas-1-oneness',
+          text: 'Allah alone is uniquely One and deserves pure devotion.',
+          correct: true,
+          explanation:
+            'The ayah is a direct declaration of tawḥīd—our faith begins with affirming Allah’s absolute oneness.',
+        },
+        {
+          id: 'ikhlas-1-angels',
+          text: 'It teaches that angels share in Allah’s divinity.',
+          correct: false,
+          hint: 'The verse singles out Allah alone without partners.',
+        },
+        {
+          id: 'ikhlas-1-worldly',
+          text: 'It reminds us to focus only on worldly responsibilities.',
+          correct: false,
+          hint: 'The ayah is about belief, not worldly tasks.',
+        },
+      ],
+      keywords: [
+        { word: 'أَحَدٌ', meaning: 'Absolutely One' },
+        { word: 'ٱللَّهُ', meaning: 'Allah' },
+      ],
+      reflections: [
+        'Recite Surah Al-Ikhlāṣ three times after Fajr with mindful reflection.',
+        'Note one area in life where you can renew sincerity for Allah alone.',
+        'Teach a child or friend how this surah summarises the creed of Islam.',
+      ],
+    },
+  ];
+  const verseQuestState = {
+    started: false,
+    completedToday: false,
+    verse: null,
+    attempts: 0,
+    optionButtons: new Map(),
+    progress: loadVerseQuestProgress(),
+  };
+  const versePlayStates = {
+    idle: { icon: '▶', label: strings.versePlay || strings.puzzlePlay || 'Play Game' },
+    active: { icon: '⟳', label: strings.verseResume || strings.keepGoing || 'Review Meaning' },
+    completed: { icon: '✨', label: strings.verseCelebrate || strings.completed || 'Meaning Mastered' },
+  };
+  const setVersePlayState = (state = 'idle') => {
+    if (!elements.verseQuest.playButton) {
+      return;
+    }
+    const config = versePlayStates[state] || versePlayStates.idle;
+    elements.verseQuest.playButton.dataset.state = state;
+    if (elements.verseQuest.playIcon) {
+      elements.verseQuest.playIcon.textContent = config.icon;
+    }
+    if (elements.verseQuest.playLabel) {
+      elements.verseQuest.playLabel.textContent = config.label;
+    }
+  };
+  const updateVerseStatus = (message, state = 'idle') => {
+    if (!elements.verseQuest.status) {
+      return;
+    }
+    elements.verseQuest.status.textContent = message;
+    elements.verseQuest.status.dataset.state = state;
+    if (verseStatusAppliedClasses.length) {
+      elements.verseQuest.status.classList.remove(...verseStatusAppliedClasses);
+    }
+    const classes = verseStatusStyles[state] || verseStatusStyles.idle;
+    verseStatusAppliedClasses = classes;
+    elements.verseQuest.status.classList.add(...classes);
+  };
+  const updateVerseLastPlayed = () => {
+    if (!elements.verseQuest.lastPlayed) {
+      return;
+    }
+    const friendly = formatFriendlyDate(verseQuestState.progress.lastCompleted);
+    elements.verseQuest.lastPlayed.textContent = `${strings.verseLastPlayed}: ${friendly}`;
+  };
+  const updateVerseQuestStats = () => {
+    const { stats } = elements.verseQuest;
+    if (!stats) {
+      return;
+    }
+    if (stats.streak) {
+      stats.streak.textContent = formatNumber(verseQuestState.progress.streak || 0);
+      pulseValue(stats.streak);
+    }
+    if (stats.completed) {
+      stats.completed.textContent = formatNumber(verseQuestState.progress.completions || 0);
+      pulseValue(stats.completed);
+    }
+    if (stats.accuracy) {
+      const { totalAttempts, correctAttempts } = verseQuestState.progress;
+      const accuracy = totalAttempts > 0 ? Math.round((correctAttempts / totalAttempts) * 100) : 0;
+      stats.accuracy.textContent = `${accuracy}%`;
+      pulseValue(stats.accuracy);
+    }
+  };
+  const updateVerseStageVisibility = () => {
+    if (!elements.verseQuest.stage) {
+      return;
+    }
+    elements.verseQuest.stage.classList.toggle('hidden', !verseQuestState.started);
+  };
+  const renderVerseQuestVerse = (verse) => {
+    if (!verse) {
+      return;
+    }
+    if (elements.verseQuest.verseTitle) {
+      elements.verseQuest.verseTitle.textContent = `${verse.surah} · Ayah ${verse.ayah}`;
+    }
+    if (elements.verseQuest.verseTheme) {
+      elements.verseQuest.verseTheme.textContent = verse.theme || '';
+    }
+    if (elements.verseQuest.verseArabic) {
+      elements.verseQuest.verseArabic.textContent = verse.arabic || '';
+    }
+    if (elements.verseQuest.verseTransliteration) {
+      elements.verseQuest.verseTransliteration.textContent = verse.transliteration || '';
+    }
+    if (elements.verseQuest.verseTranslation) {
+      elements.verseQuest.verseTranslation.textContent = verse.translation || '';
+    }
+    if (elements.verseQuest.verseReference) {
+      elements.verseQuest.verseReference.textContent = verse.reference || '';
+    }
+    if (elements.verseQuest.question) {
+      elements.verseQuest.question.textContent = verse.question || '';
+    }
+  };
+  const renderVerseQuestKeywords = (verse) => {
+    if (!elements.verseQuest.keywords) {
+      return;
+    }
+    elements.verseQuest.keywords.innerHTML = '';
+    const keywords = Array.isArray(verse?.keywords) ? verse.keywords : [];
+    if (!keywords.length) {
+      const empty = document.createElement('p');
+      empty.className = 'rounded-3xl border border-dashed border-[#f4c7d3] bg-white/70 px-4 py-3 text-sm font-semibold text-[#b4637a] shadow-inner';
+      empty.textContent = strings.verseIdle;
+      elements.verseQuest.keywords.appendChild(empty);
+      return;
+    }
+    keywords.forEach((keyword) => {
+      const card = document.createElement('div');
+      card.className = 'relative overflow-hidden rounded-3xl border border-[#ffd6de]/70 bg-[#fff5f8]/80 p-5 text-[#4d081d] shadow-inner';
+      const term = document.createElement('p');
+      term.className = 'text-lg font-black tracking-tight';
+      term.textContent = keyword.word || '';
+      const meaning = document.createElement('p');
+      meaning.className = 'mt-2 text-sm font-semibold text-[#b4637a]';
+      meaning.textContent = keyword.meaning || '';
+      card.appendChild(term);
+      card.appendChild(meaning);
+      elements.verseQuest.keywords.appendChild(card);
+    });
+  };
+  const renderVerseQuestReflections = (verse) => {
+    if (!elements.verseQuest.reflectionList) {
+      return;
+    }
+    elements.verseQuest.reflectionList.innerHTML = '';
+    const reflections = Array.isArray(verse?.reflections) ? verse.reflections : [];
+    if (!reflections.length) {
+      const item = document.createElement('li');
+      item.className = 'rounded-3xl border border-dashed border-[#f4c7d3] bg-white/70 px-4 py-3 text-sm font-semibold text-[#b4637a] shadow-inner';
+      item.textContent = strings.verseIdle;
+      elements.verseQuest.reflectionList.appendChild(item);
+      return;
+    }
+    reflections.forEach((reflection, index) => {
+      const item = document.createElement('li');
+      item.className = 'flex items-start gap-3 rounded-3xl border border-white/40 bg-white/80 p-4 text-sm font-medium text-[#4d081d] shadow-inner';
+      const badge = document.createElement('span');
+      badge.className = 'mt-0.5 inline-flex h-6 w-6 flex-none items-center justify-center rounded-full bg-gradient-to-br from-[#f7a7b7] to-[#ffe8b9] text-xs font-extrabold text-[#431028] shadow';
+      badge.textContent = String(index + 1);
+      const text = document.createElement('span');
+      text.textContent = reflection;
+      item.appendChild(badge);
+      item.appendChild(text);
+      elements.verseQuest.reflectionList.appendChild(item);
+    });
+  };
+  const clearVerseQuestSummary = () => {
+    if (elements.verseQuest.summary) {
+      elements.verseQuest.summary.classList.add('hidden');
+    }
+    if (elements.verseQuest.summaryText) {
+      elements.verseQuest.summaryText.textContent = '';
+    }
+    if (elements.verseQuest.optionSummary) {
+      elements.verseQuest.optionSummary.textContent = '';
+      elements.verseQuest.optionSummary.classList.add('hidden');
+    }
+  };
+  const renderVerseQuestSummary = (verse, option = null, force = false) => {
+    if (!elements.verseQuest.summary) {
+      return;
+    }
+    if (!force) {
+      clearVerseQuestSummary();
+      return;
+    }
+    elements.verseQuest.summary.classList.remove('hidden');
+    if (elements.verseQuest.summaryText) {
+      elements.verseQuest.summaryText.textContent = verse?.summary || '';
+    }
+    if (elements.verseQuest.optionSummary) {
+      if (option?.explanation) {
+        elements.verseQuest.optionSummary.textContent = option.explanation;
+        elements.verseQuest.optionSummary.classList.remove('hidden');
+      } else {
+        elements.verseQuest.optionSummary.textContent = '';
+        elements.verseQuest.optionSummary.classList.add('hidden');
+      }
+    }
+  };
+  const markOptionState = (button, state) => {
+    if (!button) {
+      return;
+    }
+    button.classList.remove('is-correct', 'is-incorrect');
+    if (state === 'correct') {
+      button.classList.add('is-correct');
+    } else if (state === 'incorrect') {
+      button.classList.add('is-incorrect');
+    }
+    button.dataset.state = state;
+  };
+  const renderVerseQuestOptions = (verse, { completed = false } = {}) => {
+    if (!elements.verseQuest.options) {
+      return;
+    }
+    elements.verseQuest.options.innerHTML = '';
+    verseQuestState.optionButtons.clear();
+    const options = Array.isArray(verse?.options) ? verse.options : [];
+    if (!options.length) {
+      const empty = document.createElement('p');
+      empty.className = 'rounded-3xl border border-dashed border-[#f4c7d3] bg-white/70 px-4 py-3 text-sm font-semibold text-[#b4637a] shadow-inner';
+      empty.textContent = strings.verseIdle;
+      elements.verseQuest.options.appendChild(empty);
+      return;
+    }
+    options.forEach((option, index) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className =
+        'alfawz-verse-option group relative overflow-hidden rounded-3xl border border-[#f8ccd8]/80 bg-white/85 p-5 text-left text-[#431028] shadow-inner transition-all duration-300 hover:-translate-y-1 hover:shadow-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-[#b4637a]/60 focus-visible:ring-offset-2 focus-visible:ring-offset-white';
+      const tag = document.createElement('span');
+      tag.className = 'text-xs font-semibold uppercase tracking-[0.32em] text-[#b4637a]/80';
+      tag.textContent = `Insight ${String.fromCharCode(65 + index)}`;
+      const text = document.createElement('span');
+      text.className = 'mt-2 block text-base font-semibold leading-relaxed';
+      text.textContent = option.text || '';
+      button.dataset.optionId = option.id || `option-${index}`;
+      button.appendChild(tag);
+      button.appendChild(text);
+      if (!completed) {
+        button.addEventListener('click', (event) => {
+          event.preventDefault();
+          handleVerseOptionSelection(option, button);
+        });
+      } else {
+        button.disabled = true;
+      }
+      elements.verseQuest.options.appendChild(button);
+      verseQuestState.optionButtons.set(button.dataset.optionId, button);
+    });
+    if (completed) {
+      const correctOption = options.find((option) => option.correct);
+      verseQuestState.optionButtons.forEach((button, id) => {
+        button.disabled = true;
+        if (correctOption && (correctOption.id === id || (!correctOption.id && id === 'option-0'))) {
+          markOptionState(button, 'correct');
+        } else {
+          button.dataset.state = 'disabled';
+        }
+      });
+    }
+  };
+  const getTodayKey = () => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = `${now.getMonth() + 1}`.padStart(2, '0');
+    const day = `${now.getDate()}`.padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+  const computeDailyVerseIndex = () => {
+    const total = verseQuestLibrary.length || 1;
+    const now = new Date();
+    const todayUtc = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
+    const anchor = Date.UTC(2024, 0, 1);
+    const diff = Math.floor((todayUtc - anchor) / 86400000);
+    const index = diff % total;
+    return index < 0 ? index + total : index;
+  };
+  const getDailyVerse = () => verseQuestLibrary[computeDailyVerseIndex()] || verseQuestLibrary[0];
+  const resetVerseQuestRound = () => {
+    verseQuestState.attempts = 0;
+    verseQuestState.optionButtons.clear();
+    clearVerseQuestSummary();
+    if (elements.verseQuest.options) {
+      elements.verseQuest.options.innerHTML = '';
+    }
+  };
+  const daysBetween = (start, end) => {
+    if (!start || !end) {
+      return Infinity;
+    }
+    const startDate = new Date(start);
+    const endDate = new Date(end);
+    const startUtc = Date.UTC(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
+    const endUtc = Date.UTC(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
+    return Math.round((endUtc - startUtc) / 86400000);
+  };
+  const handleVerseOptionSelection = (option, button) => {
+    if (!option || !button || verseQuestState.completedToday) {
+      return;
+    }
+    verseQuestState.attempts += 1;
+    if (option.correct) {
+      markOptionState(button, 'correct');
+      verseQuestState.optionButtons.forEach((node) => {
+        node.disabled = true;
+        if (node !== button) {
+          node.dataset.state = 'disabled';
+        }
+      });
+      verseQuestState.completedToday = true;
+      const todayKey = getTodayKey();
+      const previousDate = verseQuestState.progress.lastCompleted;
+      if (previousDate) {
+        const diff = daysBetween(previousDate, todayKey);
+        if (diff === 1) {
+          verseQuestState.progress.streak += 1;
+        } else if (diff > 1) {
+          verseQuestState.progress.streak = 1;
+        }
+      } else {
+        verseQuestState.progress.streak = 1;
+      }
+      if (verseQuestState.progress.lastCompleted !== todayKey) {
+        verseQuestState.progress.completions += 1;
+      }
+      verseQuestState.progress.lastCompleted = todayKey;
+      verseQuestState.progress.lastVerseId = verseQuestState.verse?.id || null;
+      verseQuestState.progress.lastOptionId = option.id || null;
+      verseQuestState.progress.totalAttempts += verseQuestState.attempts;
+      verseQuestState.progress.correctAttempts += 1;
+      saveVerseQuestProgress(verseQuestState.progress);
+      renderVerseQuestSummary(verseQuestState.verse, option, true);
+      updateVerseQuestStats();
+      updateVerseLastPlayed();
+      updateVerseStatus(strings.verseSuccess, 'success');
+      setVersePlayState('completed');
+      spawnConfetti(elements.verseQuest.stage || elements.verseQuest.section || root);
+      verseQuestState.attempts = 0;
+      return;
+    }
+    markOptionState(button, 'incorrect');
+    button.disabled = true;
+    const hint = option.hint ? ` ${option.hint}` : '';
+    updateVerseStatus(`${strings.verseTryAgain}${hint}`, 'warning');
+  };
+  const startVerseQuest = () => {
+    verseQuestState.verse = getDailyVerse();
+    verseQuestState.started = true;
+    verseQuestState.completedToday = verseQuestState.progress.lastCompleted === getTodayKey();
+    verseQuestState.attempts = 0;
+    renderVerseQuestVerse(verseQuestState.verse);
+    renderVerseQuestKeywords(verseQuestState.verse);
+    renderVerseQuestReflections(verseQuestState.verse);
+    renderVerseQuestOptions(verseQuestState.verse, { completed: verseQuestState.completedToday });
+    if (verseQuestState.completedToday) {
+      const correctOption = verseQuestState.verse?.options?.find((option) => option.correct) || null;
+      renderVerseQuestSummary(verseQuestState.verse, correctOption, true);
+      updateVerseStatus(strings.verseCompleted, 'success');
+      setVersePlayState('completed');
+    } else {
+      clearVerseQuestSummary();
+      updateVerseStatus(strings.verseActive, 'active');
+      setVersePlayState('active');
+    }
+    updateVerseStageVisibility();
+  };
+  const initVerseQuestGame = () => {
+    if (!elements.verseQuest.section) {
+      return;
+    }
+    updateVerseQuestStats();
+    updateVerseLastPlayed();
+    verseQuestState.completedToday = verseQuestState.progress.lastCompleted === getTodayKey();
+    if (verseQuestState.completedToday) {
+      verseQuestState.verse = getDailyVerse();
+      verseQuestState.started = true;
+      renderVerseQuestVerse(verseQuestState.verse);
+      renderVerseQuestKeywords(verseQuestState.verse);
+      renderVerseQuestReflections(verseQuestState.verse);
+      renderVerseQuestOptions(verseQuestState.verse, { completed: true });
+      const correctOption = verseQuestState.verse?.options?.find((option) => option.correct) || null;
+      renderVerseQuestSummary(verseQuestState.verse, correctOption, true);
+      updateVerseStatus(strings.verseCompleted, 'success');
+      setVersePlayState('completed');
+      verseQuestState.started = true;
+    } else {
+      verseQuestState.started = false;
+      resetVerseQuestRound();
+      updateVerseStatus(strings.verseIdle, 'idle');
+      setVersePlayState('idle');
+    }
+    updateVerseStageVisibility();
+    if (elements.verseQuest.playButton) {
+      elements.verseQuest.playButton.addEventListener('click', (event) => {
+        event.preventDefault();
+        const state = elements.verseQuest.playButton.dataset.state || 'idle';
+        if (state === 'completed') {
+          startVerseQuest();
+          return;
+        }
+        startVerseQuest();
+      });
+    }
+  };
+
   initGardenGame();
   initPuzzleGame();
+  initVerseQuestGame();
 
   const loadData = async () => {
     toggleView({ loading: true });
