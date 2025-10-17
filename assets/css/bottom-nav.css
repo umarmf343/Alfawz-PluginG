@@ -8,11 +8,17 @@
 }
 
 #alfawz-bottom-nav {
-  position: relative;
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 60;
+  width: 100%;
   padding-bottom: env(safe-area-inset-bottom);
   border-top: 1px solid rgba(120, 53, 15, 0.25);
-  background: transparent;
-  box-shadow: none;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(18px);
+  box-shadow: 0 -10px 32px rgba(15, 23, 42, 0.15);
   overflow: visible;
 }
 
@@ -24,11 +30,18 @@
   scroll-snap-type: x mandatory;
   -webkit-overflow-scrolling: touch;
   scroll-behavior: smooth;
+  overflow-x: auto;
+  overflow-y: hidden;
+  touch-action: pan-x;
   gap: 0.75rem;
   padding: 0.25rem 0.5rem 0.5rem;
   border-radius: 1.75rem 1.75rem 0 0;
   background: linear-gradient(135deg, #fff7ed, #fef9c3);
   box-shadow: 0 -6px 20px rgba(15, 23, 42, 0.12);
+}
+
+body.has-alfawz-bottom-nav {
+  padding-bottom: calc(5.5rem + env(safe-area-inset-bottom));
 }
 
 #alfawz-bottom-nav .alfawz-bottom-nav__tab {
