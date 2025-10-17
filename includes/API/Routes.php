@@ -1457,23 +1457,10 @@ class Routes {
         $timezone_offset = $request->get_param( 'timezone_offset' );
         $progress_model  = new UserProgress();
 
-        $daily_goal = $this->prepare_daily_goal_state( $user_id, $timezone_offset );
         list( $day_start, $day_end ) = $this->get_local_day_bounds( $timezone_offset );
         $daily_summary = $progress_model->get_daily_progress_summary( $user_id, $day_start, $day_end );
 
         $quests = [];
-
-        $daily_count  = (int) ( $daily_goal['count'] ?? 0 );
-        $daily_target = (int) ( $daily_goal['target'] ?? self::DAILY_GOAL_TARGET );
-        $quests[]     = [
-            'id'          => 'daily-recitation',
-            'title'       => sprintf( __( 'Recite %d Verses', 'alfawzquran' ), $daily_target ),
-            'description' => __( 'Complete today\'s nourishment of recitation to keep the blessings flowing.', 'alfawzquran' ),
-            'reward'      => 120,
-            'progress'    => $daily_count,
-            'target'      => $daily_target,
-            'status'      => $daily_count >= $daily_target ? 'completed' : 'in_progress',
-        ];
 
         $hasanat_today = (int) ( $daily_summary['hasanat'] ?? 0 );
         $quests[]      = [
