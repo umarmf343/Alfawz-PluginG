@@ -4329,12 +4329,12 @@ body.alfawz-qaidah-modal-open {
 }
 
 #alfawz-memorization-ayah-ar {
-  font-size: 6.75rem;
+  font-size: 4.5rem;
 }
 
 @media (min-width: 640px) {
   #alfawz-memorization-ayah-ar {
-    font-size: 9rem;
+    font-size: 6rem;
   }
 }
 

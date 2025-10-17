@@ -159,7 +159,7 @@ if ( ! defined( 'ABSPATH' ) ) {
                 </header>
 
                 <div class="space-y-6 text-center">
-                    <p id="alfawz-memorization-ayah-ar" class="alfawz-verse-arabic text-4xl leading-relaxed tracking-wide text-slate-900 sm:text-5xl" dir="rtl" lang="ar"></p>
+                    <p id="alfawz-memorization-ayah-ar" class="alfawz-verse-arabic text-2xl leading-relaxed tracking-wide text-slate-900 sm:text-3xl" dir="rtl" lang="ar"></p>
                     <p id="alfawz-memorization-ayah-transliteration" class="hidden text-lg text-indigo-600"></p>
                     <p id="alfawz-memorization-ayah-translation" class="text-lg italic text-slate-600"></p>
                 </div>
