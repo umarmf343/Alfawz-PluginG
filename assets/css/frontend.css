@@ -4415,6 +4415,142 @@ body.alfawz-qaidah-modal-open {
   color: rgba(15, 118, 110, 0.75);
 }
 
+#alfawz-daily-verse-game [data-role="daily-game-card"].is-complete {
+  border-color: rgba(16, 185, 129, 0.35);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.94), rgba(209, 250, 229, 0.92));
+  box-shadow:
+    0 28px 44px rgba(15, 118, 110, 0.18),
+    0 0 0 1px rgba(255, 255, 255, 0.4) inset;
+}
+
+.alfawz-daily-game-option {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  border-radius: 9999px;
+  padding: 0.95rem 1.25rem;
+  font-size: 0.98rem;
+  font-weight: 600;
+  color: #641127;
+  text-align: center;
+  background: linear-gradient(135deg, rgba(255, 228, 236, 0.92), rgba(255, 240, 245, 0.9));
+  border: 1px solid rgba(244, 143, 177, 0.45);
+  box-shadow: 0 18px 32px rgba(139, 30, 63, 0.12);
+  transition:
+    transform 160ms ease,
+    box-shadow 220ms ease,
+    border-color 220ms ease,
+    background 220ms ease,
+    color 220ms ease;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.alfawz-daily-game-option span {
+  position: relative;
+  z-index: 1;
+  display: block;
+  line-height: 1.45;
+}
+
+.alfawz-daily-game-option::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at top, rgba(255, 255, 255, 0.55), transparent 70%);
+  opacity: 0;
+  transition: opacity 200ms ease;
+}
+
+.alfawz-daily-game-option:hover,
+.alfawz-daily-game-option:focus-visible {
+  transform: translateY(-4px);
+  border-color: rgba(139, 30, 63, 0.4);
+  box-shadow: 0 24px 38px rgba(139, 30, 63, 0.18);
+}
+
+.alfawz-daily-game-option:hover::before,
+.alfawz-daily-game-option:focus-visible::before {
+  opacity: 1;
+}
+
+.alfawz-daily-game-option:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 3px rgba(255, 255, 255, 0.7),
+    0 0 0 6px rgba(139, 30, 63, 0.45),
+    0 24px 38px rgba(139, 30, 63, 0.18);
+}
+
+.alfawz-daily-game-option.is-locked {
+  cursor: not-allowed;
+}
+
+.alfawz-daily-game-option.is-disabled {
+  opacity: 0.6;
+  transform: none !important;
+  box-shadow: none;
+}
+
+.alfawz-daily-game-option.is-correct {
+  color: #0f5132;
+  border-color: rgba(16, 185, 129, 0.65);
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.18), rgba(45, 212, 191, 0.16), rgba(251, 191, 36, 0.18));
+  box-shadow: 0 28px 45px rgba(16, 185, 129, 0.22);
+}
+
+.alfawz-daily-game-option.is-correct::before {
+  opacity: 1;
+  background: radial-gradient(circle at top, rgba(255, 255, 255, 0.75), transparent 75%);
+}
+
+.alfawz-daily-game-option.is-incorrect {
+  color: #7f1d1d;
+  border-color: rgba(248, 113, 113, 0.6);
+  background: linear-gradient(135deg, rgba(254, 226, 226, 0.9), rgba(252, 165, 165, 0.25));
+  animation: alfawz-daily-shake 440ms ease;
+}
+
+.alfawz-daily-game-option.is-celebrating {
+  animation: alfawz-daily-pop 520ms ease;
+}
+
+@keyframes alfawz-daily-pop {
+  0% {
+    transform: translateY(0) scale(1);
+  }
+  35% {
+    transform: translateY(-6px) scale(1.03);
+  }
+  65% {
+    transform: translateY(2px) scale(0.98);
+  }
+  100% {
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes alfawz-daily-shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(-6px);
+  }
+  40% {
+    transform: translateX(5px);
+  }
+  60% {
+    transform: translateX(-3px);
+  }
+  80% {
+    transform: translateX(2px);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .alfawz-settings-card,
   .alfawz-game-tile,

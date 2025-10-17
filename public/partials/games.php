@@ -73,6 +73,112 @@ if ( ! defined( 'ABSPATH' ) ) {
                 </div>
             </section>
 
+            <section
+                id="alfawz-daily-verse-game"
+                aria-label="<?php esc_attr_e( 'Daily verse meaning challenge', 'alfawzquran' ); ?>"
+                class="relative overflow-hidden rounded-[34px] border border-[#b4637a]/30 bg-gradient-to-br from-[#fff5ef]/80 via-[#ffe9f2]/80 to-[#f9f1e8]/90 p-8 shadow-2xl shadow-[#330915]/10"
+            >
+                <div class="pointer-events-none absolute -left-16 top-10 h-40 w-40 rounded-full bg-[#ffe2e8]/60 blur-3xl"></div>
+                <div class="pointer-events-none absolute -right-20 bottom-6 h-56 w-56 rounded-full bg-[#ffeedd]/70 blur-3xl"></div>
+
+                <div class="relative grid gap-10 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:items-center">
+                    <div class="space-y-6 text-[#4d081d]">
+                        <div class="inline-flex items-center gap-2 rounded-full bg-white/70 px-4 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-[#b4637a] shadow-sm shadow-[#360a18]/10">
+                            <span class="h-2 w-2 rounded-full bg-[#b4637a]"></span>
+                            <?php esc_html_e( 'Daily Verse Quest', 'alfawzquran' ); ?>
+                        </div>
+                        <div class="space-y-3">
+                            <h2 class="text-3xl font-black sm:text-[34px]">
+                                <?php esc_html_e( 'Unlock today’s meaning', 'alfawzquran' ); ?>
+                            </h2>
+                            <p class="text-base font-medium text-[#6d1b2b]">
+                                <?php esc_html_e( 'Discover a single ayah every day, guess its heart-touching lesson, and grow a streak of Quranic wisdom.', 'alfawzquran' ); ?>
+                            </p>
+                        </div>
+                        <div class="grid grid-cols-1 gap-4 sm:grid-cols-3" data-role="daily-game-scoreboard">
+                            <div class="relative overflow-hidden rounded-3xl bg-white/90 p-5 shadow-lg shadow-[#3d0b1c]/10">
+                                <div class="pointer-events-none absolute inset-0 bg-gradient-to-br from-[#fbcfe8]/40 via-transparent to-[#ffe4e6]/80"></div>
+                                <p class="text-xs font-semibold uppercase tracking-[0.28em] text-[#b4637a]">
+                                    <?php esc_html_e( 'Current Streak', 'alfawzquran' ); ?>
+                                </p>
+                                <p class="mt-2 text-3xl font-black text-[#8b1e3f]" data-role="daily-game-streak">0</p>
+                                <p class="mt-1 text-xs font-semibold text-[#c56a83]" data-role="daily-game-streak-hint"></p>
+                            </div>
+                            <div class="relative overflow-hidden rounded-3xl bg-white/90 p-5 shadow-lg shadow-[#3d0b1c]/10">
+                                <div class="pointer-events-none absolute inset-0 bg-gradient-to-br from-[#fef3c7]/40 via-transparent to-[#fde68a]/80"></div>
+                                <p class="text-xs font-semibold uppercase tracking-[0.28em] text-[#b4637a]">
+                                    <?php esc_html_e( 'Wisdom XP', 'alfawzquran' ); ?>
+                                </p>
+                                <p class="mt-2 text-3xl font-black text-[#ad234b]" data-role="daily-game-xp">0</p>
+                                <p class="mt-1 text-xs font-semibold text-[#c56a83]" data-role="daily-game-xp-hint"></p>
+                            </div>
+                            <div class="relative overflow-hidden rounded-3xl bg-white/90 p-5 shadow-lg shadow-[#3d0b1c]/10">
+                                <div class="pointer-events-none absolute inset-0 bg-gradient-to-br from-[#d1fae5]/50 via-transparent to-[#bbf7d0]/80"></div>
+                                <p class="text-xs font-semibold uppercase tracking-[0.28em] text-[#b4637a]">
+                                    <?php esc_html_e( 'Best Streak', 'alfawzquran' ); ?>
+                                </p>
+                                <p class="mt-2 text-3xl font-black text-[#0f766e]" data-role="daily-game-best">0</p>
+                                <p class="mt-1 text-xs font-semibold text-[#0f766e]/80" data-role="daily-game-best-hint"></p>
+                            </div>
+                        </div>
+                        <p class="text-sm font-semibold text-[#7a0f32]" data-role="daily-game-status"></p>
+                    </div>
+
+                    <div class="relative isolate">
+                        <div class="pointer-events-none absolute inset-x-6 top-0 h-32 rounded-full bg-gradient-to-br from-white/40 via-transparent to-white/10 blur-2xl"></div>
+                        <div class="relative overflow-hidden rounded-[30px] border border-white/60 bg-white/90 p-6 shadow-2xl shadow-[#3d0b1c]/20 backdrop-blur" data-role="daily-game-card">
+                            <div data-role="daily-game-lobby" class="space-y-6 text-center">
+                                <div class="inline-flex h-20 w-20 items-center justify-center rounded-3xl bg-[#fce7ef] text-4xl text-[#8b1e3f] shadow-inner" aria-hidden="true">✨</div>
+                                <div class="space-y-2">
+                                    <h3 class="text-2xl font-black text-[#4d081d]">
+                                        <?php esc_html_e( 'Ready for today’s quest?', 'alfawzquran' ); ?>
+                                    </h3>
+                                    <p class="text-sm font-medium text-[#7a0f32]">
+                                        <?php esc_html_e( 'Press play to reveal the ayah, feel its message, and choose the meaning that matches.', 'alfawzquran' ); ?>
+                                    </p>
+                                </div>
+                                <button
+                                    type="button"
+                                    class="inline-flex items-center justify-center gap-2 rounded-full bg-[#8b1e3f] px-6 py-3 text-base font-semibold text-white shadow-lg shadow-[#4d081d]/30 transition-all duration-300 hover:-translate-y-1 hover:bg-[#a02249] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#8b1e3f]/60 focus-visible:ring-offset-2"
+                                    data-role="daily-game-start"
+                                >
+                                    <span aria-hidden="true">▶</span>
+                                    <span data-role="daily-game-start-label"><?php esc_html_e( 'Play Game', 'alfawzquran' ); ?></span>
+                                </button>
+                                <p class="text-xs font-semibold uppercase tracking-[0.3em] text-[#c56a83]">
+                                    <?php esc_html_e( 'One ayah • One meaning • One bright habit', 'alfawzquran' ); ?>
+                                </p>
+                            </div>
+
+                            <div data-role="daily-game-stage" class="hidden space-y-6">
+                                <div class="space-y-3 text-center">
+                                    <p class="text-xs font-semibold uppercase tracking-[0.36em] text-[#b4637a]" data-role="daily-verse-reference"></p>
+                                    <p class="text-2xl font-black leading-snug text-[#311019]" data-role="daily-verse-arabic"></p>
+                                    <p class="text-sm font-medium text-[#7a0f32]" data-role="daily-verse-translation"></p>
+                                </div>
+                                <div class="rounded-3xl bg-[#fff5f7] p-4 text-center text-sm font-semibold text-[#c05668] shadow-inner" data-role="daily-game-question"></div>
+                                <div class="grid gap-3" data-role="daily-game-options"></div>
+                                <div class="space-y-3 rounded-3xl border border-dashed border-[#f3c5d4] bg-white/80 p-4 text-left shadow-inner" data-role="daily-game-feedback" hidden>
+                                    <p class="text-sm font-bold uppercase tracking-[0.3em] text-[#8b1e3f]" data-role="daily-game-feedback-title"></p>
+                                    <p class="text-base font-semibold text-[#4d081d]" data-role="daily-game-feedback-body"></p>
+                                    <p class="text-sm font-medium text-[#7a0f32]" data-role="daily-game-reflection"></p>
+                                </div>
+                                <div class="flex flex-col items-center justify-center gap-3 text-center">
+                                    <button
+                                        type="button"
+                                        class="hidden rounded-full bg-[#0f766e] px-6 py-2 text-sm font-semibold text-white shadow-lg shadow-[#055c52]/30 transition hover:-translate-y-1 hover:bg-[#128777] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0f766e]/60 focus-visible:ring-offset-2"
+                                        data-role="daily-game-finished"
+                                    >
+                                        <?php esc_html_e( 'Come back tomorrow for a new verse', 'alfawzquran' ); ?>
+                                    </button>
+                                    <p class="text-xs font-semibold uppercase tracking-[0.3em] text-[#c56a83]" data-role="daily-game-progress"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
             <section aria-label="<?php esc_attr_e( 'Your unlocked achievements', 'alfawzquran' ); ?>" class="space-y-4">
                 <div class="flex flex-wrap items-center justify-between gap-3">
                     <h2 class="flex items-center gap-3 text-2xl font-bold text-[#4d081d]">
