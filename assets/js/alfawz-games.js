@@ -19,6 +19,20 @@
     locked: wpData.strings?.gamePanelLockedLabel || 'Locked',
     playNow: wpData.strings?.gamePanelPlayNow || 'Play Now',
     keepGoing: wpData.strings?.gamePanelKeepGoing || 'Keep Going',
+    puzzleIdle: wpData.strings?.puzzleIdle || 'Tap “Play Game” to begin your ayah puzzle quest.',
+    puzzleActive: wpData.strings?.puzzleActive || 'Arrange each tile to rebuild the ayah in the right order.',
+    puzzleError: wpData.strings?.puzzleError || 'A few tiles are misplaced. Tap a slot to swap them around!',
+    puzzleSuccess: wpData.strings?.puzzleSuccess || 'Takbir! You rebuilt the ayah—feel the barakah bloom!',
+    puzzlePlay: wpData.strings?.puzzlePlay || 'Play Game',
+    puzzleShuffle: wpData.strings?.puzzleShuffle || 'Shuffle Puzzle',
+    puzzleNext: wpData.strings?.puzzleNext || 'Next Puzzle',
+    puzzleSlotPlaceholder: wpData.strings?.puzzleSlotPlaceholder || 'Tap to place a tile',
+    puzzleStreakPrefix: wpData.strings?.puzzleStreakPrefix || 'Streak x',
+    puzzleSolvedLabel: wpData.strings?.puzzleSolvedLabel || 'Puzzles Solved',
+    puzzleUnlockHint:
+      wpData.strings?.puzzleUnlockHint
+      || 'Complete three puzzles today to unlock the “Night of Tranquility” weekly challenge.',
+    puzzleBestLabel: wpData.strings?.puzzleBestLabel || 'Best',
   };
 
   const root = document.querySelector('#alfawz-game-panel');
@@ -51,6 +65,26 @@
       playButton: root.querySelector('#alfawz-egg-play'),
       playLabel: root.querySelector('#alfawz-egg-play [data-role="alfawz-egg-play-label"]'),
     },
+    puzzle: {
+      section: root.querySelector('#alfawz-puzzle'),
+      playButton: root.querySelector('#alfawz-puzzle-play'),
+      playIcon: root.querySelector('#alfawz-puzzle-play [data-role="puzzle-play-icon"]'),
+      playLabel: root.querySelector('#alfawz-puzzle-play [data-role="puzzle-play-label"]'),
+      card: root.querySelector('#alfawz-puzzle-card'),
+      bank: root.querySelector('#alfawz-puzzle-bank'),
+      slots: root.querySelector('#alfawz-puzzle-slots'),
+      status: root.querySelector('#alfawz-puzzle-status'),
+      progress: root.querySelector('#alfawz-puzzle-progress'),
+      timer: root.querySelector('#alfawz-puzzle-timer'),
+      moves: root.querySelector('#alfawz-puzzle-moves'),
+      completed: root.querySelector('#alfawz-puzzle-completed'),
+      streak: root.querySelector('#alfawz-puzzle-streak'),
+      theme: root.querySelector('[data-role="puzzle-theme"]'),
+      title: root.querySelector('[data-role="puzzle-title"]'),
+      reference: root.querySelector('[data-role="puzzle-reference"]'),
+      translation: root.querySelector('[data-role="puzzle-translation"]'),
+      unlock: root.querySelector('#alfawz-puzzle-unlock'),
+    },
   };
 
   let latestEggState = null;
@@ -58,6 +92,14 @@
   const timezoneOffset = () => -new Date().getTimezoneOffset();
   const formatNumber = (value) => new Intl.NumberFormat().format(Number(value || 0));
   const clampPercent = (value) => Math.max(0, Math.min(100, Number(value || 0)));
+  const formatTime = (value) => {
+    const totalSeconds = Math.max(0, Math.floor(Number(value || 0) / 1000));
+    const minutes = Math.floor(totalSeconds / 60)
+      .toString()
+      .padStart(2, '0');
+    const seconds = (totalSeconds % 60).toString().padStart(2, '0');
+    return `${minutes}:${seconds}`;
+  };
 
   const resolvePlayUrl = (...candidates) => {
     for (const candidate of candidates) {
@@ -145,6 +187,583 @@
         if (!container.childElementCount) {
           container.remove();
         }
+      });
+    }
+  };
+
+  const shuffleArray = (input) => {
+    const array = Array.isArray(input) ? input.slice() : [];
+    for (let i = array.length - 1; i > 0; i -= 1) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+  };
+
+  const puzzleDeck = [
+    {
+      id: 'fatiha-1',
+      surah: 'Al-Fatihah',
+      ayah: 1,
+      reference: 'Surah Al-Fatihah · Ayah 1',
+      translation: 'In the name of Allah—the Most Compassionate, Most Merciful.',
+      segments: [
+        'In the name of Allah—',
+        'the Most Compassionate,',
+        'Most Merciful.',
+      ],
+      theme: 'Daily Theme · Blossoming Mercy',
+      title: 'Rebuild the Ayah of Mercy',
+      unlock: 'Complete two puzzles to reveal tomorrow’s Blossoming Mercy path.',
+    },
+    {
+      id: 'baqarah-286',
+      surah: 'Al-Baqarah',
+      ayah: 286,
+      reference: 'Surah Al-Baqarah · Ayah 286',
+      translation:
+        'Allah does not burden a soul beyond what it can bear. It will have the good it has earned, and it will bear what it has earned of evil.',
+      segments: [
+        'Allah does not burden a soul',
+        'beyond what it can bear.',
+        'It will have the good it has earned,',
+        'and it will bear what it has earned of evil.',
+      ],
+      theme: 'Weekly Spotlight · Resilient Hearts',
+      title: 'Strength in Patience Puzzle',
+      unlock: 'Solve this resilience puzzle to unlock the “Night of Tranquility” theme.',
+    },
+    {
+      id: 'sharh-5',
+      surah: 'Ash-Sharh',
+      ayah: '5-6',
+      reference: 'Surah Ash-Sharh · Ayat 5-6',
+      translation: 'So surely with hardship comes ease. Indeed, with hardship comes ease.',
+      segments: [
+        'So surely with hardship',
+        'comes ease.',
+        'Indeed, with hardship',
+        'comes ease.',
+      ],
+      theme: 'Daily Theme · Steady Hope',
+      title: 'Twin Waves of Ease',
+      unlock: 'Keep a two-day streak to unlock the Steady Hope collection.',
+    },
+    {
+      id: 'duha-11',
+      surah: 'Ad-Duhaa',
+      ayah: 11,
+      reference: 'Surah Ad-Duhaa · Ayah 11',
+      translation: 'So proclaim the blessings of your Lord.',
+      segments: [
+        'So proclaim',
+        'the blessings',
+        'of your Lord.',
+      ],
+      theme: 'Weekly Spotlight · Grateful Hearts',
+      title: 'Blessings in Bloom',
+      unlock: 'Share one reflection to unlock the Grateful Hearts quest.',
+    },
+    {
+      id: 'rahman-13',
+      surah: 'Ar-Rahman',
+      ayah: 13,
+      reference: 'Surah Ar-Rahman · Ayah 13',
+      translation: 'So which of your Lord’s favours will you both deny?',
+      segments: [
+        'So which of',
+        'your Lord’s favours',
+        'will you both deny?',
+      ],
+      theme: 'Daily Theme · Echoes of Gratitude',
+      title: 'Favors Count Puzzle',
+      unlock: 'Unlock this echo to reveal bonus gratitude badges.',
+    },
+  ];
+
+  const puzzleState = {
+    currentPuzzle: null,
+    placement: [],
+    segments: [],
+    moves: 0,
+    completed: 0,
+    streak: 0,
+    bestStreak: 0,
+    startTime: null,
+    elapsed: 0,
+    timerInterval: null,
+    activeSlot: null,
+    isComplete: false,
+    usedIds: new Set(),
+    lastPuzzleId: null,
+  };
+
+  const statusStyles = {
+    idle: ['border-[#d47a92]/60', 'bg-white/70', 'text-[#7a0f32]'],
+    active: ['border-[#f5b1c7]/70', 'bg-white', 'text-[#8b1e3f]'],
+    success: ['border-emerald-200/80', 'bg-emerald-50/95', 'text-emerald-700'],
+    error: ['border-[#f9a8b5]/80', 'bg-[#ffe5eb]/90', 'text-[#b3264a]'],
+  };
+  const statusResetClasses = Array.from(new Set(Object.values(statusStyles).flat()));
+
+  const slotStates = {
+    empty: ['border-dashed', 'border-[#f2bccc]', 'bg-white/60', 'text-[#b4637a]'],
+    filled: ['border-solid', 'border-[#8b1e3f]', 'bg-white', 'text-[#4d081d]', 'shadow-lg', 'shadow-[#4d081d]/10'],
+    correct: ['border-solid', 'border-emerald-400/80', 'bg-emerald-50', 'text-emerald-700', 'shadow-lg', 'shadow-emerald-200/40'],
+    incorrect: ['border-solid', 'border-[#f97380]', 'bg-[#ffe7eb]', 'text-[#b3264a]', 'shadow-lg', 'shadow-[#fca5a5]/60'],
+  };
+  const slotResetClasses = Array.from(new Set(Object.values(slotStates).flat().concat(['ring-2', 'ring-[#f59bb4]/70', 'ring-offset-2', 'ring-offset-white'])));
+
+  const updatePuzzleStatus = (message, state = 'idle') => {
+    if (!elements.puzzle.status) {
+      return;
+    }
+    const targetState = statusStyles[state] ? state : 'idle';
+    elements.puzzle.status.textContent = message;
+    elements.puzzle.status.classList.remove(...statusResetClasses);
+    elements.puzzle.status.classList.add(...statusStyles[targetState]);
+  };
+
+  const updatePuzzleProgress = () => {
+    if (!elements.puzzle.progress || !puzzleState.currentPuzzle) {
+      if (elements.puzzle.progress) {
+        elements.puzzle.progress.style.width = '0%';
+      }
+      return;
+    }
+    const total = puzzleState.currentPuzzle.segments.length;
+    const filled = puzzleState.placement.filter((value) => value !== null).length;
+    const percent = total > 0 ? clampPercent((filled / total) * 100) : 0;
+    elements.puzzle.progress.style.width = `${percent}%`;
+  };
+
+  const updatePuzzleTimerDisplay = (value) => {
+    if (!elements.puzzle.timer) {
+      return;
+    }
+    elements.puzzle.timer.textContent = formatTime(value);
+  };
+
+  const updatePuzzleMovesDisplay = () => {
+    if (!elements.puzzle.moves) {
+      return;
+    }
+    elements.puzzle.moves.textContent = formatNumber(puzzleState.moves);
+  };
+
+  const updatePuzzleCompletedDisplay = () => {
+    if (!elements.puzzle.completed) {
+      return;
+    }
+    const value = formatNumber(puzzleState.completed);
+    elements.puzzle.completed.textContent = value;
+    elements.puzzle.completed.setAttribute('aria-label', `${strings.puzzleSolvedLabel}: ${value}`);
+  };
+
+  const updatePuzzleStreakDisplay = () => {
+    if (!elements.puzzle.streak) {
+      return;
+    }
+    const current = formatNumber(puzzleState.streak);
+    const best = formatNumber(Math.max(puzzleState.bestStreak, puzzleState.streak));
+    let label = `${strings.puzzleStreakPrefix}${current}`;
+    if (puzzleState.bestStreak > 0) {
+      label = `${label} · ${strings.puzzleBestLabel} ${best}`;
+    }
+    elements.puzzle.streak.textContent = label;
+    elements.puzzle.streak.setAttribute('aria-label', `${strings.puzzleStreakPrefix}${current}`);
+  };
+
+  const updatePuzzleUnlockMessage = (puzzle = null) => {
+    if (!elements.puzzle.unlock) {
+      return;
+    }
+    const message = puzzle?.unlock || strings.puzzleUnlockHint;
+    elements.puzzle.unlock.textContent = message;
+  };
+
+  const setPlayButtonState = (state) => {
+    if (!elements.puzzle.playButton) {
+      return;
+    }
+    const presets = {
+      idle: { icon: '▶', label: strings.puzzlePlay },
+      playing: { icon: '⟳', label: strings.puzzleShuffle },
+      complete: { icon: '✨', label: strings.puzzleNext },
+    };
+    const config = presets[state] || presets.idle;
+    if (elements.puzzle.playLabel) {
+      elements.puzzle.playLabel.textContent = config.label;
+    } else {
+      elements.puzzle.playButton.textContent = config.label;
+    }
+    if (elements.puzzle.playIcon) {
+      elements.puzzle.playIcon.textContent = config.icon;
+    }
+    elements.puzzle.playButton.dataset.state = state;
+  };
+
+  const stopPuzzleTimer = () => {
+    if (puzzleState.timerInterval) {
+      window.clearInterval(puzzleState.timerInterval);
+      puzzleState.timerInterval = null;
+    }
+    if (puzzleState.startTime) {
+      puzzleState.elapsed = Date.now() - puzzleState.startTime;
+      updatePuzzleTimerDisplay(puzzleState.elapsed);
+      puzzleState.startTime = null;
+    }
+  };
+
+  const tickPuzzleTimer = () => {
+    if (!puzzleState.startTime) {
+      return;
+    }
+    const elapsed = Date.now() - puzzleState.startTime;
+    puzzleState.elapsed = elapsed;
+    updatePuzzleTimerDisplay(elapsed);
+  };
+
+  const startPuzzleTimer = () => {
+    stopPuzzleTimer();
+    puzzleState.startTime = Date.now();
+    puzzleState.elapsed = 0;
+    updatePuzzleTimerDisplay(0);
+    puzzleState.timerInterval = window.setInterval(() => {
+      tickPuzzleTimer();
+    }, 1000);
+  };
+
+  const applySlotState = (slot, state) => {
+    if (!slot) {
+      return;
+    }
+    const targetState = slotStates[state] ? state : 'empty';
+    slot.classList.remove(...slotResetClasses);
+    slot.classList.add(...slotStates[targetState]);
+    if (Number(slot.dataset.slotIndex || -1) === puzzleState.activeSlot && !puzzleState.isComplete) {
+      slot.classList.add('ring-2', 'ring-[#f59bb4]/70', 'ring-offset-2', 'ring-offset-white');
+    }
+  };
+
+  const setActiveSlot = (index = null) => {
+    puzzleState.activeSlot = Number.isInteger(index) ? Number(index) : null;
+    if (!elements.puzzle.slots) {
+      return;
+    }
+    Array.from(elements.puzzle.slots.children).forEach((slot) => {
+      const slotIndex = Number(slot.dataset.slotIndex);
+      const isActive = Number.isInteger(puzzleState.activeSlot) && slotIndex === puzzleState.activeSlot && !puzzleState.isComplete;
+      slot.classList.remove('ring-2', 'ring-[#f59bb4]/70', 'ring-offset-2', 'ring-offset-white');
+      if (isActive) {
+        slot.classList.add('ring-2', 'ring-[#f59bb4]/70', 'ring-offset-2', 'ring-offset-white');
+      }
+    });
+  };
+
+  const createSlot = (index) => {
+    const slot = document.createElement('button');
+    slot.type = 'button';
+    slot.dataset.slotIndex = index;
+    slot.dataset.placeholder = `${strings.puzzleSlotPlaceholder}`;
+    slot.className =
+      'alfawz-puzzle-slot flex min-h-[60px] items-center justify-center rounded-3xl border-2 px-4 text-center text-sm font-semibold transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#f59bb4]/70 focus-visible:ring-offset-2 focus-visible:ring-offset-white';
+    slot.textContent = `${strings.puzzleSlotPlaceholder}`;
+    applySlotState(slot, 'empty');
+    slot.addEventListener('click', (event) => {
+      event.preventDefault();
+      if (puzzleState.isComplete) {
+        return;
+      }
+      const slotIndex = Number(slot.dataset.slotIndex);
+      const segmentIndex = slot.dataset.segmentIndex;
+      if (segmentIndex !== undefined && segmentIndex !== null && segmentIndex !== '') {
+        const currentIndex = Number(segmentIndex);
+        puzzleState.moves += 1;
+        updatePuzzleMovesDisplay();
+        puzzleState.placement[slotIndex] = null;
+        slot.dataset.segmentIndex = '';
+        slot.textContent = slot.dataset.placeholder;
+        applySlotState(slot, 'empty');
+        if (elements.puzzle.bank) {
+          const tile = elements.puzzle.bank.querySelector(`[data-segment-index="${currentIndex}"]`);
+          if (tile) {
+            tile.disabled = false;
+            tile.classList.remove('opacity-40', 'cursor-not-allowed');
+            tile.removeAttribute('aria-disabled');
+          }
+        }
+        updatePuzzleProgress();
+        updatePuzzleStatus(strings.puzzleActive, 'active');
+        setActiveSlot(slotIndex);
+      } else {
+        setActiveSlot(slotIndex);
+      }
+    });
+    return slot;
+  };
+
+  const disableTile = (tile) => {
+    if (!tile) {
+      return;
+    }
+    tile.disabled = true;
+    tile.classList.add('opacity-40', 'cursor-not-allowed');
+    tile.setAttribute('aria-disabled', 'true');
+  };
+
+  const createTile = (segment) => {
+    const tile = document.createElement('button');
+    tile.type = 'button';
+    tile.dataset.segmentIndex = segment.index;
+    tile.className =
+      'alfawz-puzzle-tile relative inline-flex w-full items-center justify-center rounded-3xl border border-[#f6c5d5] bg-white/90 px-4 py-3 text-center text-sm font-semibold text-[#7a0f32] shadow-lg shadow-[#4d081d]/10 transition-all duration-300 hover:-translate-y-1 hover:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[#f59bb4]/60 focus-visible:ring-offset-2 focus-visible:ring-offset-white';
+    tile.textContent = segment.text;
+    tile.setAttribute('aria-label', `Tile ${segment.index + 1}: ${segment.text}`);
+    tile.addEventListener('click', (event) => {
+      event.preventDefault();
+      if (tile.disabled || puzzleState.isComplete) {
+        return;
+      }
+      const targetSlotIndex = Number.isInteger(puzzleState.activeSlot)
+        ? puzzleState.activeSlot
+        : puzzleState.placement.findIndex((value) => value === null);
+      if (targetSlotIndex === -1) {
+        pulseValue(tile);
+        return;
+      }
+      const slot = elements.puzzle.slots?.querySelector(`[data-slot-index="${targetSlotIndex}"]`);
+      if (!slot) {
+        return;
+      }
+      const existingSegment = slot.dataset.segmentIndex;
+      if (existingSegment !== undefined && existingSegment !== null && existingSegment !== '') {
+        return;
+      }
+      puzzleState.placement[targetSlotIndex] = segment.index;
+      slot.dataset.segmentIndex = segment.index;
+      slot.textContent = segment.text;
+      applySlotState(slot, 'filled');
+      disableTile(tile);
+      setActiveSlot(targetSlotIndex + 1 < puzzleState.placement.length ? targetSlotIndex + 1 : null);
+      puzzleState.moves += 1;
+      updatePuzzleMovesDisplay();
+      updatePuzzleProgress();
+      evaluatePuzzle();
+    });
+    return tile;
+  };
+
+  const highlightIncorrectSlots = () => {
+    if (!elements.puzzle.slots || !puzzleState.currentPuzzle) {
+      return;
+    }
+    Array.from(elements.puzzle.slots.children).forEach((slot) => {
+      const slotIndex = Number(slot.dataset.slotIndex);
+      const segmentIndex = Number(slot.dataset.segmentIndex);
+      if (!Number.isInteger(segmentIndex)) {
+        return;
+      }
+      if (segmentIndex === slotIndex) {
+        applySlotState(slot, 'correct');
+      } else {
+        applySlotState(slot, 'incorrect');
+      }
+    });
+  };
+
+  const markSlotsAsCorrect = () => {
+    if (!elements.puzzle.slots) {
+      return;
+    }
+    Array.from(elements.puzzle.slots.children).forEach((slot) => {
+      applySlotState(slot, 'correct');
+    });
+  };
+
+  const evaluatePuzzle = () => {
+    if (!puzzleState.currentPuzzle) {
+      return;
+    }
+    const total = puzzleState.currentPuzzle.segments.length;
+    const filled = puzzleState.placement.filter((value) => value !== null).length;
+    if (filled < total) {
+      updatePuzzleStatus(strings.puzzleActive, 'active');
+      return;
+    }
+    const isCorrect = puzzleState.placement.every((value, index) => value === index);
+    if (!isCorrect) {
+      updatePuzzleStatus(strings.puzzleError, 'error');
+      highlightIncorrectSlots();
+      return;
+    }
+    markSlotsAsCorrect();
+    handlePuzzleComplete();
+  };
+
+  const selectNextPuzzle = () => {
+    if (!puzzleDeck.length) {
+      return null;
+    }
+    if (puzzleState.usedIds.size >= puzzleDeck.length) {
+      puzzleState.usedIds.clear();
+    }
+    const unused = puzzleDeck.filter((item) => !puzzleState.usedIds.has(item.id));
+    let pool = unused.length ? unused : puzzleDeck.slice();
+    if (pool.length > 1 && puzzleState.lastPuzzleId) {
+      const filtered = pool.filter((item) => item.id !== puzzleState.lastPuzzleId);
+      if (filtered.length) {
+        pool = filtered;
+      }
+    }
+    const index = Math.floor(Math.random() * pool.length);
+    return pool[index];
+  };
+
+  const markPuzzleAsUsed = (puzzle) => {
+    if (!puzzle) {
+      return;
+    }
+    puzzleState.usedIds.add(puzzle.id);
+    puzzleState.lastPuzzleId = puzzle.id;
+  };
+
+  const updatePuzzleMeta = (puzzle) => {
+    if (elements.puzzle.theme) {
+      elements.puzzle.theme.textContent = puzzle?.theme || strings.puzzleActive;
+    }
+    if (elements.puzzle.title) {
+      elements.puzzle.title.textContent = puzzle?.title || strings.puzzleActive;
+    }
+    if (elements.puzzle.reference) {
+      const reference = puzzle?.reference || (puzzle ? `Surah ${puzzle.surah} · Ayah ${puzzle.ayah}` : '');
+      elements.puzzle.reference.textContent = reference;
+    }
+    if (elements.puzzle.translation) {
+      elements.puzzle.translation.textContent = puzzle?.translation || '';
+    }
+  };
+
+  const setupPuzzleBoard = (puzzle) => {
+    if (!elements.puzzle.bank || !elements.puzzle.slots) {
+      return;
+    }
+    elements.puzzle.bank.innerHTML = '';
+    elements.puzzle.slots.innerHTML = '';
+    puzzleState.segments = puzzle.segments.map((text, index) => ({
+      id: `${puzzle.id}-${index}`,
+      index,
+      text,
+    }));
+    puzzleState.placement = new Array(puzzleState.segments.length).fill(null);
+
+    const shuffled = shuffleArray(puzzleState.segments);
+    shuffled.forEach((segment) => {
+      const tile = createTile(segment);
+      elements.puzzle.bank.appendChild(tile);
+    });
+
+    puzzleState.segments.forEach((_, index) => {
+      const slot = createSlot(index);
+      elements.puzzle.slots.appendChild(slot);
+    });
+    setActiveSlot(0);
+    updatePuzzleProgress();
+  };
+
+  const handlePuzzleComplete = () => {
+    if (puzzleState.isComplete) {
+      return;
+    }
+    puzzleState.isComplete = true;
+    stopPuzzleTimer();
+    puzzleState.completed += 1;
+    puzzleState.streak += 1;
+    if (puzzleState.streak > puzzleState.bestStreak) {
+      puzzleState.bestStreak = puzzleState.streak;
+    }
+    updatePuzzleCompletedDisplay();
+    updatePuzzleStreakDisplay();
+    updatePuzzleStatus(strings.puzzleSuccess, 'success');
+    setPlayButtonState('complete');
+    if (elements.puzzle.bank) {
+      elements.puzzle.bank.querySelectorAll('button').forEach((tile) => {
+        disableTile(tile);
+      });
+    }
+    spawnConfetti(elements.puzzle.card || elements.puzzle.section || root);
+  };
+
+  const startPuzzleRound = (puzzle = null, options = {}) => {
+    if (!elements.puzzle.section) {
+      return;
+    }
+    const reuseCurrent = Boolean(options.reuse);
+    let chosen = puzzle;
+    if (!reuseCurrent || !chosen) {
+      chosen = selectNextPuzzle();
+      markPuzzleAsUsed(chosen);
+    }
+    if (!chosen) {
+      return;
+    }
+    puzzleState.currentPuzzle = chosen;
+    puzzleState.isComplete = false;
+    puzzleState.moves = 0;
+    puzzleState.elapsed = 0;
+    puzzleState.activeSlot = null;
+    updatePuzzleMeta(chosen);
+    updatePuzzleUnlockMessage(chosen);
+    setupPuzzleBoard(chosen);
+    updatePuzzleMovesDisplay();
+    updatePuzzleTimerDisplay(0);
+    updatePuzzleStatus(strings.puzzleActive, 'active');
+    setPlayButtonState('playing');
+    startPuzzleTimer();
+  };
+
+  const resetPuzzleView = () => {
+    stopPuzzleTimer();
+    puzzleState.currentPuzzle = null;
+    puzzleState.isComplete = false;
+    puzzleState.placement = [];
+    puzzleState.segments = [];
+    puzzleState.activeSlot = null;
+    puzzleState.elapsed = 0;
+    puzzleState.moves = 0;
+    updatePuzzleStatus(strings.puzzleIdle, 'idle');
+    updatePuzzleTimerDisplay(0);
+    updatePuzzleMovesDisplay();
+    updatePuzzleProgress();
+    updatePuzzleCompletedDisplay();
+    updatePuzzleStreakDisplay();
+    updatePuzzleUnlockMessage();
+    setPlayButtonState('idle');
+    if (elements.puzzle.bank) {
+      elements.puzzle.bank.innerHTML = '';
+    }
+    if (elements.puzzle.slots) {
+      elements.puzzle.slots.innerHTML = '';
+    }
+  };
+
+  const initPuzzleGame = () => {
+    if (!elements.puzzle.section) {
+      return;
+    }
+    resetPuzzleView();
+    if (elements.puzzle.playButton) {
+      elements.puzzle.playButton.addEventListener('click', (event) => {
+        event.preventDefault();
+        const state = elements.puzzle.playButton.dataset.state || 'idle';
+        if (state === 'playing' && puzzleState.currentPuzzle && !puzzleState.isComplete) {
+          startPuzzleRound(puzzleState.currentPuzzle, { reuse: true });
+          return;
+        }
+        if (state === 'complete') {
+          puzzleState.isComplete = false;
+        }
+        startPuzzleRound();
       });
     }
   };
@@ -574,6 +1193,8 @@
       elements.questList.appendChild(node);
     });
   };
+
+  initPuzzleGame();
 
   const loadData = async () => {
     toggleView({ loading: true });
