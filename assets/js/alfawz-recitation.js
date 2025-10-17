@@ -58,6 +58,7 @@
       noMistakes: 'Flawless! Keep reinforcing this ayah daily.',
       memorizationComplete:
         'Barakallahu feek! Memorization complete—may Allah make it firm in your heart.',
+      historyLoadError: 'Unable to load your recent sessions.',
     },
     ...(config.strings || {}),
   };
@@ -478,28 +479,53 @@
     }
 
     const response = await fetch(endpoint, options);
+    const contentType = response.headers.get('content-type') || '';
+    const rawText = await response.text();
+
     if (!response.ok) {
-      const text = await response.text();
-      throw new Error(text || `Request failed with status ${response.status}`);
+      let message = `Request failed with status ${response.status}`;
+      if (rawText) {
+        if (contentType.includes('application/json')) {
+          try {
+            const payload = JSON.parse(rawText);
+            if (payload && typeof payload.message === 'string' && payload.message.trim()) {
+              message = payload.message.trim();
+            }
+          } catch (error) {
+            // Fall back to the default message when JSON parsing fails.
+          }
+        } else {
+          const stripped = rawText.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+          if (stripped) {
+            message = stripped.slice(0, 160);
+          }
+        }
+      }
+      throw new Error(message);
     }
-    if (response.status === 204) {
+
+    if (response.status === 204 || !rawText) {
       return null;
     }
-    const contentType = response.headers.get('content-type') || '';
+
+    const trimmed = rawText.trim();
+
     if (contentType.includes('application/json')) {
       try {
-        return await response.json();
+        return JSON.parse(trimmed);
       } catch (error) {
         console.warn('[Alfawz Recitation] Invalid JSON response', error);
         return null;
       }
     }
-    const text = await response.text();
-    if (!text) {
+
+    if (trimmed.startsWith('<')) {
+      console.warn('[Alfawz Recitation] Expected JSON response but received HTML payload');
       return null;
     }
+
     try {
-      return JSON.parse(text);
+      return JSON.parse(trimmed);
     } catch (error) {
       console.warn('[Alfawz Recitation] Expected JSON response but received non-JSON payload', error);
       return null;
@@ -513,7 +539,7 @@
     el.mistakes.innerHTML = '';
     if (!Array.isArray(mistakes) || mistakes.length === 0) {
       const item = document.createElement('li');
-      item.className = 'rounded-2xl border border-dashed border-slate-200/70 bg-white/70 px-4 py-3 text-slate-400';
+      item.className = 'rounded-2xl border border-dashed border-white/25 bg-white/10 px-4 py-3 text-white/70 backdrop-blur';
       item.textContent = strings.noMistakes;
       el.mistakes.appendChild(item);
       return;
@@ -571,7 +597,7 @@
     el.historyList.innerHTML = '';
     if (!Array.isArray(history) || history.length === 0) {
       const empty = document.createElement('li');
-      empty.className = 'text-slate-400';
+      empty.className = 'text-white/70';
       empty.textContent = window.wp?.i18n?.__("You have not recorded any recitation feedback yet.", 'alfawzquran') ||
         'You have not recorded any recitation feedback yet.';
       el.historyList.appendChild(empty);
@@ -585,20 +611,20 @@
 
     history.forEach((entry) => {
       const item = document.createElement('li');
-      item.className = 'rounded-2xl border border-slate-200/70 bg-white/80 px-4 py-3 shadow-sm';
+      item.className = 'rounded-2xl border border-white/20 bg-white/10 px-4 py-3 shadow-lg backdrop-blur';
       const heading = document.createElement('div');
       heading.className = 'flex items-center justify-between gap-3';
       const verse = document.createElement('strong');
-      verse.className = 'text-sm text-slate-700';
+      verse.className = 'text-sm font-semibold text-white';
       verse.textContent = entry.verse_key || `${entry.surah_id || ''}:${entry.verse_id || ''}`;
       const score = document.createElement('span');
-      score.className = 'text-sm font-semibold text-indigo-600';
+      score.className = 'text-sm font-semibold text-emerald-200';
       score.textContent = typeof entry.score === 'number' ? `${entry.score.toFixed(1)}%` : '--';
       heading.appendChild(verse);
       heading.appendChild(score);
 
       const meta = document.createElement('p');
-      meta.className = 'mt-2 text-xs uppercase tracking-[0.3em] text-slate-400';
+      meta.className = 'mt-2 text-xs uppercase tracking-[0.3em] text-white/60';
       if (entry.evaluated_at) {
         meta.textContent = formatter.format(new Date(entry.evaluated_at));
       }
@@ -700,6 +726,13 @@
       }
     } catch (error) {
       console.warn('[Alfawz Recitation] Unable to load history', error);
+      if (el.historyList) {
+        el.historyList.innerHTML = '';
+        const item = document.createElement('li');
+        item.className = 'rounded-2xl border border-white/20 bg-white/10 px-4 py-3 text-white/80 backdrop-blur';
+        item.textContent = strings.historyLoadError || 'Unable to load your recent sessions.';
+        el.historyList.appendChild(item);
+      }
     }
   };
 

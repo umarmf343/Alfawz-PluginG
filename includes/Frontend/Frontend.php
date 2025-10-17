@@ -224,6 +224,7 @@ class Frontend {
                     'viewHistoryLabel' => __('View last reviews', 'alfawzquran'),
                     'noMistakes' => __('Flawless! Keep reinforcing this ayah daily.', 'alfawzquran'),
                     'memorizationComplete' => __('Barakallahu feek! Memorization complete—may Allah make it firm in your heart.', 'alfawzquran'),
+                    'historyLoadError' => __('Unable to load your recent sessions.', 'alfawzquran'),
                 ],
             ]);
         }

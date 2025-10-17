@@ -215,11 +215,11 @@ if ( ! defined( 'ABSPATH' ) ) {
                 </div>
             </article>
 
-            <section id="alfawz-recitation-assistant" class="mx-auto w-full max-w-4xl rounded-3xl bg-white/95 p-8 text-slate-800 shadow-2xl ring-1 ring-slate-200/70">
+            <section id="alfawz-recitation-assistant" class="relative mx-auto w-full max-w-4xl overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-600 via-purple-600 to-sky-500 p-8 text-white shadow-2xl ring-1 ring-indigo-200/60">
                 <header class="space-y-2 text-left">
-                    <p class="text-xs font-semibold uppercase tracking-[0.35em] text-indigo-500"><?php esc_html_e( 'AI recitation coach', 'alfawzquran' ); ?></p>
-                    <h3 class="text-2xl font-semibold text-slate-900 sm:text-3xl"><?php esc_html_e( 'Refine your flow with Tarteel-style insights.', 'alfawzquran' ); ?></h3>
-                    <p class="text-base text-slate-600"><?php esc_html_e( 'Let the assistant listen to your recitation, highlight slip-ups, and surface FES (Focus Enhancement Snippets) inspired by Tarteel’s memorisation playbook.', 'alfawzquran' ); ?></p>
+                    <p class="text-xs font-semibold uppercase tracking-[0.35em] text-white/80"><?php esc_html_e( 'AI recitation coach', 'alfawzquran' ); ?></p>
+                    <h3 class="text-2xl font-semibold text-white sm:text-3xl"><?php esc_html_e( 'Refine your flow with Tarteel-style insights.', 'alfawzquran' ); ?></h3>
+                    <p class="text-base text-white/80"><?php esc_html_e( 'Let the assistant listen to your recitation, highlight slip-ups, and surface FES (Focus Enhancement Snippets) inspired by Tarteel’s memorisation playbook.', 'alfawzquran' ); ?></p>
                 </header>
 
                 <div class="mt-6 flex flex-col gap-8 lg:flex-row">
@@ -229,56 +229,56 @@ if ( ! defined( 'ABSPATH' ) ) {
                                 <span aria-hidden="true">🎙️</span>
                                 <span><?php esc_html_e( 'Begin listening', 'alfawzquran' ); ?></span>
                             </button>
-                            <button type="button" id="alfawz-recitation-history-toggle" class="inline-flex items-center gap-2 rounded-2xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:-translate-y-0.5 hover:border-indigo-200 hover:text-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-200">
+                            <button type="button" id="alfawz-recitation-history-toggle" class="inline-flex items-center gap-2 rounded-2xl border border-white/50 px-4 py-2 text-sm font-semibold text-white/80 transition hover:-translate-y-0.5 hover:border-white hover:text-white focus:outline-none focus:ring-2 focus:ring-white/40">
                                 <span aria-hidden="true">🗂️</span>
                                 <span><?php esc_html_e( 'View last reviews', 'alfawzquran' ); ?></span>
                             </button>
                         </div>
-                        <p id="alfawz-recitation-status" class="text-sm text-slate-500"><?php esc_html_e( 'Tap begin listening when you are ready to recite.', 'alfawzquran' ); ?></p>
+                        <p id="alfawz-recitation-status" class="text-sm text-white/80"><?php esc_html_e( 'Tap begin listening when you are ready to recite.', 'alfawzquran' ); ?></p>
                         <div id="alfawz-recitation-visualizer" class="alfawz-recitation-visualizer mt-4 hidden" aria-hidden="true">
                             <?php for ( $bar = 0; $bar < 24; $bar++ ) : ?>
                                 <span class="alfawz-recitation-visualizer-bar" data-bar="<?php echo esc_attr( $bar ); ?>"></span>
                             <?php endfor; ?>
                         </div>
-                        <div class="rounded-3xl border border-slate-200/80 bg-gradient-to-br from-indigo-50 to-rose-50 p-6 text-center shadow-inner">
-                            <p class="text-3xl font-semibold uppercase tracking-[0.3em] text-indigo-500"><?php esc_html_e( 'Accuracy score', 'alfawzquran' ); ?></p>
-                            <p id="alfawz-recitation-score-value" class="mt-2 text-[6.75rem] font-bold text-slate-900">--</p>
-                            <p id="alfawz-recitation-verse" class="mt-1 text-4xl text-slate-600"><?php esc_html_e( 'Select a verse to begin your session.', 'alfawzquran' ); ?></p>
-                            <p id="alfawz-recitation-translation" class="mt-2 text-4xl italic text-slate-500"></p>
-                            <p id="alfawz-recitation-updated" class="mt-2 text-3xl uppercase tracking-[0.25em] text-slate-400"></p>
+                        <div class="rounded-3xl border border-white/20 bg-gradient-to-br from-white/30 via-rose-200/20 to-indigo-200/20 p-6 text-center shadow-xl backdrop-blur">
+                            <p class="text-3xl font-semibold uppercase tracking-[0.3em] text-white/90"><?php esc_html_e( 'Accuracy score', 'alfawzquran' ); ?></p>
+                            <p id="alfawz-recitation-score-value" class="mt-2 text-[6.75rem] font-bold text-white">--</p>
+                            <p id="alfawz-recitation-verse" class="mt-1 text-4xl text-white/80"><?php esc_html_e( 'Select a verse to begin your session.', 'alfawzquran' ); ?></p>
+                            <p id="alfawz-recitation-translation" class="mt-2 text-4xl italic text-white/70"></p>
+                            <p id="alfawz-recitation-updated" class="mt-2 text-3xl uppercase tracking-[0.25em] text-white/60"></p>
                         </div>
                     </div>
 
                     <div class="flex-1 space-y-6">
                         <div>
-                            <h4 class="text-xs font-semibold uppercase tracking-[0.3em] text-indigo-500"><?php esc_html_e( 'Focus insights', 'alfawzquran' ); ?></h4>
-                            <ul id="alfawz-recitation-mistakes" class="mt-3 space-y-3 text-sm text-slate-600">
-                                <li class="rounded-2xl border border-dashed border-slate-200/70 bg-white/70 px-4 py-3 text-slate-400"><?php esc_html_e( 'No analysis yet. Start a session to see highlighted opportunities.', 'alfawzquran' ); ?></li>
+                            <h4 class="text-xs font-semibold uppercase tracking-[0.3em] text-white/80"><?php esc_html_e( 'Focus insights', 'alfawzquran' ); ?></h4>
+                            <ul id="alfawz-recitation-mistakes" class="mt-3 space-y-3 text-sm text-white/80">
+                                <li class="rounded-2xl border border-dashed border-white/30 bg-white/10 px-4 py-3 text-white/70 backdrop-blur"><?php esc_html_e( 'No analysis yet. Start a session to see highlighted opportunities.', 'alfawzquran' ); ?></li>
                             </ul>
                         </div>
                         <div>
-                            <h4 class="text-xs font-semibold uppercase tracking-[0.3em] text-indigo-500"><?php esc_html_e( 'Tarteel-style snippets', 'alfawzquran' ); ?></h4>
+                            <h4 class="text-xs font-semibold uppercase tracking-[0.3em] text-white/80"><?php esc_html_e( 'Tarteel-style snippets', 'alfawzquran' ); ?></h4>
                             <div id="alfawz-recitation-snippets" class="mt-3 flex flex-wrap gap-2 text-sm"></div>
                         </div>
                     </div>
                 </div>
 
-                <div id="alfawz-recitation-history" class="mt-6 hidden rounded-3xl border border-slate-200/70 bg-white/90 p-5">
+                <div id="alfawz-recitation-history" class="mt-6 hidden rounded-3xl border border-white/25 bg-white/10 p-5 shadow-xl backdrop-blur">
                     <div class="flex items-center justify-between">
-                        <h4 class="text-xs font-semibold uppercase tracking-[0.3em] text-indigo-500"><?php esc_html_e( 'Recent sessions', 'alfawzquran' ); ?></h4>
-                        <button type="button" id="alfawz-recitation-history-close" class="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500 hover:text-indigo-500 focus:outline-none"><?php esc_html_e( 'Close', 'alfawzquran' ); ?></button>
+                        <h4 class="text-xs font-semibold uppercase tracking-[0.3em] text-white/80"><?php esc_html_e( 'Recent sessions', 'alfawzquran' ); ?></h4>
+                        <button type="button" id="alfawz-recitation-history-close" class="text-xs font-semibold uppercase tracking-[0.3em] text-white/70 hover:text-white focus:outline-none"><?php esc_html_e( 'Close', 'alfawzquran' ); ?></button>
                     </div>
-                    <ul id="alfawz-recitation-history-list" class="mt-4 space-y-3 text-sm text-slate-600">
-                        <li class="text-slate-400"><?php esc_html_e( 'You have not recorded any recitation feedback yet.', 'alfawzquran' ); ?></li>
+                    <ul id="alfawz-recitation-history-list" class="mt-4 space-y-3 text-sm text-white/80">
+                        <li class="text-white/70"><?php esc_html_e( 'You have not recorded any recitation feedback yet.', 'alfawzquran' ); ?></li>
                     </ul>
                 </div>
             </section>
 
             <section id="alfawz-memorization-surah-contents" class="hidden">
-                <div class="mx-auto flex w-full max-w-4xl flex-col gap-6 rounded-3xl bg-white/90 p-8 text-slate-800 shadow-2xl ring-1 ring-slate-200/70">
+                <div class="mx-auto flex w-full max-w-4xl flex-col gap-6 rounded-3xl bg-gradient-to-br from-sky-500 via-indigo-600 to-purple-600 p-8 text-white shadow-2xl ring-1 ring-indigo-200/60">
                     <header class="text-center">
-                        <p class="text-sm font-semibold uppercase tracking-[0.3em] text-indigo-500"><?php esc_html_e( 'Surah overview', 'alfawzquran' ); ?></p>
-                        <p class="mt-2 text-lg text-slate-600"><?php esc_html_e( 'All verses from the selected surah are displayed below for immersive review.', 'alfawzquran' ); ?></p>
+                        <p class="text-sm font-semibold uppercase tracking-[0.3em] text-white/80"><?php esc_html_e( 'Surah overview', 'alfawzquran' ); ?></p>
+                        <p class="mt-2 text-lg text-white/80"><?php esc_html_e( 'All verses from the selected surah are displayed below for immersive review.', 'alfawzquran' ); ?></p>
                     </header>
                     <div id="alfawz-memorization-verse-list" class="space-y-4"></div>
                 </div>
