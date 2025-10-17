@@ -79,6 +79,14 @@ if ( ! defined( 'ABSPATH' ) ) {
                             ▷
                         </button>
                     </div>
+                    <button
+                        type="button"
+                        id="alfawz-next-surah"
+                        class="alfawz-button alfawz-next-surah"
+                        hidden
+                    >
+                        <?php esc_html_e( 'Enter Next', 'alfawzquran' ); ?>
+                    </button>
                     <div class="alfawz-verse-toggles" role="group" aria-label="<?php esc_attr_e( 'Toggle verse details', 'alfawzquran' ); ?>">
                         <button
                             type="button"
