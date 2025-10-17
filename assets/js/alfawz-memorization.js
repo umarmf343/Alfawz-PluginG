@@ -77,6 +77,8 @@
       wpData.playAudioLabel ||
       'Play verse audio',
     savedPlans: [],
+    lastVerseCelebrationKey: null,
+    lastPlanCelebrationKey: null,
   };
 
   const SAVED_PLANS_KEY = 'alfawz_memo_saved_plans';
@@ -648,6 +650,35 @@
     el.repeatButton.disabled = !state.currentVerse || state.modalOpen;
   };
 
+  const celebratePlanCompletion = () => {
+    const planId = state.planDetail?.id || state.planSummary?.id || null;
+    if (
+      !planId ||
+      state.lastPlanCelebrationKey === planId ||
+      !window.AlfawzCelebrations ||
+      typeof window.AlfawzCelebrations.celebrate !== 'function'
+    ) {
+      return;
+    }
+    state.lastPlanCelebrationKey = planId;
+    const surah = state.surahMap.get(Number(state.planDetail?.surah_id || 0));
+    const planName =
+      state.planDetail?.plan_name ||
+      surah?.englishName ||
+      surah?.englishNameTranslation ||
+      'this memorisation plan';
+    const startVerse = state.planDetail?.start_verse ? formatNumber(state.planDetail.start_verse) : '';
+    const endVerse = state.planDetail?.end_verse ? formatNumber(state.planDetail.end_verse) : '';
+    const detail = startVerse && endVerse
+      ? `Ayat ${startVerse} – ${endVerse} are now memorised.`
+      : 'You have completed every verse in this plan.';
+    window.AlfawzCelebrations.celebrate('memorization-plan', {
+      message: `You completed ${planName}. Allahumma barik!`,
+      detail,
+      cta: 'Choose another plan',
+    });
+  };
+
   const triggerMemorizationHasanat = async () => {
     if (state.hasAwardedCurrentVerse || state.awardInFlight) {
       return;
@@ -882,6 +913,36 @@
       void modalCard.offsetWidth;
       modalCard.classList.add('animate-pop-in');
     }
+    const verseData = state.currentVerseData;
+    const verseNumber = verseData?.numberInSurah || state.currentVerse;
+    const celebrationKey = state.planDetail?.id
+      ? `${state.planDetail.id}:${verseNumber}`
+      : `verse:${verseNumber}`;
+    if (
+      window.AlfawzCelebrations &&
+      typeof window.AlfawzCelebrations.celebrate === 'function' &&
+      celebrationKey &&
+      state.lastVerseCelebrationKey !== celebrationKey
+    ) {
+      state.lastVerseCelebrationKey = celebrationKey;
+      const surahName =
+        verseData?.surahName ||
+        state.planDetail?.plan_name ||
+        state.surahMap.get(Number(state.planDetail?.surah_id || 0))?.englishName ||
+        '';
+      const formattedVerse = verseNumber ? formatNumber(verseNumber) : '';
+      const message = surahName
+        ? `Ayah ${formattedVerse} of ${surahName} is ready to be locked in your heart.`
+        : 'Twenty repetitions complete. Your focus is paying off!';
+      const detail = surahName
+        ? 'Recite it once more, then tap “Mark memorised” when you feel confident.'
+        : 'Tap “Mark memorised” when you are ready to move forward.';
+      window.AlfawzCelebrations.celebrate('memorization-verse', {
+        message,
+        detail,
+        cta: 'Mark memorised',
+      });
+    }
     setRepeatButtonState();
   };
 
@@ -911,6 +972,7 @@
         surahId: state.planDetail?.surah_id || null,
         verseId: state.currentVerse,
       };
+      state.lastVerseCelebrationKey = null;
       broadcast('alfawz:memorizationVerse', {
         planId: state.planDetail?.id || state.planSummary?.id || null,
         surahId: state.planDetail?.surah_id || null,
@@ -983,7 +1045,14 @@
       broadcast('alfawz:memorizationVerse', { planId: null, surahId: null, verseId: null });
       return;
     }
+    const previousPlanId = state.planDetail?.id || state.planSummary?.id || null;
     state.planDetail = await fetchPlanDetail(state.planSummary.id);
+    if (state.planDetail) {
+      const currentPlanId = state.planDetail?.id || state.planSummary?.id || null;
+      if (currentPlanId && currentPlanId !== previousPlanId) {
+        state.lastPlanCelebrationKey = null;
+      }
+    }
     if (!state.planDetail) {
       setActiveState(false);
       setStatus(wpData.planLoadError || 'Unable to load your memorization plan.', 'error');
@@ -1046,6 +1115,7 @@
         verseId: null,
         complete: true,
       });
+      celebratePlanCompletion();
       return;
     }
     toggleElement(el.repeatButton, true);
@@ -1104,6 +1174,7 @@
         }
         setPlanHeader(state.planDetail);
         await syncSurahVisibility();
+        celebratePlanCompletion();
         return;
       }
       await renderVerse();

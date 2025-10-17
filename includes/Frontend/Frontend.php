@@ -67,9 +67,17 @@ class Frontend {
             );
 
             wp_enqueue_script(
+                'alfawz-celebrations',
+                ALFAWZQURAN_PLUGIN_URL . 'assets/js/alfawz-celebrations.js',
+                [],
+                ALFAWZQURAN_VERSION,
+                true
+            );
+
+            wp_enqueue_script(
                 'alfawz-frontend',
                 ALFAWZQURAN_PLUGIN_URL . 'assets/js/frontend.js',
-                [],
+                [ 'alfawz-celebrations' ],
                 ALFAWZQURAN_VERSION,
                 true
             );
@@ -77,7 +85,7 @@ class Frontend {
             wp_enqueue_script(
                 'alfawz-routine',
                 ALFAWZQURAN_PLUGIN_URL . 'assets/js/alfawz-routine.js',
-                [],
+                [ 'alfawz-celebrations' ],
                 ALFAWZQURAN_VERSION,
                 true
             );
@@ -85,7 +93,7 @@ class Frontend {
             wp_enqueue_script(
                 'alfawz-memorization',
                 ALFAWZQURAN_PLUGIN_URL . 'assets/js/alfawz-memorization.js',
-                [],
+                [ 'alfawz-celebrations' ],
                 ALFAWZQURAN_VERSION,
                 true
             );

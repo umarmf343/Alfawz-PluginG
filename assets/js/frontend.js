@@ -2877,7 +2877,11 @@
       }
     };
 
-    const spawnConfetti = (host, count = 18) => {
+    const spawnConfetti = (host, count = 18, palette) => {
+      if (window.AlfawzCelebrations && typeof window.AlfawzCelebrations.spawnConfetti === 'function') {
+        window.AlfawzCelebrations.spawnConfetti(host || confettiHost, count, palette);
+        return;
+      }
       if (!host) {
         return;
       }
@@ -2906,6 +2910,15 @@
       announceCelebration(
         surahName ? `Takbir! You completed ${surahName}.` : 'Takbir! You completed this surah.'
       );
+      if (window.AlfawzCelebrations && typeof window.AlfawzCelebrations.celebrate === 'function') {
+        window.AlfawzCelebrations.celebrate('surah', {
+          message: surahName
+            ? `Takbir! You completed ${surahName}. May the Qur’an be a light for you.`
+            : 'Takbir! You completed this surah. May the Qur’an be a light for you.',
+          detail: 'Take a moment to make du’a or continue to the next recitation.',
+          cta: 'Continue reciting',
+        });
+      }
     };
 
     const maybeCelebrateSurahCompletion = (surahId, verseId) => {
@@ -3023,6 +3036,14 @@
       }
       spawnConfetti(dailyModalConfetti || confettiHost, 28);
       announceCelebration('MashaAllah! Daily goal achieved.');
+      if (window.AlfawzCelebrations && typeof window.AlfawzCelebrations.celebrate === 'function') {
+        const verses = state?.target || defaultDailyTarget;
+        window.AlfawzCelebrations.celebrate('daily', {
+          message: `You reached your daily goal of ${verses} verses. MashaAllah!`,
+          detail: 'Set a fresh intention or revisit your favourite passage.',
+          cta: 'Plan tomorrow’s goal',
+        });
+      }
     };
 
     const closeDailyModal = () => {
