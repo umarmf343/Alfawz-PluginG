@@ -144,6 +144,9 @@ class Frontend {
                     'gamePanelLevelLabel' => __('Level', 'alfawzquran'),
                     'gamePanelBadgeSingular' => __('badge unlocked', 'alfawzquran'),
                     'gamePanelBadgePlural' => __('badges unlocked', 'alfawzquran'),
+                    'gamePanelLockedLabel' => __('Locked', 'alfawzquran'),
+                    'gamePanelPlayNow' => __('Play Now', 'alfawzquran'),
+                    'gamePanelKeepGoing' => __('Keep Going', 'alfawzquran'),
                 ],
             ]);
 

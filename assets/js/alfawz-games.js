@@ -16,6 +16,9 @@
     levelLabel: wpData.strings?.gamePanelLevelLabel || 'Level',
     badgeSingular: wpData.strings?.gamePanelBadgeSingular || 'badge unlocked',
     badgePlural: wpData.strings?.gamePanelBadgePlural || 'badges unlocked',
+    locked: wpData.strings?.gamePanelLockedLabel || 'Locked',
+    playNow: wpData.strings?.gamePanelPlayNow || 'Play Now',
+    keepGoing: wpData.strings?.gamePanelKeepGoing || 'Keep Going',
   };
 
   const root = document.querySelector('#alfawz-game-panel');
@@ -188,50 +191,88 @@
 
     achievements.forEach((achievement, index) => {
       const unlocked = Boolean(achievement.unlocked);
-      const card = document.createElement('div');
-      card.className = `relative flex flex-col items-center overflow-hidden rounded-3xl border border-[#8b1e3f]/20 p-6 text-center shadow-xl transition-transform duration-300 ${
+      const card = document.createElement('article');
+      card.className = `group relative flex flex-col items-center overflow-hidden rounded-[28px] border-2 p-7 text-center shadow-xl transition-all duration-300 ${
         unlocked
-          ? 'bg-gradient-to-br from-[#fbe6dd]/90 via-[#fde9e5]/90 to-white/95 text-[#4d081d] shadow-[#4d081d]/15'
-          : 'bg-white/95 text-[#5f0d26] shadow-[#2e0715]/10'
-      }`;
+          ? 'bg-gradient-to-br from-[#8b1e3f]/90 via-[#c43a59]/85 to-[#f59bb4]/80 text-white shadow-[0_24px_45px_-18px_rgba(139,30,63,0.55)] hover:-translate-y-2 hover:shadow-[0_34px_55px_-15px_rgba(139,30,63,0.55)] border-transparent'
+          : 'bg-gradient-to-br from-white/96 via-[#fde9e5]/96 to-[#fff9f7]/96 text-[#5f0d26] shadow-[#2e0715]/12 hover:-translate-y-1.5 hover:shadow-2xl border-[#f4c7d3]/70'
+      } backdrop-blur-sm`;
       card.dataset.status = unlocked ? 'unlocked' : 'locked';
       card.style.setProperty('--alfawz-delay', `${index * 100}ms`);
       requestAnimationFrame(() => {
         card.classList.add('animate-pop-in');
       });
 
-      const icon = document.createElement('div');
-      icon.className = 'text-4xl drop-shadow-sm';
-      icon.setAttribute('aria-hidden', 'true');
+      const glow = document.createElement('div');
+      glow.className = `pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 ${
+        unlocked ? 'bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.45),_transparent_65%)]' : 'bg-[radial-gradient(circle_at_bottom,_rgba(255,255,255,0.85),_transparent_70%)]'
+      } group-hover:opacity-100`;
+      card.appendChild(glow);
+
+      const statusChip = document.createElement('span');
+      statusChip.className = `absolute right-5 top-5 inline-flex items-center gap-2 rounded-full px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.35em] transition-colors duration-300 ${
+        unlocked ? 'bg-white/25 text-white shadow-lg shadow-[#4d081d]/25 backdrop-blur' : 'bg-white/80 text-[#8b1e3f] shadow-inner'
+      }`;
+      statusChip.textContent = unlocked ? strings.completed : strings.locked;
+      card.appendChild(statusChip);
+
+      const iconWrap = document.createElement('div');
+      iconWrap.className = `relative z-10 inline-flex h-16 w-16 items-center justify-center rounded-3xl border-2 text-4xl transition-transform duration-300 ${
+        unlocked
+          ? 'border-white/70 bg-white/20 text-white shadow-lg shadow-[#4d081d]/35 group-hover:scale-110'
+          : 'border-[#f4c7d3]/60 bg-white/80 text-[#b3264a] shadow-lg shadow-[#7d1b36]/15 group-hover:scale-105'
+      }`;
+      iconWrap.setAttribute('aria-hidden', 'true');
+      const icon = document.createElement('span');
+      icon.className = 'drop-shadow-sm';
       icon.textContent = achievement.icon || (unlocked ? '✨' : '🔒');
-      card.appendChild(icon);
+      iconWrap.appendChild(icon);
+      card.appendChild(iconWrap);
 
       const title = document.createElement('p');
-      title.className = 'mt-2 text-lg font-semibold';
+      title.className = `relative z-10 mt-4 text-xl font-black tracking-tight ${unlocked ? 'text-white drop-shadow-lg' : 'text-[#3b0c1f] drop-shadow-sm'}`;
       title.textContent = achievement.title || '';
       card.appendChild(title);
 
       if (achievement.description) {
         const description = document.createElement('p');
-        description.className = 'mt-2 text-base font-medium text-[#7a0f32]/80';
+        description.className = `relative z-10 mt-3 text-base font-medium leading-relaxed ${
+          unlocked ? 'text-white/90' : 'text-[#6f1330]/80'
+        }`;
         description.textContent = achievement.description;
         card.appendChild(description);
       }
 
       if (Number.isFinite(achievement.reward)) {
-        const reward = document.createElement('p');
-        reward.className = 'mt-4 inline-flex items-center rounded-full bg-white/70 px-3 py-1 text-sm font-semibold text-[#8b1e3f] shadow-sm';
-        reward.textContent = `+${formatNumber(achievement.reward)} Hasanat`;
+        const reward = document.createElement('div');
+        reward.className = `relative z-10 mt-5 inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-semibold shadow-lg transition duration-300 ${
+          unlocked ? 'bg-white/20 text-white shadow-[#4d081d]/30 backdrop-blur group-hover:shadow-[#4d081d]/45' : 'bg-white/85 text-[#8b1e3f] shadow-[#4d081d]/10'
+        }`;
+        const rewardIcon = document.createElement('span');
+        rewardIcon.setAttribute('aria-hidden', 'true');
+        rewardIcon.textContent = '✨';
+        const rewardLabel = document.createElement('span');
+        rewardLabel.textContent = `+${formatNumber(achievement.reward)} Hasanat`;
+        reward.appendChild(rewardIcon);
+        reward.appendChild(rewardLabel);
         card.appendChild(reward);
       }
 
       if (achievement.target) {
         const { wrapper, percentage } = buildProgressBar(achievement.progress || 0, achievement.target);
-        wrapper.classList.add('mt-5');
+        wrapper.className = `relative mt-5 h-2.5 w-full overflow-hidden rounded-full ${
+          unlocked ? 'bg-white/25' : 'bg-[#f9dce2]/80'
+        }`;
+        const progressBar = wrapper.querySelector('div');
+        if (progressBar) {
+          progressBar.className = `h-full rounded-full transition-all duration-500 ${
+            unlocked ? 'bg-gradient-to-r from-white via-[#ffd5e0] to-[#ffe8ef]' : 'bg-gradient-to-r from-[#8b1e3f] via-[#d05672] to-[#f9a8b5]'
+          }`;
+        }
         card.appendChild(wrapper);
 
         const caption = document.createElement('p');
-        caption.className = 'mt-3 text-sm font-semibold text-[#7a0f32]';
+        caption.className = `relative mt-3 text-sm font-semibold ${unlocked ? 'text-white/85' : 'text-[#7a0f32]'}`;
         const progressValue = `${formatNumber(Math.min(achievement.progress || 0, achievement.target))} / ${formatNumber(
           achievement.target
         )}`;
@@ -240,6 +281,52 @@
           : `${progressValue} • ${percentage.toFixed(0)}%`;
         card.appendChild(caption);
       }
+
+      const playButton = document.createElement('button');
+      playButton.type = 'button';
+      playButton.className = `relative z-10 mt-6 inline-flex items-center gap-2 rounded-full px-5 py-2 text-sm font-semibold transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ${
+        unlocked
+          ? 'bg-white text-[#8b1e3f] shadow-lg shadow-[#4d081d]/25 ring-[#8b1e3f]/60 ring-offset-transparent hover:-translate-y-1 hover:bg-[#ffe5ec] hover:text-[#5f0d26]'
+          : 'bg-white/70 text-[#8b1e3f]/60 shadow-inner ring-0 cursor-not-allowed'
+      }`;
+      playButton.dataset.achievementId = achievement.id || '';
+      playButton.setAttribute('aria-label', `${(unlocked ? strings.playNow : strings.keepGoing) || ''} – ${achievement.title || ''}`.trim());
+
+      const playIcon = document.createElement('span');
+      playIcon.setAttribute('aria-hidden', 'true');
+      playIcon.className = 'text-base';
+      playIcon.textContent = unlocked ? '▶' : '🔒';
+      const playLabel = document.createElement('span');
+      playLabel.textContent = unlocked ? strings.playNow : strings.keepGoing;
+      playButton.appendChild(playIcon);
+      playButton.appendChild(playLabel);
+
+      if (unlocked) {
+        const handlePlay = () => {
+          const targetUrl = achievement.play_url || wpData.gamePlayUrl || wpData.memorizerUrl || wpData.readerUrl || '';
+          if (targetUrl) {
+            window.location.href = targetUrl;
+            return;
+          }
+          window.dispatchEvent(
+            new CustomEvent('alfawz:playAchievement', {
+              detail: {
+                achievement,
+              },
+            })
+          );
+        };
+        playButton.addEventListener('click', (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          handlePlay();
+        });
+      } else {
+        playButton.disabled = true;
+        playButton.setAttribute('aria-disabled', 'true');
+      }
+
+      card.appendChild(playButton);
 
       elements.achievementGrid.appendChild(card);
     });
