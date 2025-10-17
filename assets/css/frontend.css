@@ -111,6 +111,31 @@
   --alfawz-text-xs: clamp(1.125rem, 1.03rem + 0.24vw, 1.24rem);
 }
 
+#alfawz-reader {
+  --alfawz-reader-verse-gap: clamp(8.75rem, 5.5rem + 12vw, 13.75rem);
+  --alfawz-reader-arabic-size: clamp(18.75rem, 8rem + 36vw, 33.75rem);
+  --alfawz-reader-arabic-line: 1.92;
+  --alfawz-reader-translit-size: clamp(10rem, 5.75rem + 16vw, 14.25rem);
+  --alfawz-reader-translit-line: 1.95;
+  --alfawz-reader-translation-size: clamp(9.5rem, 5.25rem + 15vw, 13.5rem);
+  --alfawz-reader-translation-line: 1.98;
+  --alfawz-surah-preview-arabic: clamp(10.5rem, 6rem + 15vw, 15.75rem);
+  --alfawz-surah-preview-line: 1.72;
+  --alfawz-surah-preview-copy: clamp(7.5rem, 5.25rem + 11vw, 9.75rem);
+  --alfawz-surah-preview-copy-line: 1.82;
+}
+
+@media (min-width: 768px) {
+  #alfawz-reader {
+    --alfawz-reader-arabic-size: clamp(22.5rem, 12.5rem + 31vw, 37.5rem);
+    --alfawz-reader-arabic-line: 2.05;
+    --alfawz-reader-translit-size: clamp(10.5rem, 7.5rem + 14vw, 15rem);
+    --alfawz-reader-translit-line: 2.05;
+    --alfawz-reader-translation-size: clamp(10rem, 7.25rem + 12vw, 14.25rem);
+    --alfawz-reader-translation-line: 2.05;
+  }
+}
+
 #alfawz-account,
 #alfawz-dashboard,
 #alfawz-reader,
@@ -878,11 +903,15 @@
   justify-content: center;
 }
 
+
 .alfawz-verse-panel__content {
   display: grid;
-  gap: clamp(1.5rem, 4vw, 2.5rem);
+  gap: var(--alfawz-reader-verse-gap);
   width: 100%;
   justify-items: center;
+  max-width: min(70ch, 100%);
+  margin-inline: auto;
+  padding-inline: clamp(0.5rem, 2vw, 1.25rem);
 }
 
 .alfawz-next-surah {
@@ -892,28 +921,39 @@
   text-decoration: none;
 }
 
+/* Reader verse typography */
 .alfawz-arabic {
+  margin: 0;
   font-family: 'Scheherazade New', 'Amiri', serif;
-  font-size: clamp(4.5rem, 9vw, 6.5rem);
-  line-height: 1.6;
+  font-size: var(--alfawz-reader-arabic-size);
+  line-height: var(--alfawz-reader-arabic-line);
+  letter-spacing: 0.01em;
   color: var(--alfawz-maroon-800);
+  text-wrap: balance;
 }
 
 #alfawz-arabic-text {
-  font-size: 4rem;
+  font-size: inherit;
+  line-height: inherit;
 }
 
 .alfawz-transliteration {
-  margin-top: 1.25rem;
-  font-size: clamp(1.6rem, 3.8vw, 2.2rem);
-  color: rgba(79, 13, 24, 0.78);
+  margin: 0;
+  font-size: var(--alfawz-reader-translit-size);
+  line-height: var(--alfawz-reader-translit-line);
+  color: rgba(79, 13, 24, 0.82);
+  max-width: 64ch;
+  text-wrap: pretty;
 }
 
 .alfawz-translation {
-  margin-top: 0.75rem;
-  font-size: clamp(1.5rem, 3.6vw, 2.1rem);
+  margin: 0;
+  font-size: var(--alfawz-reader-translation-size);
+  line-height: var(--alfawz-reader-translation-line);
   font-style: italic;
-  color: rgba(68, 36, 38, 0.75);
+  color: rgba(68, 36, 38, 0.78);
+  max-width: 68ch;
+  text-wrap: pretty;
 }
 
 .alfawz-verse-toggles {
@@ -1144,18 +1184,20 @@
   color: rgba(79, 13, 24, 0.78);
 }
 
+/* Surah list typography */
 .alfawz-surah-item__arabic {
   margin: 0;
   font-family: 'Scheherazade New', 'Amiri', serif;
-  font-size: clamp(1.9rem, 3vw, 2.4rem);
-  line-height: 1.55;
+  font-size: var(--alfawz-surah-preview-arabic);
+  line-height: var(--alfawz-surah-preview-line);
   color: var(--alfawz-maroon-800);
 }
 
 .alfawz-surah-item__transliteration,
 .alfawz-surah-item__translation {
-  margin: 0.6rem 0 0;
-  font-size: var(--alfawz-text-small);
+  margin: 0.75rem 0 0;
+  font-size: var(--alfawz-surah-preview-copy);
+  line-height: var(--alfawz-surah-preview-copy-line);
   color: rgba(68, 36, 38, 0.75);
 }
 
