@@ -21,14 +21,22 @@ use function rest_ensure_response;
 use function sanitize_key;
 use function sanitize_text_field;
 use function sanitize_textarea_field;
+use function sanitize_email;
+use function sanitize_user;
 use function get_avatar_url;
 use function get_option;
 use function get_user_meta;
 use function delete_user_meta;
+use function email_exists;
+use function username_exists;
+use function wp_generate_password;
+use function wp_insert_user;
+use function wp_new_user_notification;
 use function wp_strip_all_tags;
 use function wp_json_encode;
 use function wp_trim_words;
 use function update_user_meta;
+use function is_email;
 
 /**
  * Register REST API routes for the plugin.
@@ -828,9 +836,16 @@ class Routes {
             $namespace,
             '/admin/users',
             [
-                'methods'             => WP_REST_Server::READABLE,
-                'callback'            => [ $this, 'get_admin_users' ],
-                'permission_callback' => [ $this, 'admin_permission_callback' ],
+                [
+                    'methods'             => WP_REST_Server::READABLE,
+                    'callback'            => [ $this, 'get_admin_users' ],
+                    'permission_callback' => [ $this, 'admin_permission_callback' ],
+                ],
+                [
+                    'methods'             => WP_REST_Server::CREATABLE,
+                    'callback'            => [ $this, 'create_admin_user' ],
+                    'permission_callback' => [ $this, 'admin_permission_callback' ],
+                ],
             ]
         );
 
@@ -1926,6 +1941,100 @@ class Routes {
     }
 
     /**
+     * Create a new user from the admin dashboard.
+     */
+    public function create_admin_user( WP_REST_Request $request ) {
+        $nonce = $this->verify_action_nonce( $request, 'alfawz_admin_users' );
+        if ( is_wp_error( $nonce ) ) {
+            return $nonce;
+        }
+
+        $params = $request->get_json_params();
+
+        $first_name   = isset( $params['first_name'] ) ? sanitize_text_field( $params['first_name'] ) : '';
+        $last_name    = isset( $params['last_name'] ) ? sanitize_text_field( $params['last_name'] ) : '';
+        $display_name = isset( $params['display_name'] ) ? sanitize_text_field( $params['display_name'] ) : '';
+        $email        = isset( $params['email'] ) ? sanitize_email( $params['email'] ) : '';
+        $role         = isset( $params['role'] ) ? sanitize_text_field( $params['role'] ) : '';
+        $password     = isset( $params['password'] ) && is_string( $params['password'] ) ? trim( $params['password'] ) : '';
+        $send_email   = ! empty( $params['send_email'] );
+
+        if ( ! $email || ! is_email( $email ) ) {
+            return new WP_Error( 'rest_invalid_email', __( 'Please provide a valid email address.', 'alfawzquran' ), [ 'status' => 400 ] );
+        }
+
+        if ( email_exists( $email ) ) {
+            return new WP_Error( 'rest_email_exists', __( 'A user with this email already exists.', 'alfawzquran' ), [ 'status' => 409 ] );
+        }
+
+        $allowed_roles = apply_filters( 'alfawz_admin_allowed_roles', [ 'student', 'teacher', 'alfawz_admin', 'subscriber' ] );
+
+        if ( ! in_array( $role, $allowed_roles, true ) ) {
+            return new WP_Error( 'rest_invalid_role', __( 'Invalid role supplied.', 'alfawzquran' ), [ 'status' => 400 ] );
+        }
+
+        if ( ! $display_name ) {
+            $display_name = trim( $first_name . ' ' . $last_name );
+        }
+
+        if ( ! $display_name ) {
+            $display_name = $email;
+        }
+
+        $username_input = isset( $params['username'] ) ? sanitize_user( $params['username'], true ) : '';
+        $username_base  = $username_input;
+
+        if ( ! $username_base && $email ) {
+            $username_base = sanitize_user( current( explode( '@', $email ) ), true );
+        }
+
+        if ( ! $username_base && $display_name ) {
+            $username_base = sanitize_user( $display_name, true );
+        }
+
+        $user_login = $this->generate_unique_username( $username_base );
+
+        $generated_password = false;
+
+        if ( '' === $password ) {
+            $password          = wp_generate_password( 12, false );
+            $generated_password = true;
+        }
+
+        $user_id = wp_insert_user(
+            [
+                'user_login'   => $user_login,
+                'user_pass'    => $password,
+                'user_email'   => $email,
+                'role'         => $role,
+                'first_name'   => $first_name,
+                'last_name'    => $last_name,
+                'display_name' => $display_name,
+                'nickname'     => $display_name,
+            ]
+        );
+
+        if ( is_wp_error( $user_id ) ) {
+            return $user_id;
+        }
+
+        if ( $send_email ) {
+            wp_new_user_notification( $user_id, null, 'both' );
+        }
+
+        $response = [
+            'user'       => $this->prepare_user_payload( get_userdata( $user_id ) ),
+            'email_sent' => (bool) $send_email,
+        ];
+
+        if ( $generated_password && ! $send_email ) {
+            $response['password'] = $password;
+        }
+
+        return new WP_REST_Response( $response, 201 );
+    }
+
+    /**
      * Return users for administrative role management.
      */
     public function get_admin_users( WP_REST_Request $request ) {
@@ -2527,6 +2636,27 @@ class Routes {
         );
 
         update_user_meta( $teacher_id, 'alfawz_teacher_classes', $classes );
+    }
+
+    /**
+     * Generate a unique username based on a preferred value.
+     */
+    private function generate_unique_username( $base ) {
+        $username = sanitize_user( $base, true );
+
+        if ( '' === $username ) {
+            $username = 'alfawz_user';
+        }
+
+        $original = $username;
+        $suffix   = 1;
+
+        while ( username_exists( $username ) ) {
+            $username = $original . $suffix;
+            $suffix++;
+        }
+
+        return $username;
     }
 
     /**
