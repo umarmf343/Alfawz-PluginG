@@ -575,6 +575,957 @@
     });
   };
 
+  const initVirtueGardenTycoon = () => {
+    const section = root.querySelector('#virtue-garden-tycoon');
+    if (!section) {
+      return;
+    }
+
+    const startButton = section.querySelector('#virtue-garden-start');
+    const screen = section.querySelector('#virtue-garden-screen');
+    const modal = section.querySelector('#virtue-garden-modal');
+    const modalCompleteButton = modal?.querySelector('#virtue-garden-complete-task');
+    const modalCloseButtons = modal ? Array.from(modal.querySelectorAll('[data-role="modal-dismiss"]')) : [];
+
+    const elementsGarden = {
+      seeds: section.querySelector('#virtue-seed-count'),
+      harmony: section.querySelector('#virtue-harmony'),
+      flourish: section.querySelector('#virtue-flourish'),
+      flourishBar: section.querySelector('#virtue-flourish-bar'),
+      streak: section.querySelector('#virtue-streak'),
+      tasks: section.querySelector('#virtue-garden-task-list'),
+      dailySummary: section.querySelector('#virtue-daily-summary'),
+      gardenGrid: section.querySelector('#virtue-garden-grid'),
+      story: section.querySelector('#virtue-garden-story'),
+      weather: section.querySelector('#virtue-garden-weather'),
+      upgrades: section.querySelector('#virtue-upgrade-list'),
+      modal: {
+        root: modal,
+        chip: modal?.querySelector('#virtue-garden-modal-chip') || null,
+        title: modal?.querySelector('#virtue-garden-modal-title') || null,
+        description: modal?.querySelector('#virtue-garden-modal-description') || null,
+        prompt: modal?.querySelector('#virtue-garden-modal-prompt') || null,
+        reward: modal?.querySelector('#virtue-garden-modal-reward') || null,
+      },
+    };
+
+    const storageKey = 'alfawz:virtue-garden-tycoon';
+    const MAX_SLOTS = 6;
+    const STAGE_LABELS = ['Seedling', 'Sprout', 'Bloom', 'Radiant Tree'];
+    const STAGE_EMOJIS = ['🌱', '🌿', '🌸', '🌳'];
+    const STAGE_THRESHOLDS = [0, 28, 68, 120];
+    const WEATHER_STATES = [
+      { label: 'Tranquil skies', hint: 'Seeds glow softly today.' },
+      { label: 'Dawn shimmer', hint: 'Reflection missions grant bonus harmony.' },
+      { label: 'Ihsan breeze', hint: 'Plants respond eagerly to nurture sessions.' },
+      { label: 'Moonlit hush', hint: 'Complete tafsir missions for radiant boosts.' },
+      { label: 'Rain of mercy', hint: 'New seedlings germinate faster.' },
+    ];
+    const PLANT_PREFIXES = ['Radiant', 'Serene', 'Guiding', 'Noor', 'Verdant', 'Hafidh', 'Barakah', 'Jannah'];
+    const PLANT_TYPES = ['Palm', 'Lily', 'Cedar', 'Rose', 'Jasmine', 'Olive', 'Tulip', 'Willow'];
+    const PLANT_TRAITS = [
+      'Amplifies tajwid focus',
+      'Boosts reflection clarity',
+      'Invites mindful recitation',
+      'Raises tafsir curiosity',
+      'Brightens memorisation mood',
+      'Steadies nightly review',
+      'Encourages dua journaling',
+      'Spreads gentle gratitude',
+    ];
+    const PLANT_BLESSINGS = [
+      'Releases a harmony wave when blooming',
+      'Sprinkles bonus seeds after every streak milestone',
+      'Guides you to a fresh tafsir insight',
+      'Teaches a luminous dua when flourishing',
+      'Unlocks a serene breathing exercise',
+      'Shares a scholar quote during reflection',
+    ];
+    const PLANT_MOODS = ['Tranquil', 'Joyful', 'Curious', 'Hopeful', 'Determined', 'Gentle'];
+    const TASKS = [
+      {
+        id: 'recite',
+        title: 'Recitation Sprint',
+        chip: 'Recite',
+        icon: '🎙️',
+        description: 'Recite three ayat aloud, paying attention to tajwid and melody.',
+        seeds: 12,
+        xp: 16,
+        maxCompletions: 2,
+        prompts: [
+          {
+            label: 'Melody focus',
+            steps: [
+              'Pick a short passage from today\'s review list.',
+              'Recite aloud and highlight every qalqalah or mad you notice.',
+              'Repeat the ayah once more while smiling to soften your tone.',
+            ],
+            reflection: 'Which tajwid rule brightened your recitation most today?',
+          },
+          {
+            label: 'Power breath',
+            steps: [
+              'Stand tall and take a deep breath before reciting.',
+              'Sustain your breath for as long as possible on a single ayah.',
+              'Mark any place you needed to pause and retry with stronger breath.',
+            ],
+            reflection: 'How did your breathing change the feeling of the ayat?',
+          },
+        ],
+      },
+      {
+        id: 'reflect',
+        title: 'Reflection Journal',
+        chip: 'Reflect',
+        icon: '🪞',
+        description: 'Pause with one ayah and write a heartfelt takeaway.',
+        seeds: 14,
+        xp: 18,
+        maxCompletions: 2,
+        prompts: [
+          {
+            label: 'Heart map',
+            steps: [
+              'Choose an ayah that feels relevant to you right now.',
+              'Write down three emotions the ayah awakens inside you.',
+              'Describe one action you can take inspired by the ayah.',
+            ],
+            reflection: 'Who could you share this reflection with today?',
+          },
+          {
+            label: 'Gratitude glow',
+            steps: [
+              'Read the ayah slowly twice, once silently and once aloud.',
+              'List two blessings mentioned or implied in the ayah.',
+              'Craft a short dua thanking Allah for those blessings.',
+            ],
+            reflection: 'Which blessing felt newly appreciated after reflecting?',
+          },
+        ],
+      },
+      {
+        id: 'tafseer',
+        title: 'Tafsir Discovery',
+        chip: 'Learn',
+        icon: '📚',
+        description: 'Study a tafsir snippet and share the gem you uncovered.',
+        seeds: 16,
+        xp: 22,
+        maxCompletions: 1,
+        prompts: [
+          {
+            label: 'Context clues',
+            steps: [
+              'Read a short tafsir paragraph for an ayah you love.',
+              'Note the historical moment or lesson highlighted by scholars.',
+              'Explain the insight aloud as if teaching a younger sibling.',
+            ],
+            reflection: 'What surprised you about the ayah\'s deeper context?',
+          },
+          {
+            label: 'Keyword hunt',
+            steps: [
+              'Pick an Arabic keyword from the ayah and look up its root meaning.',
+              'List two synonyms that expand your understanding of the verse.',
+              'Share the meaning in your journal with a colourful doodle.',
+            ],
+            reflection: 'How does this keyword reshape your appreciation of the message?',
+          },
+        ],
+      },
+    ];
+    const UPGRADE_CATALOG = [
+      {
+        id: 'waterBlessing',
+        title: 'Water Blessing',
+        icon: '💧',
+        description: 'Reduce nurture costs by 1 (never below 2).',
+        costBase: 24,
+        costStep: 10,
+        maxLevel: 3,
+      },
+      {
+        id: 'knowledgeFountain',
+        title: 'Knowledge Fountain',
+        icon: '📖',
+        description: 'Each mission grants +2 bonus seeds per level.',
+        costBase: 30,
+        costStep: 12,
+        maxLevel: 3,
+      },
+      {
+        id: 'shrineGlow',
+        title: 'Shrine Glow',
+        icon: '✨',
+        description: 'Plants earn +4 extra growth XP per nurture.',
+        costBase: 34,
+        costStep: 14,
+        maxLevel: 3,
+      },
+    ];
+    const NEW_PLANT_COST = 8;
+
+    const defaultTasksState = () => {
+      const result = {};
+      TASKS.forEach((task) => {
+        result[task.id] = { completions: 0 };
+      });
+      return result;
+    };
+
+    const defaultUpgradesState = () => {
+      const result = {};
+      UPGRADE_CATALOG.forEach((upgrade) => {
+        result[upgrade.id] = 0;
+      });
+      return result;
+    };
+
+    const defaultState = () => ({
+      seeds: 15,
+      harmony: 28,
+      streak: 0,
+      dayCount: 1,
+      currentDay: null,
+      tasks: defaultTasksState(),
+      plants: Array.from({ length: MAX_SLOTS }, () => null),
+      unlockedSlots: 3,
+      selectedPlant: null,
+      story: [],
+      totalCompletions: 0,
+      upgrades: defaultUpgradesState(),
+      weatherIndex: Math.floor(Math.random() * WEATHER_STATES.length),
+      visited: false,
+    });
+
+    const getTodayKey = () => {
+      const now = new Date();
+      const month = `${now.getMonth() + 1}`.padStart(2, '0');
+      const day = `${now.getDate()}`.padStart(2, '0');
+      return `${now.getFullYear()}-${month}-${day}`;
+    };
+
+    const differenceInDays = (from, to) => {
+      if (!from || !to) {
+        return 0;
+      }
+      const fromDate = new Date(`${from}T00:00:00`);
+      const toDate = new Date(`${to}T00:00:00`);
+      const diff = Math.round((toDate - fromDate) / 86400000);
+      return Number.isFinite(diff) ? diff : 0;
+    };
+
+    const randomFrom = (list) => {
+      if (!Array.isArray(list) || !list.length) {
+        return null;
+      }
+      return list[Math.floor(Math.random() * list.length)];
+    };
+
+    const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
+
+    const localStorageAvailable = () => {
+      try {
+        return typeof window !== 'undefined' && 'localStorage' in window;
+      } catch (error) {
+        return false;
+      }
+    };
+
+    const loadState = () => {
+      const base = defaultState();
+      if (!localStorageAvailable()) {
+        return base;
+      }
+      try {
+        const stored = window.localStorage.getItem(storageKey);
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (parsed && typeof parsed === 'object') {
+            base.seeds = Number.isFinite(parsed.seeds) ? parsed.seeds : base.seeds;
+            base.harmony = Number.isFinite(parsed.harmony) ? parsed.harmony : base.harmony;
+            base.streak = Number.isFinite(parsed.streak) ? parsed.streak : base.streak;
+            base.dayCount = Number.isFinite(parsed.dayCount) ? parsed.dayCount : base.dayCount;
+            base.currentDay = typeof parsed.currentDay === 'string' ? parsed.currentDay : base.currentDay;
+            base.unlockedSlots = clamp(Number(parsed.unlockedSlots || base.unlockedSlots), 1, MAX_SLOTS);
+            base.selectedPlant = typeof parsed.selectedPlant === 'string' ? parsed.selectedPlant : base.selectedPlant;
+            base.totalCompletions = Number.isFinite(parsed.totalCompletions) ? parsed.totalCompletions : base.totalCompletions;
+            base.weatherIndex = Number.isFinite(parsed.weatherIndex)
+              ? Math.abs(parsed.weatherIndex) % WEATHER_STATES.length
+              : base.weatherIndex;
+            base.visited = Boolean(parsed.visited);
+            if (Array.isArray(parsed.story)) {
+              base.story = parsed.story.slice(0, 20);
+            }
+            if (parsed.tasks && typeof parsed.tasks === 'object') {
+              base.tasks = { ...defaultTasksState(), ...parsed.tasks };
+            }
+            if (Array.isArray(parsed.plants)) {
+              base.plants = Array.from({ length: MAX_SLOTS }, (_, index) => parsed.plants[index] || null);
+            }
+            if (parsed.upgrades && typeof parsed.upgrades === 'object') {
+              base.upgrades = { ...defaultUpgradesState(), ...parsed.upgrades };
+            }
+          }
+        }
+      } catch (error) {
+        console.warn('[AlfawzQuran] Unable to load Virtue Garden state:', error);
+      }
+      return base;
+    };
+
+    let state = loadState();
+
+    const saveState = () => {
+      if (!localStorageAvailable()) {
+        return;
+      }
+      try {
+        window.localStorage.setItem(storageKey, JSON.stringify(state));
+      } catch (error) {
+        console.warn('[AlfawzQuran] Unable to save Virtue Garden state:', error);
+      }
+    };
+
+    const addStoryEntry = (title, detail, tone = 'log') => {
+      if (!state.story) {
+        state.story = [];
+      }
+      state.story.unshift({
+        id: `story-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`,
+        title,
+        detail,
+        tone,
+        time: Date.now(),
+      });
+      if (state.story.length > 20) {
+        state.story.length = 20;
+      }
+    };
+
+    const ensureSelectedPlant = () => {
+      if (state.selectedPlant && state.plants.some((plant) => plant && plant.id === state.selectedPlant)) {
+        return;
+      }
+      const firstPlant = state.plants.find((plant) => Boolean(plant));
+      state.selectedPlant = firstPlant ? firstPlant.id : null;
+    };
+
+    const syncDay = () => {
+      const todayKey = getTodayKey();
+      if (state.currentDay === todayKey) {
+        return;
+      }
+      const difference = differenceInDays(state.currentDay, todayKey);
+      state.currentDay = todayKey;
+      if (difference === 1) {
+        state.streak = (state.streak || 0) + 1;
+      } else {
+        state.streak = 1;
+      }
+      state.dayCount = Math.max(1, (state.dayCount || 1) + (difference > 0 ? 1 : 0));
+      state.tasks = defaultTasksState();
+      state.totalCompletions = 0;
+      state.harmony = Math.max(18, Math.round((state.harmony || 28) * 0.92));
+      state.weatherIndex = Math.floor(Math.random() * WEATHER_STATES.length);
+      addStoryEntry('Sunrise Blessings', 'A new day dawns in the Virtue Garden. Fresh missions await!', 'daybreak');
+      saveState();
+    };
+
+    const createPlant = () => ({
+      id: `plant-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`,
+      name: `${randomFrom(PLANT_PREFIXES)} ${randomFrom(PLANT_TYPES)}`,
+      stage: 0,
+      xp: 0,
+      trait: randomFrom(PLANT_TRAITS),
+      blessing: randomFrom(PLANT_BLESSINGS),
+      mood: randomFrom(PLANT_MOODS),
+      createdAt: Date.now(),
+      lastBoosted: Date.now(),
+    });
+
+    const getPlantStageLabel = (plant) => STAGE_LABELS[clamp(plant.stage, 0, STAGE_LABELS.length - 1)] || STAGE_LABELS[0];
+
+    const getPlantEmoji = (plant) => STAGE_EMOJIS[clamp(plant.stage, 0, STAGE_EMOJIS.length - 1)] || '🌱';
+
+    const getNurtureCost = (plant) => {
+      const baseCost = 5 + plant.stage * 3;
+      const reduction = state.upgrades.waterBlessing || 0;
+      return Math.max(2, baseCost - reduction);
+    };
+
+    const boostPlant = (plant, xpGain, reason = 'nurture') => {
+      if (!plant || !Number.isFinite(xpGain)) {
+        return;
+      }
+      const bonus = state.upgrades.shrineGlow || 0;
+      const totalXpGain = xpGain + bonus * 4;
+      plant.xp += totalXpGain;
+      plant.lastBoosted = Date.now();
+
+      let leveledUp = false;
+      while (plant.stage < STAGE_LABELS.length - 1) {
+        const nextThreshold = STAGE_THRESHOLDS[plant.stage + 1] || Infinity;
+        if (plant.xp < nextThreshold) {
+          break;
+        }
+        plant.stage += 1;
+        leveledUp = true;
+        state.harmony = Math.min(160, (state.harmony || 28) + 10 + plant.stage * 2);
+        addStoryEntry(
+          `${plant.name} advanced!`,
+          `${getPlantStageLabel(plant)} unlocked • ${plant.blessing}`,
+          'garden'
+        );
+      }
+      if (!leveledUp && reason === 'nurture') {
+        state.harmony = Math.min(160, (state.harmony || 28) + 3 + bonus);
+      }
+    };
+
+    const plantSeed = (slot) => {
+      if (state.seeds < NEW_PLANT_COST) {
+        addStoryEntry('Need more seeds', 'Complete a mission to gather enough virtue seeds for planting.', 'log');
+        return;
+      }
+      const plant = createPlant();
+      state.seeds -= NEW_PLANT_COST;
+      state.plants[slot] = plant;
+      state.selectedPlant = plant.id;
+      boostPlant(plant, 12, 'plant');
+      addStoryEntry('New seedling planted', `${plant.name} is settling in with a ${plant.trait.toLowerCase()}.`, 'garden');
+      saveState();
+      renderGarden();
+      renderStats();
+    };
+
+    const nurturePlant = (plant) => {
+      const cost = getNurtureCost(plant);
+      if (state.seeds < cost) {
+        addStoryEntry('Not enough seeds', 'Complete more missions to gather seeds for nurturing.', 'log');
+        return;
+      }
+      state.seeds -= cost;
+      boostPlant(plant, 14 + plant.stage * 4, 'nurture');
+      addStoryEntry('Nurture session', `${plant.name} soaked up ${cost} seeds of care.`, 'garden');
+      saveState();
+      renderGarden();
+      renderStats();
+    };
+
+    const unlockPlot = () => {
+      if (state.unlockedSlots >= MAX_SLOTS) {
+        return;
+      }
+      const cost = 40 + state.unlockedSlots * 15;
+      if (state.seeds < cost) {
+        addStoryEntry('Unlock blocked', 'You need more seeds to open a new garden plot.', 'log');
+        return;
+      }
+      state.seeds -= cost;
+      state.unlockedSlots = clamp(state.unlockedSlots + 1, 1, MAX_SLOTS);
+      addStoryEntry('New plot unlocked', 'A fresh garden bed is ready for planting!', 'garden');
+      saveState();
+      renderGarden();
+      renderStats();
+    };
+
+    const totalMissionSlots = TASKS.reduce((sum, task) => sum + task.maxCompletions, 0);
+
+    const getTaskState = (taskId) => {
+      if (!state.tasks[taskId]) {
+        state.tasks[taskId] = { completions: 0 };
+      }
+      return state.tasks[taskId];
+    };
+
+    const completeTask = (task, prompt) => {
+      const taskState = getTaskState(task.id);
+      if (taskState.completions >= task.maxCompletions) {
+        return;
+      }
+      const upgradeBonus = (state.upgrades.knowledgeFountain || 0) * 2;
+      const streakBonus = Math.min(6, state.streak || 0);
+      const chanceBonus = Math.random() < 0.35 ? 3 : 0;
+      const seedsEarned = task.seeds + upgradeBonus + streakBonus + chanceBonus;
+      state.seeds += seedsEarned;
+      state.harmony = Math.min(170, (state.harmony || 28) + 6 + streakBonus);
+      taskState.completions += 1;
+      state.totalCompletions = (state.totalCompletions || 0) + 1;
+      const activePlant = state.plants.find((plant) => plant && plant.id === state.selectedPlant) || state.plants.find(Boolean);
+      if (activePlant) {
+        boostPlant(activePlant, task.xp, 'mission');
+      }
+      addStoryEntry(
+        `${task.title} complete!`,
+        `+${seedsEarned} virtue seeds${prompt?.label ? ` • Focus: ${prompt.label}` : ''}.`,
+        'task'
+      );
+      saveState();
+      renderAll();
+    };
+
+    let activeModalTask = null;
+    let activeModalPrompt = null;
+
+    const closeModal = () => {
+      if (!elementsGarden.modal.root) {
+        return;
+      }
+      elementsGarden.modal.root.classList.add('hidden');
+      elementsGarden.modal.root.classList.remove('is-visible');
+      activeModalTask = null;
+      activeModalPrompt = null;
+    };
+
+    const renderModalPrompt = (prompt) => {
+      if (!elementsGarden.modal.prompt) {
+        return;
+      }
+      elementsGarden.modal.prompt.innerHTML = '';
+      if (!prompt) {
+        return;
+      }
+      const list = document.createElement('ol');
+      list.className = 'virtue-garden-modal__steps';
+      prompt.steps?.forEach((step, index) => {
+        const item = document.createElement('li');
+        item.innerHTML = `<span>${index + 1}.</span><p>${step}</p>`;
+        list.appendChild(item);
+      });
+      elementsGarden.modal.prompt.appendChild(list);
+      if (prompt.reflection) {
+        const reflection = document.createElement('p');
+        reflection.className = 'virtue-garden-modal__reflection';
+        reflection.textContent = prompt.reflection;
+        elementsGarden.modal.prompt.appendChild(reflection);
+      }
+    };
+
+    const openTaskModal = (task) => {
+      if (!modal || !task) {
+        return;
+      }
+      const prompt = randomFrom(task.prompts) || null;
+      activeModalTask = task;
+      activeModalPrompt = prompt;
+      elementsGarden.modal.root?.classList.remove('hidden');
+      elementsGarden.modal.root?.classList.add('is-visible');
+      if (elementsGarden.modal.chip) {
+        elementsGarden.modal.chip.textContent = task.chip || '';
+      }
+      if (elementsGarden.modal.title) {
+        elementsGarden.modal.title.textContent = task.title;
+      }
+      if (elementsGarden.modal.description) {
+        elementsGarden.modal.description.textContent = task.description;
+      }
+      if (elementsGarden.modal.reward) {
+        const taskState = getTaskState(task.id);
+        const remaining = task.maxCompletions - taskState.completions;
+        elementsGarden.modal.reward.textContent = remaining > 0
+          ? `${remaining} attempt${remaining === 1 ? '' : 's'} remaining today`
+          : 'All attempts used today';
+      }
+      renderModalPrompt(prompt);
+    };
+
+    const renderStats = () => {
+      if (elementsGarden.seeds) {
+        elementsGarden.seeds.textContent = formatNumber(state.seeds || 0);
+      }
+      if (elementsGarden.harmony) {
+        elementsGarden.harmony.textContent = formatNumber(state.harmony || 0);
+      }
+      if (elementsGarden.streak) {
+        elementsGarden.streak.textContent = formatNumber(state.streak || 0);
+      }
+      const totalCompleted = TASKS.reduce(
+        (sum, task) => sum + (getTaskState(task.id).completions || 0),
+        0
+      );
+      const totalAvailable = totalMissionSlots || 1;
+      const percentage = clamp(Math.round((totalCompleted / totalAvailable) * 100), 0, 100);
+      if (elementsGarden.flourish) {
+        elementsGarden.flourish.textContent = `${percentage}%`;
+      }
+      if (elementsGarden.flourishBar) {
+        elementsGarden.flourishBar.style.width = `${percentage}%`;
+      }
+      if (elementsGarden.dailySummary) {
+        elementsGarden.dailySummary.textContent = `${totalCompleted} of ${totalAvailable} missions completed`;
+      }
+    };
+
+    const renderTasks = () => {
+      if (!elementsGarden.tasks) {
+        return;
+      }
+      elementsGarden.tasks.innerHTML = '';
+      TASKS.forEach((task) => {
+        const taskState = getTaskState(task.id);
+        const completed = taskState.completions >= task.maxCompletions;
+        const card = document.createElement('article');
+        card.className = `virtue-task-card${completed ? ' is-complete' : ''}`;
+        const header = document.createElement('div');
+        header.className = 'virtue-task-card__header';
+        const icon = document.createElement('span');
+        icon.className = 'virtue-task-card__icon';
+        icon.textContent = task.icon || '🌱';
+        header.appendChild(icon);
+        const titleWrap = document.createElement('div');
+        const chip = document.createElement('span');
+        chip.className = 'virtue-task-card__chip';
+        chip.textContent = task.chip || '';
+        const title = document.createElement('h4');
+        title.className = 'virtue-task-card__title';
+        title.textContent = task.title;
+        titleWrap.appendChild(chip);
+        titleWrap.appendChild(title);
+        header.appendChild(titleWrap);
+        card.appendChild(header);
+
+        const description = document.createElement('p');
+        description.className = 'virtue-task-card__description';
+        description.textContent = task.description;
+        card.appendChild(description);
+
+        const progress = document.createElement('div');
+        progress.className = 'virtue-task-card__progress';
+        const progressLabel = document.createElement('span');
+        progressLabel.textContent = `${taskState.completions} / ${task.maxCompletions}`;
+        const progressBar = document.createElement('div');
+        progressBar.className = 'virtue-task-card__progress-bar';
+        const innerBar = document.createElement('div');
+        innerBar.style.width = `${clamp((taskState.completions / task.maxCompletions) * 100, 0, 100)}%`;
+        progressBar.appendChild(innerBar);
+        progress.appendChild(progressLabel);
+        progress.appendChild(progressBar);
+        card.appendChild(progress);
+
+        const actions = document.createElement('div');
+        actions.className = 'virtue-task-card__actions';
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'virtue-task-card__button';
+        button.textContent = completed ? strings.completed || 'Completed' : strings.playNow || 'Play Now';
+        if (completed) {
+          button.disabled = true;
+        } else {
+          button.addEventListener('click', (event) => {
+            event.preventDefault();
+            openTaskModal(task);
+          });
+        }
+        actions.appendChild(button);
+        card.appendChild(actions);
+        elementsGarden.tasks.appendChild(card);
+      });
+    };
+
+    const renderGarden = () => {
+      if (!elementsGarden.gardenGrid) {
+        return;
+      }
+      elementsGarden.gardenGrid.innerHTML = '';
+      ensureSelectedPlant();
+      for (let index = 0; index < state.unlockedSlots; index += 1) {
+        const plant = state.plants[index];
+        if (plant) {
+          const card = document.createElement('div');
+          card.className = 'virtue-garden-plot';
+          card.dataset.stage = `${clamp(plant.stage, 0, STAGE_LABELS.length - 1)}`;
+          if (state.selectedPlant === plant.id) {
+            card.classList.add('is-active');
+          }
+          const header = document.createElement('div');
+          header.className = 'virtue-garden-plot__header';
+          const emoji = document.createElement('span');
+          emoji.className = 'virtue-garden-plot__emoji';
+          emoji.textContent = getPlantEmoji(plant);
+          header.appendChild(emoji);
+          const titleWrap = document.createElement('div');
+          const title = document.createElement('h4');
+          title.className = 'virtue-garden-plot__title';
+          title.textContent = plant.name;
+          const mood = document.createElement('p');
+          mood.className = 'virtue-garden-plot__mood';
+          mood.textContent = `${plant.mood} • ${getPlantStageLabel(plant)}`;
+          titleWrap.appendChild(title);
+          titleWrap.appendChild(mood);
+          header.appendChild(titleWrap);
+          card.appendChild(header);
+
+          const trait = document.createElement('p');
+          trait.className = 'virtue-garden-plot__trait';
+          trait.textContent = plant.trait;
+          card.appendChild(trait);
+
+          const progress = document.createElement('div');
+          progress.className = 'virtue-garden-plot__progress';
+          const nextThreshold = STAGE_THRESHOLDS[plant.stage + 1] || STAGE_THRESHOLDS[STAGE_THRESHOLDS.length - 1];
+          const percent = plant.stage >= STAGE_LABELS.length - 1
+            ? 100
+            : clamp((plant.xp / nextThreshold) * 100, 0, 100);
+          const progressInner = document.createElement('div');
+          progressInner.style.width = `${percent}%`;
+          progress.appendChild(progressInner);
+          const progressLabel = document.createElement('span');
+          progressLabel.className = 'virtue-garden-plot__xp';
+          progressLabel.textContent = plant.stage >= STAGE_LABELS.length - 1
+            ? 'Legendary form achieved'
+            : `${Math.round(plant.xp)} xp • next bloom at ${nextThreshold}`;
+          card.appendChild(progress);
+          card.appendChild(progressLabel);
+
+          const blessing = document.createElement('p');
+          blessing.className = 'virtue-garden-plot__blessing';
+          blessing.textContent = plant.blessing;
+          card.appendChild(blessing);
+
+          const actions = document.createElement('div');
+          actions.className = 'virtue-garden-plot__actions';
+          const focusButton = document.createElement('button');
+          focusButton.type = 'button';
+          focusButton.className = 'virtue-garden-plot__focus';
+          focusButton.textContent = state.selectedPlant === plant.id ? 'Focused' : 'Set Focus';
+          if (state.selectedPlant !== plant.id) {
+            focusButton.addEventListener('click', () => {
+              state.selectedPlant = plant.id;
+              addStoryEntry('Focus shifted', `${plant.name} is now your spotlight plant.`, 'garden');
+              saveState();
+              renderGarden();
+            });
+          } else {
+            focusButton.disabled = true;
+          }
+
+          const nurtureButton = document.createElement('button');
+          nurtureButton.type = 'button';
+          nurtureButton.className = 'virtue-garden-plot__action';
+          const nurtureCost = getNurtureCost(plant);
+          nurtureButton.textContent = `Nurture (${nurtureCost} seeds)`;
+          if (state.seeds < nurtureCost) {
+            nurtureButton.disabled = true;
+          } else {
+            nurtureButton.addEventListener('click', () => {
+              nurturePlant(plant);
+            });
+          }
+          actions.appendChild(focusButton);
+          actions.appendChild(nurtureButton);
+          card.appendChild(actions);
+
+          elementsGarden.gardenGrid.appendChild(card);
+        } else {
+          const emptyCard = document.createElement('div');
+          emptyCard.className = 'virtue-garden-plot virtue-garden-plot--empty';
+          const label = document.createElement('p');
+          label.className = 'virtue-garden-plot__empty-label';
+          label.textContent = 'Empty plot • Plant a new virtue seed';
+          const button = document.createElement('button');
+          button.type = 'button';
+          button.className = 'virtue-garden-plot__action';
+          button.textContent = `Plant seed (${NEW_PLANT_COST} seeds)`;
+          if (state.seeds < NEW_PLANT_COST) {
+            button.disabled = true;
+          } else {
+            button.addEventListener('click', () => {
+              plantSeed(index);
+            });
+          }
+          emptyCard.appendChild(label);
+          emptyCard.appendChild(button);
+          elementsGarden.gardenGrid.appendChild(emptyCard);
+        }
+      }
+
+      if (state.unlockedSlots < MAX_SLOTS) {
+        const unlockCard = document.createElement('div');
+        unlockCard.className = 'virtue-garden-plot virtue-garden-plot--locked';
+        const title = document.createElement('h4');
+        title.textContent = 'Locked plot';
+        const description = document.createElement('p');
+        description.textContent = 'Spend seeds to expand your garden and welcome new companions.';
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'virtue-garden-plot__action';
+        const cost = 40 + state.unlockedSlots * 15;
+        button.textContent = `Unlock for ${cost} seeds`;
+        if (state.seeds < cost) {
+          button.disabled = true;
+        } else {
+          button.addEventListener('click', () => {
+            unlockPlot();
+          });
+        }
+        unlockCard.appendChild(title);
+        unlockCard.appendChild(description);
+        unlockCard.appendChild(button);
+        elementsGarden.gardenGrid.appendChild(unlockCard);
+      }
+    };
+
+    const renderStory = () => {
+      if (!elementsGarden.story) {
+        return;
+      }
+      elementsGarden.story.innerHTML = '';
+      const storyItems = Array.isArray(state.story) && state.story.length ? state.story : [
+        {
+          id: 'story-empty',
+          title: 'Welcome to Virtue Garden Tycoon!',
+          detail: 'Start a mission to collect virtue seeds and plant your first seedling.',
+          tone: 'daybreak',
+          time: Date.now(),
+        },
+      ];
+
+      const formatter = new Intl.DateTimeFormat(undefined, { hour: 'numeric', minute: 'numeric' });
+      storyItems.forEach((entry) => {
+        const item = document.createElement('div');
+        item.className = `virtue-garden-story${entry.tone ? ` virtue-garden-story--${entry.tone}` : ''}`;
+        const title = document.createElement('p');
+        title.className = 'virtue-garden-story__title';
+        title.textContent = entry.title;
+        const detail = document.createElement('p');
+        detail.className = 'virtue-garden-story__detail';
+        detail.textContent = entry.detail;
+        const time = document.createElement('span');
+        time.className = 'virtue-garden-story__time';
+        time.textContent = formatter.format(new Date(entry.time));
+        item.appendChild(title);
+        item.appendChild(detail);
+        item.appendChild(time);
+        elementsGarden.story.appendChild(item);
+      });
+    };
+
+    const renderUpgrades = () => {
+      if (!elementsGarden.upgrades) {
+        return;
+      }
+      elementsGarden.upgrades.innerHTML = '';
+      UPGRADE_CATALOG.forEach((upgrade) => {
+        const level = state.upgrades[upgrade.id] || 0;
+        const card = document.createElement('div');
+        card.className = 'virtue-upgrade-card';
+        const header = document.createElement('div');
+        header.className = 'virtue-upgrade-card__header';
+        const icon = document.createElement('span');
+        icon.className = 'virtue-upgrade-card__icon';
+        icon.textContent = upgrade.icon || '✨';
+        const title = document.createElement('h4');
+        title.textContent = upgrade.title;
+        header.appendChild(icon);
+        header.appendChild(title);
+        card.appendChild(header);
+
+        const description = document.createElement('p');
+        description.className = 'virtue-upgrade-card__description';
+        description.textContent = upgrade.description;
+        card.appendChild(description);
+
+        const levelBadge = document.createElement('span');
+        levelBadge.className = 'virtue-upgrade-card__level';
+        levelBadge.textContent = `Level ${level}`;
+        card.appendChild(levelBadge);
+
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'virtue-upgrade-card__button';
+        if (level >= upgrade.maxLevel) {
+          button.textContent = 'Maxed out';
+          button.disabled = true;
+        } else {
+          const cost = upgrade.costBase + upgrade.costStep * level;
+          button.textContent = `Upgrade • ${cost} seeds`;
+          if (state.seeds < cost) {
+            button.disabled = true;
+          } else {
+            button.addEventListener('click', () => {
+              state.seeds -= cost;
+              state.upgrades[upgrade.id] = level + 1;
+              state.harmony = Math.min(180, (state.harmony || 28) + 12);
+              addStoryEntry('Upgrade unlocked', `${upgrade.title} reached level ${level + 1}.`, 'upgrade');
+              saveState();
+              renderUpgrades();
+              renderStats();
+            });
+          }
+        }
+        card.appendChild(button);
+        elementsGarden.upgrades.appendChild(card);
+      });
+    };
+
+    const renderWeather = () => {
+      if (!elementsGarden.weather) {
+        return;
+      }
+      const weather = WEATHER_STATES[state.weatherIndex] || WEATHER_STATES[0];
+      elementsGarden.weather.textContent = weather.label;
+      elementsGarden.weather.title = weather.hint;
+    };
+
+    const renderAll = () => {
+      renderStats();
+      renderTasks();
+      renderGarden();
+      renderUpgrades();
+      renderStory();
+      renderWeather();
+    };
+
+    if (modalCompleteButton) {
+      modalCompleteButton.addEventListener('click', () => {
+        if (!activeModalTask) {
+          return;
+        }
+        const taskState = getTaskState(activeModalTask.id);
+        if (taskState.completions >= activeModalTask.maxCompletions) {
+          closeModal();
+          return;
+        }
+        completeTask(activeModalTask, activeModalPrompt);
+        closeModal();
+      });
+    }
+
+    modalCloseButtons.forEach((button) => {
+      button.addEventListener('click', () => {
+        closeModal();
+      });
+    });
+
+    window.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') {
+        closeModal();
+      }
+    });
+
+    if (startButton) {
+      startButton.addEventListener('click', () => {
+        if (screen) {
+          screen.classList.remove('hidden');
+          requestAnimationFrame(() => {
+            screen.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          });
+        }
+        startButton.textContent = strings.keepGoing || 'Keep Going';
+        state.visited = true;
+        saveState();
+      });
+    }
+
+    if (state.visited && screen) {
+      screen.classList.remove('hidden');
+    }
+
+    syncDay();
+    renderAll();
+  };
+
   const loadData = async () => {
     toggleView({ loading: true });
     try {
@@ -602,4 +1553,5 @@
   };
 
   loadData();
+  initVirtueGardenTycoon();
 })();
