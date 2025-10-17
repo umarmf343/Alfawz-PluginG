@@ -896,26 +896,26 @@
 /* Reader verse typography */
 .alfawz-arabic {
   font-family: 'Scheherazade New', 'Amiri', serif;
-  font-size: clamp(5rem, 10vw, 7.5rem);
-  line-height: 1.75;
+  font-size: clamp(10rem, 18vw, 16rem);
+  line-height: 1.95;
   color: var(--alfawz-maroon-800);
 }
 
 #alfawz-arabic-text {
-  font-size: clamp(5rem, 10vw, 7rem);
+  font-size: clamp(10rem, 18vw, 15rem);
 }
 
 .alfawz-transliteration {
   margin-top: 1.25rem;
-  font-size: clamp(1.8rem, 4.2vw, 2.5rem);
-  line-height: 1.8;
+  font-size: clamp(3.25rem, 7.5vw, 4.75rem);
+  line-height: 2.1;
   color: rgba(79, 13, 24, 0.78);
 }
 
 .alfawz-translation {
   margin-top: 0.75rem;
-  font-size: clamp(1.75rem, 4vw, 2.4rem);
-  line-height: 1.85;
+  font-size: clamp(3.1rem, 7vw, 4.5rem);
+  line-height: 2.15;
   font-style: italic;
   color: rgba(68, 36, 38, 0.75);
 }
@@ -1072,14 +1072,14 @@
 
 .alfawz-surah-list__intro h4 {
   margin: 0;
-  font-size: 1.1rem;
+  font-size: clamp(2rem, 3.5vw, 2.75rem);
   font-weight: 700;
   color: var(--alfawz-maroon-700);
 }
 
 .alfawz-surah-list__hint {
   margin: 0;
-  font-size: var(--alfawz-text-small);
+  font-size: clamp(1.85rem, 3.2vw, 2.35rem);
   color: rgba(68, 36, 38, 0.7);
 }
 
@@ -1130,7 +1130,7 @@
 }
 
 .alfawz-surah-item__index {
-  font-size: var(--alfawz-text-compact);
+  font-size: clamp(1.65rem, 2.8vw, 2.25rem);
   font-weight: 700;
   letter-spacing: 0.2em;
   text-transform: uppercase;
@@ -1138,9 +1138,9 @@
 }
 
 .alfawz-surah-item__badge {
-  padding: 0.15rem 0.65rem;
+  padding: 0.25rem 0.95rem;
   border-radius: 999px;
-  font-size: var(--alfawz-text-compact);
+  font-size: clamp(1.6rem, 2.7vw, 2.1rem);
   font-weight: 600;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -1152,16 +1152,16 @@
 .alfawz-surah-item__arabic {
   margin: 0;
   font-family: 'Scheherazade New', 'Amiri', serif;
-  font-size: clamp(2.3rem, 4vw, 3rem);
-  line-height: 1.65;
+  font-size: clamp(5.5rem, 10vw, 8.5rem);
+  line-height: 1.9;
   color: var(--alfawz-maroon-800);
 }
 
 .alfawz-surah-item__transliteration,
 .alfawz-surah-item__translation {
-  margin: 0.6rem 0 0;
-  font-size: clamp(1.45rem, 2.8vw, 1.85rem);
-  line-height: 1.75;
+  margin: 0.85rem 0 0;
+  font-size: clamp(3rem, 6.5vw, 4.25rem);
+  line-height: 2.05;
   color: rgba(68, 36, 38, 0.75);
 }
 
