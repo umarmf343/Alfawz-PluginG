@@ -74,6 +74,7 @@ body.has-alfawz-bottom-nav {
   transform: translateY(-4px);
   box-shadow: 0 16px 28px rgba(107, 33, 48, 0.45);
   background: linear-gradient(150deg, #7c1d2d, #b91c3a);
+  color: #58111a;
 }
 
 #alfawz-bottom-nav .alfawz-bottom-nav__tab.is-inactive:hover::before,
