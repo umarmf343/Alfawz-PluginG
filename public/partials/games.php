@@ -104,8 +104,116 @@ if ( ! defined( 'ABSPATH' ) ) {
                         <div id="alfawz-egg-progress" class="h-full rounded-full bg-gradient-to-r from-[#8b1e3f] via-[#c43a59] to-[#ffb8c4] transition-all duration-500" style="width:0%"></div>
                     </div>
                     <p id="alfawz-egg-label" class="relative mt-3 text-lg font-semibold text-[#5f0d26]">0 / 0</p>
+                    <div class="relative mt-6 flex justify-center">
+                        <button
+                            type="button"
+                            data-action="play-game"
+                            class="inline-flex items-center gap-2 rounded-full bg-[#8b1e3f] px-6 py-2.5 text-lg font-semibold text-white shadow-lg shadow-[#320a16]/25 transition duration-200 hover:-translate-y-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:ring-offset-2 focus-visible:ring-offset-[#8b1e3f]"
+                        >
+                            <span aria-hidden="true">▶</span>
+                            <span><?php esc_html_e( 'Play', 'alfawzquran' ); ?></span>
+                        </button>
+                    </div>
                 </div>
             </section>
+
+            <div
+                id="alfawz-game-modal"
+                class="fixed inset-0 z-[70] hidden items-center justify-center bg-[#2d0715]/80 px-4 py-8 sm:px-6"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="alfawz-game-modal-title"
+                aria-describedby="alfawz-game-modal-description"
+                aria-hidden="true"
+            >
+                <div class="relative w-full max-w-5xl">
+                    <div
+                        id="alfawz-mini-game-card"
+                        class="alfawz-game-card"
+                        tabindex="-1"
+                    >
+                        <button
+                            type="button"
+                            data-action="close-game"
+                            class="absolute right-4 top-4 inline-flex h-10 w-10 items-center justify-center rounded-full bg-emerald-50 text-emerald-700 shadow focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+                        >
+                            <span aria-hidden="true">✕</span>
+                            <span class="sr-only"><?php esc_html_e( 'Close game', 'alfawzquran' ); ?></span>
+                        </button>
+
+                        <div class="alfawz-game-layout">
+                            <div class="alfawz-game-primary">
+                                <div class="alfawz-game-theme">
+                                    <span class="alfawz-game-theme__icon" aria-hidden="true">🧩</span>
+                                    <span id="alfawz-game-modal-description"><?php esc_html_e( 'Arrange the tiles to rebuild the ayah.', 'alfawzquran' ); ?></span>
+                                </div>
+
+                                <div class="alfawz-game-card__header">
+                                    <div>
+                                        <h3 id="alfawz-game-modal-title" class="alfawz-game-card__title"><?php esc_html_e( 'Ayah Puzzle Challenge', 'alfawzquran' ); ?></h3>
+                                        <p class="alfawz-game-card__subtitle"><?php esc_html_e( 'Tap a tile, then choose a slot to place it in order.', 'alfawzquran' ); ?></p>
+                                    </div>
+                                    <div class="alfawz-game-meta text-left sm:text-right">
+                                        <p class="alfawz-game-meta__reference" id="alfawz-game-reference"><?php esc_html_e( 'Al-Fātiḥah (1:1)', 'alfawzquran' ); ?></p>
+                                        <p class="alfawz-game-meta__translation" id="alfawz-game-translation"><?php esc_html_e( 'In the name of Allah, the Most Compassionate, the Most Merciful.', 'alfawzquran' ); ?></p>
+                                    </div>
+                                </div>
+
+                                <div class="alfawz-game-board">
+                                    <div
+                                        id="alfawz-game-bank"
+                                        class="alfawz-game-bank"
+                                        role="list"
+                                        aria-label="<?php esc_attr_e( 'Word bank', 'alfawzquran' ); ?>"
+                                    ></div>
+                                    <div
+                                        id="alfawz-game-slots"
+                                        class="alfawz-game-slots"
+                                        role="list"
+                                        aria-label="<?php esc_attr_e( 'Arrange the verse', 'alfawzquran' ); ?>"
+                                    ></div>
+                                </div>
+
+                                <div class="alfawz-game-actions">
+                                    <button
+                                        type="button"
+                                        data-action="reset-game"
+                                        class="inline-flex items-center gap-2 rounded-full border border-emerald-500/50 bg-white px-4 py-2 text-sm font-semibold text-emerald-700 shadow-sm transition hover:-translate-y-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+                                    >
+                                        <span aria-hidden="true">⟲</span>
+                                        <span><?php esc_html_e( 'Reset puzzle', 'alfawzquran' ); ?></span>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        data-action="check-game"
+                                        class="inline-flex items-center gap-2 rounded-full bg-emerald-500 px-4 py-2 text-sm font-semibold text-white shadow-md transition hover:-translate-y-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:ring-offset-2 focus-visible:ring-offset-emerald-500"
+                                    >
+                                        <span aria-hidden="true">✅</span>
+                                        <span><?php esc_html_e( 'Check order', 'alfawzquran' ); ?></span>
+                                    </button>
+                                    <p id="alfawz-game-status" class="alfawz-game-status" role="status"></p>
+                                </div>
+                            </div>
+
+                            <aside class="alfawz-game-sidebar" aria-live="polite">
+                                <div class="alfawz-game-stat">
+                                    <span><?php esc_html_e( 'Moves made', 'alfawzquran' ); ?></span>
+                                    <strong id="alfawz-game-moves">0</strong>
+                                </div>
+                                <div class="alfawz-game-timer">
+                                    <p class="alfawz-game-timer__label"><?php esc_html_e( 'Time elapsed', 'alfawzquran' ); ?></p>
+                                    <p class="alfawz-game-timer__value" id="alfawz-game-timer">0:00</p>
+                                    <p class="alfawz-game-timer__note"><?php esc_html_e( 'Stay focused and finish the puzzle!', 'alfawzquran' ); ?></p>
+                                </div>
+                                <div class="alfawz-game-habit">
+                                    <p class="alfawz-game-unlock font-arabic text-2xl" id="alfawz-game-arabic">بِسْمِ ٱللّٰهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ</p>
+                                    <p class="text-sm text-emerald-900/80" id="alfawz-game-habit-note"><?php esc_html_e( 'Every victory sends light to your knowledge egg.', 'alfawzquran' ); ?></p>
+                                </div>
+                            </aside>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
             <section aria-label="<?php esc_attr_e( 'Daily quests', 'alfawzquran' ); ?>" class="space-y-4">
                 <div class="flex flex-wrap items-center gap-3">

@@ -144,6 +144,14 @@ class Frontend {
                     'gamePanelLevelLabel' => __('Level', 'alfawzquran'),
                     'gamePanelBadgeSingular' => __('badge unlocked', 'alfawzquran'),
                     'gamePanelBadgePlural' => __('badges unlocked', 'alfawzquran'),
+                    'gameStatusPrompt' => __('Select a tile to begin building the ayah.', 'alfawzquran'),
+                    'gameStatusNeedTile' => __('Choose a tile from the word bank first.', 'alfawzquran'),
+                    'gameStatusPlaced' => __('Great! Keep arranging the ayah.', 'alfawzquran'),
+                    'gameStatusReturned' => __('Tile returned to the word bank.', 'alfawzquran'),
+                    'gameStatusIncomplete' => __('Fill every slot to complete the ayah.', 'alfawzquran'),
+                    'gameStatusMismatch' => __('Almost there—adjust the highlighted tiles.', 'alfawzquran'),
+                    'gameStatusSuccess' => __('Takbir! You rebuilt the ayah in perfect order.', 'alfawzquran'),
+                    'gameSlotLabel' => __('Slot %d', 'alfawzquran'),
                 ],
             ]);
 
