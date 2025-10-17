@@ -256,7 +256,7 @@ foreach ( $reflection_moods as $mood_slug => $mood_data ) :
             <div class="alfawz-daily-modal__confetti pointer-events-none absolute inset-0" aria-hidden="true"></div>
             <h3 id="alfawz-daily-modal-title" class="text-2xl font-semibold text-emerald-900"><?php esc_html_e( 'MashaAllah! Goal achieved', 'alfawzquran' ); ?></h3>
             <p id="alfawz-daily-modal-message" class="mt-3 text-base text-gray-600"><?php esc_html_e( 'You reached today\'s 10-verse milestone. Keep the momentum going!', 'alfawzquran' ); ?></p>
-            <button type="button" class="mt-6 inline-flex items-center justify-center gap-2 rounded-full bg-emerald-500 px-5 py-3 font-semibold text-white shadow-lg transition hover:bg-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-400" data-dismiss-daily>
+            <button type="button" class="mt-6 inline-flex items-center justify-center gap-2 rounded-full bg-emerald-100 px-5 py-3 font-semibold text-emerald-900 shadow-lg transition hover:bg-emerald-200 focus:outline-none focus:ring-2 focus:ring-emerald-200" data-dismiss-daily>
                 <span>🎉</span>
                 <span><?php esc_html_e( 'Continue reading', 'alfawzquran' ); ?></span>
             </button>
