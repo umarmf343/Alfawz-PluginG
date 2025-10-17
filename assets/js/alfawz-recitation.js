@@ -233,6 +233,77 @@
     headers['X-WP-Nonce'] = config.nonce;
   }
 
+  const historyPalettes = [
+    {
+      background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.18), rgba(14, 165, 233, 0.18), rgba(129, 140, 248, 0.2))',
+      border: 'rgba(59, 130, 246, 0.25)',
+      shadow: '0 18px 32px -16px rgba(30, 64, 175, 0.45)',
+      verse: '#0f172a',
+      score: '#1d4ed8',
+      meta: 'rgba(15, 23, 42, 0.6)',
+    },
+    {
+      background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.18), rgba(236, 72, 153, 0.18), rgba(249, 115, 22, 0.18))',
+      border: 'rgba(244, 114, 182, 0.3)',
+      shadow: '0 18px 32px -16px rgba(190, 24, 93, 0.4)',
+      verse: '#1f2937',
+      score: '#be123c',
+      meta: 'rgba(55, 65, 81, 0.65)',
+    },
+    {
+      background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(45, 212, 191, 0.18), rgba(14, 165, 233, 0.18))',
+      border: 'rgba(20, 184, 166, 0.32)',
+      shadow: '0 18px 32px -16px rgba(13, 148, 136, 0.38)',
+      verse: '#0f172a',
+      score: '#0f766e',
+      meta: 'rgba(22, 78, 99, 0.6)',
+    },
+  ];
+
+  const mistakePalettes = [
+    {
+      background: 'linear-gradient(135deg, rgba(248, 113, 113, 0.22), rgba(251, 191, 36, 0.2), rgba(253, 186, 116, 0.2))',
+      border: 'rgba(248, 113, 113, 0.3)',
+      heading: '#b91c1c',
+      body: '#4b5563',
+    },
+    {
+      background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.18), rgba(129, 140, 248, 0.18), rgba(236, 72, 153, 0.2))',
+      border: 'rgba(129, 140, 248, 0.35)',
+      heading: '#4338ca',
+      body: '#374151',
+    },
+    {
+      background: 'linear-gradient(135deg, rgba(52, 211, 153, 0.2), rgba(45, 212, 191, 0.2), rgba(59, 130, 246, 0.18))',
+      border: 'rgba(20, 184, 166, 0.35)',
+      heading: '#0f766e',
+      body: '#1f2937',
+    },
+  ];
+
+  const snippetPalettes = [
+    {
+      background: 'linear-gradient(135deg, rgba(192, 132, 252, 0.18), rgba(236, 72, 153, 0.18), rgba(251, 191, 36, 0.16))',
+      border: 'rgba(217, 70, 239, 0.28)',
+      heading: '#7e22ce',
+      body: '#475569',
+    },
+    {
+      background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.18), rgba(14, 165, 233, 0.18), rgba(56, 189, 248, 0.18))',
+      border: 'rgba(14, 165, 233, 0.3)',
+      heading: '#1d4ed8',
+      body: '#0f172a',
+    },
+    {
+      background: 'linear-gradient(135deg, rgba(52, 211, 153, 0.18), rgba(101, 163, 13, 0.18), rgba(250, 204, 21, 0.18))',
+      border: 'rgba(101, 163, 13, 0.28)',
+      heading: '#166534',
+      body: '#365314',
+    },
+  ];
+
+  const pickPalette = (palettes, index) => palettes[index % palettes.length];
+
   const updateToggleLabel = () => {
     if (!el.toggle) {
       return;
@@ -449,14 +520,35 @@
     }
 
     const response = await fetch(endpoint, options);
+    const contentType = response.headers.get('content-type') || '';
+    const rawText = await response.text();
+
     if (!response.ok) {
-      const text = await response.text();
-      throw new Error(text || `Request failed with status ${response.status}`);
+      throw new Error(rawText || `Request failed with status ${response.status}`);
     }
-    if (response.status === 204) {
+
+    if (response.status === 204 || !rawText.trim()) {
       return null;
     }
-    return response.json();
+
+    if (contentType.includes('application/json')) {
+      try {
+        return JSON.parse(rawText);
+      } catch (error) {
+        console.warn('[Alfawz Recitation] Unable to parse JSON response', error);
+      }
+    }
+
+    try {
+      return JSON.parse(rawText);
+    } catch (error) {
+      console.warn('[Alfawz Recitation] Received non-JSON response', {
+        endpoint,
+        contentType,
+        preview: rawText.slice(0, 120),
+      });
+      return { error: 'invalid_json', raw: rawText };
+    }
   };
 
   const renderMistakes = (mistakes) => {
@@ -466,14 +558,18 @@
     el.mistakes.innerHTML = '';
     if (!Array.isArray(mistakes) || mistakes.length === 0) {
       const item = document.createElement('li');
-      item.className = 'rounded-2xl border border-dashed border-slate-200/70 bg-white/70 px-4 py-3 text-slate-400';
+      item.className = 'rounded-2xl border border-dashed border-indigo-200 bg-gradient-to-br from-indigo-50 via-slate-50 to-purple-50 px-4 py-3 text-slate-400 shadow-inner';
       item.textContent = strings.noMistakes;
       el.mistakes.appendChild(item);
       return;
     }
-    mistakes.forEach((mistake) => {
+    mistakes.forEach((mistake, index) => {
       const item = document.createElement('li');
       item.className = 'alfawz-recitation-mistake';
+      const palette = pickPalette(mistakePalettes, index);
+      item.style.background = palette.background;
+      item.style.borderColor = palette.border;
+      item.style.boxShadow = '0 22px 40px -18px rgba(15, 23, 42, 0.35)';
       const title = document.createElement('strong');
       title.textContent =
         mistake.type === 'skipped_word'
@@ -481,6 +577,7 @@
           : mistake.type === 'extra_word'
           ? window.wp?.i18n?.__( 'Extra word', 'alfawzquran' ) || 'Extra word'
           : window.wp?.i18n?.__( 'Pronunciation cue', 'alfawzquran' ) || 'Pronunciation cue';
+      title.style.color = palette.heading;
       const body = document.createElement('p');
       const parts = [];
       if (mistake.expected) {
@@ -490,6 +587,7 @@
         parts.push((window.wp?.i18n?.__( 'Heard:', 'alfawzquran' ) || 'Heard:') + ` ${mistake.spoken}`);
       }
       body.textContent = parts.join(' • ');
+      body.style.color = palette.body;
       item.appendChild(title);
       item.appendChild(body);
       el.mistakes.appendChild(item);
@@ -504,13 +602,18 @@
     if (!Array.isArray(snippets) || snippets.length === 0) {
       return;
     }
-    snippets.forEach((snippet) => {
+    snippets.forEach((snippet, index) => {
       const chip = document.createElement('div');
-      chip.className = 'alfawz-recitation-chip';
+      chip.className = 'alfawz-recitation-chip shadow-md transition-transform duration-300 ease-out hover:-translate-y-1';
+      const palette = pickPalette(snippetPalettes, index);
+      chip.style.background = palette.background;
+      chip.style.borderColor = palette.border;
       const title = document.createElement('strong');
       title.textContent = snippet.title || '';
+      title.style.color = palette.heading;
       const body = document.createElement('p');
       body.textContent = snippet.body || '';
+      body.style.color = palette.body;
       chip.appendChild(title);
       chip.appendChild(body);
       el.snippets.appendChild(chip);
@@ -524,7 +627,7 @@
     el.historyList.innerHTML = '';
     if (!Array.isArray(history) || history.length === 0) {
       const empty = document.createElement('li');
-      empty.className = 'text-slate-400';
+      empty.className = 'rounded-2xl border border-dashed border-sky-200 bg-gradient-to-br from-sky-50 via-cyan-50 to-indigo-50 px-4 py-3 text-slate-400 shadow-inner';
       empty.textContent = window.wp?.i18n?.__("You have not recorded any recitation feedback yet.", 'alfawzquran') ||
         'You have not recorded any recitation feedback yet.';
       el.historyList.appendChild(empty);
@@ -536,22 +639,29 @@
       timeStyle: 'short',
     });
 
-    history.forEach((entry) => {
+    history.forEach((entry, index) => {
       const item = document.createElement('li');
-      item.className = 'rounded-2xl border border-slate-200/70 bg-white/80 px-4 py-3 shadow-sm';
+      item.className = 'relative overflow-hidden rounded-2xl border px-4 py-4 shadow-lg transition-shadow duration-300 ease-out hover:shadow-xl';
+      const palette = pickPalette(historyPalettes, index);
+      item.style.background = palette.background;
+      item.style.borderColor = palette.border;
+      item.style.boxShadow = palette.shadow;
       const heading = document.createElement('div');
       heading.className = 'flex items-center justify-between gap-3';
       const verse = document.createElement('strong');
-      verse.className = 'text-sm text-slate-700';
+      verse.className = 'text-sm font-semibold';
+      verse.style.color = palette.verse;
       verse.textContent = entry.verse_key || `${entry.surah_id || ''}:${entry.verse_id || ''}`;
       const score = document.createElement('span');
-      score.className = 'text-sm font-semibold text-indigo-600';
+      score.className = 'text-sm font-semibold';
+      score.style.color = palette.score;
       score.textContent = typeof entry.score === 'number' ? `${entry.score.toFixed(1)}%` : '--';
       heading.appendChild(verse);
       heading.appendChild(score);
 
       const meta = document.createElement('p');
-      meta.className = 'mt-2 text-xs uppercase tracking-[0.3em] text-slate-400';
+      meta.className = 'mt-2 text-xs uppercase tracking-[0.3em]';
+      meta.style.color = palette.meta;
       if (entry.evaluated_at) {
         meta.textContent = formatter.format(new Date(entry.evaluated_at));
       }
@@ -647,12 +757,20 @@
   const loadHistory = async () => {
     try {
       const response = await request(config.endpoints?.history);
-      if (response?.history) {
+      if (response?.history && Array.isArray(response.history)) {
         state.history = response.history;
+        renderHistory(state.history);
+      } else {
+        state.history = [];
+        if (response?.error === 'invalid_json') {
+          console.warn('[Alfawz Recitation] History endpoint returned invalid JSON', response);
+        }
         renderHistory(state.history);
       }
     } catch (error) {
       console.warn('[Alfawz Recitation] Unable to load history', error);
+      state.history = [];
+      renderHistory(state.history);
     }
   };
 
