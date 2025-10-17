@@ -12,6 +12,12 @@
     verses: wpData.strings?.gamePanelVersesLabel || 'Verses',
     eggComplete: wpData.strings?.gamePanelEggComplete || 'Takbir! The egg is hatching—keep soaring!',
     eggInProgress: wpData.strings?.gamePanelEggInProgress || 'Recite to fill the egg with radiant knowledge.',
+    growthTitle: wpData.strings?.gamePanelGrowthTitle || 'Nurture the Tree of Noor!',
+    growthInProgress: wpData.strings?.gamePanelGrowthInProgress || 'Recite verses to help your tree flourish.',
+    growthComplete:
+      wpData.strings?.gamePanelGrowthComplete
+      || 'Takbir! Your tree blossomed into a new canopy—keep nourishing it!',
+    growthStageLabel: wpData.strings?.gamePanelGrowthStageLabel || 'Growth Stage',
     rewardAwaiting: wpData.strings?.gamePanelRewardAwaiting || 'Divine Reward Awaiting',
     levelLabel: wpData.strings?.gamePanelLevelLabel || 'Level',
     badgeSingular: wpData.strings?.gamePanelBadgeSingular || 'badge unlocked',
@@ -92,6 +98,9 @@
       wpData.strings?.gardenWatering || 'Rain of dhikr gently nourishes your garden.',
     gardenJournalReminder:
       wpData.strings?.gardenJournalReminder || 'Return daily to keep the sanctuary radiant.',
+    eggCelebration: wpData.strings?.eggCelebrationMessage || 'Takbir! You cracked the egg challenge.',
+    growthCelebration:
+      wpData.strings?.growthCelebrationMessage || 'Takbir! Your tree blossomed into a new canopy.',
   };
 
   const root = document.querySelector('#alfawz-game-panel');
@@ -121,6 +130,7 @@
     questEmpty: root.querySelector('#alfawz-quest-empty'),
     egg: {
       card: root.querySelector('#alfawz-egg-card'),
+      title: root.querySelector('#alfawz-egg-title'),
       emoji: root.querySelector('#alfawz-egg-emoji'),
       level: root.querySelector('#alfawz-egg-level'),
       message: root.querySelector('#alfawz-egg-message'),
@@ -128,6 +138,7 @@
       label: root.querySelector('#alfawz-egg-label'),
       playButton: root.querySelector('#alfawz-egg-play'),
       playLabel: root.querySelector('#alfawz-egg-play [data-role="alfawz-egg-play-label"]'),
+      growthVisual: root.querySelector('#alfawz-growth-visual'),
     },
 
     garden: {
@@ -200,6 +211,8 @@
       },
     },
   };
+
+  const defaultEggTitle = elements.egg.title?.textContent?.trim() || 'Hatch the Knowledge Egg!';
 
   let latestEggState = null;
 
@@ -1959,6 +1972,61 @@
     });
   };
 
+  const updateGrowthVisual = (
+    visual,
+    { completedStages = 0, activeStage = 0, progress = 0, maxStage = 5 } = {}
+  ) => {
+    if (!visual) {
+      return;
+    }
+    const normalizedMax = Math.max(1, Number(maxStage) || 1);
+    const normalizedCompleted = Math.max(
+      0,
+      Math.min(normalizedMax, Number(completedStages) || 0)
+    );
+    const normalizedActive = Math.max(
+      normalizedCompleted,
+      Math.min(normalizedMax, Number(activeStage) || 0)
+    );
+    const stageProgress = Math.max(0, Math.min(1, Number(progress) || 0));
+
+    visual.dataset.stage = String(normalizedActive);
+    visual.dataset.completed = String(normalizedCompleted);
+    visual.style.setProperty('--alfawz-growth-progress', stageProgress.toFixed(3));
+
+    const leaves = visual.querySelectorAll('[data-leaf]');
+    if (normalizedActive <= 0) {
+      leaves.forEach((leaf) => {
+        leaf.classList.remove('is-active', 'is-growing');
+        leaf.style.removeProperty('--leaf-progress');
+      });
+      return;
+    }
+
+    leaves.forEach((leaf, index) => {
+      const leafNumber = index + 1;
+      const isCompleted = leafNumber <= normalizedCompleted;
+      const isCurrent =
+        !isCompleted && leafNumber === normalizedCompleted + 1 && leafNumber <= normalizedActive;
+      const currentProgress = isCurrent ? stageProgress : 0;
+      const grown = currentProgress >= 0.999;
+      const shouldGrow = isCurrent && !grown;
+
+      leaf.classList.toggle('is-active', isCompleted || (isCurrent && grown));
+      leaf.classList.toggle('is-growing', shouldGrow);
+
+      if (shouldGrow) {
+        leaf.style.setProperty('--leaf-progress', currentProgress.toFixed(3));
+      } else {
+        leaf.style.removeProperty('--leaf-progress');
+      }
+
+      if (!isCompleted && !isCurrent) {
+        leaf.classList.remove('is-active', 'is-growing');
+      }
+    });
+  };
+
   const renderEgg = (state) => {
     if (!elements.egg.card) {
       return;
@@ -1971,6 +2039,14 @@
     const completed = Boolean(state?.completed) || percentage >= 100 || count >= target;
     const nextTarget = Number(state?.next_target || state?.target || target);
     const previousTarget = Number(state?.previous_target || 0) || null;
+    const phase = state?.phase === 'growth' ? 'growth' : 'egg';
+    const maxGrowthStage = Number(state?.max_growth_stage || 5) || 5;
+    const reportedGrowthStage = Number(state?.growth_stage || 0) || 0;
+    const completedGrowthStages = Number(state?.growth_completed ?? 0) || Math.max(0, reportedGrowthStage - 1);
+    const stageProgress = target > 0 ? Math.max(0, Math.min(1, count / target)) : 0;
+    const activeGrowthStage = phase === 'growth'
+      ? Math.max(1, Math.min(maxGrowthStage, reportedGrowthStage || completedGrowthStages + 1 || 1))
+      : 0;
 
     if (elements.egg.playButton) {
       elements.egg.playButton.dataset.playUrl = playUrl;
@@ -1978,6 +2054,11 @@
     }
     if (elements.egg.playLabel) {
       elements.egg.playLabel.textContent = strings.playNow;
+    }
+
+    if (elements.egg.card) {
+      elements.egg.card.dataset.phase = phase;
+      elements.egg.card.classList.toggle('alfawz-egg-hatched', phase === 'egg' && completed);
     }
 
     if (elements.egg.progress) {
@@ -1991,7 +2072,34 @@
       }
     }
     if (elements.egg.message) {
-      if (completed && nextTarget) {
+      if (phase === 'growth') {
+        if (completed && nextTarget) {
+          const achievedStage = Math.max(1, Math.min(maxGrowthStage, completedGrowthStages || activeGrowthStage || 1));
+          const hasMoreStages = completedGrowthStages < maxGrowthStage;
+          const nextStage = hasMoreStages
+            ? Math.min(maxGrowthStage, achievedStage + 1)
+            : achievedStage;
+          const currentLabel = `${strings.growthStageLabel} ${formatNumber(achievedStage)}`;
+          let nextLabel = '';
+          if (hasMoreStages) {
+            nextLabel = `${strings.growthStageLabel} ${formatNumber(nextStage)}`;
+          } else if (nextTarget) {
+            nextLabel = `${formatNumber(nextTarget)} ${strings.verses}`;
+          }
+          elements.egg.message.innerHTML = `${strings.growthComplete} <br /><span class="font-semibold">${currentLabel}</span>`;
+          if (nextLabel) {
+            elements.egg.message.innerHTML += ` → <span class="font-semibold">${nextLabel}</span>`;
+          }
+        } else {
+          const remaining = Number(state?.remaining ?? Math.max(0, target - count));
+          if (remaining > 0) {
+            const remainingLabel = `${formatNumber(remaining)} ${remaining === 1 ? 'more verse' : 'more verses'}`;
+            elements.egg.message.textContent = `${strings.growthInProgress} ${remainingLabel} until the next canopy.`;
+          } else {
+            elements.egg.message.textContent = strings.growthInProgress;
+          }
+        }
+      } else if (completed && nextTarget) {
         const hatchedLabel = previousTarget && previousTarget > 0 ? formatNumber(previousTarget) : formatNumber(Math.max(1, nextTarget - 5));
         elements.egg.message.innerHTML = `${strings.eggComplete} <br /><span class="font-semibold">${hatchedLabel}</span> → <span class="font-semibold">${formatNumber(nextTarget)} ${strings.verses}</span>`;
       } else if (Number.isFinite(state?.remaining) && state.remaining > 0) {
@@ -2002,15 +2110,30 @@
       }
     }
     if (elements.egg.emoji) {
-      elements.egg.emoji.textContent = completed ? '🐣' : '🥚';
+      if (phase === 'growth') {
+        elements.egg.emoji.textContent = count >= target ? '🌳' : '🌱';
+      } else {
+        elements.egg.emoji.textContent = completed ? '🐣' : '🥚';
+      }
     }
-    if (elements.egg.card) {
-      elements.egg.card.classList.toggle('alfawz-egg-hatched', completed);
+    if (elements.egg.title) {
+      elements.egg.title.textContent = phase === 'growth' ? strings.growthTitle : defaultEggTitle;
     }
     if (elements.egg.level) {
-      const level = Number(state?.level || 0) || Math.max(1, Math.ceil(target / 20));
-      elements.egg.level.textContent = `${strings.levelLabel} ${formatNumber(level)}`;
+      if (phase === 'growth') {
+        elements.egg.level.textContent = `${strings.growthStageLabel} ${formatNumber(activeGrowthStage || 1)}`;
+      } else {
+        const level = Number(state?.level || 0) || Math.max(1, Math.ceil(target / 20));
+        elements.egg.level.textContent = `${strings.levelLabel} ${formatNumber(level)}`;
+      }
     }
+
+    updateGrowthVisual(elements.egg.growthVisual, {
+      completedStages: phase === 'growth' ? completedGrowthStages : 0,
+      activeStage: phase === 'growth' ? activeGrowthStage : 0,
+      progress: phase === 'growth' ? stageProgress : 0,
+      maxStage: maxGrowthStage,
+    });
 
     elements.egg.card.dataset.state = completed ? 'completed' : 'active';
   };

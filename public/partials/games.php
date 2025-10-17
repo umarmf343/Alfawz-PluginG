@@ -538,13 +538,24 @@ if ( ! defined( 'ABSPATH' ) ) {
             </section>
 
             <section aria-label="<?php esc_attr_e( 'Egg challenge progress', 'alfawzquran' ); ?>" class="space-y-4">
-                <div id="alfawz-egg-card" class="relative overflow-hidden rounded-[30px] border border-[#b4637a]/30 bg-gradient-to-br from-[#fbe6dd]/90 via-[#fcded8]/90 to-[#f9f1e8]/95 p-8 text-center shadow-xl shadow-[#320a16]/15">
+                <div id="alfawz-egg-card" data-phase="egg" class="relative overflow-hidden rounded-[30px] border border-[#b4637a]/30 bg-gradient-to-br from-[#fbe6dd]/90 via-[#fcded8]/90 to-[#f9f1e8]/95 p-8 text-center shadow-xl shadow-[#320a16]/15">
                     <div class="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.35),_transparent_65%)]"></div>
                     <div class="absolute right-5 top-5 flex items-center gap-2 rounded-full bg-[#8b1e3f] px-4 py-2 text-sm font-semibold uppercase tracking-[0.28em] text-white shadow-lg" id="alfawz-egg-level">
                         <?php esc_html_e( 'Level 1', 'alfawzquran' ); ?>
                     </div>
-                    <div class="relative text-7xl" id="alfawz-egg-emoji" aria-hidden="true">🥚</div>
-                    <h3 class="relative mt-4 text-2xl font-black text-[#5f0d26]">
+                    <div class="relative mx-auto flex h-32 w-32 items-end justify-center" aria-hidden="true">
+                        <div id="alfawz-egg-emoji" class="alfawz-egg-emoji inline-flex h-28 w-28 items-center justify-center text-7xl">🥚</div>
+                        <div id="alfawz-growth-visual" class="alfawz-growth-visual">
+                            <div class="alfawz-growth-trunk"></div>
+                            <div class="alfawz-growth-canopy"></div>
+                            <span class="alfawz-growth-leaf" data-leaf="1"></span>
+                            <span class="alfawz-growth-leaf" data-leaf="2"></span>
+                            <span class="alfawz-growth-leaf" data-leaf="3"></span>
+                            <span class="alfawz-growth-leaf" data-leaf="4"></span>
+                            <span class="alfawz-growth-leaf" data-leaf="5"></span>
+                        </div>
+                    </div>
+                    <h3 id="alfawz-egg-title" class="relative mt-4 text-2xl font-black text-[#5f0d26]">
                         <?php esc_html_e( 'Hatch the Knowledge Egg!', 'alfawzquran' ); ?>
                     </h3>
                     <p id="alfawz-egg-message" class="relative mt-3 text-lg font-medium text-[#7a0f32]">

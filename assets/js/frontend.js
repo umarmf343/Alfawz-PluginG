@@ -1387,6 +1387,7 @@
     const eggCount = qs('#alfawz-egg-count', root);
     const eggProgress = qs('#alfawz-egg-progress-bar', root);
     const eggMessage = qs('#alfawz-egg-message', root);
+    const growthVisual = qs('#alfawz-growth-visual', root);
     const dailyBar = qs('#alfawz-daily-progress-bar', root);
     const dailyLabel = qs('#alfawz-daily-label', root);
     const dailyNote = qs('#alfawz-daily-note', root);
@@ -1441,6 +1442,15 @@
       toggleOn: wpData.strings?.toggleSurahMode || 'All verses visible at once',
       ayahLabel: wpData.strings?.ayahLabel || 'Ayah',
       bismillahLabel: wpData.strings?.bismillahLabel || 'Bismillah',
+      verses: wpData.strings?.gamePanelVersesLabel || 'Verses',
+      eggCelebration: wpData.strings?.eggCelebrationMessage || 'Takbir! You cracked the egg challenge.',
+      growthCelebration:
+        wpData.strings?.growthCelebrationMessage || 'Takbir! Your tree blossomed into a new canopy.',
+      growthStageLabel: wpData.strings?.gamePanelGrowthStageLabel || 'Growth Stage',
+      growthInProgress: wpData.strings?.readerGrowthInProgress || 'Keep nurturing your tree with every verse.',
+      growthComplete:
+        wpData.strings?.readerGrowthComplete || 'Takbir! Your tree blossomed—strive for the next canopy.',
+      growthTitle: wpData.strings?.gamePanelGrowthTitle || 'Nurture the Tree of Noor!',
     };
 
     const reflectionStrings = {
@@ -2663,6 +2673,61 @@
       });
     };
 
+    const updateGrowthVisual = (
+      visual,
+      { completedStages = 0, activeStage = 0, progress = 0, maxStage = 5 } = {}
+    ) => {
+      if (!visual) {
+        return;
+      }
+      const normalizedMax = Math.max(1, Number(maxStage) || 1);
+      const normalizedCompleted = Math.max(
+        0,
+        Math.min(normalizedMax, Number(completedStages) || 0)
+      );
+      const normalizedActive = Math.max(
+        normalizedCompleted,
+        Math.min(normalizedMax, Number(activeStage) || 0)
+      );
+      const stageProgress = Math.max(0, Math.min(1, Number(progress) || 0));
+
+      visual.dataset.stage = String(normalizedActive);
+      visual.dataset.completed = String(normalizedCompleted);
+      visual.style.setProperty('--alfawz-growth-progress', stageProgress.toFixed(3));
+
+      const leaves = visual.querySelectorAll('[data-leaf]');
+      if (normalizedActive <= 0) {
+        leaves.forEach((leaf) => {
+          leaf.classList.remove('is-active', 'is-growing');
+          leaf.style.removeProperty('--leaf-progress');
+        });
+        return;
+      }
+
+      leaves.forEach((leaf, index) => {
+        const leafNumber = index + 1;
+        const isCompleted = leafNumber <= normalizedCompleted;
+        const isCurrent =
+          !isCompleted && leafNumber === normalizedCompleted + 1 && leafNumber <= normalizedActive;
+        const currentProgress = isCurrent ? stageProgress : 0;
+        const grown = currentProgress >= 0.999;
+        const shouldGrow = isCurrent && !grown;
+
+        leaf.classList.toggle('is-active', isCompleted || (isCurrent && grown));
+        leaf.classList.toggle('is-growing', shouldGrow);
+
+        if (shouldGrow) {
+          leaf.style.setProperty('--leaf-progress', currentProgress.toFixed(3));
+        } else {
+          leaf.style.removeProperty('--leaf-progress');
+        }
+
+        if (!isCompleted && !isCurrent) {
+          leaf.classList.remove('is-active', 'is-growing');
+        }
+      });
+    };
+
     const startVerseTransition = () => {
       if (!verseContent) {
         return;
@@ -2974,13 +3039,13 @@
       }
     };
 
-    const celebrateEgg = () => {
+    const celebrateEgg = (message = strings.eggCelebration) => {
       if (eggWidget) {
         eggWidget.classList.add('alfawz-egg-celebrate');
         window.setTimeout(() => eggWidget.classList.remove('alfawz-egg-celebrate'), 1200);
       }
       spawnConfetti(confettiHost);
-      announceCelebration('Takbir! You cracked the egg challenge.');
+      announceCelebration(message || strings.eggCelebration);
     };
 
     const celebrateSurahCompletion = (surahName = '') => {
@@ -3030,39 +3095,93 @@
       }
       const target = Number(state.target || 0);
       const count = Number(state.count || 0);
+      const safeTarget = target > 0 ? target : 1;
       const percentage = Number(state.percentage ?? (target ? (count / target) * 100 : 0));
-      const hatched = Boolean(state.completed) || (target > 0 && count >= target);
-      const nextTarget = Number(state.next_target || state.target || 0) || (target ? target : 25);
+      const completed = Boolean(state.completed) || (target > 0 && count >= target);
+      const nextTarget = Number(state.next_target || state.target || safeTarget);
       const previousTarget = Number(state.previous_target || 0) || null;
+      const phase = state.phase === 'growth' ? 'growth' : 'egg';
+      const maxGrowthStage = Number(state.max_growth_stage || 5) || 5;
+      const reportedGrowthStage = Number(state.growth_stage || 0) || 0;
+      const completedGrowthStages = Number(state.growth_completed ?? 0) || Math.max(0, reportedGrowthStage - 1);
+      const stageProgress = target > 0 ? Math.max(0, Math.min(1, count / safeTarget)) : 0;
+      const activeGrowthStage = phase === 'growth'
+        ? Math.max(1, Math.min(maxGrowthStage, reportedGrowthStage || completedGrowthStages + 1 || 1))
+        : 0;
+
+      if (eggWidget) {
+        eggWidget.dataset.phase = phase;
+      }
       animateBar(eggProgress, percentage);
       if (eggEmoji) {
-        eggEmoji.textContent = hatched ? '🐣' : '🥚';
+        if (phase === 'growth') {
+          eggEmoji.textContent = count >= target ? '🌳' : '🌱';
+        } else {
+          eggEmoji.textContent = completed ? '🐣' : '🥚';
+        }
       }
       if (eggMessage) {
-        if (state.completed) {
+        if (phase === 'growth') {
+          if (completed) {
+            const achievedStage = Math.max(1, Math.min(maxGrowthStage, completedGrowthStages || activeGrowthStage || 1));
+            const hasMoreStages = completedGrowthStages < maxGrowthStage;
+            const nextStage = hasMoreStages
+              ? Math.min(maxGrowthStage, achievedStage + 1)
+              : achievedStage;
+            const currentLabel = `${strings.growthStageLabel} ${formatNumber(achievedStage)}`;
+            let nextLabel = '';
+            if (hasMoreStages) {
+              nextLabel = `${strings.growthStageLabel} ${formatNumber(nextStage)}`;
+            } else if (nextTarget) {
+              nextLabel = `${formatNumber(nextTarget)} ${strings.verses}`;
+            }
+            eggMessage.innerHTML = `🌿 <span class="font-semibold">${strings.growthComplete}</span><br /><span class="font-semibold">${currentLabel}</span>`;
+            if (nextLabel) {
+              eggMessage.innerHTML += ` → <span class="font-semibold">${nextLabel}</span>`;
+            }
+          } else {
+            const remaining = Number(state.remaining ?? Math.max(0, target - count));
+            if (remaining > 0) {
+              const remainingLabel = `${formatNumber(remaining)} ${remaining === 1 ? 'more verse' : 'more verses'}`;
+              eggMessage.textContent = `${strings.growthInProgress} ${remainingLabel} to reach the next canopy.`;
+            } else {
+              eggMessage.textContent = strings.growthInProgress;
+            }
+          }
+        } else if (completed) {
           const hatchedLabel = previousTarget && previousTarget > 0 ? previousTarget : Math.max(1, nextTarget - 5);
           const hatchedDisplay = formatNumber(hatchedLabel);
           const nextDisplay = formatNumber(nextTarget);
           eggMessage.innerHTML = `🎉 <span class="font-semibold">Takbir!</span> You cracked the <span class="font-semibold">${hatchedDisplay}-verse</span> egg! Next challenge: <span class="font-semibold">${nextDisplay} verses</span>`;
         } else {
-          const remaining = Number(state.remaining ?? (target ? Math.max(0, target - count) : null));
-          if (remaining && remaining > 0) {
-            eggMessage.textContent = `${remaining} ${remaining === 1 ? 'more verse' : 'more verses'} to hatch the surprise.`;
+          const remaining = Number(state.remaining ?? Math.max(0, safeTarget - count));
+          if (remaining > 0) {
+            const remainingLabel = `${formatNumber(remaining)} ${remaining === 1 ? 'more verse' : 'more verses'}`;
+            eggMessage.textContent = `${remainingLabel} to hatch the surprise.`;
           } else {
             eggMessage.textContent = 'Keep reading to hatch the surprise.';
           }
         }
       }
       const label = state.progress_label
-        ? `${state.progress_label} Verses`
+        ? `${state.progress_label} ${strings.verses}`
         : target
-          ? `${count} / ${target} Verses`
-          : `${count} Verses`;
+          ? `${formatNumber(count)} / ${formatNumber(target)} ${strings.verses}`
+          : `${formatNumber(count)} ${strings.verses}`;
       safeSetText(eggCount, label);
+
+      updateGrowthVisual(growthVisual, {
+        completedStages: phase === 'growth' ? completedGrowthStages : 0,
+        activeStage: phase === 'growth' ? activeGrowthStage : 0,
+        progress: phase === 'growth' ? stageProgress : 0,
+        maxStage: maxGrowthStage,
+      });
+
       const celebrationKey = state.completed_at || state.previous_target || state.target || `${count}-${target}`;
       if (state.completed && celebrationKey !== lastEggCelebratedTarget) {
         lastEggCelebratedTarget = celebrationKey;
-        celebrateEgg();
+        const celebrationMessage = phase === 'growth' ? strings.growthCelebration : strings.eggCelebration;
+        celebrateEgg(celebrationMessage);
       }
     };
 

@@ -595,6 +595,161 @@
   z-index: 2;
 }
 
+.alfawz-growth-visual {
+  --alfawz-growth-progress: 0;
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  opacity: 0;
+  transform: scale(0.75);
+  transition: opacity 360ms ease, transform 360ms ease;
+  z-index: 1;
+}
+
+.alfawz-growth-trunk {
+  position: absolute;
+  bottom: 4%;
+  width: 18%;
+  max-width: 1.4rem;
+  min-width: 0.5rem;
+  height: calc(35% + var(--alfawz-growth-progress, 0) * 40%);
+  background: linear-gradient(180deg, #9a5a2f 0%, #6b3818 100%);
+  border-radius: 999px;
+  box-shadow: 0 8px 14px rgba(59, 37, 19, 0.22);
+}
+
+.alfawz-growth-canopy {
+  position: absolute;
+  bottom: calc(35% + var(--alfawz-growth-progress, 0) * 12%);
+  width: 86%;
+  height: 86%;
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 30%, #bbf7d0 0%, #4ade80 45%, #059669 100%);
+  opacity: calc(0.3 + var(--alfawz-growth-progress, 0) * 0.7);
+  transform: scale(calc(0.48 + var(--alfawz-growth-progress, 0) * 0.6));
+  transition: opacity 360ms ease, transform 360ms ease, bottom 360ms ease;
+  filter: drop-shadow(0 14px 28px rgba(15, 118, 110, 0.25));
+}
+
+.alfawz-growth-leaf {
+  position: absolute;
+  width: 1.8rem;
+  height: 1.8rem;
+  border-radius: 999px;
+  background: radial-gradient(circle at 30% 30%, rgba(187, 247, 208, 0.95), rgba(34, 197, 94, 0.9));
+  box-shadow: 0 6px 12px rgba(14, 116, 144, 0.24);
+  opacity: 0;
+  transform: translate(var(--leaf-x, 0), var(--leaf-y, 0)) rotate(var(--leaf-rotate, 0)) scale(0.45);
+  transition: opacity 320ms ease, transform 320ms ease;
+}
+
+.alfawz-growth-leaf.is-active {
+  opacity: 1;
+  transform: translate(var(--leaf-x, 0), var(--leaf-y, 0)) rotate(var(--leaf-rotate, 0)) scale(1);
+}
+
+.alfawz-growth-leaf.is-growing {
+  opacity: calc(0.3 + var(--leaf-progress, 0) * 0.7);
+  transform: translate(var(--leaf-x, 0), var(--leaf-y, 0)) rotate(var(--leaf-rotate, 0)) scale(calc(0.45 + var(--leaf-progress, 0) * 0.55));
+}
+
+.alfawz-growth-leaf[data-leaf="1"] {
+  --leaf-x: -45%;
+  --leaf-y: -10%;
+  --leaf-rotate: -24deg;
+}
+
+.alfawz-growth-leaf[data-leaf="2"] {
+  --leaf-x: 45%;
+  --leaf-y: -6%;
+  --leaf-rotate: 26deg;
+}
+
+.alfawz-growth-leaf[data-leaf="3"] {
+  --leaf-x: -28%;
+  --leaf-y: -40%;
+  --leaf-rotate: -12deg;
+}
+
+.alfawz-growth-leaf[data-leaf="4"] {
+  --leaf-x: 32%;
+  --leaf-y: -38%;
+  --leaf-rotate: 16deg;
+}
+
+.alfawz-growth-leaf[data-leaf="5"] {
+  --leaf-x: 0%;
+  --leaf-y: -55%;
+  --leaf-rotate: 0deg;
+}
+
+[data-phase="growth"] .alfawz-growth-visual {
+  opacity: 1;
+  transform: scale(1);
+}
+
+[data-phase="growth"] .alfawz-egg-emoji,
+[data-phase="growth"] .alfawz-egg-sparkle {
+  opacity: 0;
+  transform: scale(0.65);
+}
+
+[data-phase="growth"] .alfawz-egg-visual {
+  background: radial-gradient(circle at 40% 35%, #ecfdf5 0%, #bbf7d0 40%, #6ee7b7 100%);
+  box-shadow: 0 18px 38px rgba(13, 148, 136, 0.22);
+}
+
+[data-phase="growth"] .alfawz-progress-fill {
+  background: linear-gradient(90deg, rgba(16, 185, 129, 0.95), rgba(56, 189, 248, 0.85));
+}
+
+#alfawz-egg-card[data-phase="growth"] {
+  border-color: rgba(16, 94, 52, 0.28);
+  background-image: linear-gradient(135deg, rgba(219, 247, 230, 0.95), rgba(190, 235, 213, 0.92), rgba(232, 246, 236, 0.96));
+}
+
+#alfawz-egg-card[data-phase="growth"] #alfawz-egg-level {
+  background: linear-gradient(90deg, #0f766e, #14b8a6);
+}
+
+#alfawz-egg-card[data-phase="growth"] #alfawz-egg-title {
+  color: #0f5132;
+}
+
+#alfawz-egg-card[data-phase="growth"] #alfawz-egg-message {
+  color: #14532d;
+}
+
+#alfawz-egg-card[data-phase="growth"] #alfawz-egg-progress {
+  background: linear-gradient(90deg, #047857, #22c55e, #86efac);
+}
+
+#alfawz-egg-card[data-phase="growth"] .alfawz-growth-visual {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transform: scale(0.9);
+}
+
+#alfawz-egg-card[data-phase="growth"] .alfawz-growth-trunk {
+  bottom: 8%;
+}
+
+#alfawz-egg-card[data-phase="growth"] .alfawz-growth-canopy {
+  bottom: calc(30% + var(--alfawz-growth-progress, 0) * 16%);
+}
+
+#alfawz-egg-card .alfawz-growth-visual {
+  width: 100%;
+  height: 100%;
+}
+
 .alfawz-egg-sparkle {
   position: absolute;
   inset: -12px;
