@@ -48,12 +48,25 @@
       message: root.querySelector('#alfawz-egg-message'),
       progress: root.querySelector('#alfawz-egg-progress'),
       label: root.querySelector('#alfawz-egg-label'),
+      playButton: root.querySelector('#alfawz-egg-play'),
+      playLabel: root.querySelector('#alfawz-egg-play [data-role="alfawz-egg-play-label"]'),
     },
   };
+
+  let latestEggState = null;
 
   const timezoneOffset = () => -new Date().getTimezoneOffset();
   const formatNumber = (value) => new Intl.NumberFormat().format(Number(value || 0));
   const clampPercent = (value) => Math.max(0, Math.min(100, Number(value || 0)));
+
+  const resolvePlayUrl = (...candidates) => {
+    for (const candidate of candidates) {
+      if (typeof candidate === 'string' && candidate.trim()) {
+        return candidate.trim();
+      }
+    }
+    return '';
+  };
 
   const buildApiUrl = (path) => `${API_BASE}${path.replace(/^\//, '')}`;
 
@@ -303,7 +316,7 @@
 
       if (unlocked) {
         const handlePlay = () => {
-          const targetUrl = achievement.play_url || wpData.gamePlayUrl || wpData.memorizerUrl || wpData.readerUrl || '';
+          const targetUrl = resolvePlayUrl(achievement.play_url, wpData.gamePlayUrl, wpData.memorizerUrl, wpData.readerUrl);
           if (targetUrl) {
             window.location.href = targetUrl;
             return;
@@ -336,12 +349,22 @@
     if (!elements.egg.card) {
       return;
     }
+    latestEggState = state || null;
+    const playUrl = resolvePlayUrl(state?.play_url, wpData.gamePlayUrl, wpData.memorizerUrl, wpData.readerUrl);
     const count = Number(state?.count || 0);
     const target = Math.max(1, Number(state?.target || 20));
     const percentage = clampPercent(state?.percentage ?? (target ? (count / target) * 100 : 0));
     const completed = Boolean(state?.completed) || percentage >= 100 || count >= target;
     const nextTarget = Number(state?.next_target || state?.target || target);
     const previousTarget = Number(state?.previous_target || 0) || null;
+
+    if (elements.egg.playButton) {
+      elements.egg.playButton.dataset.playUrl = playUrl;
+      elements.egg.playButton.setAttribute('aria-label', strings.playNow);
+    }
+    if (elements.egg.playLabel) {
+      elements.egg.playLabel.textContent = strings.playNow;
+    }
 
     if (elements.egg.progress) {
       elements.egg.progress.style.width = `${percentage}%`;
@@ -374,7 +397,29 @@
       const level = Number(state?.level || 0) || Math.max(1, Math.ceil(target / 20));
       elements.egg.level.textContent = `${strings.levelLabel} ${formatNumber(level)}`;
     }
+
+    elements.egg.card.dataset.state = completed ? 'completed' : 'active';
   };
+
+  if (elements.egg.playButton) {
+    elements.egg.playButton.addEventListener('click', (event) => {
+      event.preventDefault();
+      const targetUrl = elements.egg.playButton?.dataset?.playUrl
+        || resolvePlayUrl(wpData.gamePlayUrl, wpData.memorizerUrl, wpData.readerUrl);
+      if (targetUrl) {
+        window.location.href = targetUrl;
+        return;
+      }
+      window.dispatchEvent(
+        new CustomEvent('alfawz:playEggChallenge', {
+          detail: {
+            source: 'egg-card',
+            state: latestEggState,
+          },
+        })
+      );
+    });
+  }
 
   const renderQuest = (quest) => {
     const item = document.createElement('div');
