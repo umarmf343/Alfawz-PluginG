@@ -652,27 +652,60 @@
 }
 
 .alfawz-verse-panel p {
-  font-size: 69px;
+  font-size: 138px;
 }
 
 .alfawz-arabic {
   font-family: 'Scheherazade New', 'Amiri', serif;
-  font-size: clamp(16.8rem, 27.6vw, 21rem);
+  font-size: clamp(33.6rem, 55.2vw, 42rem);
   line-height: 1.6;
   color: var(--alfawz-maroon-800);
 }
 
 .alfawz-transliteration {
   margin-top: 1.25rem;
-  font-size: 3.45rem;
+  font-size: 6.9rem;
   color: rgba(79, 13, 24, 0.78);
 }
 
 .alfawz-translation {
   margin-top: 0.75rem;
-  font-size: 3.3rem;
+  font-size: 6.6rem;
   font-style: italic;
   color: rgba(68, 36, 38, 0.75);
+}
+
+.alfawz-verse-toggles {
+  margin-top: clamp(2rem, 5vw, 3rem);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.alfawz-verse-toggle {
+  padding: 0.75rem 1.75rem;
+  border-radius: 999px;
+  border: 1px solid rgba(79, 13, 24, 0.3);
+  background: rgba(79, 13, 24, 0.08);
+  color: var(--alfawz-maroon-800);
+  font-size: 1.1rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.alfawz-verse-toggle:hover,
+.alfawz-verse-toggle:focus {
+  background: rgba(79, 13, 24, 0.14);
+  border-color: rgba(79, 13, 24, 0.45);
+  outline: none;
+}
+
+.alfawz-verse-toggle[aria-pressed='false'] {
+  background: rgba(79, 13, 24, 0.04);
+  color: rgba(79, 13, 24, 0.72);
 }
 
 .alfawz-view-toggle {
@@ -2930,7 +2963,7 @@
 }
 
 .alfawz-arabic {
-  font-size: clamp(2.15rem, 6vw, 2.85rem);
+  font-size: clamp(4.3rem, 12vw, 5.7rem);
   line-height: 1.65;
   font-weight: 600;
   color: #0f172a;
@@ -2939,7 +2972,7 @@
 
 .alfawz-transliteration,
 .alfawz-translation {
-  font-size: clamp(1rem, 3.5vw, 1.1rem);
+  font-size: clamp(2rem, 7vw, 2.2rem);
   line-height: 1.7;
   color: var(--alfawz-muted);
 }
