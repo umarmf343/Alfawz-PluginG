@@ -45,6 +45,7 @@
       networkError: 'Speech recognition is temporarily unavailable. Check your connection and try again.',
       interrupted: 'Speech recognition was interrupted. Tap begin listening to try again.',
       noSpeech: 'We did not capture your voice. Try again.',
+      retrying: 'Listening again…',
       pending: 'Listening… recite the ayah clearly.',
       processing: 'Analysing your recitation…',
       idle: 'Tap begin listening when you are ready to recite.',
@@ -65,6 +66,7 @@
     recognition: null,
     currentVerse: null,
     history: [],
+    retryTimeout: null,
   };
 
   const audio = {
@@ -334,6 +336,7 @@
           const errorType = event?.error;
           console.warn('[Alfawz Recitation] Speech recognition error', errorType);
           state.processing = false;
+          const wasListening = state.listening;
           stopListening();
 
           switch (errorType) {
@@ -351,7 +354,10 @@
               setStatus(strings.interrupted, 'info');
               break;
             case 'no-speech':
-              setStatus(strings.noSpeech, 'error');
+              setStatus(`${strings.noSpeech} ${strings.retrying}`.trim(), 'info');
+              if (wasListening && state.currentVerse) {
+                scheduleRetry();
+              }
               break;
             default:
               setStatus(strings.unsupported, 'error');
@@ -392,6 +398,11 @@
       return;
     }
 
+    if (state.retryTimeout) {
+      clearTimeout(state.retryTimeout);
+      state.retryTimeout = null;
+    }
+
     if (hasMediaCaptureSupport && el.visualizer) {
       try {
         await prepareVisualizer();
@@ -430,7 +441,23 @@
       }
     }
     stopVisualizer();
+    if (state.retryTimeout) {
+      clearTimeout(state.retryTimeout);
+      state.retryTimeout = null;
+    }
     setListening(false);
+  };
+
+  const scheduleRetry = (delay = 800) => {
+    if (state.retryTimeout) {
+      clearTimeout(state.retryTimeout);
+    }
+    state.retryTimeout = window.setTimeout(() => {
+      state.retryTimeout = null;
+      if (!state.listening && !state.processing && state.currentVerse) {
+        startListening();
+      }
+    }, Math.max(0, delay));
   };
 
   const request = async (endpoint, { method = 'GET', body } = {}) => {
@@ -456,7 +483,20 @@
     if (response.status === 204) {
       return null;
     }
-    return response.json();
+    const contentType = response.headers.get('content-type') || '';
+    if (contentType.includes('application/json')) {
+      return response.json();
+    }
+    const text = await response.text();
+    if (!text) {
+      return null;
+    }
+    try {
+      return JSON.parse(text);
+    } catch (error) {
+      const snippet = text.length > 120 ? `${text.slice(0, 120)}…` : text;
+      throw new Error(`Expected JSON response but received: ${snippet}`);
+    }
   };
 
   const renderMistakes = (mistakes) => {
