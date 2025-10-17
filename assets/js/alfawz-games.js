@@ -104,6 +104,11 @@
     content: root.querySelector('#alfawz-game-content'),
     error: root.querySelector('#alfawz-game-error'),
     statCards: root.querySelector('#alfawz-stat-cards'),
+    hero: {
+      playButton: root.querySelector('#alfawz-game-hero-play'),
+      playLabel: root.querySelector('#alfawz-game-hero-play [data-role="hero-play-label"]'),
+      playIcon: root.querySelector('#alfawz-game-hero-play [data-role="hero-play-icon"]'),
+    },
     stats: {
       hasanat: root.querySelector('[data-stat="hasanat"]'),
       verses: root.querySelector('[data-stat="verses"]'),
@@ -512,17 +517,23 @@
   };
 
   const updateGardenPlayButton = (state = 'idle') => {
-    if (!elements.garden?.playButton) {
-      return;
-    }
     const config = gardenPlayStates[state] || gardenPlayStates.idle;
-    if (elements.garden.playLabel) {
-      elements.garden.playLabel.textContent = config.label;
-    }
-    if (elements.garden.playIcon) {
-      elements.garden.playIcon.textContent = config.icon;
-    }
-    elements.garden.playButton.dataset.state = state;
+    const applyState = (target) => {
+      if (!target?.playButton) {
+        return;
+      }
+      if (target.playLabel) {
+        target.playLabel.textContent = config.label;
+      } else {
+        target.playButton.textContent = config.label;
+      }
+      if (target.playIcon) {
+        target.playIcon.textContent = config.icon;
+      }
+      target.playButton.dataset.state = state;
+    };
+    applyState(elements.garden);
+    applyState(elements.hero);
   };
 
   const showGardenBoard = () => {
@@ -1137,6 +1148,33 @@
     checkGardenMilestones();
   };
 
+  const handleGardenPlay = (event) => {
+    if (event) {
+      event.preventDefault();
+    }
+    if (!elements.garden?.playButton) {
+      return;
+    }
+    const state = elements.garden.playButton.dataset.state || 'idle';
+    const allTasksComplete = gardenState.tasks.length > 0 && gardenState.tasks.every((task) => task.completed);
+    const fullyBloomed =
+      gardenState.plants.length > 0
+      && gardenState.plants.every((plant) => plant.stage >= plant.stageTitles.length - 1);
+    if (!gardenState.isActive || state === 'idle') {
+      startGardenSession({ reset: true, newDay: false });
+      return;
+    }
+    if (allTasksComplete && fullyBloomed) {
+      startGardenSession({ reset: true, newDay: true });
+      return;
+    }
+    if (allTasksComplete) {
+      updateGardenStatus(strings.gardenStatusSpendSeeds || '', 'active');
+      return;
+    }
+    updateGardenStatus(strings.gardenAlreadyActive || '', 'active');
+  };
+
   const initGardenGame = () => {
     if (!elements.garden?.section) {
       return;
@@ -1144,27 +1182,10 @@
     updateGardenStatus(strings.gardenStatusIdle || '', 'idle');
     updateGardenPlayButton('idle');
     if (elements.garden.playButton) {
-      elements.garden.playButton.addEventListener('click', (event) => {
-        event.preventDefault();
-        const state = elements.garden.playButton.dataset.state || 'idle';
-        const allTasksComplete = gardenState.tasks.length > 0 && gardenState.tasks.every((task) => task.completed);
-        const fullyBloomed =
-          gardenState.plants.length > 0
-          && gardenState.plants.every((plant) => plant.stage >= plant.stageTitles.length - 1);
-        if (!gardenState.isActive || state === 'idle') {
-          startGardenSession({ reset: true, newDay: false });
-          return;
-        }
-        if (allTasksComplete && fullyBloomed) {
-          startGardenSession({ reset: true, newDay: true });
-          return;
-        }
-        if (allTasksComplete) {
-          updateGardenStatus(strings.gardenStatusSpendSeeds || '', 'active');
-          return;
-        }
-        updateGardenStatus(strings.gardenAlreadyActive || '', 'active');
-      });
+      elements.garden.playButton.addEventListener('click', handleGardenPlay);
+    }
+    if (elements.hero?.playButton) {
+      elements.hero.playButton.addEventListener('click', handleGardenPlay);
     }
     if (elements.garden.waterButton) {
       elements.garden.waterButton.addEventListener('click', (event) => {

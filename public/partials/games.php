@@ -469,6 +469,19 @@ if ( ! defined( 'ABSPATH' ) ) {
                         <span class="h-2 w-2 rounded-full bg-[#ffe7df]"></span>
                         <?php esc_html_e( 'Student Adventure Mode', 'alfawzquran' ); ?>
                     </div>
+                    <div class="flex flex-col items-center gap-3 sm:flex-row sm:gap-4">
+                        <button
+                            id="alfawz-game-hero-play"
+                            type="button"
+                            class="inline-flex items-center gap-2 rounded-full bg-white/20 px-6 py-3 text-sm font-semibold uppercase tracking-[0.28em] text-[#ffe7df] shadow-lg shadow-black/25 transition-all duration-300 hover:-translate-y-1 hover:bg-white/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#8d1f3f]"
+                        >
+                            <span aria-hidden="true" class="text-base" data-role="hero-play-icon">▶</span>
+                            <span data-role="hero-play-label"><?php esc_html_e( 'Play Game', 'alfawzquran' ); ?></span>
+                        </button>
+                        <p class="text-center text-sm font-semibold text-[#ffece1] opacity-90 sm:text-left">
+                            <?php esc_html_e( 'Jump into Virtue Garden Tycoon to start cultivating today.', 'alfawzquran' ); ?>
+                        </p>
+                    </div>
                 </div>
             </header>
 
