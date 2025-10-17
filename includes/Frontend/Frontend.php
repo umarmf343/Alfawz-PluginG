@@ -242,6 +242,11 @@ class Frontend {
                     'noMistakes' => __('Flawless! Keep reinforcing this ayah daily.', 'alfawzquran'),
                     'memorizationComplete' => __('Barakallahu feek! Memorization complete—may Allah make it firm in your heart.', 'alfawzquran'),
                     'historyLoadError' => __('Unable to load your recent sessions.', 'alfawzquran'),
+                    'livePreviewBadge' => __('Live', 'alfawzquran'),
+                    'livePreviewNoMistakes' => __('Sounding great so far! Keep reciting.', 'alfawzquran'),
+                    'livePreviewListening' => __('Listening live… Mistakes will appear here instantly.', 'alfawzquran'),
+                    'livePreviewUnavailable' => __('Real-time cues will appear once the reference verse is ready.', 'alfawzquran'),
+                    'livePreviewTitle' => __('Live detection', 'alfawzquran'),
                 ],
             ]);
         }
