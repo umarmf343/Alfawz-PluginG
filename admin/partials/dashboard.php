@@ -155,13 +155,21 @@ $settings_nonce_field = wp_nonce_field( 'alfawz_admin_settings', 'alfawz_admin_s
 
             <div class="space-y-8">
                 <section id="alfawz-user-role-management" class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm" aria-labelledby="alfawz-user-role-title">
-                    <div class="mb-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                        <h2 id="alfawz-user-role-title" class="flex items-center text-2xl font-bold text-gray-800">
-                            <span class="mr-2" aria-hidden="true">👥</span>
-                            <?php esc_html_e( 'User &amp; Role Management', 'alfawzquran' ); ?>
-                        </h2>
+                    <div class="hidden">
+                        <?php echo $user_nonce_field; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+                    </div>
+                    <div class="mb-6 space-y-4">
+                        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                            <h2 id="alfawz-user-role-title" class="flex items-center text-2xl font-bold text-gray-800">
+                                <span class="mr-2" aria-hidden="true">👥</span>
+                                <?php esc_html_e( 'User &amp; Role Management', 'alfawzquran' ); ?>
+                            </h2>
+                            <button type="button" id="add-user-btn" class="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-base font-semibold text-white transition hover:bg-blue-700">
+                                <span class="mr-2 text-xl" aria-hidden="true">＋</span>
+                                <?php esc_html_e( 'Add New User', 'alfawzquran' ); ?>
+                            </button>
+                        </div>
                         <form id="alfawz-user-filter" class="flex flex-col gap-3 sm:flex-row sm:items-center" novalidate>
-                            <?php echo $user_nonce_field; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
                             <label for="alfawz-role-filter" class="sr-only"><?php esc_html_e( 'Filter by role', 'alfawzquran' ); ?></label>
                             <select id="alfawz-role-filter" name="role" class="rounded-lg border border-gray-300 px-3 py-2 text-base focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500">
                                 <option value="all"><?php esc_html_e( 'All Roles', 'alfawzquran' ); ?></option>
@@ -174,6 +182,52 @@ $settings_nonce_field = wp_nonce_field( 'alfawz_admin_settings', 'alfawz_admin_s
                                 <input type="search" id="alfawz-user-search" name="s" class="w-full rounded-lg border border-gray-300 px-4 py-2 pl-10 text-base focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500" placeholder="<?php esc_attr_e( 'Search users…', 'alfawzquran' ); ?>" />
                             </div>
                             <button type="submit" class="inline-flex items-center rounded-lg bg-emerald-600 px-4 py-2 text-base font-semibold text-white transition hover:bg-emerald-700"><?php esc_html_e( 'Apply', 'alfawzquran' ); ?></button>
+                        </form>
+                    </div>
+                    <div id="alfawz-user-form-panel" class="hidden rounded-2xl border border-blue-200 bg-blue-50 p-6">
+                        <div class="mb-4 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                            <div>
+                                <h3 class="text-xl font-semibold text-blue-900"><?php esc_html_e( 'Create User', 'alfawzquran' ); ?></h3>
+                                <p class="text-base text-blue-800"><?php esc_html_e( 'Add a new learner, teacher, or admin to the platform.', 'alfawzquran' ); ?></p>
+                            </div>
+                            <button type="button" id="alfawz-close-user-form" class="text-base font-medium text-blue-700 transition hover:text-blue-900"><?php esc_html_e( 'Close', 'alfawzquran' ); ?></button>
+                        </div>
+                        <form id="alfawz-user-form" class="space-y-5" novalidate>
+                            <div class="grid gap-4 md:grid-cols-2">
+                                <div>
+                                    <label for="alfawz-user-first-name" class="mb-2 block text-base font-semibold text-gray-800"><?php esc_html_e( 'First Name', 'alfawzquran' ); ?></label>
+                                    <input type="text" id="alfawz-user-first-name" name="first_name" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-base focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500" required />
+                                </div>
+                                <div>
+                                    <label for="alfawz-user-last-name" class="mb-2 block text-base font-semibold text-gray-800"><?php esc_html_e( 'Last Name', 'alfawzquran' ); ?></label>
+                                    <input type="text" id="alfawz-user-last-name" name="last_name" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-base focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                                </div>
+                            </div>
+                            <div class="grid gap-4 md:grid-cols-2">
+                                <div>
+                                    <label for="alfawz-user-email" class="mb-2 block text-base font-semibold text-gray-800"><?php esc_html_e( 'Email Address', 'alfawzquran' ); ?><span class="text-blue-700"> *</span></label>
+                                    <input type="email" id="alfawz-user-email" name="email" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-base focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500" required />
+                                </div>
+                                <div>
+                                    <label for="alfawz-user-role" class="mb-2 block text-base font-semibold text-gray-800"><?php esc_html_e( 'Role', 'alfawzquran' ); ?><span class="text-blue-700"> *</span></label>
+                                    <select id="alfawz-user-role" name="role" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-base focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500" required></select>
+                                </div>
+                            </div>
+                            <div class="grid gap-4 md:grid-cols-2">
+                                <div>
+                                    <label for="alfawz-user-password" class="mb-2 block text-base font-semibold text-gray-800"><?php esc_html_e( 'Password (optional)', 'alfawzquran' ); ?></label>
+                                    <input type="text" id="alfawz-user-password" name="password" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-base focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="<?php esc_attr_e( 'Leave blank to auto-generate', 'alfawzquran' ); ?>" />
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <input type="checkbox" id="alfawz-user-send-email" name="send_email" value="1" class="h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500" checked />
+                                    <label for="alfawz-user-send-email" class="text-base font-medium text-gray-800"><?php esc_html_e( 'Send welcome email with login instructions', 'alfawzquran' ); ?></label>
+                                </div>
+                            </div>
+                            <div class="flex flex-wrap gap-3">
+                                <button type="submit" id="alfawz-save-user" class="inline-flex items-center rounded-lg bg-blue-600 px-4 py-2 text-base font-semibold text-white transition hover:bg-blue-700"><?php esc_html_e( 'Save User', 'alfawzquran' ); ?></button>
+                                <button type="button" id="alfawz-cancel-user" class="inline-flex items-center rounded-lg border border-blue-600 px-4 py-2 text-base font-semibold text-blue-700 transition hover:bg-blue-50"><?php esc_html_e( 'Cancel', 'alfawzquran' ); ?></button>
+                            </div>
+                            <div id="alfawz-user-feedback" class="hidden rounded-lg border-l-4 px-4 py-3 text-base font-medium" role="status" aria-live="polite"></div>
                         </form>
                     </div>
                     <div id="alfawz-user-list" class="space-y-3">

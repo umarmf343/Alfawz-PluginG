@@ -28,6 +28,8 @@
   })
 
   function initAdminDashboard() {
+    const availableRoles = buildAvailableRoles()
+
     const state = {
       classes: [],
       teachers: [],
@@ -43,6 +45,8 @@
         role: 'all',
         search: '',
       },
+      userFormOpen: false,
+      availableRoles,
     }
 
     const $classForm = $('#alfawz-class-form')
@@ -69,9 +73,24 @@
     const $userList = $('#alfawz-user-list')
     const $userFilterForm = $('#alfawz-user-filter')
     const $userNonceInput = $('#alfawz_admin_users_nonce')
+    const $userFormPanel = $('#alfawz-user-form-panel')
+    const $userForm = $('#alfawz-user-form')
+    const $newUserButton = $('#add-user-btn')
+    const $cancelUserButton = $('#alfawz-cancel-user')
+    const $closeUserFormButton = $('#alfawz-close-user-form')
+    const $userFirstNameField = $('#alfawz-user-first-name')
+    const $userLastNameField = $('#alfawz-user-last-name')
+    const $userEmailField = $('#alfawz-user-email')
+    const $userRoleField = $('#alfawz-user-role')
+    const $userPasswordField = $('#alfawz-user-password')
+    const $userSendEmailField = $('#alfawz-user-send-email')
+    const $userFeedback = $('#alfawz-user-feedback')
+    const $saveUserButton = $('#alfawz-save-user')
     const $settingsForm = $('#alfawz-settings-form')
     const $settingsNonceInput = $('#alfawz_admin_settings_nonce')
     const $settingsFeedback = $('#alfawz-settings-feedback')
+    const saveUserButtonDefault = $saveUserButton.length ? $saveUserButton.text() : ''
+    let userFeedbackTimeout = null
 
     if ($classNonceInput.length) {
       state.classNonce = $classNonceInput.val()
@@ -84,6 +103,10 @@
     if ($settingsNonceInput.length) {
       state.settingsNonce = $settingsNonceInput.val()
     }
+
+    renderUserRoleOptions()
+    resetUserForm()
+    closeUserForm()
 
     resetClassForm()
     closeClassForm()
@@ -203,6 +226,26 @@
 
       const updatedList = state.classStudents.concat([studentId])
       updateClassStudents(state.selectedClassId, updatedList)
+    })
+
+    $newUserButton.on('click', function () {
+      openUserForm()
+      $userFirstNameField.trigger('focus')
+    })
+
+    $cancelUserButton.on('click', function () {
+      resetUserForm()
+      closeUserForm()
+    })
+
+    $closeUserFormButton.on('click', function () {
+      resetUserForm()
+      closeUserForm()
+    })
+
+    $userForm.on('submit', function (event) {
+      event.preventDefault()
+      saveUser()
     })
 
     $userFilterForm.on('submit', function (event) {
@@ -501,6 +544,213 @@
         })
     }
 
+    function renderUserRoleOptions() {
+      if (!$userRoleField.length) {
+        return
+      }
+
+      const roles = Array.isArray(state.availableRoles) && state.availableRoles.length ? state.availableRoles : buildAvailableRoles()
+
+      const options = roles
+        .map(role => `<option value="${role.value}">${escapeHtml(role.label)}</option>`)
+        .join('')
+
+      $userRoleField.html(options)
+
+      if (roles.length) {
+        $userRoleField.val(roles[0].value)
+      }
+    }
+
+    function openUserForm() {
+      if (!$userFormPanel.length) {
+        return
+      }
+
+      $userFormPanel.removeClass('hidden')
+      state.userFormOpen = true
+    }
+
+    function closeUserForm() {
+      if (!$userFormPanel.length) {
+        return
+      }
+
+      $userFormPanel.addClass('hidden')
+      state.userFormOpen = false
+      clearUserFeedback()
+    }
+
+    function resetUserForm() {
+      if (!$userForm.length) {
+        return
+      }
+
+      clearUserFeedback()
+      $userFirstNameField.val('')
+      $userLastNameField.val('')
+      $userEmailField.val('')
+      $userPasswordField.val('')
+
+      if (Array.isArray(state.availableRoles) && state.availableRoles.length) {
+        $userRoleField.val(state.availableRoles[0].value)
+      } else {
+        $userRoleField.val('')
+      }
+
+      $userSendEmailField.prop('checked', true)
+    }
+
+    function setUserFormLoading(isLoading) {
+      if (!$saveUserButton.length) {
+        return
+      }
+
+      $saveUserButton.prop('disabled', isLoading)
+
+      if (isLoading) {
+        $saveUserButton.addClass('opacity-60 cursor-not-allowed')
+        $saveUserButton.data('original-text', $saveUserButton.data('original-text') || saveUserButtonDefault)
+        const savingLabel = adminData.strings && adminData.strings.saving ? adminData.strings.saving : t('Saving…')
+        $saveUserButton.text(savingLabel)
+      } else {
+        $saveUserButton.removeClass('opacity-60 cursor-not-allowed')
+        const originalText = $saveUserButton.data('original-text') || saveUserButtonDefault || t('Save User')
+        $saveUserButton.text(originalText)
+      }
+    }
+
+    function resetUserFeedbackState() {
+      if (!$userFeedback.length) {
+        return
+      }
+
+      if (userFeedbackTimeout) {
+        clearTimeout(userFeedbackTimeout)
+        userFeedbackTimeout = null
+      }
+
+      $userFeedback.removeClass('bg-red-50 border-red-500 text-red-700 bg-emerald-50 border-emerald-500 text-emerald-800')
+    }
+
+    function clearUserFeedback() {
+      if (!$userFeedback.length) {
+        return
+      }
+
+      resetUserFeedbackState()
+      $userFeedback.addClass('hidden').text('')
+    }
+
+    function showUserFeedback(type, message) {
+      if (!$userFeedback.length) {
+        return
+      }
+
+      resetUserFeedbackState()
+
+      const isSuccess = type === 'success'
+
+      $userFeedback
+        .removeClass('hidden')
+        .addClass(
+          isSuccess
+            ? 'bg-emerald-50 border-emerald-500 text-emerald-800'
+            : 'bg-red-50 border-red-500 text-red-700'
+        )
+        .text(message)
+
+      if (!isSuccess) {
+        userFeedbackTimeout = window.setTimeout(() => {
+          clearUserFeedback()
+        }, 4000)
+      }
+    }
+
+    function saveUser() {
+      if (!$userForm.length) {
+        return
+      }
+
+      const firstName = ($userFirstNameField.val() || '').trim()
+      const lastName = ($userLastNameField.val() || '').trim()
+      const email = ($userEmailField.val() || '').trim()
+      const role = ($userRoleField.val() || '').trim()
+      const password = ($userPasswordField.val() || '').trim()
+      const sendEmail = $userSendEmailField.is(':checked')
+
+      if (!email || !isValidEmail(email) || !role || (!firstName && !lastName)) {
+        const validationMessage = adminData.strings && adminData.strings.userValidationError
+          ? adminData.strings.userValidationError
+          : t('Please provide the required information for the new user.')
+        showUserFeedback('error', validationMessage)
+        return
+      }
+
+      const payload = {
+        first_name: firstName,
+        last_name: lastName,
+        email,
+        role,
+        send_email: sendEmail,
+      }
+
+      if (password) {
+        payload.password = password
+      }
+
+      setUserFormLoading(true)
+
+      dashboardRequest({
+        method: 'POST',
+        path: 'admin/users',
+        data: payload,
+        nonce: state.userNonce,
+      })
+        .then(response => {
+          const user = response && response.user ? response.user : null
+          const passwordToken = response && response.password ? response.password : ''
+          const emailSent = Boolean(response && response.email_sent)
+
+          resetUserForm()
+
+          let successMessage = adminData.strings && adminData.strings.userCreated
+            ? adminData.strings.userCreated
+            : t('User created successfully.')
+
+          if (passwordToken) {
+            const template = adminData.strings && adminData.strings.userCreatedNoEmail
+              ? adminData.strings.userCreatedNoEmail
+              : t('User created successfully. Share this temporary password: %s')
+            successMessage = template.replace('%s', passwordToken)
+            if (!emailSent && adminData.strings && adminData.strings.userEmailNotSent) {
+              successMessage = `${successMessage} ${adminData.strings.userEmailNotSent}`
+            }
+          } else if (emailSent && adminData.strings && adminData.strings.userEmailNotice) {
+            successMessage = `${successMessage} ${adminData.strings.userEmailNotice}`
+          } else if (!emailSent && adminData.strings && adminData.strings.userEmailNotSent) {
+            successMessage = `${successMessage} ${adminData.strings.userEmailNotSent}`
+          }
+
+          showUserFeedback('success', successMessage)
+
+          loadUsers()
+
+          if (user && Array.isArray(user.roles) && user.roles.includes('teacher')) {
+            loadTeachers()
+          }
+        })
+        .catch(() => {
+          const errorMessage = adminData.strings && adminData.strings.userCreationError
+            ? adminData.strings.userCreationError
+            : t('Unable to create user.')
+          showUserFeedback('error', errorMessage)
+        })
+        .always(() => {
+          setUserFormLoading(false)
+        })
+    }
+
     function loadTeachers() {
       return dashboardRequest({
         method: 'GET',
@@ -578,6 +828,39 @@
         })
     }
 
+    function buildAvailableRoles() {
+      const fallbackLabels = {
+        student: __('Student', 'alfawzquran'),
+        teacher: __('Teacher', 'alfawzquran'),
+        alfawz_admin: __('Alfawz Admin', 'alfawzquran'),
+        subscriber: __('Subscriber', 'alfawzquran'),
+      }
+
+      const roleOrder = ['student', 'teacher', 'alfawz_admin', 'subscriber']
+      const localizedRoles = adminData.roles && typeof adminData.roles === 'object' ? adminData.roles : {}
+
+      const roles = roleOrder
+        .filter(role => localizedRoles[role] || fallbackLabels[role])
+        .map(role => ({
+          value: role,
+          label: localizedRoles[role] || fallbackLabels[role] || role,
+        }))
+
+      if (!roles.length) {
+        Object.keys(localizedRoles).forEach(roleKey => {
+          roles.push({ value: roleKey, label: localizedRoles[roleKey] || roleKey })
+        })
+      }
+
+      if (!roles.length) {
+        Object.keys(fallbackLabels).forEach(roleKey => {
+          roles.push({ value: roleKey, label: fallbackLabels[roleKey] })
+        })
+      }
+
+      return roles
+    }
+
     function renderUsers(users) {
       if (!users.length) {
         $userList.html(`<div class="rounded-lg border border-dashed border-gray-300 bg-gray-50 px-4 py-6 text-center text-base text-gray-500">${__('No users found for this filter.', 'alfawzquran')}</div>`)
@@ -609,17 +892,16 @@
     }
 
     function buildRoleOptions(roles) {
-      const primaryRole = Array.isArray(roles) && roles.length ? roles[0] : 'subscriber'
-      const availableRoles = [
-        { value: 'student', label: __('Student', 'alfawzquran') },
-        { value: 'teacher', label: __('Teacher', 'alfawzquran') },
-        { value: 'subscriber', label: __('Subscriber', 'alfawzquran') },
-      ]
+      const primaryRole = Array.isArray(roles) && roles.length ? roles[0] : ''
+      const rolesToRender = Array.isArray(state.availableRoles) && state.availableRoles.length
+        ? state.availableRoles
+        : buildAvailableRoles()
+      const currentRole = primaryRole || (rolesToRender.length ? rolesToRender[0].value : '')
 
-      return availableRoles
+      return rolesToRender
         .map(role => {
-          const selected = role.value === primaryRole ? 'selected' : ''
-          return `<option value="${role.value}" ${selected}>${role.label}</option>`
+          const selected = role.value === currentRole ? 'selected' : ''
+          return `<option value="${role.value}" ${selected}>${escapeHtml(role.label)}</option>`
         })
         .join('')
     }
@@ -687,6 +969,14 @@
 
   function escapeHtml(value) {
     return $('<div>').text(value || '').html()
+  }
+
+  function isValidEmail(email) {
+    if (!email) {
+      return false
+    }
+
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
   }
 
   function showTransientNotice($row, type, message) {
