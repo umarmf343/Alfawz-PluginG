@@ -244,10 +244,13 @@
 
 #alfawz-leaderboard .alfawz-leaderboard-hero {
   position: relative;
-  border-radius: var(--alfawz-radius-xl);
+  margin-left: calc(50% - 50vw);
+  margin-right: calc(50% - 50vw);
+  width: 100vw;
+  border-radius: 0;
   background: linear-gradient(135deg, rgba(47, 8, 17, 0.96), rgba(116, 31, 49, 0.92) 55%, rgba(168, 50, 84, 0.9));
   box-shadow: 0 40px 80px rgba(47, 8, 17, 0.35);
-  color: #fff7ee;
+  color: #fffdf6;
   overflow: hidden;
 }
 
