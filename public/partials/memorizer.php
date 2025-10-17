@@ -129,7 +129,7 @@ if ( ! defined( 'ABSPATH' ) ) {
                         <div class="flex flex-col items-center gap-3 sm:items-start">
                             <span class="text-sm font-semibold uppercase tracking-[0.3em] text-slate-100/90"><?php esc_html_e( 'Rhythm tracker', 'alfawzquran' ); ?></span>
                             <div class="flex items-center gap-3 rounded-2xl bg-white/10 p-4 text-left shadow-lg backdrop-blur-sm">
-                                <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-300/80 via-teal-300/80 to-cyan-300/80 text-3xl text-slate-900 shadow-inner" aria-hidden="true">🧠</div>
+                                <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-slate-900/90 via-indigo-800/80 to-emerald-700/80 text-3xl text-slate-100 shadow-inner" aria-hidden="true">🧠</div>
                                 <div class="space-y-1">
                                     <p class="text-sm font-medium text-emerald-50/90"><?php esc_html_e( 'Daily loops completed', 'alfawzquran' ); ?></p>
                                     <p id="counter" class="text-2xl font-semibold text-emerald-50">0 / 20 <?php esc_html_e( 'Repetitions', 'alfawzquran' ); ?></p>
