@@ -707,6 +707,13 @@
   justify-items: center;
 }
 
+.alfawz-next-surah {
+  justify-self: center;
+  margin-top: clamp(1.5rem, 4vw, 2.5rem);
+  font-size: clamp(1.05rem, 0.95rem + 0.3vw, 1.2rem);
+  text-decoration: none;
+}
+
 .alfawz-arabic {
   font-family: 'Scheherazade New', 'Amiri', serif;
   font-size: clamp(4.5rem, 9vw, 6.5rem);

@@ -1312,6 +1312,7 @@
     const verseContent = qs('#alfawz-verse-content', root);
     const prevBtn = qs('#alfawz-prev-verse', root);
     const nextBtn = qs('#alfawz-next-verse', root);
+    const nextSurahBtn = qs('#alfawz-next-surah', root);
     const eggEmoji = qs('#alfawz-egg-emoji', root);
     const eggCount = qs('#alfawz-egg-count', root);
     const eggProgress = qs('#alfawz-egg-progress-bar', root);
@@ -2975,16 +2976,55 @@
       }
     };
 
+    const resolveNextSurah = () => {
+      if (!currentSurah || !Array.isArray(state.surahs) || !state.surahs.length) {
+        return null;
+      }
+      const currentNumber = Number(currentSurah.number || currentSurah.id || 0);
+      if (!currentNumber) {
+        return null;
+      }
+      const currentIndex = state.surahs.findIndex(
+        (surah) => Number(surah.number) === currentNumber
+      );
+      if (currentIndex === -1 || currentIndex + 1 >= state.surahs.length) {
+        return null;
+      }
+      return state.surahs[currentIndex + 1] || null;
+    };
+
     const updateNavigationButtons = () => {
-      const total = currentSurah ? Number(currentSurah.numberOfAyahs || currentSurah.ayahs || currentSurah.totalVerses || 0) : 0;
+      const total = currentSurah
+        ? Number(currentSurah.numberOfAyahs || currentSurah.ayahs || currentSurah.totalVerses || 0)
+        : 0;
       const hideNav = showFullSurah;
+      const atEnd = !hideNav && total && currentVerseId && currentVerseId >= total;
+      const nextSurah = atEnd ? resolveNextSurah() : null;
       if (prevBtn) {
         prevBtn.classList.toggle('hidden', hideNav);
         prevBtn.disabled = hideNav || !currentVerseId || currentVerseId <= 1;
       }
       if (nextBtn) {
-        nextBtn.classList.toggle('hidden', hideNav);
+        const hideNextBtn = hideNav || atEnd;
+        nextBtn.classList.toggle('hidden', hideNextBtn);
         nextBtn.disabled = hideNav || !currentVerseId || !total || currentVerseId >= total;
+      }
+      if (nextSurahBtn) {
+        const showNextSurah = Boolean(nextSurah);
+        nextSurahBtn.hidden = !showNextSurah;
+        nextSurahBtn.disabled = !showNextSurah;
+        if (showNextSurah) {
+          const label =
+            nextSurah?.englishName ||
+            nextSurah?.englishNameTranslation ||
+            nextSurah?.name ||
+            `Surah ${Number(nextSurah?.number || nextSurah?.id || 0)}`;
+          nextSurahBtn.setAttribute('aria-label', `Enter next surah: ${label}`);
+          nextSurahBtn.title = `Enter next surah: ${label}`;
+        } else {
+          nextSurahBtn.removeAttribute('aria-label');
+          nextSurahBtn.removeAttribute('title');
+        }
       }
     };
 
@@ -3251,6 +3291,37 @@
       await logVerseProgress(currentSurahId, nextVerse);
     };
 
+    const handleNextSurah = async () => {
+      if (isLoading) {
+        return;
+      }
+      const nextSurah = resolveNextSurah();
+      if (!nextSurah || !surahSelect) {
+        return;
+      }
+      const nextSurahId = Number(nextSurah.number || nextSurah.id || 0);
+      if (!nextSurahId) {
+        return;
+      }
+      if (nextSurahBtn) {
+        nextSurahBtn.disabled = true;
+        nextSurahBtn.setAttribute('aria-busy', 'true');
+      }
+      try {
+        surahSelect.value = String(nextSurahId);
+        handleSurahChange({ target: surahSelect });
+        if (verseSelect) {
+          verseSelect.value = '1';
+        }
+        await renderVerse(nextSurahId, 1);
+      } finally {
+        if (nextSurahBtn) {
+          nextSurahBtn.removeAttribute('aria-busy');
+        }
+        updateNavigationButtons();
+      }
+    };
+
     const handleSurahToggleChange = async (event) => {
       const nextState =
         typeof event?.target?.checked === 'boolean' ? event.target.checked : !showFullSurah;
@@ -3332,6 +3403,9 @@
     verseSelect.addEventListener('change', handleVerseChange);
     prevBtn?.addEventListener('click', handlePrev);
     nextBtn?.addEventListener('click', handleNext);
+    nextSurahBtn?.addEventListener('click', () => {
+      void handleNextSurah();
+    });
     if (surahToggle) {
       surahToggle.disabled = true;
       surahToggle.addEventListener('change', handleSurahToggleChange);
@@ -3340,6 +3414,7 @@
     updateSurahModeUI();
     attachPressFeedback(prevBtn);
     attachPressFeedback(nextBtn);
+    attachPressFeedback(nextSurahBtn);
     dailyDismissControls.forEach((control) => {
       control.addEventListener('click', closeDailyModal);
     });
