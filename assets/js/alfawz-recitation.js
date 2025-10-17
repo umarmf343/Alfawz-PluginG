@@ -17,6 +17,7 @@
   const selectors = {
     toggle: '#alfawz-recitation-toggle',
     status: '#alfawz-recitation-status',
+    visualizer: '#alfawz-recitation-visualizer',
     scoreValue: '#alfawz-recitation-score-value',
     verse: '#alfawz-recitation-verse',
     translation: '#alfawz-recitation-translation',
@@ -64,6 +65,167 @@
     recognition: null,
     currentVerse: null,
     history: [],
+  };
+
+  const audio = {
+    stream: null,
+    context: null,
+    analyser: null,
+    source: null,
+    frame: null,
+    data: null,
+    bars: [],
+  };
+
+  const hasMediaCaptureSupport = !!(
+    navigator.mediaDevices && typeof navigator.mediaDevices.getUserMedia === 'function'
+  );
+
+  const ensureVisualizerBars = () => {
+    if (!el.visualizer || audio.bars.length) {
+      return;
+    }
+    audio.bars = Array.from(el.visualizer.querySelectorAll('[data-bar]'));
+    if (audio.bars.length === 0) {
+      audio.bars = [];
+    }
+  };
+
+  const resetVisualizerBars = () => {
+    if (!audio.bars.length) {
+      return;
+    }
+    audio.bars.forEach((bar) => {
+      bar.style.setProperty('--alfawz-visualizer-scale', '0.08');
+    });
+  };
+
+  const stopVisualizer = (releaseStream = true) => {
+    if (audio.frame) {
+      cancelAnimationFrame(audio.frame);
+      audio.frame = null;
+    }
+    if (el.visualizer) {
+      delete el.visualizer.dataset.visualizing;
+      el.visualizer.classList.add('hidden');
+    }
+    resetVisualizerBars();
+
+    if (!releaseStream) {
+      return;
+    }
+
+    if (audio.source) {
+      try {
+        audio.source.disconnect();
+      } catch (error) {
+        // Ignore disconnection errors.
+      }
+      audio.source = null;
+    }
+
+    audio.analyser = null;
+    audio.data = null;
+
+    if (audio.context && typeof audio.context.close === 'function') {
+      audio.context.close().catch(() => {});
+    }
+    audio.context = null;
+
+    if (audio.stream) {
+      audio.stream.getTracks().forEach((track) => track.stop());
+    }
+    audio.stream = null;
+  };
+
+  const startVisualizer = () => {
+    if (!audio.analyser || !el.visualizer) {
+      return;
+    }
+    ensureVisualizerBars();
+    if (!audio.bars.length) {
+      return;
+    }
+    if (!audio.data || audio.data.length !== audio.analyser.frequencyBinCount) {
+      audio.data = new Uint8Array(audio.analyser.frequencyBinCount);
+    }
+
+    el.visualizer.classList.remove('hidden');
+    el.visualizer.dataset.visualizing = 'true';
+
+    const render = () => {
+      if (!audio.analyser) {
+        return;
+      }
+      audio.analyser.getByteFrequencyData(audio.data);
+      const sliceSize = Math.max(1, Math.floor(audio.data.length / audio.bars.length));
+      audio.bars.forEach((bar, index) => {
+        let sum = 0;
+        for (let i = 0; i < sliceSize; i += 1) {
+          const dataIndex = index * sliceSize + i;
+          if (dataIndex < audio.data.length) {
+            sum += audio.data[dataIndex];
+          }
+        }
+        const average = sum / sliceSize || 0;
+        const normalized = Math.max(0.08, average / 255);
+        bar.style.setProperty('--alfawz-visualizer-scale', normalized.toFixed(3));
+      });
+      audio.frame = requestAnimationFrame(render);
+    };
+
+    if (audio.frame) {
+      cancelAnimationFrame(audio.frame);
+    }
+    render();
+  };
+
+  const prepareVisualizer = async () => {
+    if (!hasMediaCaptureSupport || !el.visualizer) {
+      return null;
+    }
+    if (audio.analyser) {
+      return audio.analyser;
+    }
+
+    ensureVisualizerBars();
+
+    let stream;
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+    } catch (error) {
+      throw error;
+    }
+
+    const AudioContextCtor = window.AudioContext || window.webkitAudioContext;
+    if (typeof AudioContextCtor !== 'function') {
+      if (stream) {
+        stream.getTracks().forEach((track) => track.stop());
+      }
+      throw new Error('AudioContextUnsupported');
+    }
+
+    const context = new AudioContextCtor();
+    if (context.state === 'suspended' && typeof context.resume === 'function') {
+      try {
+        await context.resume();
+      } catch (error) {
+        // Ignore resume errors; continue with initialised context.
+      }
+    }
+
+    const analyser = context.createAnalyser();
+    analyser.fftSize = 256;
+
+    const source = context.createMediaStreamSource(stream);
+    source.connect(analyser);
+
+    audio.stream = stream;
+    audio.context = context;
+    audio.analyser = analyser;
+    audio.source = source;
+
+    return analyser;
   };
 
   const headers = {};
@@ -215,7 +377,7 @@
     return state.recognition;
   };
 
-  const startListening = () => {
+  const startListening = async () => {
     if (!hasRecognitionSupport) {
       setStatus(strings.unsupported, 'error');
       return;
@@ -229,11 +391,32 @@
       setStatus(strings.unsupported, 'error');
       return;
     }
+
+    if (hasMediaCaptureSupport && el.visualizer) {
+      try {
+        await prepareVisualizer();
+      } catch (error) {
+        console.warn('[Alfawz Recitation] Unable to start audio visualizer', error);
+        if (error && (error.name === 'NotAllowedError' || error.name === 'SecurityError')) {
+          setStatus(strings.permissionDenied, 'error');
+          return;
+        }
+        if (error && (error.name === 'NotFoundError' || error.name === 'AbortError')) {
+          setStatus(strings.audioCaptureError, 'error');
+          return;
+        }
+        if (error && error.message === 'AudioContextUnsupported') {
+          setStatus(strings.unsupported, 'error');
+        }
+      }
+    }
     try {
       recognition.start();
       setListening(true);
+      startVisualizer();
     } catch (error) {
       console.warn('[Alfawz Recitation] Failed to start recognition', error);
+      stopVisualizer();
       setStatus(strings.unsupported, 'error');
     }
   };
@@ -246,6 +429,7 @@
         // Ignore if already stopped.
       }
     }
+    stopVisualizer();
     setListening(false);
   };
 
