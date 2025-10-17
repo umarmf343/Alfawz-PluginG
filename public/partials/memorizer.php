@@ -21,30 +21,30 @@ if ( ! defined( 'ABSPATH' ) ) {
                 </p>
             </header>
 
-            <div class="grid gap-5 sm:grid-cols-3">
-                <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-sky-950 via-sky-700 to-cyan-400 p-6 text-left shadow-2xl ring-1 ring-sky-200/50">
+            <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-2">
+                <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#800000] via-[#fff1e6] to-[#fff1e6] p-6 text-left shadow-2xl ring-1 ring-[#800000]/50">
                     <div class="pointer-events-none absolute inset-0 opacity-50 mix-blend-screen bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.35),_transparent_65%)]"></div>
                     <div class="relative space-y-3">
-                        <p class="text-xs uppercase tracking-[0.35em] text-cyan-100/85"><?php esc_html_e( 'Momentum', 'alfawzquran' ); ?></p>
-                        <p class="text-2xl font-semibold text-white drop-shadow-sm">
+                        <p class="text-xs uppercase tracking-[0.35em] text-[#fff1e6]/90"><?php esc_html_e( 'Momentum', 'alfawzquran' ); ?></p>
+                        <p class="text-2xl font-semibold text-[#800000] drop-shadow-sm">
                             <?php esc_html_e( 'Keep your pace with daily repetition bursts.', 'alfawzquran' ); ?>
                         </p>
                     </div>
                 </div>
-                <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-950 via-emerald-700 to-lime-400 p-6 text-left shadow-2xl ring-1 ring-emerald-200/50">
+                <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#800000] via-[#fff1e6] to-[#fff1e6] p-6 text-left shadow-2xl ring-1 ring-[#800000]/50">
                     <div class="pointer-events-none absolute inset-0 opacity-45 mix-blend-screen bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.4),_transparent_60%)]"></div>
                     <div class="relative space-y-3">
-                        <p class="text-xs uppercase tracking-[0.35em] text-emerald-50/90"><?php esc_html_e( 'Mindful focus', 'alfawzquran' ); ?></p>
-                        <p class="text-2xl font-semibold text-white drop-shadow-sm">
+                        <p class="text-xs uppercase tracking-[0.35em] text-[#fff1e6]/90"><?php esc_html_e( 'Mindful focus', 'alfawzquran' ); ?></p>
+                        <p class="text-2xl font-semibold text-[#800000] drop-shadow-sm">
                             <?php esc_html_e( 'Revisit verses with calming prompts and visuals.', 'alfawzquran' ); ?>
                         </p>
                     </div>
                 </div>
-                <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-rose-950 via-rose-600 to-amber-400 p-6 text-left shadow-2xl ring-1 ring-rose-200/50">
+                <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#800000] via-[#fff1e6] to-[#fff1e6] p-6 text-left shadow-2xl ring-1 ring-[#800000]/50">
                     <div class="pointer-events-none absolute inset-0 opacity-45 mix-blend-screen bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.38),_transparent_62%)]"></div>
                     <div class="relative space-y-3">
-                        <p class="text-xs uppercase tracking-[0.35em] text-rose-50/90"><?php esc_html_e( 'Community spirit', 'alfawzquran' ); ?></p>
-                        <p class="text-2xl font-semibold text-white drop-shadow-sm">
+                        <p class="text-xs uppercase tracking-[0.35em] text-[#fff1e6]/90"><?php esc_html_e( 'Community spirit', 'alfawzquran' ); ?></p>
+                        <p class="text-2xl font-semibold text-[#800000] drop-shadow-sm">
                             <?php esc_html_e( 'Share progress and celebrate each memorisation milestone.', 'alfawzquran' ); ?>
                         </p>
                     </div>
