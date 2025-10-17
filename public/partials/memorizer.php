@@ -186,7 +186,7 @@ if ( ! defined( 'ABSPATH' ) ) {
                 </div>
 
                 <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                    <div class="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-500 via-violet-500 to-sky-500 p-6 text-left text-white shadow-2xl">
+                    <div class="group relative overflow-hidden rounded-3xl bg-[radial-gradient(circle_at_top_left,_#4338ca,_#7c3aed,_#0ea5e9)] p-6 text-left text-white shadow-2xl">
                         <div class="pointer-events-none absolute -right-10 -top-16 h-36 w-36 rounded-full bg-white/30 blur-3xl transition-transform duration-500 group-hover:scale-110"></div>
                         <div class="pointer-events-none absolute -left-12 bottom-0 h-32 w-32 rounded-full bg-white/20 blur-2xl transition-transform duration-500 group-hover:-translate-y-1"></div>
                         <p class="text-xs font-semibold uppercase tracking-[0.35em] text-white/70"><?php esc_html_e( 'Repetition progress', 'alfawzquran' ); ?></p>
@@ -194,7 +194,7 @@ if ( ! defined( 'ABSPATH' ) ) {
                         <p class="mt-2 text-sm text-white/80"><?php esc_html_e( 'Keep the rhythm going until you reach twenty focused recitations.', 'alfawzquran' ); ?></p>
                     </div>
 
-                    <div class="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-500 p-6 text-center text-white shadow-2xl">
+                    <div class="group relative overflow-hidden rounded-3xl bg-[radial-gradient(circle_at_top_right,_#22c55e,_#06b6d4,_#6366f1)] p-6 text-center text-white shadow-2xl">
                         <div class="pointer-events-none absolute -bottom-16 -left-10 h-40 w-40 rounded-full bg-white/20 blur-3xl transition-transform duration-500 group-hover:translate-x-2"></div>
                         <div class="pointer-events-none absolute -right-10 top-6 h-28 w-28 rounded-full bg-white/25 blur-2xl transition-transform duration-500 group-hover:-translate-y-1"></div>
                         <p class="text-xs font-semibold uppercase tracking-[0.35em] text-white/70"><?php esc_html_e( 'Quick action', 'alfawzquran' ); ?></p>
@@ -205,7 +205,7 @@ if ( ! defined( 'ABSPATH' ) ) {
                         </button>
                     </div>
 
-                    <div class="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-amber-500 via-rose-500 to-fuchsia-500 p-6 text-left text-white shadow-2xl">
+                    <div class="group relative overflow-hidden rounded-3xl bg-[radial-gradient(circle_at_bottom_left,_#f59e0b,_#ec4899,_#a855f7)] p-6 text-left text-white shadow-2xl">
                         <div class="pointer-events-none absolute -left-12 top-6 h-28 w-28 rounded-full bg-white/25 blur-2xl transition-transform duration-500 group-hover:translate-y-1"></div>
                         <div class="pointer-events-none absolute -right-16 bottom-0 h-36 w-36 rounded-full bg-white/20 blur-3xl transition-transform duration-500 group-hover:scale-110"></div>
                         <p class="text-xs font-semibold uppercase tracking-[0.35em] text-white/70"><?php esc_html_e( 'Session status', 'alfawzquran' ); ?></p>
