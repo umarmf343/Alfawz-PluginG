@@ -1404,17 +1404,6 @@ class Routes {
         $longest_streak = (int) ( $stats['longest_streak'] ?? 0 );
 
         $achievements[] = [
-            'id'          => 'first-verse',
-            'title'       => __( 'First Verse!', 'alfawzquran' ),
-            'description' => __( 'Recite your very first verse to begin the journey.', 'alfawzquran' ),
-            'reward'      => 50,
-            'progress'    => min( 1, $verses_read ),
-            'target'      => 1,
-            'unlocked'    => $verses_read >= 1,
-            'icon'        => '✅',
-        ];
-
-        $achievements[] = [
             'id'          => 'streak-10',
             'title'       => __( '10-Day Flame', 'alfawzquran' ),
             'description' => __( 'Sustain a ten day recitation streak.', 'alfawzquran' ),
