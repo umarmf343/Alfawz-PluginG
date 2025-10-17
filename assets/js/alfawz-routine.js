@@ -102,6 +102,7 @@
     let lastSignature = '';
     let currentDateKey = '';
     const routineCelebrations = new Map();
+    const routineItemCelebrations = new Map();
 
     renderRoutines(true);
     window.setInterval(renderRoutines, 60 * 1000);
@@ -119,6 +120,7 @@
                 storageState[currentDateKey] = {};
             }
             routineCelebrations.clear();
+            routineItemCelebrations.clear();
             persistStorage();
         }
 
@@ -302,6 +304,7 @@
 
             updateState(itemKey, nextState);
             if (nextState) {
+                celebrateRoutineItem(config, item);
                 if (isRoutineComplete(config)) {
                     celebrateRoutineCompletion(config);
                 }
@@ -347,6 +350,10 @@
         routineCelebrations.set(key, now);
         spawnRoutineConfetti(28);
         announceRoutine('Takbir! ' + (config.title || 'Routine') + ' complete.');
+        const payload = buildRoutineCelebrationPayload(config, null, 'routine');
+        if (payload && window.AlfawzCelebrations && typeof window.AlfawzCelebrations.celebrate === 'function') {
+            window.AlfawzCelebrations.celebrate('time', payload);
+        }
     }
 
     function resetRoutineCelebration(config) {
@@ -355,6 +362,90 @@
             return;
         }
         routineCelebrations.delete(key);
+    }
+
+    function celebrateRoutineItem(config, item) {
+        if (!config || !item) {
+            return;
+        }
+        const key = config.id + ':' + item.id + ':' + currentDateKey;
+        const now = Date.now();
+        const previous = routineItemCelebrations.get(key) || 0;
+        if (now - previous < 60000) {
+            return;
+        }
+        routineItemCelebrations.set(key, now);
+
+        const payload = buildRoutineCelebrationPayload(config, item, 'item');
+        if (payload && window.AlfawzCelebrations && typeof window.AlfawzCelebrations.celebrate === 'function') {
+            window.AlfawzCelebrations.celebrate('time', payload);
+        }
+    }
+
+    function buildRoutineCelebrationPayload(config, item, scope) {
+        const routineTitle = config && config.title ? config.title : 'Routine';
+
+        if (scope === 'item' && item) {
+            if (item.id === 'kahf') {
+                return {
+                    title: 'Surah Al-Kahf Complete',
+                    message: 'You completed Surah Al-Kahf this blessed Friday. May it be a light between the two Fridays.',
+                    detail: 'Share the reminder with family or review key ayat to deepen the benefit.',
+                    cta: 'Reflect on the surah',
+                };
+            }
+            if (item.id === 'three-q') {
+                return {
+                    title: 'The Three Quls recited',
+                    message: 'Surah Ikhlas, Al-Falaq, and An-Nas have wrapped your routine in protection.',
+                    detail: 'Repeat them again at the next sunrise or sunset for continuous guard.',
+                    cta: 'Log the next adhkar',
+                };
+            }
+
+            return {
+                title: routineTitle + ' milestone',
+                message: item.label + ' complete. Allahumma barik!',
+                detail: 'Stay consistent to keep the blessings flowing.',
+                cta: 'Keep the routine going',
+            };
+        }
+
+        if (scope === 'routine') {
+            if (config.id === 'jumuah') {
+                return {
+                    title: 'Jumu’ah light secured',
+                    message: 'Your Jumu’ah routine is complete. May this effort illuminate the week ahead.',
+                    detail: 'Encourage a loved one to recite along with you for multiplied reward.',
+                    cta: 'Review favourite ayat',
+                };
+            }
+            if (config.id === 'morning') {
+                return {
+                    title: 'Morning adhkar complete',
+                    message: 'Your morning routine is recorded. May your day shine with remembrance.',
+                    detail: 'Carry the nur forward by revisiting these verses throughout the day.',
+                    cta: 'Plan the next recitation',
+                };
+            }
+            if (config.id === 'night') {
+                return {
+                    title: 'Night protection complete',
+                    message: 'Your evening adhkar and recitations are complete. Rest under Allah’s care.',
+                    detail: 'Close the night with gratitude and a heartfelt dua.',
+                    cta: 'Prepare for tomorrow',
+                };
+            }
+
+            return {
+                title: routineTitle + ' complete',
+                message: 'Takbir! You finished the ' + routineTitle.toLowerCase() + '.',
+                detail: 'Stay steadfast and let your routine blossom every day.',
+                cta: 'Set your next intention',
+            };
+        }
+
+        return null;
     }
 
     function isRoutineComplete(config) {
