@@ -55,12 +55,12 @@ $avatar_gender_attr   = esc_attr( $avatar_gender );
 
                 <div class="grid gap-4 sm:grid-cols-2">
                     <div class="alfawz-hero-stat rounded-2xl border border-white/10 bg-white/5 p-5 text-left shadow-lg shadow-[#2d0a14]/20 backdrop-blur">
-                        <span class="alfawz-hero-stat-label text-white/70"><?php esc_html_e( 'Days streak', 'alfawzquran' ); ?></span>
-                        <span id="alfawz-profile-streak-days" class="alfawz-hero-stat-value text-white">0</span>
+                        <span class="alfawz-hero-stat-label text-white/90"><?php esc_html_e( 'Days streak', 'alfawzquran' ); ?></span>
+                        <span id="alfawz-profile-streak-days" class="alfawz-hero-stat-value text-2xl sm:text-4xl text-white/90">0</span>
                     </div>
                     <div class="alfawz-hero-stat rounded-2xl border border-white/10 bg-white/5 p-5 text-left shadow-lg shadow-[#2d0a14]/20 backdrop-blur">
-                        <span class="alfawz-hero-stat-label text-white/70"><?php esc_html_e( 'Hasanat earned', 'alfawzquran' ); ?></span>
-                        <span id="alfawz-profile-hasanat-total" class="alfawz-hero-stat-value text-white">0</span>
+                        <span class="alfawz-hero-stat-label text-white/90"><?php esc_html_e( 'Hasanat earned', 'alfawzquran' ); ?></span>
+                        <span id="alfawz-profile-hasanat-total" class="alfawz-hero-stat-value text-2xl sm:text-4xl text-white/90">0</span>
                     </div>
                 </div>
 
