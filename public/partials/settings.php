@@ -44,8 +44,16 @@ $avatar_default_alt = esc_attr__( 'Profile photo', 'alfawzquran' );
                     <p class="mt-4 text-sm font-medium uppercase tracking-wide text-fuchsia-700">
                         <?php esc_html_e( 'Every contribution amplifies the impact of your memorization journey.', 'alfawzquran' ); ?>
                     </p>
-                    <a href="<?php echo $donation_link; ?>" class="mt-6 inline-flex items-center justify-center rounded-full bg-gradient-to-r from-amber-400 via-orange-500 to-rose-500 px-6 py-3 text-base font-semibold text-white shadow-lg transition-transform duration-200 hover:scale-105 hover:shadow-xl">
-                        <?php esc_html_e( 'Donate Now', 'alfawzquran' ); ?>
+                    <a
+                        href="<?php echo $donation_link; ?>"
+                        class="group relative mt-6 inline-flex items-center justify-center overflow-hidden rounded-full px-7 py-3 text-base font-semibold text-white focus:outline-none focus:ring-4 focus:ring-rose-200"
+                    >
+                        <span class="absolute inset-0 rounded-full bg-gradient-to-r from-emerald-400 via-amber-400 to-rose-500 shadow-[0_14px_35px_rgba(249,115,22,0.35)] transition duration-300 ease-out group-hover:scale-105 group-hover:shadow-[0_18px_45px_rgba(244,114,182,0.4)] group-focus-visible:scale-105"></span>
+                        <span class="absolute inset-[2px] rounded-full bg-white/10 backdrop-blur-sm transition duration-300 group-hover:bg-white/20"></span>
+                        <span class="relative flex items-center gap-2">
+                            <span class="text-lg" aria-hidden="true">✨</span>
+                            <?php esc_html_e( 'Donate Now', 'alfawzquran' ); ?>
+                        </span>
                     </a>
                 </div>
                 <div class="pointer-events-none absolute -right-16 -top-16 h-36 w-36 rounded-full bg-white/20 blur-3xl"></div>
