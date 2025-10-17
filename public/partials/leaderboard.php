@@ -3,10 +3,8 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 ?>
-<div id="alfawz-leaderboard" class="relative mx-auto max-w-6xl overflow-hidden rounded-[2.75rem] border border-[#f4d3c4]/70 bg-gradient-to-br from-[#fff4e6]/95 via-white/94 to-[#ffe7d6]/92 p-1 shadow-[0_40px_80px_rgba(47,8,17,0.18)]">
-    <div class="absolute -left-32 top-10 h-64 w-64 rounded-full bg-[#741f31]/10 blur-3xl"></div>
-    <div class="absolute -right-16 -bottom-24 h-72 w-72 rounded-full bg-[#f59f82]/20 blur-3xl"></div>
-    <div class="relative space-y-12 rounded-[2.65rem] bg-white/70 p-6 sm:p-10 lg:p-12">
+<div id="alfawz-leaderboard" class="alfawz-reader-shell alfawz-no-scrollbar px-4 pt-8 sm:px-6">
+    <div class="alfawz-leaderboard-surface relative mx-auto max-w-5xl space-y-12 p-6 pb-16 sm:p-10 lg:p-12">
         <header class="alfawz-leaderboard-hero relative overflow-hidden">
             <div class="relative mx-auto flex max-w-6xl flex-col gap-8 px-8 py-10 sm:px-10 sm:py-12 lg:flex-row lg:items-end lg:justify-between">
                 <div class="space-y-5 text-white">
