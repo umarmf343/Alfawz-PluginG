@@ -535,14 +535,15 @@
 }
 
 .alfawz-verse-main {
-  position: relative;
-  padding-inline: clamp(2.5rem, 8vw, 4.5rem);
+  width: 100vw;
+  margin-inline: calc(50% - 50vw);
   margin-bottom: clamp(2.5rem, 6vw, 3.75rem);
 }
 
 .alfawz-verse-main__content {
   display: grid;
   gap: clamp(1.75rem, 4vw, 2.6rem);
+  padding-inline: clamp(2.5rem, 8vw, 4.5rem);
 }
 
 .alfawz-verse-main .alfawz-verse-header {
@@ -550,7 +551,7 @@
 }
 
 @media (max-width: 640px) {
-  .alfawz-verse-main {
+  .alfawz-verse-main__content {
     padding-inline: clamp(2rem, 10vw, 3rem);
   }
 }
@@ -619,8 +620,7 @@
 .alfawz-verse-nav {
   position: absolute;
   top: 50%;
-  --alfawz-nav-inline-offset: 0%;
-  transform: translate(var(--alfawz-nav-inline-offset), -50%);
+  transform: translateY(-50%);
   width: 3.5rem;
   height: 3.5rem;
   border-radius: 50%;
@@ -635,6 +635,7 @@
   box-shadow: 0 18px 30px rgba(47, 8, 17, 0.18);
   transition: transform 180ms ease, box-shadow 180ms ease, background 180ms ease, color 180ms ease;
   cursor: pointer;
+  z-index: 2;
 }
 
 .alfawz-verse-nav:disabled {
@@ -646,24 +647,22 @@
 
 .alfawz-verse-nav:not(:disabled):hover,
 .alfawz-verse-nav:not(:disabled):focus {
-  transform: translate(var(--alfawz-nav-inline-offset), -50%) scale(1.05);
+  transform: translateY(-50%) scale(1.05);
   background: rgba(168, 50, 84, 0.24);
   color: #fff4ec;
   box-shadow: 0 24px 40px rgba(168, 50, 84, 0.28);
 }
 
 .alfawz-verse-nav:not(:disabled):active {
-  transform: translate(var(--alfawz-nav-inline-offset), -50%) scale(0.95);
+  transform: translateY(-50%) scale(0.95);
 }
 
 #alfawz-prev-verse {
-  left: 0;
-  --alfawz-nav-inline-offset: -50%;
+  left: clamp(1.25rem, 4vw, 2.5rem);
 }
 
 #alfawz-next-verse {
-  right: 0;
-  --alfawz-nav-inline-offset: 50%;
+  right: clamp(1.25rem, 4vw, 2.5rem);
 }
 
 .alfawz-verse-header {
@@ -687,41 +686,43 @@
 }
 
 .alfawz-verse-panel {
+  position: relative;
   background: linear-gradient(160deg, rgba(255, 247, 241, 0.98), rgba(255, 228, 206, 0.88));
   border-radius: var(--alfawz-radius-lg);
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.4);
-  padding: clamp(2rem, 4vw, 2.75rem);
+  padding: clamp(2.5rem, 6vw, 3.5rem);
   text-align: center;
   width: 100%;
-  min-height: 100vh;
+  min-height: clamp(22rem, 80vh, 36rem);
   box-sizing: border-box;
   display: flex;
-  flex-direction: column;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
 }
 
-
-.alfawz-verse-panel p {
-  font-size: 276px;
+.alfawz-verse-panel__content {
+  display: grid;
+  gap: clamp(1.5rem, 4vw, 2.5rem);
+  width: 100%;
+  justify-items: center;
 }
 
 .alfawz-arabic {
   font-family: 'Scheherazade New', 'Amiri', serif;
-  font-size: clamp(67.2rem, 110.4vw, 84rem);
+  font-size: clamp(4.5rem, 9vw, 6.5rem);
   line-height: 1.6;
   color: var(--alfawz-maroon-800);
 }
 
 .alfawz-transliteration {
   margin-top: 1.25rem;
-  font-size: 13.8rem;
+  font-size: clamp(1.6rem, 3.8vw, 2.2rem);
   color: rgba(79, 13, 24, 0.78);
 }
 
 .alfawz-translation {
   margin-top: 0.75rem;
-  font-size: 13.2rem;
+  font-size: clamp(1.5rem, 3.6vw, 2.1rem);
   font-style: italic;
   color: rgba(68, 36, 38, 0.75);
 }
@@ -3013,8 +3014,7 @@
 .alfawz-verse-nav {
   position: absolute;
   top: 50%;
-  --alfawz-nav-inline-offset: 0%;
-  transform: translate(var(--alfawz-nav-inline-offset), -50%);
+  transform: translateY(-50%);
   width: 3rem;
   height: 3rem;
   border-radius: 999px;
@@ -3028,16 +3028,15 @@
   color: #047857;
   transition: transform 180ms ease, box-shadow 180ms ease, background 180ms ease, color 180ms ease;
   touch-action: manipulation;
+  z-index: 2;
 }
 
 #alfawz-prev-verse {
-  left: 0;
-  --alfawz-nav-inline-offset: -50%;
+  left: clamp(1rem, 3.5vw, 2rem);
 }
 
 #alfawz-next-verse {
-  right: 0;
-  --alfawz-nav-inline-offset: 50%;
+  right: clamp(1rem, 3.5vw, 2rem);
 }
 
 .alfawz-verse-nav:disabled {
@@ -3049,14 +3048,14 @@
 
 .alfawz-verse-nav:not(:disabled):hover,
 .alfawz-verse-nav:not(:disabled):focus {
-  transform: translate(var(--alfawz-nav-inline-offset), -50%) scale(1.08);
+  transform: translateY(-50%) scale(1.08);
   background: rgba(5, 150, 105, 0.18);
   box-shadow: 0 16px 32px rgba(5, 150, 105, 0.28);
   color: #065f46;
 }
 
 .alfawz-verse-nav:not(:disabled):active {
-  transform: translate(var(--alfawz-nav-inline-offset), -50%) scale(0.96);
+  transform: translateY(-50%) scale(0.96);
 }
 
 .alfawz-verse-header {
@@ -3086,7 +3085,7 @@
 }
 
 .alfawz-arabic {
-  font-size: clamp(8.6rem, 24vw, 11.4rem);
+  font-size: clamp(4.5rem, 10vw, 6.5rem);
   line-height: 1.65;
   font-weight: 600;
   color: #0f172a;
@@ -3095,7 +3094,7 @@
 
 .alfawz-transliteration,
 .alfawz-translation {
-  font-size: clamp(4rem, 14vw, 4.4rem);
+  font-size: clamp(1.5rem, 3.5vw, 2.2rem);
   line-height: 1.7;
   color: var(--alfawz-muted);
 }
