@@ -65,6 +65,27 @@
       playButton: root.querySelector('#alfawz-egg-play'),
       playLabel: root.querySelector('#alfawz-egg-play [data-role="alfawz-egg-play-label"]'),
     },
+    virtueGarden: {
+      section: root.querySelector('#virtue-garden'),
+      intro: root.querySelector('#virtue-garden-intro'),
+      startButton: root.querySelector('#virtue-garden-start'),
+      message: root.querySelector('#virtue-garden-message'),
+      game: root.querySelector('#virtue-garden-game'),
+      stats: {
+        seeds: root.querySelector('[data-garden-stat="seeds"]'),
+        radiance: root.querySelector('[data-garden-stat="radiance"]'),
+        streak: root.querySelector('[data-garden-stat="streak"]'),
+      },
+      dayChip: root.querySelector('#virtue-garden-day'),
+      habit: root.querySelector('#virtue-garden-habit'),
+      plantGrid: root.querySelector('#virtue-garden-plants'),
+      plantEmpty: root.querySelector('#virtue-garden-plant-empty'),
+      taskList: root.querySelector('#virtue-garden-task-list'),
+      logList: root.querySelector('#virtue-garden-log'),
+      careButton: root.querySelector('#virtue-garden-care'),
+      careMeter: root.querySelector('#virtue-garden-care-meter'),
+      mood: root.querySelector('#virtue-garden-mood'),
+    },
     puzzle: {
       section: root.querySelector('#alfawz-puzzle'),
       playButton: root.querySelector('#alfawz-puzzle-play'),
@@ -92,6 +113,14 @@
   const timezoneOffset = () => -new Date().getTimezoneOffset();
   const formatNumber = (value) => new Intl.NumberFormat().format(Number(value || 0));
   const clampPercent = (value) => Math.max(0, Math.min(100, Number(value || 0)));
+  const clampValue = (value, min, max) => Math.max(min, Math.min(max, Number(value || 0)));
+  const randomItem = (items) => {
+    if (!Array.isArray(items) || !items.length) {
+      return null;
+    }
+    return items[Math.floor(Math.random() * items.length)];
+  };
+  const createUid = (prefix = 'id') => `${prefix}-${Math.random().toString(36).slice(2, 8)}-${Date.now()}`;
   const formatTime = (value) => {
     const totalSeconds = Math.max(0, Math.floor(Number(value || 0) / 1000));
     const minutes = Math.floor(totalSeconds / 60)
@@ -799,6 +828,766 @@
     return { wrapper, percentage };
   };
 
+  const plantStages = [
+    { index: 0, threshold: 0, label: 'Seedling', icon: '🌱', description: 'Intentions taking root.' },
+    { index: 1, threshold: 30, label: 'Sprout', icon: '🌿', description: 'Daily recitation stretches new leaves.' },
+    { index: 2, threshold: 65, label: 'Bloom', icon: '🌸', description: 'Reflections release a fragrant bloom.' },
+    { index: 3, threshold: 100, label: 'Radiant Grove', icon: '🌳', description: 'Tafsir nourishes a radiant canopy.' },
+  ];
+
+  const plantCatalog = [
+    { id: 'mercy-rose', name: 'Mercy Rose', attribute: 'Petals perfume the air whenever you recite Ar-Rahman.', element: 'Mercy', emoji: '🌹' },
+    { id: 'hikmah-oak', name: 'Hikmah Oak', attribute: 'Branches whisper tafsir insights to visiting hearts.', element: 'Wisdom', emoji: '🌳' },
+    { id: 'sabr-lily', name: 'Sabr Lily', attribute: 'Blooms brightest after patient memorisation sessions.', element: 'Sabr', emoji: '🌼' },
+    { id: 'nur-vine', name: 'Nur Vine', attribute: 'Shimmers softly during nightly dhikr reflections.', element: 'Nur', emoji: '🌿' },
+    { id: 'dhikr-palm', name: 'Dhikr Palm', attribute: 'Produces dates of remembrance for loved ones.', element: 'Dhikr', emoji: '🌴' },
+    { id: 'ikhlas-lotus', name: 'Ikhlas Lotus', attribute: 'Floats serenely reminding you to purify intention.', element: 'Ikhlas', emoji: '🌸' },
+    { id: 'tawbah-moss', name: 'Tawbah Moss', attribute: 'Softens the soil with dew drops of repentance.', element: 'Tawbah', emoji: '🪴' },
+    { id: 'sakinah-cedar', name: 'Sakinah Cedar', attribute: 'Shelters your duas beneath tranquil shade.', element: 'Sakinah', emoji: '🌲' },
+  ];
+
+  const taskLibrary = [
+    {
+      id: 'recite-dawn',
+      type: 'recite',
+      title: 'Dawn Dew Recitation',
+      prompt: 'Recite Surah Al-Fatihah slowly at dawn and let each verse settle.',
+      duration: '4 min',
+      seeds: 14,
+      tip: 'Whisper the basmalah with a deep breath to anchor your tajwid.',
+    },
+    {
+      id: 'recite-mercy',
+      type: 'recite',
+      title: 'Mercy Echo',
+      prompt: 'Repeat Ayat Al-Kursi three times focusing on Allah’s protection.',
+      duration: '6 min',
+      seeds: 18,
+      tip: 'Visualise a gentle light surrounding your heart as you recite.',
+    },
+    {
+      id: 'recite-nightfall',
+      type: 'recite',
+      title: 'Nightfall Pairing',
+      prompt: 'Recite Surah Al-Falaq and An-Nas before resting.',
+      duration: '3 min',
+      seeds: 12,
+      tip: 'Let each refuge remind you to seek Allah’s shelter.',
+    },
+    {
+      id: 'recite-review',
+      type: 'recite',
+      title: 'Review Garland',
+      prompt: 'Revisit the last five ayat you memorised and recite without looking.',
+      duration: '9 min',
+      seeds: 19,
+      tip: 'Note any slips and polish them after the session.',
+    },
+    {
+      id: 'reflect-rahma',
+      type: 'reflect',
+      title: 'Mercy Mirror',
+      prompt: 'Reflect on how Ar-Rahman appears in Surah Maryam and note one blessing.',
+      duration: '5 min',
+      seeds: 13,
+      tip: 'Share the reflection with a loved one to double the barakah.',
+    },
+    {
+      id: 'reflect-gratitude',
+      type: 'reflect',
+      title: 'Gratitude Sketch',
+      prompt: 'List three favours mentioned in Surah Ar-Rahman that you felt today.',
+      duration: '6 min',
+      seeds: 15,
+      tip: 'Pair each favour with a whispered “Alhamdulillah”.',
+    },
+    {
+      id: 'reflect-hope',
+      type: 'reflect',
+      title: 'Hope Lantern',
+      prompt: 'Read Ayah 286 of Al-Baqarah and journal one way Allah eases your burdens.',
+      duration: '7 min',
+      seeds: 16,
+      tip: 'Close the journal with a dua asking for steadfastness.',
+    },
+    {
+      id: 'learn-tafsir-asr',
+      type: 'learn',
+      title: 'Asr Insight',
+      prompt: 'Study a tafsir snippet of Surah Al-Asr and capture the three keys to success.',
+      duration: '8 min',
+      seeds: 17,
+      tip: 'Teach the keys to a sibling or friend to cement them.',
+    },
+    {
+      id: 'learn-tafsir-sharh',
+      type: 'learn',
+      title: 'Expanded Chest',
+      prompt: 'Listen to a short explanation of Surah Ash-Sharh and mark one comforting phrase.',
+      duration: '6 min',
+      seeds: 16,
+      tip: 'Repeat the phrase as a breathing zikr for a minute.',
+    },
+    {
+      id: 'learn-tafsir-layl',
+      type: 'learn',
+      title: 'Night Charity Spark',
+      prompt: 'Read the tafsir of Surah Al-Layl verses 5-10 and plan one quiet act of charity.',
+      duration: '7 min',
+      seeds: 18,
+      tip: 'Set a reminder to carry out the charity before Maghrib.',
+    },
+    {
+      id: 'bonus-family',
+      type: 'bonus',
+      title: 'Family Bloom',
+      prompt: 'Teach a younger sibling or friend one ayah you love and recite it together.',
+      duration: '10 min',
+      seeds: 20,
+      tip: 'Record the moment and thank Allah for shared learning.',
+    },
+    {
+      id: 'bonus-sadaqah',
+      type: 'bonus',
+      title: 'Secret Seed',
+      prompt: 'Give a hidden sadaqah inspired by a verse you memorised today.',
+      duration: '5 min',
+      seeds: 18,
+      tip: 'Make niyyah that Allah alone knows of this gift.',
+    },
+  ];
+
+  const moodStates = [
+    { threshold: 80, message: 'Luminous — your care routine is thriving.' },
+    { threshold: 55, message: 'Blooming — keep your dhikr gentle and steady.' },
+    { threshold: 35, message: 'Wilting — a gentle recitation will revive the soil.' },
+    { threshold: 0, message: 'Parched — return with reflection to rescue the garden.' },
+  ];
+
+  const messageStyles = {
+    idle: 'border-[#f4c7d3]/70 bg-white/80 text-[#7a0f32]',
+    active: 'border-[#c23958]/70 bg-[#fde8ef]/90 text-[#4d081d]',
+    success: 'border-emerald-200/80 bg-emerald-50/90 text-emerald-700',
+    warning: 'border-amber-200/80 bg-amber-50/90 text-amber-700',
+  };
+
+  const logToneStyles = {
+    default: 'border-white/60 bg-white/80 text-[#7a0f32]',
+    success: 'border-emerald-200/60 bg-emerald-50/85 text-emerald-700',
+    warning: 'border-amber-200/60 bg-amber-50/85 text-amber-700',
+    highlight: 'border-[#c23958]/60 bg-[#fde8ef]/90 text-[#4d081d]',
+    event: 'border-[#8b1e3f]/50 bg-[#4d081d]/10 text-[#4d081d]',
+  };
+
+  const taskTypeMeta = {
+    recite: {
+      chip: 'Recitation Quest',
+      icon: '📿',
+      cardClasses: 'bg-gradient-to-br from-[#fff5f8]/95 via-[#fde3ec]/95 to-[#fbdce9]/95 border-[#f4c7d3]/70 text-[#4d081d]',
+      buttonClasses: 'bg-gradient-to-r from-[#8b1e3f] via-[#c23958] to-[#f59bb4] shadow-[#4d081d]/25',
+    },
+    reflect: {
+      chip: 'Reflection Ritual',
+      icon: '🪞',
+      cardClasses: 'bg-gradient-to-br from-[#fff8f1]/95 via-[#fdeedb]/95 to-[#f9e2d2]/95 border-[#f6d5c5]/70 text-[#4d081d]',
+      buttonClasses: 'bg-gradient-to-r from-[#b97326] via-[#e59d47] to-[#ffd58f] shadow-[#5e3108]/30',
+    },
+    learn: {
+      chip: 'Tafsir Insight',
+      icon: '📚',
+      cardClasses: 'bg-gradient-to-br from-[#f5f9ff]/95 via-[#e7f2ff]/95 to-[#e0f1ff]/95 border-[#c8dfff]/70 text-[#20324d]',
+      buttonClasses: 'bg-gradient-to-r from-[#3469a5] via-[#5d8dd1] to-[#8fb8ff] shadow-[#1b3d63]/25',
+    },
+    bonus: {
+      chip: 'Bonus Bloom',
+      icon: '✨',
+      cardClasses: 'bg-gradient-to-br from-[#fef6ff]/95 via-[#f6e8ff]/95 to-[#efe1ff]/95 border-[#dcc8ff]/70 text-[#3c1b5a]',
+      buttonClasses: 'bg-gradient-to-r from-[#8246c9] via-[#a86bed] to-[#d3a9ff] shadow-[#3c1a6b]/30',
+    },
+  };
+
+  const gardenState = {
+    started: false,
+    day: 1,
+    streak: 0,
+    totalSeeds: 0,
+    care: 64,
+    careUsed: false,
+    plants: [],
+    tasks: [],
+    usedPlantIds: new Set(),
+    combo: { types: new Set(), triggered: false },
+    completedToday: false,
+  };
+
+  const setGardenMessage = (text, state = 'idle') => {
+    if (!elements.virtueGarden.message) {
+      return;
+    }
+    const targetState = messageStyles[state] ? state : 'idle';
+    elements.virtueGarden.message.dataset.state = targetState;
+    elements.virtueGarden.message.textContent = text;
+    Object.values(messageStyles).forEach((classes) => {
+      classes.split(' ').forEach((className) => {
+        elements.virtueGarden.message.classList.remove(className);
+      });
+    });
+    messageStyles[targetState].split(' ').forEach((className) => {
+      elements.virtueGarden.message.classList.add(className);
+    });
+  };
+
+  const updateGardenHabitIndicator = () => {
+    if (!elements.virtueGarden.habit) {
+      return;
+    }
+    if (!gardenState.started) {
+      elements.virtueGarden.habit.textContent = 'Begin today’s rituals to awaken your first plant.';
+      return;
+    }
+    const remaining = gardenState.tasks.filter((task) => !task.completed).length;
+    if (!remaining) {
+      elements.virtueGarden.habit.textContent = 'All rituals complete — your grove is humming with nur.';
+      return;
+    }
+    elements.virtueGarden.habit.textContent = `${remaining} ritual${remaining === 1 ? '' : 's'} awaiting your care.`;
+  };
+
+  const addGardenLog = (message, tone = 'default') => {
+    if (!elements.virtueGarden.logList) {
+      return;
+    }
+    const item = document.createElement('li');
+    item.className =
+      'relative overflow-hidden rounded-3xl border px-4 py-3 text-sm font-semibold leading-snug shadow-inner backdrop-blur-sm transition-all duration-300';
+    const toneClasses = logToneStyles[tone] || logToneStyles.default;
+    toneClasses.split(' ').forEach((className) => item.classList.add(className));
+    const glow = document.createElement('div');
+    glow.className =
+      'pointer-events-none absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-transparent opacity-0 transition-opacity duration-500';
+    item.appendChild(glow);
+    const time = document.createElement('p');
+    time.className = 'relative text-[0.65rem] font-semibold uppercase tracking-[0.32em] text-[#b4637a]/80';
+    try {
+      time.textContent = new Intl.DateTimeFormat(undefined, { hour: '2-digit', minute: '2-digit' }).format(new Date());
+    } catch (error) {
+      time.textContent = new Date().toLocaleTimeString();
+    }
+    item.appendChild(time);
+    const textNode = document.createElement('p');
+    textNode.className = 'relative mt-1 text-sm font-semibold';
+    textNode.textContent = message;
+    item.appendChild(textNode);
+    elements.virtueGarden.logList.prepend(item);
+    requestAnimationFrame(() => {
+      item.classList.add('animate-soft-fade');
+      glow.classList.add('opacity-100');
+    });
+    while (elements.virtueGarden.logList.childElementCount > 7) {
+      elements.virtueGarden.logList.removeChild(elements.virtueGarden.logList.lastElementChild);
+    }
+  };
+
+  const getPlantStage = (progress) => {
+    const value = clampPercent(progress);
+    let stage = plantStages[0];
+    plantStages.forEach((entry) => {
+      if (value >= entry.threshold) {
+        stage = entry;
+      }
+    });
+    return stage;
+  };
+
+  const renderGardenPlants = () => {
+    if (!elements.virtueGarden.plantGrid) {
+      return;
+    }
+    elements.virtueGarden.plantGrid.innerHTML = '';
+    if (!gardenState.plants.length) {
+      elements.virtueGarden.plantEmpty?.classList.remove('hidden');
+      return;
+    }
+    elements.virtueGarden.plantEmpty?.classList.add('hidden');
+    gardenState.plants.forEach((plant, index) => {
+      const stage = getPlantStage(plant.growth);
+      const card = document.createElement('article');
+      card.className =
+        'group relative overflow-hidden rounded-[28px] border border-[#f4c7d3]/60 bg-white/95 p-5 text-[#4d081d] shadow-lg shadow-[#310915]/12 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-2xl';
+      card.dataset.state = plant.growth >= 100 ? 'complete' : 'growing';
+      card.style.setProperty('--alfawz-delay', `${index * 90}ms`);
+      const glow = document.createElement('div');
+      glow.className =
+        'pointer-events-none absolute inset-0 bg-gradient-to-br from-[#fbe7ef]/60 via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100';
+      card.appendChild(glow);
+      const header = document.createElement('div');
+      header.className = 'relative flex items-center justify-between gap-3';
+      const titleWrap = document.createElement('div');
+      titleWrap.className = 'flex items-center gap-3';
+      const icon = document.createElement('span');
+      icon.setAttribute('aria-hidden', 'true');
+      icon.className = 'inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-[#fde8ef] text-2xl shadow-inner';
+      icon.textContent = plant.emoji || '🌱';
+      titleWrap.appendChild(icon);
+      const title = document.createElement('div');
+      title.className = 'space-y-1';
+      const name = document.createElement('p');
+      name.className = 'text-lg font-bold';
+      name.textContent = plant.name;
+      const attribute = document.createElement('p');
+      attribute.className = 'text-sm font-medium text-[#7a0f32]';
+      attribute.textContent = plant.attribute;
+      title.appendChild(name);
+      title.appendChild(attribute);
+      titleWrap.appendChild(title);
+      header.appendChild(titleWrap);
+      const badge = document.createElement('span');
+      badge.className = 'rounded-full bg-[#fde9ef] px-3 py-1 text-xs font-semibold uppercase tracking-[0.28em] text-[#b4637a]';
+      badge.textContent = `${stage.icon} ${stage.label}`;
+      header.appendChild(badge);
+      card.appendChild(header);
+      const description = document.createElement('p');
+      description.className = 'relative mt-3 text-sm font-medium text-[#9d4158]';
+      description.textContent = stage.description;
+      card.appendChild(description);
+      const progressWrapper = document.createElement('div');
+      progressWrapper.className = 'relative mt-4 h-2.5 w-full overflow-hidden rounded-full bg-[#f6d7df]/80';
+      const progressBar = document.createElement('div');
+      progressBar.className =
+        'h-full rounded-full bg-gradient-to-r from-[#8b1e3f] via-[#c23958] to-[#f59bb4] transition-all duration-500';
+      progressBar.style.width = `${clampPercent(plant.growth)}%`;
+      progressWrapper.appendChild(progressBar);
+      card.appendChild(progressWrapper);
+      const footer = document.createElement('div');
+      footer.className = 'mt-4 flex flex-wrap items-center justify-between gap-2 text-xs font-semibold text-[#b4637a]';
+      const growthLabel = document.createElement('span');
+      growthLabel.textContent = `${Math.round(plant.growth)}% grown`;
+      const seedsLabel = document.createElement('span');
+      seedsLabel.textContent = `${formatNumber(plant.seeds)} virtue seeds absorbed`;
+      footer.appendChild(growthLabel);
+      footer.appendChild(seedsLabel);
+      card.appendChild(footer);
+      elements.virtueGarden.plantGrid.appendChild(card);
+      requestAnimationFrame(() => {
+        card.classList.add('animate-soft-fade');
+      });
+    });
+  };
+
+  const spawnPlant = () => {
+    let pool = plantCatalog.filter((plant) => !gardenState.usedPlantIds.has(plant.id));
+    if (!pool.length) {
+      gardenState.usedPlantIds.clear();
+      pool = plantCatalog.slice();
+    }
+    const blueprint = randomItem(pool);
+    if (!blueprint) {
+      return null;
+    }
+    gardenState.usedPlantIds.add(blueprint.id);
+    const plant = {
+      id: createUid('plant'),
+      catalogId: blueprint.id,
+      name: blueprint.name,
+      attribute: blueprint.attribute,
+      element: blueprint.element,
+      emoji: blueprint.emoji,
+      growth: 0,
+      seeds: 0,
+      stageIndex: 0,
+    };
+    gardenState.plants.push(plant);
+    addGardenLog(`${plant.name} sprouted in your garden. Nourish it with today’s worship!`, 'event');
+    return plant;
+  };
+
+  const allocateSeedsToPlants = (amount) => {
+    if (!Number.isFinite(amount) || amount <= 0) {
+      return;
+    }
+    let remaining = Math.max(0, Math.round(amount));
+    while (remaining > 0) {
+      let plant = gardenState.plants.find((item) => item.growth < 100);
+      if (!plant) {
+        plant = spawnPlant();
+        if (!plant) {
+          break;
+        }
+      }
+      const beforeStage = getPlantStage(plant.growth);
+      const space = Math.max(0, 100 - plant.growth);
+      const applied = Math.max(1, Math.min(space, remaining));
+      plant.growth = clampPercent(plant.growth + applied);
+      plant.seeds += applied;
+      remaining -= applied;
+      const afterStage = getPlantStage(plant.growth);
+      if (afterStage.index !== beforeStage.index) {
+        addGardenLog(`${plant.name} reached the ${afterStage.label.toLowerCase()} stage!`, 'highlight');
+        plant.stageIndex = afterStage.index;
+      }
+      if (plant.growth >= 100 && remaining > 0) {
+        addGardenLog(`${plant.name} is radiant—new seedbeds are ready.`, 'success');
+      }
+    }
+    renderGardenPlants();
+    updateGardenStats();
+  };
+
+  const updateGardenStats = () => {
+    if (elements.virtueGarden.stats.seeds) {
+      elements.virtueGarden.stats.seeds.textContent = formatNumber(gardenState.totalSeeds);
+    }
+    if (elements.virtueGarden.stats.streak) {
+      const streakLabel = gardenState.streak
+        ? `${formatNumber(gardenState.streak)} day${gardenState.streak === 1 ? '' : 's'}`
+        : 'Warmup day';
+      elements.virtueGarden.stats.streak.textContent = streakLabel;
+    }
+    if (elements.virtueGarden.dayChip) {
+      elements.virtueGarden.dayChip.textContent = `Day ${gardenState.day}`;
+    }
+    const radiance = gardenState.plants.length
+      ? Math.round(
+          gardenState.plants.reduce((sum, plant) => sum + clampPercent(plant.growth), 0) /
+            gardenState.plants.length
+        )
+      : 0;
+    let radianceLabel = 'Seedling Patch';
+    if (radiance >= 90) {
+      radianceLabel = 'Luminous Orchard';
+    } else if (radiance >= 60) {
+      radianceLabel = 'Blossoming Grove';
+    } else if (radiance >= 35) {
+      radianceLabel = 'Emerging Meadow';
+    }
+    if (elements.virtueGarden.stats.radiance) {
+      elements.virtueGarden.stats.radiance.textContent = `${radianceLabel} (${radiance}%)`;
+    }
+  };
+
+  const updateCareMeter = () => {
+    if (elements.virtueGarden.careMeter) {
+      elements.virtueGarden.careMeter.style.width = `${clampPercent(gardenState.care)}%`;
+    }
+    const mood = moodStates.find((entry) => gardenState.care >= entry.threshold) || moodStates[moodStates.length - 1];
+    if (elements.virtueGarden.mood && mood) {
+      elements.virtueGarden.mood.textContent = mood.message;
+    }
+    if (!gardenState.started) {
+      return;
+    }
+    if (gardenState.care < 35 && gardenState.tasks.some((task) => !task.completed)) {
+      if (elements.virtueGarden.message && elements.virtueGarden.message.dataset.state !== 'success') {
+        setGardenMessage('Your garden is craving attention—complete a ritual to restore it.', 'warning');
+      }
+    }
+  };
+
+  const refreshCareButton = () => {
+    if (!elements.virtueGarden.careButton) {
+      return;
+    }
+    if (!gardenState.started) {
+      elements.virtueGarden.careButton.disabled = false;
+      elements.virtueGarden.careButton.classList.remove('cursor-not-allowed', 'opacity-60');
+      elements.virtueGarden.careButton.textContent = 'Daily Care Pulse';
+      return;
+    }
+    elements.virtueGarden.careButton.disabled = gardenState.careUsed;
+    if (gardenState.careUsed) {
+      elements.virtueGarden.careButton.textContent = 'Care Logged';
+      elements.virtueGarden.careButton.classList.add('cursor-not-allowed', 'opacity-60');
+    } else {
+      elements.virtueGarden.careButton.textContent = 'Daily Care Pulse';
+      elements.virtueGarden.careButton.classList.remove('cursor-not-allowed', 'opacity-60');
+    }
+  };
+
+  const buildDailyTaskSet = () => {
+    const categories = ['recite', 'reflect', 'learn'];
+    const shuffled = shuffleArray(taskLibrary);
+    const selected = [];
+    categories.forEach((category) => {
+      const found = shuffled.find(
+        (item) => item.type === category && !selected.some((chosen) => chosen.id === item.id)
+      );
+      if (found) {
+        selected.push(found);
+      }
+    });
+    const remaining = shuffled.filter((item) => !selected.some((chosen) => chosen.id === item.id));
+    const extra = remaining.find((item) => item.type === 'bonus') || remaining[0];
+    if (extra) {
+      selected.push(extra);
+    }
+    return selected.map((task, index) => {
+      const variance = Math.round((Math.random() - 0.5) * 2);
+      const seeds = Math.max(8, task.seeds + variance);
+      return {
+        ...task,
+        seeds,
+        uid: createUid(`task-${task.type}`),
+        completed: false,
+        order: index,
+      };
+    });
+  };
+
+  const completeGardenTask = (taskId) => {
+    const task = gardenState.tasks.find((item) => item.uid === taskId);
+    if (!task || task.completed) {
+      return;
+    }
+    task.completed = true;
+    gardenState.combo.types.add(task.type);
+    let reward = Math.max(8, Math.round(task.seeds));
+    if (task.type === 'bonus') {
+      reward += 4;
+    }
+    if (gardenState.combo.types.size >= 3 && !gardenState.combo.triggered) {
+      const comboReward = 5;
+      reward += comboReward;
+      gardenState.combo.triggered = true;
+      addGardenLog(`Harmony combo! +${formatNumber(comboReward)} bonus seeds for varied worship.`, 'highlight');
+      spawnConfetti(elements.virtueGarden.game || elements.virtueGarden.section || root);
+    }
+    gardenState.totalSeeds += reward;
+    const careBoost = task.type === 'reflect' ? 12 : task.type === 'recite' ? 10 : task.type === 'learn' ? 9 : 8;
+    gardenState.care = clampPercent(gardenState.care + careBoost);
+    const growth = Math.max(1, Math.round(reward * 1.1));
+    allocateSeedsToPlants(growth);
+    addGardenLog(`+${formatNumber(reward)} virtue seeds from ${task.title}.`, 'success');
+    renderGardenTasks({ animate: false });
+    updateGardenStats();
+    updateCareMeter();
+    updateGardenHabitIndicator();
+    checkGardenCompletion();
+  };
+
+  const renderGardenTasks = (options = {}) => {
+    if (!elements.virtueGarden.taskList) {
+      return;
+    }
+    const { animate = true } = options;
+    elements.virtueGarden.taskList.innerHTML = '';
+    if (!gardenState.started) {
+      const placeholder = document.createElement('p');
+      placeholder.className =
+        'rounded-3xl border border-white/25 bg-white/10 px-4 py-4 text-sm font-semibold text-white/80 shadow-inner';
+      placeholder.textContent = 'Tap “Play Game” to reveal today’s rituals.';
+      elements.virtueGarden.taskList.appendChild(placeholder);
+      updateGardenHabitIndicator();
+      return;
+    }
+    if (!gardenState.tasks.length) {
+      const empty = document.createElement('p');
+      empty.className =
+        'rounded-3xl border border-white/25 bg-white/10 px-4 py-4 text-sm font-semibold text-white/80 shadow-inner';
+      empty.textContent = 'You completed everything! Return tomorrow for fresh seeds.';
+      elements.virtueGarden.taskList.appendChild(empty);
+      updateGardenHabitIndicator();
+      return;
+    }
+    gardenState.tasks.forEach((task, index) => {
+      const meta = taskTypeMeta[task.type] || taskTypeMeta.recite;
+      const card = document.createElement('article');
+      card.className =
+        'group relative overflow-hidden rounded-[28px] border p-5 text-white shadow-[0_24px_60px_-28px_rgba(18,5,9,0.65)] transition-all duration-300 hover:-translate-y-1.5 hover:shadow-2xl';
+      card.classList.add(...meta.cardClasses.split(' '));
+      card.dataset.taskCard = task.uid;
+      card.dataset.state = task.completed ? 'complete' : 'ready';
+      card.style.setProperty('--alfawz-delay', `${index * 90}ms`);
+      const glow = document.createElement('div');
+      glow.className =
+        'pointer-events-none absolute inset-0 bg-gradient-to-br from-white/15 via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100';
+      card.appendChild(glow);
+      const header = document.createElement('div');
+      header.className = 'relative flex items-center justify-between gap-3 text-[#4d081d]';
+      const chip = document.createElement('span');
+      chip.className =
+        'inline-flex items-center gap-2 rounded-full bg-white/70 px-3 py-1 text-[0.7rem] font-semibold uppercase tracking-[0.3em] text-[#7a1332] shadow-inner';
+      chip.setAttribute('data-role', 'task-status');
+      chip.textContent = task.completed ? 'Nurtured' : meta.chip;
+      header.appendChild(chip);
+      const reward = document.createElement('span');
+      reward.className =
+        'inline-flex items-center gap-1 rounded-full bg-white/60 px-3 py-1 text-xs font-semibold text-[#7a1332] shadow-inner';
+      reward.innerHTML = `<span aria-hidden="true">✨</span>+${formatNumber(task.seeds)} seeds`;
+      header.appendChild(reward);
+      card.appendChild(header);
+      const title = document.createElement('h4');
+      title.className = 'relative mt-3 text-xl font-bold text-[#4d081d]';
+      title.innerHTML = `${meta.icon || '🌿'} ${task.title}`;
+      card.appendChild(title);
+      const prompt = document.createElement('p');
+      prompt.className = 'relative mt-2 text-sm font-medium text-[#7a0f32]';
+      prompt.textContent = task.prompt;
+      card.appendChild(prompt);
+      if (task.tip) {
+        const tip = document.createElement('p');
+        tip.className =
+          'relative mt-3 rounded-2xl bg-white/60 px-3 py-2 text-xs font-semibold uppercase tracking-[0.28em] text-[#b4637a]';
+        tip.textContent = task.tip;
+        card.appendChild(tip);
+      }
+      const footer = document.createElement('div');
+      footer.className =
+        'relative mt-4 flex flex-wrap items-center justify-between gap-2 text-xs font-semibold text-[#9d4158]';
+      const duration = document.createElement('span');
+      duration.textContent = `Est. ${task.duration}`;
+      footer.appendChild(duration);
+      const typeLabel = document.createElement('span');
+      typeLabel.textContent = task.type === 'bonus' ? 'Bonus reward active' : 'Daily ritual';
+      footer.appendChild(typeLabel);
+      card.appendChild(footer);
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.dataset.taskId = task.uid;
+      button.className =
+        'mt-5 inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold text-white shadow-lg transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-white/70';
+      button.classList.add(...meta.buttonClasses.split(' '));
+      button.innerHTML = '<span aria-hidden="true">▶</span><span>Log Ritual</span>';
+      if (task.completed) {
+        button.disabled = true;
+        button.innerHTML = '<span aria-hidden="true">✨</span><span>Logged</span>';
+        button.className =
+          'mt-5 inline-flex items-center gap-2 rounded-full bg-emerald-500/90 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-emerald-900/20 transition-all duration-300 focus:outline-none';
+      } else {
+        button.addEventListener('click', (event) => {
+          event.preventDefault();
+          completeGardenTask(task.uid);
+        });
+      }
+      card.appendChild(button);
+      elements.virtueGarden.taskList.appendChild(card);
+      if (animate) {
+        requestAnimationFrame(() => {
+          card.classList.add('animate-soft-fade');
+        });
+      }
+    });
+    updateGardenHabitIndicator();
+  };
+
+  const checkGardenCompletion = () => {
+    if (!gardenState.started || !gardenState.tasks.length) {
+      return;
+    }
+    const remaining = gardenState.tasks.filter((task) => !task.completed).length;
+    if (remaining > 0) {
+      setGardenMessage(`Keep going—${remaining} ritual${remaining === 1 ? '' : 's'} still need your touch.`, 'active');
+      return;
+    }
+    if (gardenState.completedToday) {
+      return;
+    }
+    gardenState.completedToday = true;
+    gardenState.streak += 1;
+    setGardenMessage('Takbir! Your grove is luminous—return tomorrow for new blossoms.', 'success');
+    addGardenLog('Takbir! Your entire garden is glowing with today’s worship.', 'highlight');
+    updateGardenStats();
+    spawnConfetti(elements.virtueGarden.game || elements.virtueGarden.section || root);
+    window.setTimeout(() => {
+      advanceGardenDay();
+    }, 1600);
+  };
+
+  const advanceGardenDay = () => {
+    gardenState.day += 1;
+    gardenState.tasks = buildDailyTaskSet();
+    gardenState.combo = { types: new Set(), triggered: false };
+    gardenState.completedToday = false;
+    gardenState.care = clampPercent(gardenState.care - 18);
+    if (gardenState.care < 22) {
+      gardenState.care = 22;
+    }
+    gardenState.careUsed = false;
+    renderGardenTasks();
+    updateGardenStats();
+    updateCareMeter();
+    updateGardenHabitIndicator();
+    refreshCareButton();
+    setGardenMessage(`Day ${gardenState.day} unlocked—fresh virtue seeds await.`, 'active');
+    addGardenLog(`New rituals sprouted for Day ${gardenState.day}.`, 'event');
+  };
+
+  const handleCarePulse = (event) => {
+    event.preventDefault();
+    if (!gardenState.started) {
+      setGardenMessage('Start the game to unlock the care pulse.', 'warning');
+      return;
+    }
+    if (gardenState.careUsed) {
+      setGardenMessage('Today’s care pulse is already recorded. Complete a ritual to refresh it tomorrow.', 'warning');
+      return;
+    }
+    gardenState.care = clampPercent(gardenState.care + 16);
+    gardenState.careUsed = true;
+    refreshCareButton();
+    updateCareMeter();
+    addGardenLog('You tended the soil with a mindful dua. Vitality restored!', 'success');
+    if (elements.virtueGarden.message?.dataset.state !== 'success') {
+      setGardenMessage('You watered the garden—vitality restored!', 'active');
+    }
+  };
+
+  const handleGardenStart = (event) => {
+    event.preventDefault();
+    if (!elements.virtueGarden.section) {
+      return;
+    }
+    if (!gardenState.started) {
+      gardenState.started = true;
+      gardenState.day = 1;
+      gardenState.streak = 0;
+      gardenState.totalSeeds = 0;
+      gardenState.care = 64;
+      gardenState.careUsed = false;
+      gardenState.completedToday = false;
+      gardenState.combo = { types: new Set(), triggered: false };
+      gardenState.tasks = buildDailyTaskSet();
+      gardenState.plants = [];
+      gardenState.usedPlantIds = new Set();
+      renderGardenPlants();
+      renderGardenTasks();
+      updateGardenStats();
+      updateCareMeter();
+      updateGardenHabitIndicator();
+      refreshCareButton();
+      addGardenLog('Game started — your soil is ready for seeds.', 'event');
+      setGardenMessage('Welcome, caretaker! Complete today’s rituals to awaken your first plant.', 'active');
+      elements.virtueGarden.game?.classList.remove('hidden');
+      if (elements.virtueGarden.startButton) {
+        elements.virtueGarden.startButton.textContent = 'Continue Cultivating';
+      }
+      if (elements.virtueGarden.intro) {
+        elements.virtueGarden.intro.classList.add('ring-2', 'ring-white/40');
+      }
+    } else {
+      setGardenMessage('Return to your rituals and keep the barakah flowing.', 'active');
+    }
+    elements.virtueGarden.game?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
+  const initVirtueGarden = () => {
+    if (!elements.virtueGarden.section) {
+      return;
+    }
+    renderGardenPlants();
+    renderGardenTasks();
+    updateGardenStats();
+    updateCareMeter();
+    updateGardenHabitIndicator();
+    refreshCareButton();
+    setGardenMessage('Tap “Play Game” to sow your first virtue seeds.', 'idle');
+    if (elements.virtueGarden.startButton) {
+      elements.virtueGarden.startButton.addEventListener('click', handleGardenStart);
+    }
+    if (elements.virtueGarden.careButton) {
+      elements.virtueGarden.careButton.addEventListener('click', handleCarePulse);
+    }
+  };
+
   const renderAchievements = (payload) => {
     if (!elements.achievementGrid) {
       return;
@@ -1194,6 +1983,7 @@
     });
   };
 
+  initVirtueGarden();
   initPuzzleGame();
 
   const loadData = async () => {
