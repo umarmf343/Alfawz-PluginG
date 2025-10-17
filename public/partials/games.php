@@ -15,6 +15,182 @@ if ( ! defined( 'ABSPATH' ) ) {
         <div id="alfawz-game-error" class="hidden rounded-3xl border border-rose-200/70 bg-rose-100/90 px-5 py-6 text-center text-lg font-semibold text-rose-800 shadow-lg shadow-rose-300/50 backdrop-blur"></div>
 
         <div id="alfawz-game-content" class="hidden space-y-10">
+            <section
+                aria-label="<?php esc_attr_e( 'Virtue Garden Tycoon Quranic habit game', 'alfawzquran' ); ?>"
+                class="space-y-6"
+                id="alfawz-garden"
+            >
+                <div class="relative overflow-hidden rounded-[36px] border border-[#8b1e3f]/25 bg-gradient-to-br from-[#431028] via-[#7a1739] to-[#f5d5c7] p-6 text-[#fff9f4] shadow-[0_40px_120px_-50px_rgba(38,6,16,0.8)] sm:p-9">
+                    <div class="pointer-events-none absolute -left-20 top-6 h-48 w-48 rounded-full bg-[#ffedf3]/30 blur-2xl"></div>
+                    <div class="pointer-events-none absolute -right-16 bottom-0 h-60 w-60 rounded-full bg-[#ffd3c6]/20 blur-3xl"></div>
+                    <div class="relative flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+                        <div class="max-w-2xl space-y-4">
+                            <div class="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-white/15 text-5xl shadow-lg" aria-hidden="true">🌱</div>
+                            <div class="space-y-2">
+                                <h2 class="text-3xl font-black tracking-tight sm:text-[42px]">
+                                    <?php esc_html_e( 'Virtue Garden Tycoon', 'alfawzquran' ); ?>
+                                </h2>
+                                <p class="text-base font-medium text-[#ffeae1] sm:text-lg">
+                                    <?php
+                                    esc_html_e(
+                                        'Complete Quranic rituals to gather virtue seeds, awaken luminous plants, and keep your sanctuary thriving with daily care.',
+                                        'alfawzquran'
+                                    );
+                                    ?>
+                                </p>
+                            </div>
+                            <div class="inline-flex items-center gap-2 rounded-full bg-white/15 px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em] text-[#ffe2d5]">
+                                <span class="h-2 w-2 rounded-full bg-[#ffe2d5]"></span>
+                                <?php esc_html_e( 'Daily care keeps the barakah blooming', 'alfawzquran' ); ?>
+                            </div>
+                        </div>
+                        <button
+                            id="alfawz-garden-play"
+                            type="button"
+                            class="inline-flex items-center gap-2 self-start rounded-full bg-gradient-to-r from-[#f7a7b7] via-[#ffce8c] to-[#ffe8b9] px-6 py-3 text-sm font-semibold text-[#431028] shadow-lg shadow-black/20 transition-all duration-300 hover:-translate-y-1 hover:brightness-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#ffe2d5]/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#431028]"
+                        >
+                            <span aria-hidden="true" class="text-base" data-role="garden-play-icon">▶</span>
+                            <span data-role="garden-play-label"><?php esc_html_e( 'Play Game', 'alfawzquran' ); ?></span>
+                        </button>
+                    </div>
+                </div>
+
+                <div
+                    id="alfawz-garden-board"
+                    class="relative hidden space-y-6 rounded-[36px] border border-[#4d081d]/15 bg-gradient-to-br from-[#fff6f6]/90 via-[#fef0f5]/90 to-[#fff9f2]/95 p-6 shadow-[0_34px_90px_-40px_rgba(139,30,63,0.6)] sm:p-10"
+                >
+                    <div class="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-white/70 to-transparent"></div>
+                    <div class="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-[#ffd6db]/40 to-transparent"></div>
+
+                    <div class="relative grid grid-cols-1 gap-6 lg:grid-cols-[1.75fr_1fr]">
+                        <article class="relative overflow-hidden rounded-[28px] border border-white/60 bg-white/80 p-6 text-[#4d081d] shadow-xl shadow-[#4d081d]/10">
+                            <div class="pointer-events-none absolute -top-16 right-8 h-40 w-40 rounded-full bg-[#ffd7dc]/45 blur-3xl"></div>
+                            <div class="pointer-events-none absolute -bottom-16 left-10 h-44 w-44 rounded-full bg-[#ffe8c9]/35 blur-3xl"></div>
+                            <div class="relative space-y-6">
+                                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                                    <div class="group relative overflow-hidden rounded-3xl border border-[#ffd6de]/80 bg-[#fff4f6]/80 p-4 shadow-inner">
+                                        <div class="pointer-events-none absolute inset-0 bg-gradient-to-br from-[#ffe3ec]/80 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
+                                        <p class="text-[0.68rem] font-semibold uppercase tracking-[0.32em] text-[#b4637a]">
+                                            <?php esc_html_e( 'Virtue Seeds', 'alfawzquran' ); ?>
+                                        </p>
+                                        <p class="mt-2 text-3xl font-black text-[#8b1e3f] drop-shadow-sm" data-garden-stat="seeds">0</p>
+                                    </div>
+                                    <div class="group relative overflow-hidden rounded-3xl border border-[#ffd6de]/80 bg-[#fff4f6]/80 p-4 shadow-inner">
+                                        <div class="pointer-events-none absolute inset-0 bg-gradient-to-br from-[#ffe3ec]/80 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
+                                        <p class="text-[0.68rem] font-semibold uppercase tracking-[0.32em] text-[#b4637a]">
+                                            <?php esc_html_e( 'Garden Flourish', 'alfawzquran' ); ?>
+                                        </p>
+                                        <p class="mt-2 text-3xl font-black text-[#7a0f32] drop-shadow-sm" data-garden-stat="bloom">0</p>
+                                    </div>
+                                    <div class="group relative overflow-hidden rounded-3xl border border-[#ffe8ca]/80 bg-[#fff8ef]/80 p-4 shadow-inner">
+                                        <div class="pointer-events-none absolute inset-0 bg-gradient-to-br from-[#ffe8ca]/80 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
+                                        <p class="text-[0.68rem] font-semibold uppercase tracking-[0.32em] text-[#bb7b54]">
+                                            <?php esc_html_e( 'Care Rhythm', 'alfawzquran' ); ?>
+                                        </p>
+                                        <p class="mt-2 text-3xl font-black text-[#b4552b] drop-shadow-sm" data-garden-stat="care">0%</p>
+                                    </div>
+                                    <div class="group relative overflow-hidden rounded-3xl border border-[#ffd6de]/80 bg-[#fff4f6]/80 p-4 shadow-inner">
+                                        <div class="pointer-events-none absolute inset-0 bg-gradient-to-br from-[#ffe3ec]/80 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
+                                        <p class="text-[0.68rem] font-semibold uppercase tracking-[0.32em] text-[#b4637a]">
+                                            <?php esc_html_e( 'Rituals Today', 'alfawzquran' ); ?>
+                                        </p>
+                                        <p class="mt-2 text-3xl font-black text-[#8b1e3f] drop-shadow-sm" data-garden-stat="rituals">0 / 0</p>
+                                    </div>
+                                </div>
+
+                                <p
+                                    id="alfawz-garden-status"
+                                    class="relative overflow-hidden rounded-3xl border border-dashed border-[#f0bac7] bg-white/70 px-5 py-4 text-sm font-semibold text-[#7a0f32] shadow-inner transition-all duration-300"
+                                >
+                                    <?php esc_html_e( 'Tap “Play Game” to plant your first virtue seed.', 'alfawzquran' ); ?>
+                                </p>
+
+                                <div class="space-y-4">
+                                    <div class="flex flex-wrap items-center justify-between gap-3">
+                                        <h3 class="flex items-center gap-3 text-xl font-bold text-[#4d081d]">
+                                            <span class="inline-flex h-9 w-9 items-center justify-center rounded-2xl bg-[#ffe9ef] text-lg shadow-inner" aria-hidden="true">🕊️</span>
+                                            <?php esc_html_e( 'Daily Quranic Rituals', 'alfawzquran' ); ?>
+                                        </h3>
+                                        <span class="inline-flex items-center gap-2 rounded-full bg-[#fdf2f8] px-3 py-1 text-xs font-semibold uppercase tracking-[0.28em] text-[#b4637a]">
+                                            <span class="h-2 w-2 rounded-full bg-[#b4637a]"></span>
+                                            <?php esc_html_e( 'Complete steps to earn seeds', 'alfawzquran' ); ?>
+                                        </span>
+                                    </div>
+                                    <div id="alfawz-garden-task-list" class="grid grid-cols-1 gap-4 lg:grid-cols-3">
+                                        <div class="rounded-3xl border border-dashed border-[#f4c7d3] bg-white/70 p-5 text-center text-sm font-semibold text-[#b4637a] shadow-inner">
+                                            <?php esc_html_e( 'Your ritual cards will appear here once you start the game.', 'alfawzquran' ); ?>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="space-y-4">
+                                    <div class="flex flex-wrap items-center justify-between gap-3">
+                                        <h3 class="flex items-center gap-3 text-xl font-bold text-[#4d081d]">
+                                            <span class="inline-flex h-9 w-9 items-center justify-center rounded-2xl bg-[#ffe9ef] text-lg shadow-inner" aria-hidden="true">🌸</span>
+                                            <?php esc_html_e( 'Sanctuary Plots', 'alfawzquran' ); ?>
+                                        </h3>
+                                        <span id="alfawz-garden-plot-summary" class="text-xs font-semibold uppercase tracking-[0.28em] text-[#b4637a]">
+                                            <?php esc_html_e( 'Plots awaiting seeds', 'alfawzquran' ); ?>
+                                        </span>
+                                    </div>
+                                    <div id="alfawz-garden-plots" class="grid grid-cols-1 gap-4 md:grid-cols-3">
+                                        <div class="rounded-[28px] border border-dashed border-[#f4c7d3] bg-white/70 p-6 text-center text-sm font-semibold text-[#b4637a] shadow-inner">
+                                            <?php esc_html_e( 'Nurture rituals to unlock glowing plants.', 'alfawzquran' ); ?>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </article>
+
+                        <aside class="relative flex flex-col justify-between gap-6 overflow-hidden rounded-[28px] border border-[#4d081d]/15 bg-gradient-to-br from-[#4d081d] via-[#781838] to-[#b2294c] p-6 text-white shadow-[0_32px_80px_-40px_rgba(38,6,16,0.8)]">
+                            <div class="pointer-events-none absolute -top-16 left-6 h-36 w-36 rounded-full bg-[#ffedf3]/40 blur-2xl"></div>
+                            <div class="pointer-events-none absolute -bottom-20 right-4 h-40 w-40 rounded-full bg-[#ffd7d3]/30 blur-3xl"></div>
+                            <div class="relative space-y-6">
+                                <div class="space-y-2">
+                                    <h3 class="text-lg font-semibold uppercase tracking-[0.3em] text-white/80">
+                                        <?php esc_html_e( 'Garden Care', 'alfawzquran' ); ?>
+                                    </h3>
+                                    <p id="alfawz-garden-care-hint" class="text-sm font-medium text-white/90">
+                                        <?php esc_html_e( 'Keep devotion flowing with gentle rain and mindful whispers.', 'alfawzquran' ); ?>
+                                    </p>
+                                </div>
+                                <div
+                                    id="alfawz-garden-care-meter"
+                                    class="relative h-3.5 w-full overflow-hidden rounded-full border border-white/30 bg-white/20"
+                                    role="progressbar"
+                                    aria-valuemin="0"
+                                    aria-valuemax="100"
+                                    aria-valuenow="0"
+                                >
+                                    <div id="alfawz-garden-care-bar" class="h-full rounded-full bg-gradient-to-r from-[#ffe8b9] via-[#f7a7b7] to-[#ff90c2] transition-all duration-500" style="width:0%"></div>
+                                </div>
+                                <button
+                                    id="alfawz-garden-water"
+                                    type="button"
+                                    class="inline-flex w-full items-center justify-center gap-2 rounded-full bg-white/15 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-black/30 transition-all duration-300 hover:-translate-y-1 hover:bg-white/25 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#781838]"
+                                >
+                                    <span aria-hidden="true">💧</span>
+                                    <?php esc_html_e( 'Water & Whisper Du‘a', 'alfawzquran' ); ?>
+                                </button>
+                            </div>
+
+                            <div class="relative space-y-4">
+                                <h3 class="text-lg font-semibold uppercase tracking-[0.3em] text-white/80">
+                                    <?php esc_html_e( 'Virtue Journal', 'alfawzquran' ); ?>
+                                </h3>
+                                <div
+                                    id="alfawz-garden-journal"
+                                    class="space-y-3 overflow-hidden rounded-[24px] border border-white/20 bg-white/10 p-4 text-sm font-medium text-white/90 shadow-inner"
+                                >
+                                    <p class="rounded-2xl border border-white/20 bg-white/10 px-3 py-2">
+                                        <?php esc_html_e( 'Begin the game to log your radiant garden moments.', 'alfawzquran' ); ?>
+                                    </p>
+                                </div>
+                            </div>
+                        </aside>
+                    </div>
+                </div>
+            </section>
             <section aria-label="<?php esc_attr_e( 'Ayah Puzzle Builder mini-game', 'alfawzquran' ); ?>" class="space-y-6" id="alfawz-puzzle">
                 <div class="flex flex-wrap items-center justify-between gap-4 text-[#4d081d]">
                     <div>

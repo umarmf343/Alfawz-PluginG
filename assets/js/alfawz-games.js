@@ -32,7 +32,52 @@
     puzzleUnlockHint:
       wpData.strings?.puzzleUnlockHint
       || 'Complete three puzzles today to unlock the “Night of Tranquility” weekly challenge.',
-    puzzleBestLabel: wpData.strings?.puzzleBestLabel || 'Best',
+
+    gardenPlay: wpData.strings?.gardenPlay || 'Play Game',
+    gardenResume: wpData.strings?.gardenResume || 'Keep Cultivating',
+    gardenCelebrate: wpData.strings?.gardenCelebrate || 'Garden Flourishing',
+    gardenStatusIdle: wpData.strings?.gardenStatusIdle || 'Tap “Play Game” to plant your first virtue seed.',
+    gardenStatusActive: wpData.strings?.gardenStatusActive || 'Complete today’s Quranic rituals to earn seeds.',
+    gardenStatusSpendSeeds:
+      wpData.strings?.gardenStatusSpendSeeds || 'Spend your virtue seeds to nurture each glowing plot.',
+    gardenStatusWarning:
+      wpData.strings?.gardenStatusWarning || 'Your garden whispers for water—offer a du‘a and tend to it.',
+    gardenStatusCelebration:
+      wpData.strings?.gardenStatusCelebration || 'MashaAllah! Your Virtue Garden is flourishing with radiant light.',
+    gardenCareHigh:
+      wpData.strings?.gardenCareHigh || 'The sanctuary shimmers—keep your rhythm steady and heartfelt.',
+    gardenCareMedium:
+      wpData.strings?.gardenCareMedium || 'A gentle drizzle will keep the blossoms calm and bright.',
+    gardenCareLow:
+      wpData.strings?.gardenCareLow || 'Your plants softly plead for rain. Spend a seed to water them.',
+    gardenAlreadyActive:
+      wpData.strings?.gardenAlreadyActive || 'Your rituals are ready—complete the steps below to gather seeds.',
+    gardenNewDay:
+      wpData.strings?.gardenNewDay || 'Fresh rituals have sprouted! Gather new virtue seeds today.',
+    gardenTaskStart: wpData.strings?.gardenTaskStart || 'Begin Ritual',
+    gardenTaskNext: wpData.strings?.gardenTaskNext || 'Next Step',
+    gardenTaskCollect: wpData.strings?.gardenTaskCollect || 'Collect Seeds',
+    gardenTaskComplete: wpData.strings?.gardenTaskComplete || 'Completed',
+    gardenTaskStepPrefix: wpData.strings?.gardenTaskStepPrefix || 'Step',
+    gardenTaskProgress: wpData.strings?.gardenTaskProgress || 'Progress',
+    gardenNurtureLabel: wpData.strings?.gardenNurtureLabel || 'Nurture (-{cost} seeds)',
+    gardenNurtureMax: wpData.strings?.gardenNurtureMax || 'Fully Bloomed',
+    gardenNurtureNeedsSeeds:
+      wpData.strings?.gardenNurtureNeedsSeeds || 'You need {cost} seeds to nurture this plant.',
+    gardenPlantStageUnlocked:
+      wpData.strings?.gardenPlantStageUnlocked || '{name} reached {stage}!',
+    gardenPlantStageStatus:
+      wpData.strings?.gardenPlantStageStatus || '{name} is glowing with {stage}.',
+    gardenPlotSummaryIdle: wpData.strings?.gardenPlotSummaryIdle || 'Plots awaiting seeds',
+    gardenPlotSummary: wpData.strings?.gardenPlotSummary || 'Blooming plots: {grown}/{total}',
+    gardenPlotCelebration:
+      wpData.strings?.gardenPlotCelebration || 'Every sanctuary plot is glowing with barakah!',
+    gardenWaterNeedSeeds:
+      wpData.strings?.gardenWaterNeedSeeds || 'You need at least one seed to water the garden.',
+    gardenWatering:
+      wpData.strings?.gardenWatering || 'Rain of dhikr gently nourishes your garden.',
+    gardenJournalReminder:
+      wpData.strings?.gardenJournalReminder || 'Return daily to keep the sanctuary radiant.',
   };
 
   const root = document.querySelector('#alfawz-game-panel');
@@ -64,6 +109,29 @@
       label: root.querySelector('#alfawz-egg-label'),
       playButton: root.querySelector('#alfawz-egg-play'),
       playLabel: root.querySelector('#alfawz-egg-play [data-role="alfawz-egg-play-label"]'),
+    },
+
+    garden: {
+      section: root.querySelector('#alfawz-garden'),
+      playButton: root.querySelector('#alfawz-garden-play'),
+      playLabel: root.querySelector('#alfawz-garden-play [data-role="garden-play-label"]'),
+      playIcon: root.querySelector('#alfawz-garden-play [data-role="garden-play-icon"]'),
+      board: root.querySelector('#alfawz-garden-board'),
+      status: root.querySelector('#alfawz-garden-status'),
+      stats: {
+        seeds: root.querySelector('[data-garden-stat="seeds"]'),
+        bloom: root.querySelector('[data-garden-stat="bloom"]'),
+        care: root.querySelector('[data-garden-stat="care"]'),
+        rituals: root.querySelector('[data-garden-stat="rituals"]'),
+      },
+      taskList: root.querySelector('#alfawz-garden-task-list'),
+      plots: root.querySelector('#alfawz-garden-plots'),
+      plotSummary: root.querySelector('#alfawz-garden-plot-summary'),
+      journal: root.querySelector('#alfawz-garden-journal'),
+      careMeter: root.querySelector('#alfawz-garden-care-meter'),
+      careBar: root.querySelector('#alfawz-garden-care-bar'),
+      careHint: root.querySelector('#alfawz-garden-care-hint'),
+      waterButton: root.querySelector('#alfawz-garden-water'),
     },
     puzzle: {
       section: root.querySelector('#alfawz-puzzle'),
@@ -198,6 +266,855 @@
       [array[i], array[j]] = [array[j], array[i]];
     }
     return array;
+  };
+
+
+  // Virtue Garden Tycoon mini-game
+  const gardenPlayStates = {
+    idle: { icon: '▶', label: strings.gardenPlay || strings.puzzlePlay || 'Play Game' },
+    active: { icon: '⟳', label: strings.gardenResume || strings.keepGoing || 'Keep Cultivating' },
+    celebration: { icon: '✨', label: strings.gardenCelebrate || strings.completed || 'Garden Flourishing' },
+  };
+
+  const gardenStatusStyles = {
+    idle: ['border-dashed', 'border-[#f0bac7]', 'bg-white/70', 'text-[#7a0f32]'],
+    active: ['border-solid', 'border-[#f6c5d5]', 'bg-[#fff1f6]/90', 'text-[#5f0d26]'],
+    warning: ['border-solid', 'border-[#f28a9c]', 'bg-[#ffe5ec]/90', 'text-[#8b1e3f]'],
+    celebration: [
+      'border-solid',
+      'border-[#ffdbe7]/70',
+      'bg-gradient-to-r',
+      'from-[#8b1e3f]/90',
+      'via-[#c23958]/85',
+      'to-[#f59bb4]/80',
+      'text-white',
+      'shadow-lg',
+      'shadow-[#4d081d]/25',
+    ],
+  };
+  let gardenStatusAppliedClasses = [];
+  const gardenJournalLimit = 5;
+
+  const gardenState = {
+    isActive: false,
+    seeds: 0,
+    bloom: 0,
+    care: 0,
+    completedTasks: 0,
+    tasks: [],
+    plants: [],
+    careTimer: null,
+    milestone: 'idle',
+    careWarningShown: false,
+  };
+
+  const gardenTaskDeck = [
+    {
+      id: 'dawn-recitation',
+      icon: '🌅',
+      gradient: 'from-[#fff5f5]/95 via-[#fde8f2]/95 to-[#fff7ed]/95',
+      title: 'Dawn Recitation Flow',
+      description:
+        'Recite five ayat from your current memorisation set, letting tajwīd guide every letter.',
+      rewardSeeds: 4,
+      bloom: 3,
+      steps: [
+        'Begin with a mindful basmala and steady breathing.',
+        'Recite the first three ayat aloud with tajwīd focus.',
+        'Reflect on a keyword and whisper gratitude for its meaning.',
+      ],
+    },
+    {
+      id: 'heart-reflection',
+      icon: '🪞',
+      gradient: 'from-[#fff4ed]/95 via-[#fdebd7]/95 to-[#fff9ec]/95',
+      title: 'Heart Reflection Notes',
+      description:
+        'Pause with one ayah and capture a reflective note about how it reshapes your day.',
+      rewardSeeds: 3,
+      bloom: 2,
+      steps: [
+        'Read a tafsir snippet for the ayah you chose.',
+        'Write a one-line reflection or action point.',
+        'Share the insight with a friend or whisper it in du‘a.',
+      ],
+    },
+    {
+      id: 'tafseer-spark',
+      icon: '📜',
+      gradient: 'from-[#fef6ff]/95 via-[#f3e4ff]/95 to-[#fff5ff]/95',
+      title: 'Tafsir Spark Session',
+      description:
+        'Study a brief tafsir highlight and connect it to a real-life scenario you face today.',
+      rewardSeeds: 4,
+      bloom: 3,
+      steps: [
+        'Choose a short tafsir clip or paragraph and listen/read attentively.',
+        'Note one divine attribute mentioned and how it appears in the ayah.',
+        'Plan a small action inspired by that attribute before the day ends.',
+      ],
+    },
+    {
+      id: 'evening-dhikr',
+      icon: '🌙',
+      gradient: 'from-[#f5f8ff]/95 via-[#e8ebff]/95 to-[#f8f7ff]/95',
+      title: 'Evening Dhikr Walk',
+      description:
+        'Take a slow walk or stretch while reciting tasbīḥ and letting tranquility settle.',
+      rewardSeeds: 3,
+      bloom: 2,
+      steps: [
+        'Recite subḥānAllāh 33 times with a soft voice.',
+        'Recite alḥamdulillāh 33 times while breathing deeply.',
+        'Recite Allāhu akbar 34 times and release any worry to Allah.',
+      ],
+    },
+    {
+      id: 'gratitude-bouquet',
+      icon: '💖',
+      gradient: 'from-[#fff5f1]/95 via-[#ffe2e7]/95 to-[#fff8f6]/95',
+      title: 'Gratitude Bouquet',
+      description:
+        'List three blessings from today and connect each to an ayah or prophetic wisdom.',
+      rewardSeeds: 5,
+      bloom: 4,
+      steps: [
+        'List three blessings from the past 24 hours.',
+        'Pair each blessing with a related ayah or hadith.',
+        'Make a heartfelt du‘a asking Allah to let the blessing grow.',
+      ],
+    },
+  ];
+
+  const gardenPlantBlueprints = [
+    {
+      id: 'mercy-palm',
+      emoji: '🌴',
+      name: 'Mercy Palm',
+      stageTitles: ['Virtue Seed', 'Whispering Sprout', 'Radiant Palm', 'Sanctuary Shade'],
+      stageDescriptions: [
+        'A tiny seed warmed by your recitation.',
+        'New fronds sway with each whispered verse.',
+        'The palm glows, welcoming every seeker of mercy.',
+        'A towering guardian offering shade to pilgrims of Qur’an.',
+      ],
+      xpThresholds: [0, 14, 32, 52],
+      bloomBonus: [3, 4, 6],
+      baseCost: 3,
+      xpPerNurture: 6,
+    },
+    {
+      id: 'sabr-vine',
+      emoji: '🍃',
+      name: 'Sabr Vine',
+      stageTitles: ['Patience Seed', 'Climbing Tendril', 'Verdant Canopy', 'Haven of Sabr'],
+      stageDescriptions: [
+        'Planted with calm breaths between recitations.',
+        'Tendrils climb with every resilient reflection.',
+        'A canopy spreads, cooling the heart with sabr.',
+        'An archway of serenity guiding your footsteps.',
+      ],
+      xpThresholds: [0, 12, 28, 48],
+      bloomBonus: [2, 4, 6],
+      baseCost: 2,
+      xpPerNurture: 5,
+    },
+    {
+      id: 'shukr-bloom',
+      emoji: '🌺',
+      name: 'Shukr Bloom',
+      stageTitles: ['Gratitude Bud', 'Joyful Blossom', 'Radiant Bouquet', 'Garden Lantern'],
+      stageDescriptions: [
+        'A bud formed from whispered thankfulness.',
+        'Petals open whenever you journal blessings.',
+        'Bouquets shimmer, scenting the garden with shukr.',
+        'A glowing lantern guiding nightly dhikr walks.',
+      ],
+      xpThresholds: [0, 10, 24, 42],
+      bloomBonus: [2, 3, 5],
+      baseCost: 4,
+      xpPerNurture: 7,
+    },
+  ];
+
+
+  const updateGardenStatus = (message, state = 'idle') => {
+    if (!elements.garden?.status) {
+      return;
+    }
+    if (typeof message === 'string' && message.trim()) {
+      elements.garden.status.textContent = message;
+    }
+    const targetState = gardenStatusStyles[state] ? state : 'idle';
+    const classes = gardenStatusStyles[targetState];
+    if (gardenStatusAppliedClasses.length) {
+      elements.garden.status.classList.remove(...gardenStatusAppliedClasses);
+    }
+    elements.garden.status.classList.add(...classes);
+    gardenStatusAppliedClasses = classes.slice();
+  };
+
+  const updateGardenPlayButton = (state = 'idle') => {
+    if (!elements.garden?.playButton) {
+      return;
+    }
+    const config = gardenPlayStates[state] || gardenPlayStates.idle;
+    if (elements.garden.playLabel) {
+      elements.garden.playLabel.textContent = config.label;
+    }
+    if (elements.garden.playIcon) {
+      elements.garden.playIcon.textContent = config.icon;
+    }
+    elements.garden.playButton.dataset.state = state;
+  };
+
+  const showGardenBoard = () => {
+    if (!elements.garden?.board) {
+      return;
+    }
+    elements.garden.board.classList.remove('hidden');
+    requestAnimationFrame(() => {
+      elements.garden.board.classList.add('animate-soft-fade');
+    });
+  };
+
+  const resetGardenJournal = () => {
+    if (!elements.garden?.journal) {
+      return;
+    }
+    elements.garden.journal.innerHTML = '';
+    const entry = document.createElement('p');
+    entry.className =
+      'rounded-2xl border border-white/20 bg-white/10 px-3 py-2 text-sm font-medium text-white/90 shadow-inner';
+    entry.textContent = strings.gardenJournalReminder || '';
+    elements.garden.journal.appendChild(entry);
+  };
+
+  const logGardenEvent = (message, tone = 'default') => {
+    if (!elements.garden?.journal || !message) {
+      return;
+    }
+    const entry = document.createElement('p');
+    const baseClass =
+      'rounded-2xl px-3 py-2 text-sm font-semibold leading-relaxed transition-all duration-300 shadow-inner';
+    let toneClass = 'border border-white/25 bg-white/12 text-white/90';
+    if (tone === 'celebration') {
+      toneClass = 'border border-white/40 bg-white/20 text-white shadow-lg shadow-[#4d081d]/20';
+    } else if (tone === 'warning') {
+      toneClass = 'border border-amber-200/60 bg-amber-100/20 text-amber-50';
+    }
+    entry.className = `${baseClass} ${toneClass}`;
+    entry.textContent = message;
+    elements.garden.journal.prepend(entry);
+    while (elements.garden.journal.childElementCount > gardenJournalLimit) {
+      elements.garden.journal.removeChild(elements.garden.journal.lastElementChild);
+    }
+  };
+
+  const updateGardenCareHint = () => {
+    if (!elements.garden?.careHint) {
+      return;
+    }
+    const value = Math.max(0, Math.min(100, gardenState.care));
+    let message = strings.gardenCareMedium || '';
+    if (value >= 80) {
+      message = strings.gardenCareHigh || message;
+    } else if (value <= 35) {
+      message = strings.gardenCareLow || message;
+    }
+    elements.garden.careHint.textContent = message;
+  };
+
+  const updateGardenCareMeter = () => {
+    if (!elements.garden?.careMeter) {
+      return;
+    }
+    const value = Math.round(Math.max(0, Math.min(100, gardenState.care)));
+    elements.garden.careMeter.setAttribute('aria-valuenow', `${value}`);
+    if (elements.garden.careBar) {
+      elements.garden.careBar.style.width = `${value}%`;
+    }
+  };
+
+  const updateGardenPlotSummary = () => {
+    if (!elements.garden?.plotSummary) {
+      return;
+    }
+    if (!gardenState.isActive || !gardenState.plants.length) {
+      elements.garden.plotSummary.textContent = strings.gardenPlotSummaryIdle || '';
+      return;
+    }
+    const grown = gardenState.plants.filter((plant) => plant.stage > 0).length;
+    const total = gardenState.plants.length;
+    if (total && gardenState.plants.every((plant) => plant.stage >= plant.stageTitles.length - 1)) {
+      elements.garden.plotSummary.textContent = strings.gardenPlotCelebration || '';
+      return;
+    }
+    const template = strings.gardenPlotSummary || '';
+    elements.garden.plotSummary.textContent = template
+      .replace('{grown}', formatNumber(grown))
+      .replace('{total}', formatNumber(total));
+  };
+
+  const calculateNurtureCost = (plant) => Math.max(1, Math.round((plant?.baseCost || 1) + (plant?.stage || 0) * 2));
+  const calculateNurtureGain = (plant) => Math.max(1, Math.round((plant?.xpPerNurture || 1) + (plant?.stage || 0) * 2));
+
+  const determineGardenPlantStage = (plant) => {
+    if (!plant || !Array.isArray(plant.xpThresholds)) {
+      return 0;
+    }
+    let stage = 0;
+    plant.xpThresholds.forEach((threshold, index) => {
+      if (plant.xp >= threshold) {
+        stage = index;
+      }
+    });
+    return stage;
+  };
+
+  const updateGardenStats = () => {
+    if (elements.garden?.stats.seeds) {
+      elements.garden.stats.seeds.textContent = formatNumber(Math.max(0, Math.round(gardenState.seeds)));
+    }
+    if (elements.garden?.stats.bloom) {
+      elements.garden.stats.bloom.textContent = formatNumber(Math.max(0, Math.round(gardenState.bloom)));
+    }
+    if (elements.garden?.stats.rituals) {
+      const total = gardenState.tasks.length;
+      elements.garden.stats.rituals.textContent = `${formatNumber(gardenState.completedTasks)} / ${formatNumber(total)}`;
+    }
+    if (elements.garden?.stats.care) {
+      const value = Math.round(Math.max(0, Math.min(100, gardenState.care)));
+      elements.garden.stats.care.textContent = `${value}%`;
+    }
+    updateGardenCareMeter();
+    updateGardenCareHint();
+    updateGardenPlotSummary();
+    updateGardenNurtureButtons();
+  };
+
+  const updateGardenNurtureButtons = () => {
+    if (!gardenState.plants.length) {
+      return;
+    }
+    gardenState.plants.forEach((plant) => {
+      const button = plant.elements?.button;
+      if (!button) {
+        return;
+      }
+      const maxThreshold = plant.xpThresholds[plant.xpThresholds.length - 1] || 0;
+      const isMax = plant.stage >= plant.stageTitles.length - 1 && plant.xp >= maxThreshold;
+      if (isMax) {
+        button.disabled = true;
+        button.classList.add('cursor-not-allowed', 'opacity-60');
+        button.textContent = strings.gardenNurtureMax || 'Fully Bloomed';
+        button.setAttribute('aria-disabled', 'true');
+        return;
+      }
+      const cost = calculateNurtureCost(plant);
+      const labelTemplate = strings.gardenNurtureLabel || 'Nurture (-{cost} seeds)';
+      button.textContent = labelTemplate.replace('{cost}', formatNumber(cost));
+      const disabled = gardenState.seeds < cost;
+      button.disabled = disabled;
+      if (disabled) {
+        button.classList.add('cursor-not-allowed', 'opacity-60');
+        button.setAttribute('aria-disabled', 'true');
+      } else {
+        button.classList.remove('cursor-not-allowed', 'opacity-60');
+        button.removeAttribute('aria-disabled');
+      }
+    });
+  };
+
+
+  const updateGardenPlantCard = (plant) => {
+    if (!plant?.elements) {
+      return;
+    }
+    const stageTitle = plant.stageTitles[plant.stage] || '';
+    if (plant.elements.stageLabel) {
+      plant.elements.stageLabel.textContent = stageTitle;
+    }
+    if (plant.elements.description) {
+      plant.elements.description.textContent = plant.stageDescriptions[plant.stage] || '';
+    }
+    const maxThreshold = plant.xpThresholds[plant.xpThresholds.length - 1] || 0;
+    const progressPercent = maxThreshold ? clampPercent((plant.xp / maxThreshold) * 100) : 0;
+    if (plant.elements.progressBar) {
+      plant.elements.progressBar.style.width = `${progressPercent}%`;
+    }
+    if (plant.elements.progressValue) {
+      plant.elements.progressValue.textContent = `${formatNumber(Math.min(plant.xp, maxThreshold))} / ${formatNumber(maxThreshold)} XP`;
+    }
+  };
+
+  const nurtureGardenPlant = (plant) => {
+    if (!plant) {
+      return;
+    }
+    const maxThreshold = plant.xpThresholds[plant.xpThresholds.length - 1] || 0;
+    const isMax = plant.stage >= plant.stageTitles.length - 1 && plant.xp >= maxThreshold;
+    if (isMax) {
+      return;
+    }
+    const cost = calculateNurtureCost(plant);
+    if (gardenState.seeds < cost) {
+      const message = (strings.gardenNurtureNeedsSeeds || '').replace('{cost}', formatNumber(cost));
+      updateGardenStatus(message, 'warning');
+      logGardenEvent(message, 'warning');
+      if (elements.garden?.stats.seeds) {
+        pulseValue(elements.garden.stats.seeds);
+      }
+      return;
+    }
+    gardenState.seeds -= cost;
+    gardenState.care = Math.min(100, gardenState.care + 3);
+    const gain = calculateNurtureGain(plant);
+    plant.xp = Math.min(maxThreshold, plant.xp + gain);
+    const previousStage = plant.stage;
+    plant.stage = determineGardenPlantStage(plant);
+    if (plant.stage > previousStage) {
+      const bloomGain = plant.bloomBonus[Math.min(plant.stage - 1, plant.bloomBonus.length - 1)] || 0;
+      gardenState.bloom += bloomGain;
+      const stageTitle = plant.stageTitles[plant.stage] || '';
+      const unlockedMessage = (strings.gardenPlantStageUnlocked || '')
+        .replace('{name}', plant.name)
+        .replace('{stage}', stageTitle);
+      const statusMessage = (strings.gardenPlantStageStatus || '')
+        .replace('{name}', plant.name)
+        .replace('{stage}', stageTitle);
+      updateGardenStatus(statusMessage, 'active');
+      logGardenEvent(unlockedMessage, 'celebration');
+      spawnConfetti(plant.elements?.card);
+    }
+    updateGardenPlantCard(plant);
+    updateGardenStats();
+    if (elements.garden?.stats.bloom) {
+      pulseValue(elements.garden.stats.bloom);
+    }
+    checkGardenMilestones();
+  };
+
+  const createGardenPlantCard = (plant) => {
+    const card = document.createElement('article');
+    card.className =
+      'group relative overflow-hidden rounded-[28px] border border-[#f4c7d3]/70 bg-gradient-to-br from-[#fff6f7]/90 via-[#ffeef3]/90 to-[#fffaf5]/95 p-5 text-[#4d081d] shadow-[0_24px_60px_-35px_rgba(139,30,63,0.45)] transition-all duration-300 hover:-translate-y-1';
+    card.dataset.plantId = plant.id;
+
+    const glow = document.createElement('div');
+    glow.className = 'pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.35),_transparent_70%)] opacity-0 transition-opacity duration-300 group-hover:opacity-100';
+    card.appendChild(glow);
+
+    const header = document.createElement('div');
+    header.className = 'relative flex items-center justify-between gap-3';
+
+    const iconWrap = document.createElement('div');
+    iconWrap.className = 'inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-white/70 text-3xl shadow-inner shadow-white/60';
+    iconWrap.textContent = plant.emoji || '🌱';
+    header.appendChild(iconWrap);
+
+    const titleWrap = document.createElement('div');
+    titleWrap.className = 'flex-1';
+    const title = document.createElement('h4');
+    title.className = 'text-lg font-bold tracking-tight';
+    title.textContent = plant.name;
+    titleWrap.appendChild(title);
+
+    const stageLabel = document.createElement('span');
+    stageLabel.className = 'mt-1 inline-flex items-center gap-2 rounded-full bg-white/70 px-3 py-1 text-[0.62rem] font-semibold uppercase tracking-[0.3em] text-[#b4637a] shadow-inner';
+    titleWrap.appendChild(stageLabel);
+
+    header.appendChild(titleWrap);
+    card.appendChild(header);
+
+    const description = document.createElement('p');
+    description.className = 'mt-3 text-sm font-medium text-[#7a0f32]/90';
+    card.appendChild(description);
+
+    const progressWrapper = document.createElement('div');
+    progressWrapper.className = 'mt-4 h-2.5 w-full overflow-hidden rounded-full border border-[#f4c7d3]/60 bg-white/70';
+    const progressBar = document.createElement('div');
+    progressBar.className = 'h-full rounded-full bg-gradient-to-r from-[#8b1e3f] via-[#c23958] to-[#f59bb4] transition-all duration-500';
+    progressWrapper.appendChild(progressBar);
+    card.appendChild(progressWrapper);
+
+    const progressValue = document.createElement('p');
+    progressValue.className = 'mt-2 text-[0.65rem] font-semibold uppercase tracking-[0.32em] text-[#b4637a]';
+    card.appendChild(progressValue);
+
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className =
+      'mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#f7a7b7] via-[#ffce8c] to-[#ffe8b9] px-4 py-2 text-sm font-semibold text-[#431028] shadow-lg shadow-[#4d081d]/20 transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#ffe2d5]/80 focus-visible:ring-offset-2 focus-visible:ring-offset-white hover:-translate-y-0.5 hover:brightness-110';
+    button.addEventListener('click', (event) => {
+      event.preventDefault();
+      nurtureGardenPlant(plant);
+    });
+    card.appendChild(button);
+
+    plant.elements = {
+      card,
+      stageLabel,
+      description,
+      progressBar,
+      progressValue,
+      button,
+    };
+
+    updateGardenPlantCard(plant);
+
+    return card;
+  };
+
+  const renderGardenPlants = () => {
+    if (!elements.garden?.plots) {
+      return;
+    }
+    elements.garden.plots.innerHTML = '';
+    gardenState.plants.forEach((plant, index) => {
+      const card = createGardenPlantCard(plant);
+      card.style.setProperty('--alfawz-delay', `${index * 90}ms`);
+      elements.garden.plots.appendChild(card);
+    });
+    applyStagger(elements.garden.plots.children);
+    updateGardenPlotSummary();
+    updateGardenNurtureButtons();
+  };
+
+
+  const generateGardenTasks = () => {
+    const deck = shuffleArray(gardenTaskDeck);
+    const selected = deck.slice(0, 3).map((task, index) => ({
+      ...task,
+      uid: `${task.id}-${Date.now()}-${index}`,
+      progress: 0,
+      completed: false,
+      elements: {},
+    }));
+    return selected;
+  };
+
+  const updateGardenTaskCard = (task) => {
+    if (!task?.elements) {
+      return;
+    }
+    const total = task.steps.length || 1;
+    const nextIndex = Math.min(task.progress, total - 1);
+    if (task.elements.step) {
+      if (task.completed) {
+        task.elements.step.textContent = strings.gardenTaskComplete || 'Completed';
+      } else {
+        task.elements.step.textContent = `${strings.gardenTaskStepPrefix || 'Step'} ${Math.min(task.progress + 1, total)}/${total}: ${task.steps[nextIndex] || ''}`;
+      }
+    }
+    const progressPercent = task.completed ? 100 : clampPercent((task.progress / total) * 100);
+    if (task.elements.progressBar) {
+      task.elements.progressBar.style.width = `${progressPercent}%`;
+    }
+    if (task.elements.progressValue) {
+      task.elements.progressValue.textContent = `${Math.min(task.progress, total)} / ${total}`;
+    }
+    if (!task.elements.button) {
+      return;
+    }
+    if (task.completed) {
+      task.elements.button.disabled = true;
+      task.elements.button.classList.add('cursor-not-allowed', 'opacity-60');
+      task.elements.button.textContent = strings.gardenTaskComplete || 'Completed';
+      task.elements.button.setAttribute('aria-disabled', 'true');
+      task.elements.card?.classList.add('alfawz-quest-complete');
+      return;
+    }
+    task.elements.button.disabled = false;
+    task.elements.button.classList.remove('cursor-not-allowed', 'opacity-60');
+    task.elements.button.removeAttribute('aria-disabled');
+    const label =
+      task.progress === 0
+        ? strings.gardenTaskStart
+        : task.progress >= total - 1
+          ? strings.gardenTaskCollect
+          : strings.gardenTaskNext;
+    task.elements.button.textContent = label || strings.gardenTaskNext || 'Next Step';
+  };
+
+  const createGardenTaskCard = (task) => {
+    const card = document.createElement('article');
+    card.className =
+      `group relative overflow-hidden rounded-[26px] border border-[#f7c5d4]/70 bg-gradient-to-br ${task.gradient} p-5 text-[#4d081d] shadow-[0_24px_60px_-35px_rgba(139,30,63,0.45)] transition-all duration-300 hover:-translate-y-1`;
+    card.dataset.taskId = task.uid;
+
+    const glow = document.createElement('div');
+    glow.className = 'pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100';
+    card.appendChild(glow);
+
+    const header = document.createElement('div');
+    header.className = 'relative flex items-start justify-between gap-3';
+
+    const iconWrap = document.createElement('div');
+    iconWrap.className = 'inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-white/80 text-3xl shadow-inner shadow-white/60';
+    iconWrap.textContent = task.icon || '🌱';
+    header.appendChild(iconWrap);
+
+    const titleWrap = document.createElement('div');
+    titleWrap.className = 'flex-1';
+    const title = document.createElement('h4');
+    title.className = 'text-lg font-bold tracking-tight';
+    title.textContent = task.title;
+    titleWrap.appendChild(title);
+
+    const description = document.createElement('p');
+    description.className = 'mt-1 text-sm font-medium text-[#7a0f32]/85';
+    description.textContent = task.description;
+    titleWrap.appendChild(description);
+
+    header.appendChild(titleWrap);
+    card.appendChild(header);
+
+    const step = document.createElement('p');
+    step.className = 'mt-3 text-sm font-semibold text-[#7a0f32]';
+    card.appendChild(step);
+
+    const progressWrapper = document.createElement('div');
+    progressWrapper.className = 'mt-4 h-2.5 w-full overflow-hidden rounded-full border border-[#f7c5d4]/60 bg-white/70';
+    const progressBar = document.createElement('div');
+    progressBar.className = 'h-full rounded-full bg-gradient-to-r from-[#8b1e3f] via-[#c23958] to-[#f59bb4] transition-all duration-500';
+    progressWrapper.appendChild(progressBar);
+    card.appendChild(progressWrapper);
+
+    const progressValue = document.createElement('p');
+    progressValue.className = 'mt-2 text-[0.65rem] font-semibold uppercase tracking-[0.32em] text-[#b4637a]';
+    card.appendChild(progressValue);
+
+    const footer = document.createElement('div');
+    footer.className = 'mt-4 flex items-center justify-between gap-3';
+
+    const reward = document.createElement('span');
+    reward.className = 'inline-flex items-center gap-2 rounded-full bg-white/75 px-3 py-1 text-xs font-semibold uppercase tracking-[0.32em] text-[#b4637a] shadow-inner';
+    reward.textContent = `+${formatNumber(task.rewardSeeds)} Seeds`;
+    footer.appendChild(reward);
+
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className =
+      'inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#8b1e3f] via-[#c23958] to-[#f59bb4] px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-[#4d081d]/25 transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#f59bb4]/70 focus-visible:ring-offset-2 focus-visible:ring-offset-white hover:-translate-y-0.5 hover:brightness-110';
+    button.addEventListener('click', (event) => {
+      event.preventDefault();
+      advanceGardenTask(task);
+    });
+    footer.appendChild(button);
+
+    card.appendChild(footer);
+
+    task.elements = {
+      card,
+      step,
+      progressBar,
+      progressValue,
+      button,
+    };
+
+    updateGardenTaskCard(task);
+
+    return card;
+  };
+
+  const renderGardenTasks = () => {
+    if (!elements.garden?.taskList) {
+      return;
+    }
+    elements.garden.taskList.innerHTML = '';
+    gardenState.tasks.forEach((task, index) => {
+      const card = createGardenTaskCard(task);
+      card.style.setProperty('--alfawz-delay', `${index * 80}ms`);
+      elements.garden.taskList.appendChild(card);
+    });
+    applyStagger(elements.garden.taskList.children);
+  };
+
+  const advanceGardenTask = (task) => {
+    if (!task || task.completed) {
+      return;
+    }
+    const total = task.steps.length || 1;
+    task.progress += 1;
+    gardenState.care = Math.min(100, gardenState.care + 2);
+    if (task.progress >= total) {
+      task.completed = true;
+      gardenState.completedTasks += 1;
+      gardenState.seeds += task.rewardSeeds;
+      gardenState.bloom += task.bloom;
+      updateGardenTaskCard(task);
+      updateGardenStats();
+      updateGardenStatus(strings.gardenStatusSpendSeeds || '', 'active');
+      logGardenEvent(`${task.title}: +${formatNumber(task.rewardSeeds)} seeds`, 'celebration');
+      spawnConfetti(task.elements?.card);
+      if (elements.garden?.stats.seeds) {
+        pulseValue(elements.garden.stats.seeds);
+      }
+      if (elements.garden?.stats.bloom) {
+        pulseValue(elements.garden.stats.bloom);
+      }
+      checkGardenMilestones();
+      return;
+    }
+    updateGardenTaskCard(task);
+    const nextInstruction = task.steps[task.progress] || '';
+    if (nextInstruction) {
+      const message = `${strings.gardenTaskStepPrefix || 'Step'} ${task.progress + 1}/${total}: ${nextInstruction}`;
+      updateGardenStatus(message, 'active');
+      logGardenEvent(nextInstruction, 'default');
+    }
+    updateGardenStats();
+  };
+
+
+  const startGardenCareTimer = () => {
+    stopGardenCareTimer();
+    gardenState.careTimer = window.setInterval(() => {
+      if (!gardenState.isActive) {
+        return;
+      }
+      const drain = gardenState.tasks.some((task) => !task.completed) ? 1.4 : 0.8;
+      gardenState.care = Math.max(0, gardenState.care - drain);
+      if (gardenState.care <= 35 && !gardenState.careWarningShown) {
+        gardenState.careWarningShown = true;
+        updateGardenStatus(strings.gardenStatusWarning || '', 'warning');
+        logGardenEvent(strings.gardenStatusWarning || '', 'warning');
+      }
+      if (gardenState.care >= 45) {
+        gardenState.careWarningShown = false;
+      }
+      updateGardenStats();
+    }, 12000);
+  };
+
+  const stopGardenCareTimer = () => {
+    if (gardenState.careTimer) {
+      window.clearInterval(gardenState.careTimer);
+      gardenState.careTimer = null;
+    }
+  };
+
+  const checkGardenMilestones = () => {
+    if (!gardenState.isActive) {
+      updateGardenPlayButton('idle');
+      return;
+    }
+    const allTasksComplete = gardenState.tasks.length > 0 && gardenState.tasks.every((task) => task.completed);
+    const fullyBloomed =
+      gardenState.plants.length > 0
+      && gardenState.plants.every((plant) => plant.stage >= plant.stageTitles.length - 1);
+    let milestone = 'active';
+    if (allTasksComplete && fullyBloomed) {
+      milestone = 'celebration';
+    } else if (allTasksComplete) {
+      milestone = 'tasks-complete';
+    }
+    const changed = milestone !== gardenState.milestone;
+    gardenState.milestone = milestone;
+    if (milestone === 'celebration') {
+      updateGardenPlayButton('celebration');
+      if (changed) {
+        updateGardenStatus(strings.gardenStatusCelebration || '', 'celebration');
+        logGardenEvent(strings.gardenStatusCelebration || '', 'celebration');
+      }
+      return;
+    }
+    updateGardenPlayButton('active');
+    if (changed && milestone === 'tasks-complete') {
+      updateGardenStatus(strings.gardenStatusSpendSeeds || '', 'active');
+      logGardenEvent(strings.gardenStatusSpendSeeds || '', 'default');
+    }
+  };
+
+  const waterGarden = () => {
+    if (!gardenState.isActive) {
+      startGardenSession({ reset: true });
+      return;
+    }
+    if (gardenState.seeds <= 0) {
+      const message = strings.gardenWaterNeedSeeds || '';
+      updateGardenStatus(message, 'warning');
+      logGardenEvent(message, 'warning');
+      if (elements.garden?.stats.seeds) {
+        pulseValue(elements.garden.stats.seeds);
+      }
+      return;
+    }
+    gardenState.seeds -= 1;
+    gardenState.care = Math.min(100, gardenState.care + 24);
+    gardenState.careWarningShown = false;
+    const message = strings.gardenWatering || '';
+    updateGardenStats();
+    updateGardenStatus(message, 'active');
+    logGardenEvent(message, 'celebration');
+    spawnConfetti(elements.garden?.board);
+  };
+
+  const startGardenSession = ({ reset = true, newDay = false } = {}) => {
+    stopGardenCareTimer();
+    gardenState.isActive = true;
+    gardenState.milestone = 'active';
+    gardenState.careWarningShown = false;
+    gardenState.seeds = 3;
+    gardenState.bloom = 0;
+    gardenState.care = 78;
+    gardenState.tasks = generateGardenTasks();
+    gardenState.plants = gardenPlantBlueprints.map((plant) => ({
+      ...plant,
+      xp: 0,
+      stage: 0,
+      elements: {},
+    }));
+    gardenState.completedTasks = 0;
+    showGardenBoard();
+    resetGardenJournal();
+    renderGardenTasks();
+    renderGardenPlants();
+    updateGardenStats();
+    const message = newDay ? strings.gardenNewDay || strings.gardenStatusActive || '' : strings.gardenStatusActive || '';
+    updateGardenStatus(message, 'active');
+    logGardenEvent(message, 'default');
+    updateGardenPlayButton('active');
+    startGardenCareTimer();
+    checkGardenMilestones();
+  };
+
+  const initGardenGame = () => {
+    if (!elements.garden?.section) {
+      return;
+    }
+    updateGardenStatus(strings.gardenStatusIdle || '', 'idle');
+    updateGardenPlayButton('idle');
+    if (elements.garden.playButton) {
+      elements.garden.playButton.addEventListener('click', (event) => {
+        event.preventDefault();
+        const state = elements.garden.playButton.dataset.state || 'idle';
+        const allTasksComplete = gardenState.tasks.length > 0 && gardenState.tasks.every((task) => task.completed);
+        const fullyBloomed =
+          gardenState.plants.length > 0
+          && gardenState.plants.every((plant) => plant.stage >= plant.stageTitles.length - 1);
+        if (!gardenState.isActive || state === 'idle') {
+          startGardenSession({ reset: true, newDay: false });
+          return;
+        }
+        if (allTasksComplete && fullyBloomed) {
+          startGardenSession({ reset: true, newDay: true });
+          return;
+        }
+        if (allTasksComplete) {
+          updateGardenStatus(strings.gardenStatusSpendSeeds || '', 'active');
+          return;
+        }
+        updateGardenStatus(strings.gardenAlreadyActive || '', 'active');
+      });
+    }
+    if (elements.garden.waterButton) {
+      elements.garden.waterButton.addEventListener('click', (event) => {
+        event.preventDefault();
+        waterGarden();
+      });
+    }
   };
 
   const puzzleDeck = [
@@ -1194,6 +2111,7 @@
     });
   };
 
+  initGardenGame();
   initPuzzleGame();
 
   const loadData = async () => {
