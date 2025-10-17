@@ -689,26 +689,27 @@
   text-align: center;
 }
 
+
 .alfawz-verse-panel p {
-  font-size: 138px;
+  font-size: 276px;
 }
 
 .alfawz-arabic {
   font-family: 'Scheherazade New', 'Amiri', serif;
-  font-size: clamp(33.6rem, 55.2vw, 42rem);
+  font-size: clamp(67.2rem, 110.4vw, 84rem);
   line-height: 1.6;
   color: var(--alfawz-maroon-800);
 }
 
 .alfawz-transliteration {
   margin-top: 1.25rem;
-  font-size: 6.9rem;
+  font-size: 13.8rem;
   color: rgba(79, 13, 24, 0.78);
 }
 
 .alfawz-translation {
   margin-top: 0.75rem;
-  font-size: 6.6rem;
+  font-size: 13.2rem;
   font-style: italic;
   color: rgba(68, 36, 38, 0.75);
 }
@@ -3007,7 +3008,7 @@
 }
 
 .alfawz-arabic {
-  font-size: clamp(4.3rem, 12vw, 5.7rem);
+  font-size: clamp(8.6rem, 24vw, 11.4rem);
   line-height: 1.65;
   font-weight: 600;
   color: #0f172a;
@@ -3016,7 +3017,7 @@
 
 .alfawz-transliteration,
 .alfawz-translation {
-  font-size: clamp(2rem, 7vw, 2.2rem);
+  font-size: clamp(4rem, 14vw, 4.4rem);
   line-height: 1.7;
   color: var(--alfawz-muted);
 }
