@@ -4103,6 +4103,7 @@ class Routes {
             $error = $this->record_api_failure($response);
             $fallback = $this->get_local_surah_verses_from_dataset($surah_id);
             if ($fallback !== null) {
+                $fallback = $this->decorate_basmallah_metadata($fallback);
                 set_transient($transient_key, $fallback, WEEK_IN_SECONDS);
                 update_option($option_key, $fallback, false);
                 return $fallback;
@@ -4118,6 +4119,7 @@ class Routes {
             $error = $this->record_api_failure(new \WP_Error('api_error', __('Invalid response received from the Quran API.', 'alfawzquran')));
             $fallback = $this->get_local_surah_verses_from_dataset($surah_id);
             if ($fallback !== null) {
+                $fallback = $this->decorate_basmallah_metadata($fallback);
                 set_transient($transient_key, $fallback, WEEK_IN_SECONDS);
                 update_option($option_key, $fallback, false);
                 return $fallback;
@@ -4229,6 +4231,8 @@ class Routes {
             ];
         }
 
+        $verses = $this->decorate_basmallah_metadata($verses);
+
         set_transient($transient_key, $verses, WEEK_IN_SECONDS);
         update_option($option_key, $verses, false);
         $this->clear_api_failure_notice();
@@ -4333,7 +4337,105 @@ class Routes {
             ];
         }
 
+        $normalised = $this->decorate_basmallah_metadata($normalised);
+
         return $normalised ?: null;
+    }
+
+    /**
+     * Add metadata to verses that contain the basmala so that front-end
+     * consumers can display it independently of the first numbered ayah.
+     *
+     * @param array<int, array<string, mixed>> $verses
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private function decorate_basmallah_metadata(array $verses) {
+        if (empty($verses)) {
+            return $verses;
+        }
+
+        $bismillah_count = 0;
+
+        foreach ($verses as $index => $verse) {
+            if (!is_array($verse)) {
+                continue;
+            }
+
+            $verse_id = isset($verse['verse_id']) ? (int) $verse['verse_id'] : 0;
+
+            $verses[ $index ]['display_verse_number'] = $verse_id;
+            $verses[ $index ]['display_verse_label']  = '';
+            $verses[ $index ]['is_bismillah']          = $this->is_bismillah_entry($verse);
+
+            if (!empty($verses[ $index ]['is_bismillah'])) {
+                $verses[ $index ]['display_verse_number'] = 0;
+                $verses[ $index ]['display_verse_label']  = __('Bismillah', 'alfawzquran');
+                $bismillah_count++;
+            }
+        }
+
+        if ($bismillah_count > 0) {
+            foreach ($verses as $index => $verse) {
+                if (!is_array($verse) || !empty($verse['is_bismillah'])) {
+                    continue;
+                }
+
+                $original_id = isset($verse['verse_id']) ? (int) $verse['verse_id'] : 0;
+                if ($original_id <= 0) {
+                    continue;
+                }
+
+                $adjusted = $original_id - $bismillah_count;
+                if ($adjusted > 0) {
+                    $verses[ $index ]['display_verse_number'] = $adjusted;
+                }
+            }
+        }
+
+        return $verses;
+    }
+
+    /**
+     * Determine whether the provided verse payload represents the basmala.
+     *
+     * @param array<string, mixed> $verse
+     */
+    private function is_bismillah_entry(array $verse) {
+        $arabic_text = isset($verse['arabic']) ? (string) $verse['arabic'] : '';
+        $translation = isset($verse['translation']) ? (string) $verse['translation'] : '';
+
+        if ($arabic_text !== '') {
+            $normalised = $this->normalise_basmallah_text($arabic_text);
+            $variants   = [
+                'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ',
+                'بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ',
+                'بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ',
+            ];
+
+            if (in_array($normalised, $variants, true)) {
+                return true;
+            }
+        }
+
+        if ($translation !== '') {
+            $normalised_translation = strtolower($translation);
+            if (false !== strpos($normalised_translation, 'in the name of') && false !== strpos($normalised_translation, 'merciful')) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Normalise the Arabic text for basmala comparisons.
+     */
+    private function normalise_basmallah_text(string $value) {
+        $value = preg_replace('/\x{FEFF}/u', '', $value);
+        $value = preg_replace('/\s+/u', ' ', $value);
+
+        return trim($value);
     }
 
     /**
