@@ -1307,6 +1307,8 @@
     const arabicEl = qs('#alfawz-arabic-text', root);
     const transliterationEl = qs('#alfawz-transliteration', root);
     const translationEl = qs('#alfawz-translation', root);
+    const transliterationToggle = qs('#alfawz-toggle-transliteration', root);
+    const translationToggle = qs('#alfawz-toggle-translation', root);
     const verseContent = qs('#alfawz-verse-content', root);
     const prevBtn = qs('#alfawz-prev-verse', root);
     const nextBtn = qs('#alfawz-next-verse', root);
@@ -2077,6 +2079,10 @@
     let showFullSurah = false;
     let cachedSurahVerses = [];
     let cachedSurahId = null;
+    let showTransliteration = true;
+    let showTranslation = true;
+    let hasTransliteration = false;
+    let hasTranslation = false;
 
     const defaultDailyTarget = Number(wpData.dailyTarget || 10);
 
@@ -2085,6 +2091,64 @@
         element.textContent = value || '';
       }
     };
+
+    const setToggleState = (toggle, isActive) => {
+      if (!toggle) {
+        return;
+      }
+      toggle.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+      const label = isActive ? toggle.dataset.labelHide : toggle.dataset.labelShow;
+      if (label) {
+        toggle.textContent = label;
+      }
+    };
+
+    const setToggleAvailability = (toggle, available) => {
+      if (!toggle) {
+        return;
+      }
+      toggle.hidden = !available;
+      toggle.disabled = !available;
+      toggle.setAttribute('aria-disabled', available ? 'false' : 'true');
+    };
+
+    const syncTransliterationVisibility = () => {
+      if (transliterationEl) {
+        transliterationEl.classList.toggle('hidden', !hasTransliteration || !showTransliteration);
+      }
+    };
+
+    const syncTranslationVisibility = () => {
+      if (translationEl) {
+        translationEl.classList.toggle('hidden', !hasTranslation || !showTranslation);
+      }
+    };
+
+    if (transliterationToggle) {
+      setToggleState(transliterationToggle, showTransliteration);
+      setToggleAvailability(transliterationToggle, false);
+      transliterationToggle.addEventListener('click', () => {
+        if (transliterationToggle.disabled || transliterationToggle.getAttribute('aria-disabled') === 'true') {
+          return;
+        }
+        showTransliteration = !showTransliteration;
+        setToggleState(transliterationToggle, showTransliteration);
+        syncTransliterationVisibility();
+      });
+    }
+
+    if (translationToggle) {
+      setToggleState(translationToggle, showTranslation);
+      setToggleAvailability(translationToggle, false);
+      translationToggle.addEventListener('click', () => {
+        if (translationToggle.disabled || translationToggle.getAttribute('aria-disabled') === 'true') {
+          return;
+        }
+        showTranslation = !showTranslation;
+        setToggleState(translationToggle, showTranslation);
+        syncTranslationVisibility();
+      });
+    }
 
     const formatTime = (seconds) => {
       if (!Number.isFinite(seconds) || seconds < 0) {
@@ -2981,12 +3045,22 @@
         safeSetText(meta, metaParts.join(' • '));
         safeSetText(arabicEl, verse.arabic);
         if (transliterationEl) {
+          hasTransliteration = Boolean(verse.transliteration);
           transliterationEl.textContent = verse.transliteration || '';
-          transliterationEl.classList.toggle('hidden', !verse.transliteration);
+          syncTransliterationVisibility();
+          if (transliterationToggle) {
+            setToggleAvailability(transliterationToggle, hasTransliteration);
+            setToggleState(transliterationToggle, showTransliteration);
+          }
         }
         if (translationEl) {
+          hasTranslation = Boolean(verse.translation);
           translationEl.textContent = verse.translation || '';
-          translationEl.classList.toggle('hidden', !verse.translation);
+          syncTranslationVisibility();
+          if (translationToggle) {
+            setToggleAvailability(translationToggle, hasTranslation);
+            setToggleState(translationToggle, showTranslation);
+          }
         }
         updateNavigationButtons();
         if (showFullSurah && cachedSurahId === surahId && Array.isArray(cachedSurahVerses)) {

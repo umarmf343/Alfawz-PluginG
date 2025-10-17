@@ -68,6 +68,30 @@ if ( ! defined( 'ABSPATH' ) ) {
                         <p id="alfawz-transliteration" class="alfawz-transliteration"></p>
                         <p id="alfawz-translation" class="alfawz-translation"></p>
                     </div>
+                    <div class="alfawz-verse-toggles" role="group" aria-label="<?php esc_attr_e( 'Toggle verse details', 'alfawzquran' ); ?>">
+                        <button
+                            type="button"
+                            id="alfawz-toggle-transliteration"
+                            class="alfawz-verse-toggle"
+                            aria-pressed="true"
+                            aria-controls="alfawz-transliteration"
+                            data-label-show="<?php echo esc_attr__( 'Show transliteration', 'alfawzquran' ); ?>"
+                            data-label-hide="<?php echo esc_attr__( 'Hide transliteration', 'alfawzquran' ); ?>"
+                        >
+                            <?php esc_html_e( 'Hide transliteration', 'alfawzquran' ); ?>
+                        </button>
+                        <button
+                            type="button"
+                            id="alfawz-toggle-translation"
+                            class="alfawz-verse-toggle"
+                            aria-pressed="true"
+                            aria-controls="alfawz-translation"
+                            data-label-show="<?php echo esc_attr__( 'Show translation', 'alfawzquran' ); ?>"
+                            data-label-hide="<?php echo esc_attr__( 'Hide translation', 'alfawzquran' ); ?>"
+                        >
+                            <?php esc_html_e( 'Hide translation', 'alfawzquran' ); ?>
+                        </button>
+                    </div>
                 </div>
                 <button
                     type="button"
