@@ -2885,21 +2885,6 @@
         const actions = document.createElement('div');
         actions.className = 'alfawz-surah-item__actions';
 
-        const focusButton = document.createElement('button');
-        focusButton.type = 'button';
-        focusButton.className = 'alfawz-surah-item__focus';
-        focusButton.innerHTML = '<span aria-hidden="true">🕯️</span><span class="alfawz-surah-item__focus-text">Focus</span>';
-        focusButton.setAttribute('aria-label', `${strings.focusAyah} ${verseLabel || verse.verseId}`);
-        focusButton.addEventListener('click', async (event) => {
-          event.stopPropagation();
-          if (!currentSurahId || isLoading) {
-            return;
-          }
-          await renderVerse(currentSurahId, verse.verseId);
-          root.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        });
-        actions.appendChild(focusButton);
-
         const playButton = document.createElement('button');
         playButton.type = 'button';
         playButton.className = 'alfawz-surah-item__play';
