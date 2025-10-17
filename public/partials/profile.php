@@ -80,7 +80,7 @@ $avatar_gender_attr   = esc_attr( $avatar_gender );
             </div>
 
             <div class="mx-auto flex flex-col items-center justify-center text-center sm:items-stretch sm:text-left">
-                <div class="flex h-40 w-40 items-center justify-center rounded-full bg-[#fff4e6]/20 p-2 shadow-[0_30px_60px_rgba(0,0,0,0.28)] backdrop-blur-sm sm:h-48 sm:w-48 lg:h-56 lg:w-56">
+                <div class="relative flex h-40 w-40 items-center justify-center rounded-full bg-[#fff4e6]/20 p-2 shadow-[0_30px_60px_rgba(0,0,0,0.28)] backdrop-blur-sm sm:h-48 sm:w-48 lg:h-56 lg:w-56">
                     <div class="alfawz-avatar-glow relative h-full w-full overflow-hidden rounded-full border-4 border-[#fff4e6]/70 bg-[#fff4e6]/30 shadow-inner shadow-black/10">
                         <img
                             id="alfawz-profile-avatar-preview"
@@ -94,9 +94,17 @@ $avatar_gender_attr   = esc_attr( $avatar_gender );
                         <button
                             type="button"
                             id="alfawz-profile-avatar-button"
-                            class="absolute bottom-3 left-1/2 flex -translate-x-1/2 items-center gap-2 rounded-full bg-white/90 px-4 py-2 text-sm font-semibold text-[#741f31] shadow-lg transition duration-300 hover:-translate-y-0.5 hover:bg-white focus:outline-none focus:ring-2 focus:ring-[#ffe7d6]"
+                            class="absolute bottom-2 left-1/2 -translate-x-1/2 flex items-center gap-2 rounded-full bg-white/90 px-4 py-2 text-sm font-semibold text-[#741f31] shadow-lg transition duration-300 hover:-translate-y-0.5 hover:bg-white focus:outline-none focus:ring-2 focus:ring-[#ffe7d6]"
                         >
-                            <span aria-hidden="true">⬆️</span>
+                            <span aria-hidden="true">
+                                <img
+                                    draggable="false"
+                                    role="img"
+                                    class="emoji"
+                                    alt="⬆️"
+                                    src="https://s.w.org/images/core/emoji/16.0.1/svg/2b06.svg"
+                                />
+                            </span>
                             <?php esc_html_e( 'Upload Photo', 'alfawzquran' ); ?>
                         </button>
                     </div>
