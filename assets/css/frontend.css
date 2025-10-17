@@ -1170,16 +1170,16 @@
 .alfawz-surah-item__arabic {
   margin: 0;
   font-family: 'Scheherazade New', 'Amiri', serif;
-  font-size: clamp(5.5rem, 10vw, 8.5rem);
-  line-height: 1.9;
+  font-size: clamp(2.6rem, 5.5vw, 3.8rem);
+  line-height: 1.55;
   color: var(--alfawz-maroon-800);
 }
 
 .alfawz-surah-item__transliteration,
 .alfawz-surah-item__translation {
   margin: 0.85rem 0 0;
-  font-size: clamp(3rem, 6.5vw, 4.25rem);
-  line-height: 2.05;
+  font-size: clamp(1.35rem, 3.2vw, 1.95rem);
+  line-height: 1.65;
   color: rgba(68, 36, 38, 0.75);
 }
 
@@ -3288,8 +3288,8 @@
 }
 
 .alfawz-arabic {
-  font-size: clamp(4.5rem, 10vw, 6.5rem);
-  line-height: 1.65;
+  font-size: clamp(2.25rem, 5vw, 3.25rem);
+  line-height: 1.35;
   font-weight: 600;
   color: #0f172a;
   letter-spacing: 0.04em;
@@ -3297,8 +3297,8 @@
 
 .alfawz-transliteration,
 .alfawz-translation {
-  font-size: clamp(1.5rem, 3.5vw, 2.2rem);
-  line-height: 1.7;
+  font-size: clamp(1.1rem, 2.5vw, 1.6rem);
+  line-height: 1.5;
   color: var(--alfawz-muted);
 }
 
