@@ -378,19 +378,26 @@
 
   const renderQuest = (quest) => {
     const item = document.createElement('div');
-    item.className = 'alfawz-quest-item relative overflow-hidden rounded-3xl border border-[#8b1e3f]/15 bg-white/95 p-5 shadow-xl shadow-[#2e0715]/10 transition-transform duration-300 hover:-translate-y-1 hover:shadow-2xl';
+    item.className =
+      'alfawz-quest-item group relative overflow-hidden rounded-[28px] border border-[#8b1e3f]/20 bg-gradient-to-br from-white/92 via-[#fff5f8]/95 to-[#fde8ef]/90 p-6 shadow-[0_22px_45px_-18px_rgba(77,8,29,0.25)] transition-all duration-500 hover:-translate-y-1.5 hover:shadow-[0_34px_65px_-24px_rgba(139,30,63,0.48)] focus-within:-translate-y-1.5 focus-within:shadow-[0_34px_60px_-22px_rgba(139,30,63,0.45)]';
     item.dataset.questId = quest.id || '';
 
     const status = quest.status || 'in_progress';
     const isCompleted = status === 'completed' || status === 'complete';
 
+    const glow = document.createElement('div');
+    glow.className = 'alfawz-quest-glow';
+    item.appendChild(glow);
+
     const header = document.createElement('div');
-    header.className = 'flex items-center';
+    header.className = 'relative z-10 flex items-start gap-4';
     item.appendChild(header);
 
     const badge = document.createElement('div');
-    badge.className = `mr-4 flex h-12 w-12 flex-none items-center justify-center rounded-2xl text-2xl ${
-      isCompleted ? 'bg-[#8b1e3f] text-white shadow-lg shadow-[#4d081d]/25' : 'bg-[#fbe0e8] text-[#8b1e3f] shadow-inner'
+    badge.className = `flex h-14 w-14 flex-none items-center justify-center rounded-[22px] text-2xl font-semibold shadow-lg shadow-[#4d081d]/20 ring-2 ring-white/60 ${
+      isCompleted
+        ? 'bg-gradient-to-br from-[#8b1e3f] via-[#a82349] to-[#f59bb4] text-white'
+        : 'bg-gradient-to-br from-[#fde4ec] via-[#fff5f8] to-[#ffd7e4] text-[#8b1e3f]'
     }`;
     badge.textContent = isCompleted ? '✓' : quest.icon || '☆';
     header.appendChild(badge);
@@ -400,33 +407,88 @@
     header.appendChild(info);
 
     const title = document.createElement('p');
-    title.className = 'text-lg font-bold text-[#4d081d]';
+    title.className = 'text-xl font-extrabold tracking-tight text-[#410618] drop-shadow-sm';
     title.textContent = quest.title || '';
     info.appendChild(title);
 
     if (quest.description) {
       const description = document.createElement('p');
       description.className = 'mt-1 text-base text-[#b4637a]';
+      description.style.opacity = '0.94';
       description.textContent = quest.description;
       info.appendChild(description);
     }
 
+    const rewardRow = document.createElement('div');
+    rewardRow.className = 'relative z-10 mt-4 flex flex-wrap items-center justify-between gap-3';
+
     const reward = document.createElement('div');
-    reward.className = 'mt-3 inline-flex items-center rounded-full bg-[#fde8ef] px-3 py-1 text-sm font-semibold text-[#8b1e3f] shadow-sm';
+    reward.className =
+      'inline-flex items-center gap-2 rounded-full bg-white/80 px-4 py-1.5 text-sm font-semibold text-[#8b1e3f] shadow-inner shadow-white/40 ring-1 ring-white/60 backdrop-blur-sm';
     if (Number.isFinite(quest.reward)) {
       reward.textContent = `+${formatNumber(quest.reward)} Hasanat`;
     } else {
       reward.textContent = quest.reward_label || strings.rewardAwaiting;
     }
-    item.appendChild(reward);
+    rewardRow.appendChild(reward);
+
+    const playButton = document.createElement('button');
+    playButton.type = 'button';
+    playButton.className =
+      'alfawz-quest-play relative inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#8b1e3f] via-[#c23958] to-[#f59bb4] px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-[#4d081d]/25 transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#f9a8b5]/80 focus-visible:ring-offset-2 focus-visible:ring-offset-white hover:translate-y-[-2px] hover:brightness-110 active:translate-y-0';
+    playButton.dataset.questId = quest.id || '';
+    playButton.setAttribute('aria-label', `${strings.playNow || ''} – ${quest.title || ''}`.trim());
+
+    const playIcon = document.createElement('span');
+    playIcon.setAttribute('aria-hidden', 'true');
+    playIcon.className = 'alfawz-quest-play-icon text-base transition-transform duration-300';
+    playIcon.textContent = '▶';
+
+    const playLabel = document.createElement('span');
+    playLabel.textContent = strings.playNow;
+
+    playButton.appendChild(playIcon);
+    playButton.appendChild(playLabel);
+
+    const questPlayUrl = quest.play_url || wpData.gamePlayUrl || wpData.memorizerUrl || wpData.readerUrl || '';
+    const openInNewTab = quest.open_in_new_tab || quest.openInNewTab || false;
+
+    const handleQuestPlay = () => {
+      if (questPlayUrl) {
+        if (openInNewTab) {
+          window.open(questPlayUrl, '_blank', 'noopener');
+        } else {
+          window.location.href = questPlayUrl;
+        }
+        return;
+      }
+      window.dispatchEvent(
+        new CustomEvent('alfawz:playQuest', {
+          detail: {
+            quest,
+          },
+        })
+      );
+    };
+
+    playButton.addEventListener('click', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      handleQuestPlay();
+    });
+
+    rewardRow.appendChild(playButton);
+    item.appendChild(rewardRow);
 
     if (quest.target) {
       const { wrapper, percentage } = buildProgressBar(quest.progress || 0, quest.target);
       wrapper.classList.add('mt-4');
+      wrapper.classList.add('relative', 'z-10');
       item.appendChild(wrapper);
 
       const caption = document.createElement('p');
-      caption.className = 'mt-2 text-sm font-semibold text-[#7a0f32]';
+      caption.className = 'relative z-10 mt-2 text-sm font-semibold text-[#7a0f32]';
+      caption.style.opacity = '0.9';
       const value = `${formatNumber(Math.min(quest.progress || 0, quest.target))} / ${formatNumber(quest.target)}`;
       caption.textContent = isCompleted ? `${strings.completed} • ${value}` : `${value} • ${percentage.toFixed(0)}%`;
       item.appendChild(caption);
