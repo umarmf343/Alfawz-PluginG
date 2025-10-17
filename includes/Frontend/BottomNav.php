@@ -180,7 +180,13 @@ function alfawz_get_bottom_nav_url( $slug ) {
         return $legacy;
     }
 
-    return home_url( trailingslashit( $slug ) );
+    $fallback_paths = [
+        'game' => 'alfawz-games',
+    ];
+
+    $path = $fallback_paths[ $slug ] ?? $slug;
+
+    return home_url( trailingslashit( $path ) );
 }
 
 function alfawz_get_current_tab_slug() {
