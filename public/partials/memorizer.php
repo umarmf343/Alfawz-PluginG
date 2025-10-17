@@ -164,15 +164,34 @@ if ( ! defined( 'ABSPATH' ) ) {
                     <p id="alfawz-memorization-ayah-translation" class="text-lg italic text-slate-600"></p>
                 </div>
 
-                <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                    <p id="alfawz-memorization-repetitions" class="text-base font-medium text-indigo-600">0 / 20 <?php esc_html_e( 'Repetitions', 'alfawzquran' ); ?></p>
-                    <button type="button" id="repeat-btn" class="group relative inline-flex w-full items-center justify-center gap-3 overflow-hidden rounded-3xl bg-gradient-to-r from-emerald-500 via-teal-500 to-sky-500 px-7 py-3.5 text-lg font-semibold text-white shadow-xl transition-all duration-300 ease-out hover:scale-[1.04] hover:from-teal-400 hover:via-sky-400 hover:to-cyan-400 focus:outline-none focus:ring-4 focus:ring-emerald-200/60 focus:ring-offset-2 focus:ring-offset-white disabled:cursor-not-allowed disabled:opacity-70">
-                        <span aria-hidden="true" class="transition-transform duration-300 group-hover:rotate-12">🔁</span>
-                        <span class="tracking-wide group-hover:drop-shadow"><?php esc_html_e( 'Repeat verse', 'alfawzquran' ); ?></span>
-                    </button>
-                </div>
+                <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                    <div class="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-500 via-violet-500 to-sky-500 p-6 text-left text-white shadow-2xl">
+                        <div class="pointer-events-none absolute -right-10 -top-16 h-36 w-36 rounded-full bg-white/30 blur-3xl transition-transform duration-500 group-hover:scale-110"></div>
+                        <div class="pointer-events-none absolute -left-12 bottom-0 h-32 w-32 rounded-full bg-white/20 blur-2xl transition-transform duration-500 group-hover:-translate-y-1"></div>
+                        <p class="text-xs font-semibold uppercase tracking-[0.35em] text-white/70"><?php esc_html_e( 'Repetition progress', 'alfawzquran' ); ?></p>
+                        <p id="alfawz-memorization-repetitions" class="mt-6 text-4xl font-extrabold tracking-tight text-white">0 / 20 <?php esc_html_e( 'Repetitions', 'alfawzquran' ); ?></p>
+                        <p class="mt-2 text-sm text-white/80"><?php esc_html_e( 'Keep the rhythm going until you reach twenty focused recitations.', 'alfawzquran' ); ?></p>
+                    </div>
 
-                <p id="alfawz-memorization-active-status" class="text-sm font-medium text-slate-500"></p>
+                    <div class="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-500 p-6 text-center text-white shadow-2xl">
+                        <div class="pointer-events-none absolute -bottom-16 -left-10 h-40 w-40 rounded-full bg-white/20 blur-3xl transition-transform duration-500 group-hover:translate-x-2"></div>
+                        <div class="pointer-events-none absolute -right-10 top-6 h-28 w-28 rounded-full bg-white/25 blur-2xl transition-transform duration-500 group-hover:-translate-y-1"></div>
+                        <p class="text-xs font-semibold uppercase tracking-[0.35em] text-white/70"><?php esc_html_e( 'Quick action', 'alfawzquran' ); ?></p>
+                        <p class="mt-2 text-sm text-white/80"><?php esc_html_e( 'Tap the vibrant button below after every confident recitation.', 'alfawzquran' ); ?></p>
+                        <button type="button" id="repeat-btn" class="group relative mt-6 inline-flex w-full items-center justify-center gap-3 overflow-hidden rounded-3xl bg-white/15 px-7 py-4 text-lg font-semibold text-white shadow-xl transition-all duration-300 ease-out hover:scale-[1.05] hover:bg-white/25 focus:outline-none focus:ring-4 focus:ring-white/40 focus:ring-offset-2 focus:ring-offset-transparent disabled:cursor-not-allowed disabled:opacity-70">
+                            <span aria-hidden="true" class="transition-transform duration-300 group-hover:rotate-12">🔁</span>
+                            <span class="tracking-wide drop-shadow"><?php esc_html_e( 'Repeat verse', 'alfawzquran' ); ?></span>
+                        </button>
+                    </div>
+
+                    <div class="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-amber-500 via-rose-500 to-fuchsia-500 p-6 text-left text-white shadow-2xl">
+                        <div class="pointer-events-none absolute -left-12 top-6 h-28 w-28 rounded-full bg-white/25 blur-2xl transition-transform duration-500 group-hover:translate-y-1"></div>
+                        <div class="pointer-events-none absolute -right-16 bottom-0 h-36 w-36 rounded-full bg-white/20 blur-3xl transition-transform duration-500 group-hover:scale-110"></div>
+                        <p class="text-xs font-semibold uppercase tracking-[0.35em] text-white/70"><?php esc_html_e( 'Session status', 'alfawzquran' ); ?></p>
+                        <p id="alfawz-memorization-active-status" class="mt-4 text-base font-medium text-white/90"><?php esc_html_e( 'Awaiting your next repetition update.', 'alfawzquran' ); ?></p>
+                        <p class="mt-3 text-sm text-white/80"><?php esc_html_e( 'Stay consistent—updates appear here as you progress through each verse.', 'alfawzquran' ); ?></p>
+                    </div>
+                </div>
             </article>
 
             <section id="alfawz-recitation-assistant" class="mx-auto w-full max-w-4xl rounded-3xl bg-white/95 p-8 text-slate-800 shadow-2xl ring-1 ring-slate-200/70">
