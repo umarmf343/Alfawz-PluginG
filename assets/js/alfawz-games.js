@@ -19,6 +19,29 @@
     locked: wpData.strings?.gamePanelLockedLabel || 'Locked',
     playNow: wpData.strings?.gamePanelPlayNow || 'Play Now',
     keepGoing: wpData.strings?.gamePanelKeepGoing || 'Keep Going',
+    treeTitle: wpData.strings?.treeTitle || 'Virtue Tree Awakening',
+    treeSubtitle:
+      wpData.strings?.treeSubtitle || 'Your devotion has hatched a radiant tree—nourish it with every verse.',
+    treeStageLabel: wpData.strings?.treeStageLabel || 'Growth Stage',
+    treeGrowthLabel: wpData.strings?.treeGrowthLabel || 'Growth',
+    treePlayLabel: wpData.strings?.treePlayLabel || 'Continue Journey',
+    treeMilestonesHeading: wpData.strings?.treeMilestonesHeading || 'Bloom Milestones',
+    treeStageSeedling: wpData.strings?.treeStageSeedling || 'Seedling of Sincerity',
+    treeStageSapling: wpData.strings?.treeStageSapling || 'Branches of Reflection',
+    treeStageBloom: wpData.strings?.treeStageBloom || 'Lantern Bloom Canopy',
+    treeStageCelestial: wpData.strings?.treeStageCelestial || 'Celestial Light Grove',
+    treeStageSeedlingMessage:
+      wpData.strings?.treeStageSeedlingMessage || 'Nurture the newborn sprout with mindful recitation.',
+    treeStageSaplingMessage:
+      wpData.strings?.treeStageSaplingMessage || 'Each verse grows new leaves of wisdom.',
+    treeStageBloomMessage:
+      wpData.strings?.treeStageBloomMessage || 'Your remembrance kindles blossoms of light.',
+    treeStageCelestialMessage:
+      wpData.strings?.treeStageCelestialMessage || 'The sanctuary shimmers—keep tending your luminous tree.',
+    treeCelebrationMessage:
+      wpData.strings?.treeCelebrationMessage
+      || 'SubhanAllah! Your Virtue Tree is radiant—maintain its glow with daily verses.',
+    treeWidgetMessage: wpData.strings?.treeWidgetMessage || 'Your Virtue Tree is growing with each verse.',
     puzzleIdle: wpData.strings?.puzzleIdle || 'Tap “Play Game” to begin your ayah puzzle quest.',
     puzzleActive: wpData.strings?.puzzleActive || 'Arrange each tile to rebuild the ayah in the right order.',
     puzzleError: wpData.strings?.puzzleError || 'A few tiles are misplaced. Tap a slot to swap them around!',
@@ -94,6 +117,14 @@
       wpData.strings?.gardenJournalReminder || 'Return daily to keep the sanctuary radiant.',
   };
 
+  const eggMaxLevel = Number(wpData.eggChallengeMaxLevel || 5);
+  const treeStages = [
+    { emoji: '🌱', name: strings.treeStageSeedling, message: strings.treeStageSeedlingMessage },
+    { emoji: '🌿', name: strings.treeStageSapling, message: strings.treeStageSaplingMessage },
+    { emoji: '🌸', name: strings.treeStageBloom, message: strings.treeStageBloomMessage },
+    { emoji: '🌳', name: strings.treeStageCelestial, message: strings.treeStageCelestialMessage },
+  ];
+
   const root = document.querySelector('#alfawz-game-panel');
   if (!root) {
     return;
@@ -128,6 +159,21 @@
       label: root.querySelector('#alfawz-egg-label'),
       playButton: root.querySelector('#alfawz-egg-play'),
       playLabel: root.querySelector('#alfawz-egg-play [data-role="alfawz-egg-play-label"]'),
+    },
+
+    tree: {
+      card: root.querySelector('#alfawz-tree-card'),
+      emoji: root.querySelector('#alfawz-tree-emoji'),
+      stage: root.querySelector('#alfawz-tree-stage'),
+      title: root.querySelector('#alfawz-tree-title'),
+      message: root.querySelector('#alfawz-tree-message'),
+      progress: root.querySelector('#alfawz-tree-progress'),
+      label: root.querySelector('#alfawz-tree-label'),
+      playButton: root.querySelector('#alfawz-tree-play'),
+      playLabel: root.querySelector('#alfawz-tree-play [data-role="alfawz-tree-play-label"]'),
+      stageList: root.querySelector('#alfawz-tree-stages'),
+      stageItems: root.querySelectorAll('#alfawz-tree-stages [data-tree-stage-index]'),
+      stageIcons: root.querySelectorAll('#alfawz-tree-stages [data-tree-stage-icon]'),
     },
 
     garden: {
@@ -1960,17 +2006,23 @@
   };
 
   const renderEgg = (state) => {
-    if (!elements.egg.card) {
+    if (!elements.egg.card && !elements.tree?.card) {
       return;
     }
     latestEggState = state || null;
     const playUrl = resolvePlayUrl(state?.play_url, wpData.gamePlayUrl, wpData.memorizerUrl, wpData.readerUrl);
-    const count = Number(state?.count || 0);
+    const count = Math.max(0, Number(state?.count || 0));
     const target = Math.max(1, Number(state?.target || 20));
     const percentage = clampPercent(state?.percentage ?? (target ? (count / target) * 100 : 0));
     const completed = Boolean(state?.completed) || percentage >= 100 || count >= target;
     const nextTarget = Number(state?.next_target || state?.target || target);
     const previousTarget = Number(state?.previous_target || 0) || null;
+    const rawLevel = Number(state?.level || 0) || Math.max(1, Math.ceil(target / 20));
+    const displayLevel = Number(state?.display_level || rawLevel) || rawLevel;
+    const totalCompletions = Number(state?.total_completions ?? Math.max(0, rawLevel - 1));
+    const phase = typeof state?.phase === 'string' ? state.phase.toLowerCase() : '';
+    const verseLabel = strings.verses || 'Verses';
+    const isTreePhase = (phase === 'tree' || totalCompletions >= eggMaxLevel) && Boolean(elements.tree?.card);
 
     if (elements.egg.playButton) {
       elements.egg.playButton.dataset.playUrl = playUrl;
@@ -1979,24 +2031,142 @@
     if (elements.egg.playLabel) {
       elements.egg.playLabel.textContent = strings.playNow;
     }
+    if (elements.tree?.playButton) {
+      elements.tree.playButton.dataset.playUrl = playUrl;
+      elements.tree.playButton.setAttribute('aria-label', strings.treePlayLabel || strings.playNow);
+    }
+    if (elements.tree?.playLabel) {
+      elements.tree.playLabel.textContent = strings.treePlayLabel || strings.playNow;
+    }
+
+    if (isTreePhase) {
+      if (elements.egg.card) {
+        elements.egg.card.classList.add('hidden');
+        elements.egg.card.setAttribute('aria-hidden', 'true');
+        elements.egg.card.dataset.state = 'retired';
+      }
+      if (elements.tree?.card) {
+        elements.tree.card.classList.remove('hidden');
+        elements.tree.card.setAttribute('aria-hidden', 'false');
+        elements.tree.card.dataset.state = completed ? 'completed' : 'active';
+      }
+
+      const treeStageIndex = Math.max(
+        0,
+        Math.min(treeStages.length - 1, Number(state?.tree_stage ?? totalCompletions - eggMaxLevel))
+      );
+      const stage = treeStages[treeStageIndex] || treeStages[treeStages.length - 1];
+
+      if (elements.tree?.emoji) {
+        elements.tree.emoji.textContent = stage.emoji || '🌱';
+      }
+      if (elements.tree?.stage) {
+        const prefix = strings.treeStageLabel || strings.levelLabel || 'Growth Stage';
+        elements.tree.stage.textContent = `${prefix} ${formatNumber(treeStageIndex + 1)}`;
+      }
+      if (elements.tree?.title) {
+        elements.tree.title.textContent = strings.treeTitle || '';
+      }
+      if (elements.tree?.message) {
+        let message = stage.message || strings.treeSubtitle || strings.treeWidgetMessage || '';
+        if (percentage >= 100 && treeStageIndex >= treeStages.length - 1) {
+          message = strings.treeCelebrationMessage || message;
+        }
+        elements.tree.message.textContent = message;
+      }
+      if (elements.tree?.progress) {
+        elements.tree.progress.style.width = `${percentage}%`;
+      }
+      if (elements.tree?.label) {
+        const growthLabel = strings.treeGrowthLabel || 'Growth';
+        elements.tree.label.textContent = `${growthLabel} ${Math.round(percentage)}% · ${formatNumber(
+          Math.min(count, target)
+        )} / ${formatNumber(target)} ${verseLabel}`;
+      }
+      if (elements.tree?.stageList) {
+        elements.tree.stageList.setAttribute(
+          'aria-label',
+          strings.treeMilestonesHeading || strings.treeStageLabel || 'Bloom Milestones'
+        );
+      }
+      if (elements.tree?.stageItems && elements.tree.stageItems.length) {
+        Array.from(elements.tree.stageItems).forEach((item) => {
+          const index = Number(item.dataset.treeStageIndex || 0);
+          const isActive = index === treeStageIndex;
+          const isCompleteStage = index < treeStageIndex;
+          const isUpcoming = index > treeStageIndex;
+
+          item.dataset.state = isActive ? 'active' : isCompleteStage ? 'complete' : 'upcoming';
+          item.classList.toggle('opacity-60', isUpcoming);
+          item.classList.toggle('opacity-100', !isUpcoming);
+
+          if (isActive) {
+            item.classList.add('bg-white/20', 'ring-2', 'ring-[#34d399]/60', 'shadow-lg', 'shadow-[#064e3b]/20');
+            item.classList.remove('bg-white/10', 'bg-white/15');
+          } else if (isCompleteStage) {
+            item.classList.add('bg-white/15');
+            item.classList.remove('bg-white/10', 'bg-white/20', 'ring-2', 'ring-[#34d399]/60', 'shadow-lg', 'shadow-[#064e3b]/20');
+          } else {
+            item.classList.add('bg-white/10');
+            item.classList.remove('bg-white/15', 'bg-white/20', 'ring-2', 'ring-[#34d399]/60', 'shadow-lg', 'shadow-[#064e3b]/20');
+          }
+
+          if (isActive || isCompleteStage) {
+            item.classList.add('border-white/40');
+            item.classList.remove('border-white/20');
+          } else {
+            item.classList.add('border-white/20');
+            item.classList.remove('border-white/40');
+          }
+
+          const icon = item.querySelector('[data-tree-stage-icon]');
+          if (icon) {
+            icon.textContent = treeStages[index]?.emoji || icon.textContent;
+            if (isActive) {
+              icon.classList.add('bg-white/30');
+              icon.classList.remove('bg-white/25');
+            } else if (isCompleteStage) {
+              icon.classList.add('bg-white/25');
+              icon.classList.remove('bg-white/30');
+            } else {
+              icon.classList.add('bg-white/25');
+              icon.classList.remove('bg-white/30');
+            }
+          }
+        });
+      }
+
+      return;
+    }
+
+    if (elements.tree?.card) {
+      elements.tree.card.classList.add('hidden');
+      elements.tree.card.setAttribute('aria-hidden', 'true');
+    }
+
+    if (elements.egg.card) {
+      elements.egg.card.classList.remove('hidden');
+      elements.egg.card.setAttribute('aria-hidden', 'false');
+    }
 
     if (elements.egg.progress) {
       elements.egg.progress.style.width = `${percentage}%`;
     }
     if (elements.egg.label) {
       if (state?.progress_label) {
-        elements.egg.label.textContent = `${state.progress_label} ${strings.verses}`;
+        elements.egg.label.textContent = `${state.progress_label} ${verseLabel}`;
       } else {
-        elements.egg.label.textContent = `${formatNumber(Math.min(count, target))} / ${formatNumber(target)} ${strings.verses}`;
+        elements.egg.label.textContent = `${formatNumber(Math.min(count, target))} / ${formatNumber(target)} ${verseLabel}`;
       }
     }
     if (elements.egg.message) {
       if (completed && nextTarget) {
-        const hatchedLabel = previousTarget && previousTarget > 0 ? formatNumber(previousTarget) : formatNumber(Math.max(1, nextTarget - 5));
-        elements.egg.message.innerHTML = `${strings.eggComplete} <br /><span class="font-semibold">${hatchedLabel}</span> → <span class="font-semibold">${formatNumber(nextTarget)} ${strings.verses}</span>`;
+        const hatchedLabel =
+          previousTarget && previousTarget > 0 ? formatNumber(previousTarget) : formatNumber(Math.max(1, nextTarget - 5));
+        elements.egg.message.innerHTML = `${strings.eggComplete} <br /><span class="font-semibold">${hatchedLabel}</span> → <span class="font-semibold">${formatNumber(nextTarget)} ${verseLabel}</span>`;
       } else if (Number.isFinite(state?.remaining) && state.remaining > 0) {
         const remaining = formatNumber(state.remaining);
-        elements.egg.message.textContent = `${remaining} ${strings.verses.toLowerCase()} to go.`;
+        elements.egg.message.textContent = `${remaining} ${verseLabel.toLowerCase()} to go.`;
       } else {
         elements.egg.message.textContent = strings.eggInProgress;
       }
@@ -2006,13 +2176,11 @@
     }
     if (elements.egg.card) {
       elements.egg.card.classList.toggle('alfawz-egg-hatched', completed);
+      elements.egg.card.dataset.state = completed ? 'completed' : 'active';
     }
     if (elements.egg.level) {
-      const level = Number(state?.level || 0) || Math.max(1, Math.ceil(target / 20));
-      elements.egg.level.textContent = `${strings.levelLabel} ${formatNumber(level)}`;
+      elements.egg.level.textContent = `${strings.levelLabel} ${formatNumber(displayLevel)}`;
     }
-
-    elements.egg.card.dataset.state = completed ? 'completed' : 'active';
   };
 
   if (elements.egg.playButton) {
@@ -2028,6 +2196,26 @@
         new CustomEvent('alfawz:playEggChallenge', {
           detail: {
             source: 'egg-card',
+            state: latestEggState,
+          },
+        })
+      );
+    });
+  }
+
+  if (elements.tree?.playButton) {
+    elements.tree.playButton.addEventListener('click', (event) => {
+      event.preventDefault();
+      const targetUrl = elements.tree.playButton?.dataset?.playUrl
+        || resolvePlayUrl(wpData.gamePlayUrl, wpData.memorizerUrl, wpData.readerUrl);
+      if (targetUrl) {
+        window.location.href = targetUrl;
+        return;
+      }
+      window.dispatchEvent(
+        new CustomEvent('alfawz:playEggChallenge', {
+          detail: {
+            source: 'tree-card',
             state: latestEggState,
           },
         })

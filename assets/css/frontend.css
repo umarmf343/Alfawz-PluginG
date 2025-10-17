@@ -3011,6 +3011,39 @@
   transition: width 280ms ease;
 }
 
+.alfawz-egg-widget--tree {
+  background: linear-gradient(120deg, rgba(236, 252, 245, 0.9), rgba(187, 247, 208, 0.75));
+  border-color: rgba(16, 185, 129, 0.35);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.5);
+}
+
+.alfawz-egg-widget--tree .alfawz-egg-visual {
+  background: radial-gradient(circle at 30% 30%, #dcfce7 0%, #86efac 45%, #10b981 100%);
+  box-shadow: 0 18px 38px rgba(16, 185, 129, 0.28);
+}
+
+.alfawz-egg-widget--tree .alfawz-egg-sparkle {
+  background: conic-gradient(
+    from 120deg,
+    rgba(59, 130, 246, 0.35),
+    rgba(16, 185, 129, 0.6) 40%,
+    rgba(132, 204, 22, 0.55) 70%,
+    rgba(59, 130, 246, 0.4)
+  );
+}
+
+.alfawz-egg-widget--tree .alfawz-progress-fill {
+  background: linear-gradient(135deg, #22c55e, #15803d);
+}
+
+.alfawz-egg-widget--tree .alfawz-egg-count {
+  color: #047857;
+}
+
+.alfawz-egg-widget--tree .alfawz-egg-message {
+  color: rgba(6, 95, 70, 0.75);
+}
+
 .alfawz-verse-nav {
   position: absolute;
   top: 50%;

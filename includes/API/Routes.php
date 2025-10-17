@@ -71,6 +71,7 @@ class Routes {
      */
     const EGG_CHALLENGE_BASE_TARGET = 20;
     const EGG_CHALLENGE_STEP        = 5;
+    const EGG_CHALLENGE_MAX_LEVEL   = 5;
 
     /**
      * Cached recitation snippet definitions sourced from the Tarteel-inspired library.
@@ -3682,15 +3683,29 @@ class Routes {
         $last_completion  = get_user_meta( $user_id, self::EGG_CHALLENGE_LAST_COMPLETION_META, true );
         $normalized_count = min( $count, $target );
 
+        $max_level         = (int) self::EGG_CHALLENGE_MAX_LEVEL;
+        $level             = $this->calculate_egg_challenge_level( $target );
+        $cycles_completed  = max( 0, $level - 1 );
+        $phase             = $cycles_completed >= $max_level ? 'tree' : 'egg';
+        $display_level     = 'tree' === $phase ? $max_level : min( $level, $max_level );
+        $tree_stage        = 'tree' === $phase ? max( 0, $cycles_completed - $max_level ) : 0;
+        $growth_percentage = min( 100, $percentage );
+
         return [
             'count'            => $normalized_count,
             'target'           => $target,
-            'percentage'       => min( 100, $percentage ),
+            'percentage'       => $growth_percentage,
             'remaining'        => max( 0, $target - $normalized_count ),
             'previous_target'  => '' !== $previous_target ? (int) $previous_target : null,
             'completed'        => false,
             'next_target'      => $target,
-            'level'            => $this->calculate_egg_challenge_level( $target ),
+            'level'            => $level,
+            'display_level'    => $display_level,
+            'total_completions'=> $cycles_completed,
+            'max_level'        => $max_level,
+            'phase'            => $phase,
+            'tree_stage'       => $tree_stage,
+            'growth_percentage'=> $growth_percentage,
             'last_completion'  => $last_completion ? gmdate( 'c', strtotime( $last_completion ) ) : null,
             'progress_label'   => sprintf( '%d / %d', $normalized_count, $target ),
         ];
@@ -3717,12 +3732,12 @@ class Routes {
      * Increment the egg challenge counters.
      */
     private function increment_egg_challenge( $user_id ) {
-        $state            = $this->prepare_egg_challenge_state( $user_id );
-        $count            = (int) $state['count'] + 1;
-        $target           = (int) $state['target'];
-        $completed        = false;
-        $previous_target  = null;
-        $completed_at     = null;
+        $state           = $this->prepare_egg_challenge_state( $user_id );
+        $count           = (int) $state['count'] + 1;
+        $target          = (int) $state['target'];
+        $completed       = false;
+        $previous_target = null;
+        $completed_at    = null;
 
         if ( $count >= $target ) {
             $completed        = true;
@@ -3739,20 +3754,33 @@ class Routes {
             update_user_meta( $user_id, self::EGG_CHALLENGE_COUNT_META, $count );
         }
 
-        $percentage = $target > 0 ? round( ( $count / $target ) * 100, 2 ) : 0;
+        $percentage        = $target > 0 ? round( ( $count / $target ) * 100, 2 ) : 0;
+        $growth_percentage = min( 100, $percentage );
+        $max_level         = (int) self::EGG_CHALLENGE_MAX_LEVEL;
+        $level             = $this->calculate_egg_challenge_level( $target );
+        $cycles_completed  = max( 0, $level - 1 );
+        $phase             = $cycles_completed >= $max_level ? 'tree' : 'egg';
+        $display_level     = 'tree' === $phase ? $max_level : min( $level, $max_level );
+        $tree_stage        = 'tree' === $phase ? max( 0, $cycles_completed - $max_level ) : 0;
 
         return [
-            'count'           => $count,
-            'target'          => $target,
-            'percentage'      => min( 100, $percentage ),
-            'remaining'       => max( 0, $target - $count ),
-            'completed'       => $completed,
-            'previous_target' => $previous_target,
-            'next_target'     => $target,
-            'level'           => $this->calculate_egg_challenge_level( $target ),
-            'progress_label'  => sprintf( '%d / %d', min( $count, $target ), $target ),
-            'completed_at'    => $completed_at ? gmdate( 'c', strtotime( $completed_at ) ) : null,
-            'last_completion' => $completed_at ? gmdate( 'c', strtotime( $completed_at ) ) : ( $state['last_completion'] ?? null ),
+            'count'            => $count,
+            'target'           => $target,
+            'percentage'       => $growth_percentage,
+            'remaining'        => max( 0, $target - $count ),
+            'completed'        => $completed,
+            'previous_target'  => $previous_target,
+            'next_target'      => $target,
+            'level'            => $level,
+            'display_level'    => $display_level,
+            'total_completions'=> $cycles_completed,
+            'max_level'        => $max_level,
+            'phase'            => $phase,
+            'tree_stage'       => $tree_stage,
+            'growth_percentage'=> $growth_percentage,
+            'progress_label'   => sprintf( '%d / %d', min( $count, $target ), $target ),
+            'completed_at'     => $completed_at ? gmdate( 'c', strtotime( $completed_at ) ) : null,
+            'last_completion'  => $completed_at ? gmdate( 'c', strtotime( $completed_at ) ) : ( $state['last_completion'] ?? null ),
         ];
     }
 

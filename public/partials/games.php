@@ -563,6 +563,92 @@ if ( ! defined( 'ABSPATH' ) ) {
                         <span data-role="alfawz-egg-play-label"><?php esc_html_e( 'Play Now', 'alfawzquran' ); ?></span>
                     </button>
                 </div>
+                <div
+                    id="alfawz-tree-card"
+                    class="relative hidden overflow-hidden rounded-[30px] border border-[#34d399]/30 bg-gradient-to-br from-[#ecfdf5]/90 via-[#d1fae5]/90 to-[#ecfdf5]/95 p-8 text-center shadow-xl shadow-[#064e3b]/15"
+                    aria-hidden="true"
+                >
+                    <div class="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.45),_transparent_65%)]"></div>
+                    <div class="absolute right-5 top-5 flex items-center gap-2 rounded-full bg-[#047857] px-4 py-2 text-sm font-semibold uppercase tracking-[0.28em] text-white shadow-lg" id="alfawz-tree-stage">
+                        <?php esc_html_e( 'Growth Stage 1', 'alfawzquran' ); ?>
+                    </div>
+                    <div class="relative flex flex-col items-center space-y-4">
+                        <div id="alfawz-tree-emoji" class="text-7xl" aria-hidden="true">🌱</div>
+                        <h3 id="alfawz-tree-title" class="text-2xl font-black text-[#064e3b]">
+                            <?php esc_html_e( 'Virtue Tree Awakening', 'alfawzquran' ); ?>
+                        </h3>
+                        <p id="alfawz-tree-message" class="max-w-2xl text-lg font-medium text-[#0f5132]">
+                            <?php esc_html_e( 'Your devotion has hatched a radiant tree—nourish it with every verse.', 'alfawzquran' ); ?>
+                        </p>
+                        <div class="relative mt-4 w-full max-w-xl space-y-3">
+                            <div class="relative h-3 w-full overflow-hidden rounded-full bg-[#bbf7d0]/80">
+                                <div id="alfawz-tree-progress" class="h-full rounded-full bg-gradient-to-r from-[#10b981] via-[#34d399] to-[#6ee7b7] transition-all duration-500" style="width:0%"></div>
+                            </div>
+                            <p id="alfawz-tree-label" class="text-xs font-semibold uppercase tracking-[0.32em] text-[#047857]">
+                                <?php esc_html_e( 'Growth 0% · 0 / 0 Verses', 'alfawzquran' ); ?>
+                            </p>
+                        </div>
+                        <div class="w-full max-w-3xl">
+                            <p class="mb-3 text-xs font-semibold uppercase tracking-[0.32em] text-[#0f5132]">
+                                <?php esc_html_e( 'Bloom Milestones', 'alfawzquran' ); ?>
+                            </p>
+                            <ul id="alfawz-tree-stages" class="grid grid-cols-1 gap-3 text-left sm:grid-cols-2">
+                                <li class="group relative flex items-center gap-3 rounded-3xl border border-white/20 bg-white/10 px-4 py-3 text-[#0f5132] transition-all duration-300" data-tree-stage-index="0">
+                                    <span class="flex h-10 w-10 flex-none items-center justify-center rounded-2xl bg-white/25 text-2xl shadow-inner" data-tree-stage-icon>🌱</span>
+                                    <div>
+                                        <p class="text-sm font-semibold uppercase tracking-[0.22em] text-[#0f5132]/80">
+                                            <?php esc_html_e( 'Seedling of Sincerity', 'alfawzquran' ); ?>
+                                        </p>
+                                        <p class="text-xs text-[#0f5132]/70">
+                                            <?php esc_html_e( 'Nurture the newborn sprout with mindful recitation.', 'alfawzquran' ); ?>
+                                        </p>
+                                    </div>
+                                </li>
+                                <li class="group relative flex items-center gap-3 rounded-3xl border border-white/20 bg-white/10 px-4 py-3 text-[#0f5132] transition-all duration-300" data-tree-stage-index="1">
+                                    <span class="flex h-10 w-10 flex-none items-center justify-center rounded-2xl bg-white/25 text-2xl shadow-inner" data-tree-stage-icon>🌿</span>
+                                    <div>
+                                        <p class="text-sm font-semibold uppercase tracking-[0.22em] text-[#0f5132]/80">
+                                            <?php esc_html_e( 'Branches of Reflection', 'alfawzquran' ); ?>
+                                        </p>
+                                        <p class="text-xs text-[#0f5132]/70">
+                                            <?php esc_html_e( 'Each verse grows new leaves of wisdom.', 'alfawzquran' ); ?>
+                                        </p>
+                                    </div>
+                                </li>
+                                <li class="group relative flex items-center gap-3 rounded-3xl border border-white/20 bg-white/10 px-4 py-3 text-[#0f5132] transition-all duration-300" data-tree-stage-index="2">
+                                    <span class="flex h-10 w-10 flex-none items-center justify-center rounded-2xl bg-white/25 text-2xl shadow-inner" data-tree-stage-icon>🌸</span>
+                                    <div>
+                                        <p class="text-sm font-semibold uppercase tracking-[0.22em] text-[#0f5132]/80">
+                                            <?php esc_html_e( 'Lantern Bloom Canopy', 'alfawzquran' ); ?>
+                                        </p>
+                                        <p class="text-xs text-[#0f5132]/70">
+                                            <?php esc_html_e( 'Your remembrance kindles blossoms of light.', 'alfawzquran' ); ?>
+                                        </p>
+                                    </div>
+                                </li>
+                                <li class="group relative flex items-center gap-3 rounded-3xl border border-white/20 bg-white/10 px-4 py-3 text-[#0f5132] transition-all duration-300" data-tree-stage-index="3">
+                                    <span class="flex h-10 w-10 flex-none items-center justify-center rounded-2xl bg-white/25 text-2xl shadow-inner" data-tree-stage-icon>🌳</span>
+                                    <div>
+                                        <p class="text-sm font-semibold uppercase tracking-[0.22em] text-[#0f5132]/80">
+                                            <?php esc_html_e( 'Celestial Light Grove', 'alfawzquran' ); ?>
+                                        </p>
+                                        <p class="text-xs text-[#0f5132]/70">
+                                            <?php esc_html_e( 'The sanctuary shimmers—keep tending your luminous tree.', 'alfawzquran' ); ?>
+                                        </p>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                        <button
+                            id="alfawz-tree-play"
+                            type="button"
+                            class="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#10b981] via-[#34d399] to-[#6ee7b7] px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-[#065f46]/25 transition-all duration-300 hover:-translate-y-1 hover:brightness-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#34d399]/60 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+                        >
+                            <span aria-hidden="true" class="text-base">▶</span>
+                            <span data-role="alfawz-tree-play-label"><?php esc_html_e( 'Continue Journey', 'alfawzquran' ); ?></span>
+                        </button>
+                    </div>
+                </div>
             </section>
 
             <section aria-label="<?php esc_attr_e( 'Daily quests', 'alfawzquran' ); ?>" class="space-y-4">

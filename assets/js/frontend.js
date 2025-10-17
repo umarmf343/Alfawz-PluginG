@@ -11,6 +11,7 @@
   const TRANSLATION_EDITION = wpData.defaultTranslation || 'en.sahih';
   const TRANSLITERATION_EDITION = wpData.defaultTransliteration || 'en.transliteration';
   const HASANAT_PER_LETTER = 10;
+  const eggChallengeMaxLevel = Number(wpData.eggChallengeMaxLevel || 5);
 
   const safeStorage = (() => {
     try {
@@ -1368,6 +1369,20 @@
       surahError: wpData.strings?.surahError || 'Unable to load the full surah right now. Please try again.',
       toggleOff: wpData.strings?.toggleVerseMode || 'Navigate verse by verse',
       toggleOn: wpData.strings?.toggleSurahMode || 'All verses visible at once',
+      verses: wpData.strings?.gamePanelVersesLabel || 'Verses',
+      treeGrowthLabel: wpData.strings?.treeGrowthLabel || 'Growth',
+      treeWidgetMessage: wpData.strings?.treeWidgetMessage || 'Your Virtue Tree is growing with each verse.',
+      treeStageSeedlingMessage:
+        wpData.strings?.treeStageSeedlingMessage || 'Nurture the newborn sprout with mindful recitation.',
+      treeStageSaplingMessage:
+        wpData.strings?.treeStageSaplingMessage || 'Each verse grows new leaves of wisdom.',
+      treeStageBloomMessage:
+        wpData.strings?.treeStageBloomMessage || 'Your remembrance kindles blossoms of light.',
+      treeStageCelestialMessage:
+        wpData.strings?.treeStageCelestialMessage || 'The sanctuary shimmers—keep tending your luminous tree.',
+      treeCelebrationMessage:
+        wpData.strings?.treeCelebrationMessage
+        || 'SubhanAllah! Your Virtue Tree is radiant—maintain its glow with daily verses.',
     };
 
     const reflectionStrings = {
@@ -2069,6 +2084,12 @@
     let currentVerseId = null;
     let isLoading = false;
     let lastEggCelebratedTarget = null;
+    const treeStageDetails = [
+      { emoji: '🌱', message: strings.treeStageSeedlingMessage },
+      { emoji: '🌿', message: strings.treeStageSaplingMessage },
+      { emoji: '🌸', message: strings.treeStageBloomMessage },
+      { emoji: '🌳', message: strings.treeStageCelestialMessage },
+    ];
     let lastSurahCelebration = { key: '', timestamp: 0 };
     let audioElement = null;
     let audioReady = false;
@@ -2868,13 +2889,13 @@
       }
     };
 
-    const celebrateEgg = () => {
+    const celebrateEgg = (message) => {
       if (eggWidget) {
         eggWidget.classList.add('alfawz-egg-celebrate');
         window.setTimeout(() => eggWidget.classList.remove('alfawz-egg-celebrate'), 1200);
       }
       spawnConfetti(confettiHost);
-      announceCelebration('Takbir! You cracked the egg challenge.');
+      announceCelebration(message || 'Takbir! You cracked the egg challenge.');
     };
 
     const celebrateSurahCompletion = (surahName = '') => {
@@ -2915,20 +2936,62 @@
       }
       const target = Number(state.target || 0);
       const count = Number(state.count || 0);
-      const percentage = Number(state.percentage ?? (target ? (count / target) * 100 : 0));
+      const rawPercentage = state.percentage ?? (target ? (count / target) * 100 : 0);
+      const percentage = Math.min(100, Number(rawPercentage));
       const hatched = Boolean(state.completed) || (target > 0 && count >= target);
       const nextTarget = Number(state.next_target || state.target || 0) || (target ? target : 25);
       const previousTarget = Number(state.previous_target || 0) || null;
+      const celebrationKey = state.completed_at || state.previous_target || state.target || `${count}-${target}`;
+      const totalCompletions = Number(state.total_completions ?? Math.max(0, (Number(state.level || 1) - 1)));
+      const phase = typeof state.phase === 'string' ? state.phase.toLowerCase() : '';
+      const maxLevel = Number(state.max_level || eggChallengeMaxLevel);
+      const treePhase = phase === 'tree' || totalCompletions >= maxLevel;
+      const versesLabel = strings.verses || 'Verses';
+
       animateBar(eggProgress, percentage);
+      if (eggWidget) {
+        eggWidget.classList.toggle('alfawz-egg-widget--tree', treePhase);
+      }
+
+      if (treePhase) {
+        const stageIndex = Math.max(
+          0,
+          Math.min(treeStageDetails.length - 1, Number(state.tree_stage ?? totalCompletions - maxLevel))
+        );
+        const stage = treeStageDetails[stageIndex] || treeStageDetails[treeStageDetails.length - 1];
+        if (eggEmoji) {
+          eggEmoji.textContent = stage.emoji || '🌱';
+          eggEmoji.setAttribute('aria-label', strings.treeGrowthLabel || 'Growth');
+        }
+        const growthLabel = `${strings.treeGrowthLabel || 'Growth'} ${Math.round(percentage)}%`;
+        const verseProgress = target
+          ? `${formatNumber(Math.min(count, target))} / ${formatNumber(target)} ${versesLabel}`
+          : `${formatNumber(count)} ${versesLabel}`;
+        safeSetText(eggCount, `${growthLabel} • ${verseProgress}`);
+        if (eggMessage) {
+          let message = stage.message || strings.treeWidgetMessage || '';
+          if (percentage >= 100) {
+            message = strings.treeCelebrationMessage || message;
+          }
+          eggMessage.textContent = message;
+        }
+        if (state.completed && celebrationKey !== lastEggCelebratedTarget) {
+          lastEggCelebratedTarget = celebrationKey;
+          celebrateEgg(strings.treeCelebrationMessage || strings.treeWidgetMessage || 'Takbir! Your Virtue Tree reached a new bloom.');
+        }
+        return;
+      }
+
       if (eggEmoji) {
         eggEmoji.textContent = hatched ? '🐣' : '🥚';
+        eggEmoji.setAttribute('aria-label', hatched ? 'Egg hatched' : 'Egg progress');
       }
       if (eggMessage) {
         if (state.completed) {
           const hatchedLabel = previousTarget && previousTarget > 0 ? previousTarget : Math.max(1, nextTarget - 5);
           const hatchedDisplay = formatNumber(hatchedLabel);
           const nextDisplay = formatNumber(nextTarget);
-          eggMessage.innerHTML = `🎉 <span class="font-semibold">Takbir!</span> You cracked the <span class="font-semibold">${hatchedDisplay}-verse</span> egg! Next challenge: <span class="font-semibold">${nextDisplay} verses</span>`;
+          eggMessage.innerHTML = `🎉 <span class="font-semibold">Takbir!</span> You cracked the <span class="font-semibold">${hatchedDisplay}-verse</span> egg! Next challenge: <span class="font-semibold">${nextDisplay} ${versesLabel.toLowerCase()}</span>`;
         } else {
           const remaining = Number(state.remaining ?? (target ? Math.max(0, target - count) : null));
           if (remaining && remaining > 0) {
@@ -2939,12 +3002,11 @@
         }
       }
       const label = state.progress_label
-        ? `${state.progress_label} Verses`
+        ? `${state.progress_label} ${versesLabel}`
         : target
-          ? `${count} / ${target} Verses`
-          : `${count} Verses`;
+          ? `${formatNumber(Math.min(count, target))} / ${formatNumber(target)} ${versesLabel}`
+          : `${formatNumber(count)} ${versesLabel}`;
       safeSetText(eggCount, label);
-      const celebrationKey = state.completed_at || state.previous_target || state.target || `${count}-${target}`;
       if (state.completed && celebrationKey !== lastEggCelebratedTarget) {
         lastEggCelebratedTarget = celebrationKey;
         celebrateEgg();

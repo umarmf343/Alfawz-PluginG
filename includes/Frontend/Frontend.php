@@ -1,6 +1,8 @@
 <?php
 namespace AlfawzQuran\Frontend;
 
+use AlfawzQuran\API\Routes;
+
 /**
  * Frontend functionality and shortcodes
  */
@@ -122,6 +124,7 @@ class Frontend {
                 'defaultTransliteration' => get_option('alfawz_default_transliteration', 'en.transliteration'),
                 'enableLeaderboard' => (bool) get_option('alfawz_enable_leaderboard', 1),
                 'userPreferences' => $this->get_user_preferences_for_script(),
+                'eggChallengeMaxLevel' => Routes::EGG_CHALLENGE_MAX_LEVEL,
                 'avatars' => [
                     'male'   => ALFAWZQURAN_PLUGIN_URL . 'assets/images/avatar-male.svg',
                     'female' => ALFAWZQURAN_PLUGIN_URL . 'assets/images/avatar-female.svg',
@@ -147,6 +150,22 @@ class Frontend {
                     'gamePanelLockedLabel' => __('Locked', 'alfawzquran'),
                     'gamePanelPlayNow' => __('Play Now', 'alfawzquran'),
                     'gamePanelKeepGoing' => __('Keep Going', 'alfawzquran'),
+                    'treeTitle' => __('Virtue Tree Awakening', 'alfawzquran'),
+                    'treeSubtitle' => __('Your devotion has hatched a radiant tree—nourish it with every verse.', 'alfawzquran'),
+                    'treeStageLabel' => __('Growth Stage', 'alfawzquran'),
+                    'treeGrowthLabel' => __('Growth', 'alfawzquran'),
+                    'treePlayLabel' => __('Continue Journey', 'alfawzquran'),
+                    'treeStageSeedling' => __('Seedling of Sincerity', 'alfawzquran'),
+                    'treeStageSapling' => __('Branches of Reflection', 'alfawzquran'),
+                    'treeStageBloom' => __('Lantern Bloom Canopy', 'alfawzquran'),
+                    'treeStageCelestial' => __('Celestial Light Grove', 'alfawzquran'),
+                    'treeStageSeedlingMessage' => __('Nurture the newborn sprout with mindful recitation.', 'alfawzquran'),
+                    'treeStageSaplingMessage' => __('Each verse grows new leaves of wisdom.', 'alfawzquran'),
+                    'treeStageBloomMessage' => __('Your remembrance kindles blossoms of light.', 'alfawzquran'),
+                    'treeStageCelestialMessage' => __('The sanctuary shimmers—keep tending your luminous tree.', 'alfawzquran'),
+                    'treeCelebrationMessage' => __('SubhanAllah! Your Virtue Tree is radiant—maintain its glow with daily verses.', 'alfawzquran'),
+                    'treeWidgetMessage' => __('Your Virtue Tree is growing with each verse.', 'alfawzquran'),
+                    'treeMilestonesHeading' => __('Bloom Milestones', 'alfawzquran'),
                 ],
             ]);
 
