@@ -7,53 +7,53 @@ if ( ! defined( 'ABSPATH' ) ) {
     <div class="absolute -left-32 top-10 h-64 w-64 rounded-full bg-[#741f31]/10 blur-3xl"></div>
     <div class="absolute -right-16 -bottom-24 h-72 w-72 rounded-full bg-[#f59f82]/20 blur-3xl"></div>
     <div class="relative space-y-12 rounded-[2.65rem] bg-white/70 p-6 sm:p-10 lg:p-12">
-        <header class="alfawz-leaderboard-hero relative overflow-hidden rounded-[2.5rem] px-8 py-10 sm:px-10 sm:py-12">
-            <div class="relative flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
-                <div class="space-y-5 text-[#fff7ee]">
-                    <p class="text-xs font-semibold uppercase tracking-[0.35em] text-[#ffe7d6]/80">
+        <header class="alfawz-leaderboard-hero relative overflow-hidden">
+            <div class="relative mx-auto flex max-w-6xl flex-col gap-8 px-8 py-10 sm:px-10 sm:py-12 lg:flex-row lg:items-end lg:justify-between">
+                <div class="space-y-5 text-white">
+                    <p class="text-xs font-semibold uppercase tracking-[0.35em] text-white/70">
                         <?php esc_html_e( 'Students leaderboard', 'alfawzquran' ); ?>
                     </p>
-                    <h1 class="text-3xl font-semibold leading-tight sm:text-4xl lg:text-5xl">
+                    <h1 class="text-3xl font-semibold leading-tight text-[#fffdf6] sm:text-4xl lg:text-5xl">
                         <?php esc_html_e( 'Where dedication meets celebration', 'alfawzquran' ); ?>
                     </h1>
-                    <p class="max-w-2xl text-base text-[#ffe7d6]/90 sm:text-lg">
+                    <p class="max-w-2xl text-base text-white/80 sm:text-lg">
                         <?php esc_html_e( 'Watch classmates climb the ranks in real time with standings that refresh straight from the Alfawz REST endpoint.', 'alfawzquran' ); ?>
                     </p>
                 </div>
-                <div class="flex flex-col items-stretch gap-5 text-[#fff7ee] lg:w-72">
+                <div class="flex flex-col items-stretch gap-5 text-white lg:w-72">
                     <div class="grid grid-cols-2 gap-4 sm:grid-cols-3">
                         <div class="rounded-3xl bg-white/10 p-5 text-center shadow-lg backdrop-blur">
-                            <p class="text-[0.7rem] font-semibold uppercase tracking-[0.3em] text-[#ffe7d6]/70">
+                            <p class="text-[0.7rem] font-semibold uppercase tracking-[0.3em] text-white/75">
                                 <?php esc_html_e( 'Active reciters', 'alfawzquran' ); ?>
                             </p>
                             <p id="alfawz-leaderboard-total" class="mt-2 text-3xl font-semibold sm:text-4xl">0</p>
                         </div>
                         <div class="rounded-3xl bg-white/10 p-5 text-center shadow-lg backdrop-blur">
-                            <p class="text-[0.7rem] font-semibold uppercase tracking-[0.3em] text-[#ffe7d6]/70">
+                            <p class="text-[0.7rem] font-semibold uppercase tracking-[0.3em] text-white/75">
                                 <?php esc_html_e( 'Leading verses', 'alfawzquran' ); ?>
                             </p>
                             <p id="alfawz-leaderboard-verses" class="mt-2 text-3xl font-semibold sm:text-4xl">0</p>
                         </div>
                         <div class="col-span-2 rounded-3xl bg-white/10 p-5 text-center shadow-lg backdrop-blur sm:col-span-1">
-                            <p class="text-[0.7rem] font-semibold uppercase tracking-[0.3em] text-[#ffe7d6]/70">
+                            <p class="text-[0.7rem] font-semibold uppercase tracking-[0.3em] text-white/75">
                                 <?php esc_html_e( 'Top hasanat', 'alfawzquran' ); ?>
                             </p>
                             <p id="alfawz-leaderboard-hasanat" class="mt-2 text-3xl font-semibold sm:text-4xl">0</p>
                         </div>
                     </div>
-                    <button id="alfawz-leaderboard-refresh" type="button" class="group inline-flex items-center justify-center gap-3 rounded-full border border-white/40 bg-white/15 px-6 py-3 text-sm font-semibold uppercase tracking-[0.25em] transition-all duration-300 hover:-translate-y-0.5 hover:bg-white/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#741f31]" aria-live="polite">
+                    <button id="alfawz-leaderboard-refresh" type="button" class="group inline-flex items-center justify-center gap-3 rounded-full border border-white/40 bg-white/15 px-6 py-3 text-sm font-semibold uppercase tracking-[0.25em] text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-white/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#741f31]" aria-live="polite">
                         <span class="relative flex h-9 w-9 items-center justify-center rounded-full bg-white/20 shadow-inner">
-                            <svg data-refresh-icon class="h-4 w-4 text-[#fff7ee] transition-transform duration-300 group-hover:rotate-180" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                            <svg data-refresh-icon class="h-4 w-4 text-white transition-transform duration-300 group-hover:rotate-180" viewBox="0 0 20 20" fill="none" aria-hidden="true">
                                 <path d="M3.5 10a6.5 6.5 0 0 1 11.07-4.6l1.18-1.17a.75.75 0 1 1 1.06 1.06l-2.5 2.5a.75.75 0 0 1-1.28-.53V4.75A.75.75 0 0 1 14.25 4a8 8 0 1 0 1.94 6.53.75.75 0 0 1 1.48.22A9.5 9.5 0 1 1 3.5 10Z" fill="currentColor" />
                             </svg>
-                            <svg data-refresh-spinner class="hidden h-4 w-4 animate-spin text-[#fff7ee]" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                            <svg data-refresh-spinner class="hidden h-4 w-4 animate-spin text-white" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 0 1 8-8v2.5A5.5 5.5 0 0 0 6.5 12H4Z"></path>
                             </svg>
                         </span>
-                        <span><?php esc_html_e( 'Refresh standings', 'alfawzquran' ); ?></span>
+                        <span class="text-white"><?php esc_html_e( 'Refresh standings', 'alfawzquran' ); ?></span>
                     </button>
-                    <p id="alfawz-leaderboard-updated" class="text-[0.65rem] font-semibold uppercase tracking-[0.35em] text-[#ffe7d6]/70" aria-live="polite">
+                    <p id="alfawz-leaderboard-updated" class="text-[0.65rem] font-semibold uppercase tracking-[0.35em] text-white/70" aria-live="polite">
                         <?php esc_html_e( 'Updating…', 'alfawzquran' ); ?>
                     </p>
                 </div>
