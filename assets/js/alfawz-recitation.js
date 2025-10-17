@@ -56,6 +56,8 @@
       retryLabel: 'Try again',
       viewHistoryLabel: 'View last reviews',
       noMistakes: 'Flawless! Keep reinforcing this ayah daily.',
+      memorizationComplete:
+        'Barakallahu feek! Memorization complete—may Allah make it firm in your heart.',
     },
     ...(config.strings || {}),
   };
@@ -485,7 +487,12 @@
     }
     const contentType = response.headers.get('content-type') || '';
     if (contentType.includes('application/json')) {
-      return response.json();
+      try {
+        return await response.json();
+      } catch (error) {
+        console.warn('[Alfawz Recitation] Invalid JSON response', error);
+        return null;
+      }
     }
     const text = await response.text();
     if (!text) {
@@ -494,8 +501,8 @@
     try {
       return JSON.parse(text);
     } catch (error) {
-      const snippet = text.length > 120 ? `${text.slice(0, 120)}…` : text;
-      throw new Error(`Expected JSON response but received: ${snippet}`);
+      console.warn('[Alfawz Recitation] Expected JSON response but received non-JSON payload', error);
+      return null;
     }
   };
 
@@ -705,7 +712,7 @@
     if (detail.complete) {
       setVerseDetails(null);
       setScore(100);
-      setStatus(strings.noMistakes, 'success');
+      setStatus(strings.memorizationComplete || strings.noMistakes, 'success');
       return;
     }
     if (detail.error) {
