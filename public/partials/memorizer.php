@@ -215,49 +215,49 @@ if ( ! defined( 'ABSPATH' ) ) {
                 </div>
             </article>
 
-            <section id="alfawz-recitation-assistant" class="relative mx-auto w-full max-w-4xl overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-600 via-purple-600 to-sky-500 p-8 text-white shadow-2xl ring-1 ring-indigo-200/60">
+            <section id="alfawz-recitation-assistant" class="relative mx-auto w-full max-w-4xl overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-600 via-purple-600 to-sky-500 p-8 text-white shadow-2xl ring-1 ring-indigo-200/60 is-listening">
                 <header class="space-y-2 text-left">
-                    <p class="text-xs font-semibold uppercase tracking-[0.35em] text-white/80"><?php esc_html_e( 'AI recitation coach', 'alfawzquran' ); ?></p>
-                    <h3 class="text-2xl font-semibold text-white sm:text-3xl"><?php esc_html_e( 'Refine your flow with Tarteel-style insights.', 'alfawzquran' ); ?></h3>
-                    <p class="text-base text-white/80"><?php esc_html_e( 'Let the assistant listen to your recitation, highlight slip-ups, and surface FES (Focus Enhancement Snippets) inspired by Tarteel’s memorisation playbook.', 'alfawzquran' ); ?></p>
+                    <p class="text-xs font-semibold uppercase tracking-[0.35em] text-white/90"><?php esc_html_e( 'AI recitation coach', 'alfawzquran' ); ?></p>
+                    <h3 class="text-3xl font-semibold text-white sm:text-4xl"><?php esc_html_e( 'Refine your flow with Tarteel-style insights.', 'alfawzquran' ); ?></h3>
+                    <p class="text-lg text-white/90"><?php esc_html_e( 'Let the assistant listen to your recitation, highlight slip-ups, and surface FES (Focus Enhancement Snippets) inspired by Tarteel’s memorisation playbook.', 'alfawzquran' ); ?></p>
                 </header>
 
                 <div class="mt-6 flex flex-col gap-8 lg:flex-row">
                     <div class="flex-1 space-y-6">
                         <div class="flex flex-wrap items-center gap-3">
                             <button type="button" id="alfawz-recitation-toggle" class="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-indigo-500 via-purple-500 to-rose-500 px-5 py-2.5 text-sm font-semibold text-white shadow-lg transition hover:scale-[1.01] hover:from-indigo-400 hover:to-rose-400 focus:outline-none focus:ring-4 focus:ring-rose-200 focus:ring-offset-2 focus:ring-offset-white">
-                                <span aria-hidden="true">🎙️</span>
-                                <span><?php esc_html_e( 'Begin listening', 'alfawzquran' ); ?></span>
+                                <span aria-hidden="true"><img draggable="false" role="img" class="emoji" alt="🎙️" src="https://s.w.org/images/core/emoji/16.0.1/svg/1f399.svg" /></span>
+                                <span><?php esc_html_e( 'Stop listening', 'alfawzquran' ); ?></span>
                             </button>
-                            <button type="button" id="alfawz-recitation-history-toggle" class="inline-flex items-center gap-2 rounded-2xl border border-white/50 px-4 py-2 text-sm font-semibold text-white/80 transition hover:-translate-y-0.5 hover:border-white hover:text-white focus:outline-none focus:ring-2 focus:ring-white/40">
-                                <span aria-hidden="true">🗂️</span>
+                            <button type="button" id="alfawz-recitation-history-toggle" class="inline-flex items-center gap-2 rounded-2xl border border-white/50 px-4 py-2 text-sm font-semibold text-white/90 transition hover:-translate-y-0.5 hover:border-white hover:text-white focus:outline-none focus:ring-2 focus:ring-white/40">
+                                <span aria-hidden="true"><img draggable="false" role="img" class="emoji" alt="🗂️" src="https://s.w.org/images/core/emoji/16.0.1/svg/1f5c2.svg" /></span>
                                 <span><?php esc_html_e( 'View last reviews', 'alfawzquran' ); ?></span>
                             </button>
                         </div>
-                        <p id="alfawz-recitation-status" class="text-sm text-white/80"><?php esc_html_e( 'Tap begin listening when you are ready to recite.', 'alfawzquran' ); ?></p>
-                        <div id="alfawz-recitation-visualizer" class="alfawz-recitation-visualizer mt-4 hidden" aria-hidden="true">
+                        <p id="alfawz-recitation-status" class="text-sm text-indigo-200"><?php esc_html_e( 'Listening… recite the ayah clearly.', 'alfawzquran' ); ?></p>
+                        <div id="alfawz-recitation-visualizer" class="alfawz-recitation-visualizer mt-4" aria-hidden="true" data-visualizing="true">
                             <?php for ( $bar = 0; $bar < 24; $bar++ ) : ?>
-                                <span class="alfawz-recitation-visualizer-bar" data-bar="<?php echo esc_attr( $bar ); ?>"></span>
+                                <span class="alfawz-recitation-visualizer-bar" data-bar="<?php echo esc_attr( $bar ); ?>" style="--alfawz-visualizer-scale: 0.08;"></span>
                             <?php endfor; ?>
                         </div>
                         <div class="rounded-3xl border border-white/20 bg-gradient-to-br from-white/30 via-rose-200/20 to-indigo-200/20 p-6 text-center shadow-xl backdrop-blur">
                             <p class="text-3xl font-semibold uppercase tracking-[0.3em] text-white/90"><?php esc_html_e( 'Accuracy score', 'alfawzquran' ); ?></p>
-                            <p id="alfawz-recitation-score-value" class="mt-2 text-[6.75rem] font-bold text-white">--</p>
-                            <p id="alfawz-recitation-verse" class="mt-1 text-4xl text-white/80"><?php esc_html_e( 'Select a verse to begin your session.', 'alfawzquran' ); ?></p>
-                            <p id="alfawz-recitation-translation" class="mt-2 text-4xl italic text-white/70"></p>
+                            <p id="alfawz-recitation-score-value" class="mt-2 text-[6.75rem] font-bold text-white" data-preview="true">--</p>
+                            <p id="alfawz-recitation-verse" class="mt-1 text-4xl text-white/90"><?php esc_html_e( 'Surah 106 • Ayah 1', 'alfawzquran' ); ?></p>
+                            <p id="alfawz-recitation-translation" class="mt-2 text-4xl italic text-white/80"><?php esc_html_e( 'For the accustomed security of the Quraysh -', 'alfawzquran' ); ?></p>
                             <p id="alfawz-recitation-updated" class="mt-2 text-3xl uppercase tracking-[0.25em] text-white/60"></p>
                         </div>
                     </div>
 
                     <div class="flex-1 space-y-6">
                         <div>
-                            <h4 class="text-xs font-semibold uppercase tracking-[0.3em] text-white/80"><?php esc_html_e( 'Focus insights', 'alfawzquran' ); ?></h4>
-                            <ul id="alfawz-recitation-mistakes" class="mt-3 space-y-3 text-sm text-white/80">
-                                <li class="rounded-2xl border border-dashed border-white/30 bg-white/10 px-4 py-3 text-white/70 backdrop-blur"><?php esc_html_e( 'No analysis yet. Start a session to see highlighted opportunities.', 'alfawzquran' ); ?></li>
+                            <h4 class="text-xs font-semibold uppercase tracking-[0.3em] text-white/90"><?php esc_html_e( 'Focus insights', 'alfawzquran' ); ?></h4>
+                            <ul id="alfawz-recitation-mistakes" class="mt-3 space-y-3 text-sm text-white/80" data-preview="true">
+                                <li class="rounded-2xl border border-dashed border-white/25 bg-white/10 px-4 py-3 text-white/70 backdrop-blur"><?php esc_html_e( 'Listening live… Mistakes will appear here instantly.', 'alfawzquran' ); ?></li>
                             </ul>
                         </div>
                         <div>
-                            <h4 class="text-xs font-semibold uppercase tracking-[0.3em] text-white/80"><?php esc_html_e( 'Tarteel-style snippets', 'alfawzquran' ); ?></h4>
+                            <h4 class="text-xs font-semibold uppercase tracking-[0.3em] text-white/90"><?php esc_html_e( 'Tarteel-style snippets', 'alfawzquran' ); ?></h4>
                             <div id="alfawz-recitation-snippets" class="mt-3 flex flex-wrap gap-2 text-sm"></div>
                         </div>
                     </div>
