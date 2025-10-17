@@ -2112,16 +2112,38 @@
       toggle.setAttribute('aria-disabled', available ? 'false' : 'true');
     };
 
+    const syncSurahTransliterationVisibility = () => {
+      if (!surahListBody) {
+        return;
+      }
+      const transliterations = surahListBody.querySelectorAll('.alfawz-surah-item__transliteration');
+      transliterations.forEach((element) => {
+        element.classList.toggle('hidden', !showTransliteration);
+      });
+    };
+
     const syncTransliterationVisibility = () => {
       if (transliterationEl) {
         transliterationEl.classList.toggle('hidden', !hasTransliteration || !showTransliteration);
       }
+      syncSurahTransliterationVisibility();
+    };
+
+    const syncSurahTranslationVisibility = () => {
+      if (!surahListBody) {
+        return;
+      }
+      const translations = surahListBody.querySelectorAll('.alfawz-surah-item__translation');
+      translations.forEach((element) => {
+        element.classList.toggle('hidden', !showTranslation);
+      });
     };
 
     const syncTranslationVisibility = () => {
       if (translationEl) {
         translationEl.classList.toggle('hidden', !hasTranslation || !showTranslation);
       }
+      syncSurahTranslationVisibility();
     };
 
     if (transliterationToggle) {
@@ -2705,6 +2727,7 @@
           const transliteration = document.createElement('p');
           transliteration.className = 'alfawz-surah-item__transliteration';
           transliteration.textContent = verse.transliteration;
+          transliteration.classList.toggle('hidden', !showTransliteration);
           item.appendChild(transliteration);
         }
 
@@ -2712,6 +2735,7 @@
           const translation = document.createElement('p');
           translation.className = 'alfawz-surah-item__translation';
           translation.textContent = verse.translation;
+          translation.classList.toggle('hidden', !showTranslation);
           item.appendChild(translation);
         }
 
