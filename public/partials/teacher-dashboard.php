@@ -10,7 +10,7 @@ ob_start();
 include ALFAWZQURAN_PLUGIN_PATH . 'public/partials/qaidah-builder.php';
 $qaidah_markup = ob_get_clean();
 ?>
-<div class="relative min-h-screen overflow-hidden bg-gradient-to-br from-[#2b0618] via-[#7b1e3c] to-[#f6efe2] py-16 text-slate-900">
+<div class="relative min-h-screen overflow-hidden bg-gradient-to-br from-[#241f3b] via-[#3a2f52] to-[#e4d7f5] py-16 text-slate-900">
     <div class="alfawz-teacher-orb pointer-events-none" aria-hidden="true"></div>
     <div class="alfawz-teacher-orb alfawz-teacher-orb--secondary pointer-events-none" aria-hidden="true"></div>
     <div class="alfawz-teacher-trail pointer-events-none" aria-hidden="true"></div>
