@@ -433,6 +433,37 @@
     setListening(false);
   };
 
+  const parseJsonResponse = async (response) => {
+    const contentType = (response.headers.get('Content-Type') || '').toLowerCase();
+    const fallback = response.clone();
+
+    if (contentType.includes('application/json') || contentType.includes('+json')) {
+      try {
+        return await response.json();
+      } catch (error) {
+        const raw = await fallback.text().catch(() => '');
+        const snippet = raw.trim().slice(0, 200);
+        throw new Error(
+          snippet ? `Invalid JSON response: ${snippet}` : 'Invalid JSON response.'
+        );
+      }
+    }
+
+    const raw = await fallback.text().catch(() => '');
+    if (!raw) {
+      return null;
+    }
+
+    try {
+      return JSON.parse(raw);
+    } catch (error) {
+      const snippet = raw.trim().slice(0, 200);
+      throw new Error(
+        snippet ? `Unexpected response format: ${snippet}` : 'Unexpected empty response.'
+      );
+    }
+  };
+
   const request = async (endpoint, { method = 'GET', body } = {}) => {
     if (!endpoint) {
       return null;
@@ -456,7 +487,8 @@
     if (response.status === 204) {
       return null;
     }
-    return response.json();
+
+    return parseJsonResponse(response);
   };
 
   const renderMistakes = (mistakes) => {
