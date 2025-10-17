@@ -899,6 +899,10 @@
   color: var(--alfawz-maroon-800);
 }
 
+#alfawz-arabic-text {
+  font-size: 4rem;
+}
+
 .alfawz-transliteration {
   margin-top: 1.25rem;
   font-size: clamp(1.6rem, 3.8vw, 2.2rem);
