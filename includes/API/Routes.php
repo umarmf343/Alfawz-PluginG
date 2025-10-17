@@ -1486,17 +1486,6 @@ class Routes {
             'status'      => $daily_count >= $daily_target ? 'completed' : 'in_progress',
         ];
 
-        $memorisation_reps = (int) ( $daily_summary['memorization_repetitions'] ?? 0 );
-        $quests[]          = [
-            'id'          => 'memorize-verse',
-            'title'       => __( 'Memorize 1 Verse (20x)', 'alfawzquran' ),
-            'description' => __( 'Repeat any ayah twenty times to lock it into your heart.', 'alfawzquran' ),
-            'reward'      => 200,
-            'progress'    => $memorisation_reps,
-            'target'      => 20,
-            'status'      => $memorisation_reps >= 20 ? 'completed' : 'in_progress',
-        ];
-
         $hasanat_today = (int) ( $daily_summary['hasanat'] ?? 0 );
         $quests[]      = [
             'id'          => 'hasanat-burst',
