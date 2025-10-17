@@ -186,27 +186,27 @@ $avatar_gender_attr   = esc_attr( $avatar_gender );
         </div>
     </div>
 
-    <section class="alfawz-card-grid" aria-labelledby="alfawz-profile-overview">
+    <section class="alfawz-card-grid grid grid-cols-2 gap-4 sm:grid-cols-4" aria-labelledby="alfawz-profile-overview">
         <h2 id="alfawz-profile-overview" class="sr-only"><?php esc_html_e( 'Progress overview', 'alfawzquran' ); ?></h2>
         <article class="alfawz-profile-card" data-animate="fade">
             <div class="alfawz-profile-card-icon" aria-hidden="true">🧠</div>
-            <p id="alfawz-profile-memorized-count" class="alfawz-profile-card-value">0</p>
-            <p class="alfawz-profile-label"><?php esc_html_e( 'Verses Memorized', 'alfawzquran' ); ?></p>
+            <p id="alfawz-profile-memorized-count" class="alfawz-profile-card-value text-2xl sm:text-4xl">0</p>
+            <p class="alfawz-profile-label text-lg sm:text-xl"><?php esc_html_e( 'Verses Memorized', 'alfawzquran' ); ?></p>
         </article>
         <article class="alfawz-profile-card" data-animate="fade">
             <div class="alfawz-profile-card-icon" aria-hidden="true">📖</div>
-            <p id="alfawz-profile-read-count" class="alfawz-profile-card-value">0</p>
-            <p class="alfawz-profile-label"><?php esc_html_e( 'Verses Read', 'alfawzquran' ); ?></p>
+            <p id="alfawz-profile-read-count" class="alfawz-profile-card-value text-2xl sm:text-4xl">0</p>
+            <p class="alfawz-profile-label text-lg sm:text-xl"><?php esc_html_e( 'Verses Read', 'alfawzquran' ); ?></p>
         </article>
         <article class="alfawz-profile-card" data-animate="fade">
             <div class="alfawz-profile-card-icon animate-pulse" aria-hidden="true">🔥</div>
-            <p id="alfawz-profile-current-streak" class="alfawz-profile-card-value">0</p>
-            <p class="alfawz-profile-label"><?php esc_html_e( 'Current Streak', 'alfawzquran' ); ?></p>
+            <p id="alfawz-profile-current-streak" class="alfawz-profile-card-value text-2xl sm:text-4xl">0</p>
+            <p class="alfawz-profile-label text-lg sm:text-xl"><?php esc_html_e( 'Current Streak', 'alfawzquran' ); ?></p>
         </article>
         <article class="alfawz-profile-card" data-animate="fade">
             <div class="alfawz-profile-card-icon" aria-hidden="true">📝</div>
-            <p id="alfawz-profile-active-plans" class="alfawz-profile-card-value">0</p>
-            <p class="alfawz-profile-label"><?php esc_html_e( 'Active Plans', 'alfawzquran' ); ?></p>
+            <p id="alfawz-profile-active-plans" class="alfawz-profile-card-value text-2xl sm:text-4xl">0</p>
+            <p class="alfawz-profile-label text-lg sm:text-xl"><?php esc_html_e( 'Active Plans', 'alfawzquran' ); ?></p>
         </article>
     </section>
 
