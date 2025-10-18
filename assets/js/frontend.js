@@ -4341,7 +4341,7 @@
             </div>
           </td>
           <td class="px-6 py-4 text-right">
-            <div class="inline-flex items-center justify-end gap-2 rounded-full bg-gradient-to-r from-[#a83254] via-[#d44f6a] to-[#f4a261] px-4 py-2 text-sm font-bold text-white shadow-lg shadow-[#a83254]/30 ring-1 ring-white/50">
+            <div class="inline-flex items-center justify-end gap-2 rounded-full bg-gradient-to-r from-[#5b0a1b] via-[#87203a] to-[#f8e8da] px-4 py-2 text-sm font-bold text-white shadow-lg shadow-[#5b0a1b]/35 ring-1 ring-white/40">
               <span class="inline-flex h-2.5 w-2.5 rounded-full bg-white/80 animate-pulse"></span>
               <span class="tracking-wide drop-shadow-sm">${formatNumber(entry?.total_hasanat || 0)}</span>
               <span class="text-xs font-semibold uppercase text-white/80">Hasanat</span>
