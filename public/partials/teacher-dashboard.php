@@ -133,7 +133,7 @@ $qaidah_markup = ob_get_clean();
                 <p class="mt-3 text-base leading-relaxed text-[#502032]"><?php esc_html_e( 'Design immersive Qa’idah sets with voice, rhythm, and repetition that students can replay anytime.', 'alfawzquran' ); ?></p>
                 <div class="mt-8 flex items-center justify-between gap-4">
                     <span class="text-sm font-semibold text-[#7b1e3c]" data-alfawz-metric="assignments" data-label="<?php esc_attr_e( 'assignments sent', 'alfawzquran' ); ?>"><?php esc_html_e( 'Loading…', 'alfawzquran' ); ?></span>
-                    <a href="?page=alfawz_qaidah" class="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#7b1e3c] via-[#ab2c54] to-[#5a0f27] px-5 py-2 text-base font-semibold text-white shadow-lg shadow-[#2b0618]/30 transition hover:shadow-[#2b0618]/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#f3b694]">
+                    <a href="?page=alfawz_qaidah" class="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#6a0f2b] via-[#9c2245] to-[#f2d5c8] px-5 py-2 text-base font-semibold text-white shadow-lg shadow-[#2b0618]/30 transition hover:shadow-[#2b0618]/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#f5cbb0]">
                         <?php esc_html_e( 'Create assignment →', 'alfawzquran' ); ?>
                     </a>
                 </div>
@@ -148,7 +148,7 @@ $qaidah_markup = ob_get_clean();
                 <p class="mt-3 text-base leading-relaxed text-[#243764]"><?php esc_html_e( 'Review streaks, pacing, and celebrate golden moments where a learner blossoms.', 'alfawzquran' ); ?></p>
                 <div class="mt-8 flex items-center justify-between gap-4">
                     <span class="text-sm font-semibold text-[#1f2a5b]" data-alfawz-metric="memorization" data-label="<?php esc_attr_e( 'students tracked', 'alfawzquran' ); ?>"><?php esc_html_e( 'Loading…', 'alfawzquran' ); ?></span>
-                    <a href="#alfawz-teacher-memorization" class="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#1f2a5b] via-[#3c4ba3] to-[#15214a] px-5 py-2 text-base font-semibold text-white shadow-lg shadow-[#1b1f3b]/30 transition hover:shadow-[#1b1f3b]/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#94b0ff]">
+                    <a href="#alfawz-teacher-memorization" class="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#6a0f2b] via-[#9c2245] to-[#f2d5c8] px-5 py-2 text-base font-semibold text-white shadow-lg shadow-[#2b0618]/30 transition hover:shadow-[#2b0618]/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#f5cbb0]">
                         <?php esc_html_e( 'View progress →', 'alfawzquran' ); ?>
                     </a>
                 </div>
