@@ -223,6 +223,11 @@
   border-color: rgba(79, 70, 229, 0.45);
 }
 
+#alfawz-recitation-assistant #alfawz-recitation-status {
+  color: #f8f4e3;
+  font-size: calc(1.3 * 0.875rem);
+}
+
 #alfawz-recitation-assistant .alfawz-recitation-visualizer {
   display: flex;
   align-items: flex-end;
