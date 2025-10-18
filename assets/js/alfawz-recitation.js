@@ -750,6 +750,12 @@
     const trimmed = rawText.trim();
 
     if (contentType.includes('application/json')) {
+      if (trimmed.startsWith('<')) {
+        console.warn(
+          '[Alfawz Recitation] Expected JSON response but received HTML payload despite JSON content type'
+        );
+        return null;
+      }
       try {
         return JSON.parse(trimmed);
       } catch (error) {
