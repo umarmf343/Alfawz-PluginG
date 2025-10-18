@@ -255,6 +255,8 @@ class Frontend {
                     'livePreviewListening' => __('Listening live… Mistakes will appear here instantly.', 'alfawzquran'),
                     'livePreviewUnavailable' => __('Real-time cues will appear once the reference verse is ready.', 'alfawzquran'),
                     'livePreviewTitle' => __('Live detection', 'alfawzquran'),
+                    'blurEnableLabel' => __('Blur verse', 'alfawzquran'),
+                    'blurDisableLabel' => __('Show verse', 'alfawzquran'),
                 ],
             ]);
         }

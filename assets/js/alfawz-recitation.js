@@ -21,6 +21,7 @@
     scoreValue: '#alfawz-recitation-score-value',
     verse: '#alfawz-recitation-verse',
     translation: '#alfawz-recitation-translation',
+    transliteration: '#alfawz-recitation-transliteration',
     updated: '#alfawz-recitation-updated',
     mistakes: '#alfawz-recitation-mistakes',
     snippets: '#alfawz-recitation-snippets',
@@ -28,6 +29,7 @@
     historyClose: '#alfawz-recitation-history-close',
     historyPanel: '#alfawz-recitation-history',
     historyList: '#alfawz-recitation-history-list',
+    blurToggle: '#alfawz-recitation-blur-toggle',
   };
 
   const el = Object.fromEntries(
@@ -64,6 +66,8 @@
       livePreviewListening: 'Listening live… Mistakes will appear here instantly.',
       livePreviewUnavailable: 'Real-time cues will appear once the reference verse is ready.',
       livePreviewTitle: 'Live detection',
+      blurEnableLabel: 'Blur verse',
+      blurDisableLabel: 'Show verse',
     },
     ...(config.strings || {}),
   };
@@ -79,6 +83,42 @@
     pendingTranscript: '',
     sessionStartedAt: null,
     previewActive: false,
+    isVerseBlurred: false,
+  };
+
+  const applyVerseBlur = () => {
+    const shouldBlur = state.isVerseBlurred && !!state.currentVerse;
+    root.classList.toggle('is-verse-blurred', shouldBlur);
+  };
+
+  const updateBlurToggleLabel = () => {
+    if (!el.blurToggle) {
+      return;
+    }
+    const isActive = state.isVerseBlurred && !!state.currentVerse;
+    const label = isActive
+      ? strings.blurDisableLabel || 'Show verse'
+      : strings.blurEnableLabel || 'Blur verse';
+    const textSpan = el.blurToggle.querySelector('[data-label]');
+    if (textSpan) {
+      textSpan.textContent = label || '';
+    }
+    el.blurToggle.dataset.active = isActive ? 'true' : 'false';
+    el.blurToggle.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+    el.blurToggle.disabled = !state.currentVerse;
+  };
+
+  const updateBlurState = (blurred) => {
+    state.isVerseBlurred = !!blurred;
+    applyVerseBlur();
+    updateBlurToggleLabel();
+  };
+
+  const toggleVerseBlur = () => {
+    if (!state.currentVerse) {
+      return;
+    }
+    updateBlurState(!state.isVerseBlurred);
   };
 
   const audio = {
@@ -247,7 +287,9 @@
       return;
     }
     const sources = [detail.transliteration, detail.translation, detail.arabic];
-    const sourceText = sources.find((value) => typeof value === 'string' && value.trim());
+    const sourceText = sources
+      .map((value) => (typeof value === 'string' ? value.trim() : ''))
+      .find((value) => value);
     state.expectedWords = tokenizePhrase(normalizeTranscript(sourceText || ''));
   };
 
@@ -471,26 +513,45 @@
     state.pendingTranscript = '';
     state.previewActive = false;
     updateExpectedWords(state.currentVerse);
+    applyVerseBlur();
+    updateBlurToggleLabel();
 
     if (el.verse) {
       if (!state.currentVerse) {
         el.verse.textContent = strings.idle || 'Tap begin listening when you are ready to recite.';
       } else {
+        const arabicText = typeof verse.arabic === 'string' ? verse.arabic.trim() : '';
+        el.verse.textContent = arabicText || verse.verseKey || '';
+      }
+    }
+
+    if (el.translation) {
+      const translationText = typeof verse.translation === 'string' ? verse.translation.trim() : '';
+      el.translation.textContent = translationText;
+      el.translation.classList.toggle('hidden', !translationText);
+    }
+
+    if (el.transliteration) {
+      const transliterationText = typeof verse.transliteration === 'string' ? verse.transliteration.trim() : '';
+      el.transliteration.textContent = transliterationText;
+      el.transliteration.classList.toggle('hidden', !transliterationText);
+    }
+
+    if (el.updated) {
+      if (!state.currentVerse) {
+        el.updated.textContent = '';
+      } else {
         const verseLabelParts = [];
-        const surahLabel = window.wp?.i18n?.__( 'Surah', 'alfawzquran' ) || 'Surah';
-        const ayahLabel = window.wp?.i18n?.__( 'Ayah', 'alfawzquran' ) || 'Ayah';
+        const surahLabel = window.wp?.i18n?.__('Surah', 'alfawzquran') || 'Surah';
+        const ayahLabel = window.wp?.i18n?.__('Ayah', 'alfawzquran') || 'Ayah';
         if (verse.surahId) {
           verseLabelParts.push(`${surahLabel} ${verse.surahId}`);
         }
         if (verse.verseId) {
           verseLabelParts.push(`${ayahLabel} ${verse.verseId}`);
         }
-        el.verse.textContent = verseLabelParts.length ? verseLabelParts.join(' • ') : verse.verseKey;
+        el.updated.textContent = verseLabelParts.join(' • ');
       }
-    }
-
-    if (el.translation) {
-      el.translation.textContent = verse.translation || '';
     }
 
     if (el.toggle) {
@@ -748,23 +809,31 @@
     }
 
     const trimmed = rawText.trim();
+    const sanitized = trimmed.replace(/^\uFEFF/, '');
 
     if (contentType.includes('application/json')) {
+      if (!sanitized) {
+        return null;
+      }
       try {
-        return JSON.parse(trimmed);
+        return JSON.parse(sanitized);
       } catch (error) {
         console.warn('[Alfawz Recitation] Invalid JSON response', error);
         return null;
       }
     }
 
-    if (trimmed.startsWith('<')) {
+    if (sanitized.startsWith('<')) {
       console.warn('[Alfawz Recitation] Expected JSON response but received HTML payload');
       return null;
     }
 
+    if (!sanitized) {
+      return null;
+    }
+
     try {
-      return JSON.parse(trimmed);
+      return JSON.parse(sanitized);
     } catch (error) {
       console.warn('[Alfawz Recitation] Expected JSON response but received non-JSON payload', error);
       return null;
@@ -1049,6 +1118,10 @@
 
   if (el.historyClose) {
     el.historyClose.addEventListener('click', () => toggleHistory(false));
+  }
+
+  if (el.blurToggle) {
+    el.blurToggle.addEventListener('click', toggleVerseBlur);
   }
 
   if (!hasRecognitionSupport) {

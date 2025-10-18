@@ -233,6 +233,10 @@ if ( ! defined( 'ABSPATH' ) ) {
                                 <span aria-hidden="true"><img draggable="false" role="img" class="emoji" alt="🗂️" src="https://s.w.org/images/core/emoji/16.0.1/svg/1f5c2.svg" /></span>
                                 <span><?php esc_html_e( 'View last reviews', 'alfawzquran' ); ?></span>
                             </button>
+                            <button type="button" id="alfawz-recitation-blur-toggle" class="inline-flex items-center gap-2 rounded-2xl border border-white/50 px-4 py-2 text-sm font-semibold text-white/90 transition hover:-translate-y-0.5 hover:border-white hover:text-white focus:outline-none focus:ring-2 focus:ring-white/40" aria-pressed="false">
+                                <span aria-hidden="true"><img draggable="false" role="img" class="emoji" alt="🙈" src="https://s.w.org/images/core/emoji/16.0.1/svg/1f648.svg" /></span>
+                                <span data-label><?php esc_html_e( 'Blur verse', 'alfawzquran' ); ?></span>
+                            </button>
                         </div>
                         <p id="alfawz-recitation-status" class="text-sm text-indigo-200"><?php esc_html_e( 'Listening… recite the ayah clearly.', 'alfawzquran' ); ?></p>
                         <div id="alfawz-recitation-visualizer" class="alfawz-recitation-visualizer mt-4" aria-hidden="true" data-visualizing="true">
@@ -243,8 +247,11 @@ if ( ! defined( 'ABSPATH' ) ) {
                         <div class="rounded-3xl border border-white/20 bg-gradient-to-br from-white/30 via-rose-200/20 to-indigo-200/20 p-6 text-center shadow-xl backdrop-blur">
                             <p class="text-3xl font-semibold uppercase tracking-[0.3em] text-white/90"><?php esc_html_e( 'Accuracy score', 'alfawzquran' ); ?></p>
                             <p id="alfawz-recitation-score-value" class="mt-2 text-[6.75rem] font-bold text-white" data-preview="true">--</p>
-                            <p id="alfawz-recitation-verse" class="mt-1 text-4xl text-white/90"><?php esc_html_e( 'Surah 106 • Ayah 1', 'alfawzquran' ); ?></p>
-                            <p id="alfawz-recitation-translation" class="mt-2 text-4xl italic text-white/80"><?php esc_html_e( 'For the accustomed security of the Quraysh -', 'alfawzquran' ); ?></p>
+                            <p id="alfawz-recitation-verse" class="mt-1 text-4xl leading-snug text-white/90"><?php esc_html_e( 'Surah 106 • Ayah 1', 'alfawzquran' ); ?></p>
+                            <p id="alfawz-recitation-transliteration" class="mt-2 text-2xl text-white/80">
+                                <?php esc_html_e( 'Li-eelafi Quraysh.', 'alfawzquran' ); ?>
+                            </p>
+                            <p id="alfawz-recitation-translation" class="mt-2 text-3xl italic text-white/80"><?php esc_html_e( 'For the accustomed security of the Quraysh -', 'alfawzquran' ); ?></p>
                             <p id="alfawz-recitation-updated" class="mt-2 text-3xl uppercase tracking-[0.25em] text-white/60"></p>
                         </div>
                     </div>
