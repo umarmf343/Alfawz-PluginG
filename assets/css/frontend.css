@@ -6223,36 +6223,59 @@ body.alfawz-qaidah-modal-open {
 .alfawz-reflection-item {
   background: #fff;
   border-radius: 1rem;
-  padding: 0.8rem 1rem;
+  padding: 0;
   box-shadow: 0 12px 28px rgba(83, 18, 38, 0.15);
-  position: relative;
+  overflow: hidden;
 }
 
-.alfawz-reflection-item strong {
+.alfawz-reflection-entry {
+  display: block;
+}
+
+.alfawz-reflection-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.85rem 1rem;
+  cursor: pointer;
+  list-style: none;
+}
+
+.alfawz-reflection-summary::-webkit-details-marker {
+  display: none;
+}
+
+.alfawz-reflection-summary strong {
   font-size: calc(var(--alfawz-text-small) * 1.5);
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: #b54760;
 }
 
-.alfawz-reflection-item time {
+.alfawz-reflection-summary time {
   font-size: calc(var(--alfawz-text-small) * 1.5);
   color: rgba(112, 26, 46, 0.6);
-  display: block;
-  margin-top: 0.2rem;
+  margin-left: auto;
 }
 
-.alfawz-reflection-item p {
+.alfawz-reflection-details {
+  padding: 0 1rem 1rem;
+  border-top: 1px solid rgba(181, 71, 96, 0.25);
+}
+
+.alfawz-reflection-details p {
   font-size: calc(var(--alfawz-text-small) * 1.5);
   color: #4d1224;
-  margin-top: 0.35rem;
+  margin-top: 0.85rem;
   line-height: 1.5;
 }
 
-.alfawz-reflection-item button {
-  position: absolute;
-  top: 0.75rem;
-  right: 0.9rem;
+.alfawz-reflection-details button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-top: 0.85rem;
   border: none;
   background: none;
   color: #c05369;
@@ -6260,7 +6283,7 @@ body.alfawz-qaidah-modal-open {
   cursor: pointer;
 }
 
-.alfawz-reflection-item button:hover {
+.alfawz-reflection-details button:hover {
   text-decoration: underline;
 }
 
