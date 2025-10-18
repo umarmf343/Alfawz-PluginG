@@ -55,15 +55,15 @@ if ( ! defined( 'ABSPATH' ) ) {
                     </p>
                 </div>
             </article>
-            <article class="relative overflow-hidden rounded-[26px] bg-gradient-to-br from-sky-500 via-indigo-500 to-violet-500 p-8 text-white shadow-xl">
-                <div class="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.18),_transparent_70%)]"></div>
-                <div class="pointer-events-none absolute -bottom-16 -right-20 h-48 w-48 rounded-full bg-cyan-300/40 blur-3xl"></div>
+            <article class="relative overflow-hidden rounded-[26px] bg-gradient-to-br from-[#7a1a31] via-[#9f3a4a] to-[#f9e8df] p-8 text-white shadow-xl">
+                <div class="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.28),_transparent_68%)]"></div>
+                <div class="pointer-events-none absolute -bottom-16 -right-20 h-48 w-48 rounded-full bg-[#fbeee4]/60 blur-3xl"></div>
                 <div class="relative flex flex-col gap-5">
-                    <span class="inline-flex h-16 w-16 items-center justify-center rounded-full bg-white/30 text-4xl text-sky-800 shadow-lg">🌟</span>
-                    <h3 class="text-4xl font-semibold leading-tight text-amber-100">
+                    <span class="inline-flex h-16 w-16 items-center justify-center rounded-full bg-white/35 text-4xl text-[#7a1a31] shadow-lg">🌟</span>
+                    <h3 class="text-4xl font-semibold leading-tight text-[#fdf3ea]">
                         <?php esc_html_e( 'Track your glow', 'alfawzquran' ); ?>
                     </h3>
-                    <p class="text-2xl leading-relaxed text-[#36454F]">
+                    <p class="text-2xl leading-relaxed text-[#fef9f5]">
                         <?php esc_html_e( 'Spot completed lessons instantly—finished cards shimmer so you know where to focus next.', 'alfawzquran' ); ?>
                     </p>
                 </div>
