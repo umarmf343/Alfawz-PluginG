@@ -685,24 +685,42 @@
       }
       const maxThreshold = plant.xpThresholds[plant.xpThresholds.length - 1] || 0;
       const isMax = plant.stage >= plant.stageTitles.length - 1 && plant.xp >= maxThreshold;
+      const labelEl = plant.elements?.buttonLabel;
       if (isMax) {
         button.disabled = true;
         button.classList.add('cursor-not-allowed', 'opacity-60');
-        button.textContent = strings.gardenNurtureMax || 'Fully Bloomed';
+        if (labelEl) {
+          labelEl.textContent = strings.gardenNurtureMax || 'Fully Bloomed';
+          labelEl.classList.add('opacity-80');
+        } else {
+          button.textContent = strings.gardenNurtureMax || 'Fully Bloomed';
+        }
         button.setAttribute('aria-disabled', 'true');
         return;
       }
       const cost = calculateNurtureCost(plant);
       const labelTemplate = strings.gardenNurtureLabel || 'Nurture (-{cost} seeds)';
-      button.textContent = labelTemplate.replace('{cost}', formatNumber(cost));
+      const labelText = labelTemplate.replace('{cost}', formatNumber(cost));
+      if (labelEl) {
+        labelEl.textContent = labelText;
+        labelEl.classList.remove('opacity-80');
+      } else {
+        button.textContent = labelText;
+      }
       const disabled = gardenState.seeds < cost;
       button.disabled = disabled;
       if (disabled) {
         button.classList.add('cursor-not-allowed', 'opacity-60');
         button.setAttribute('aria-disabled', 'true');
+        if (labelEl) {
+          labelEl.classList.add('opacity-80');
+        }
       } else {
         button.classList.remove('cursor-not-allowed', 'opacity-60');
         button.removeAttribute('aria-disabled');
+        if (labelEl) {
+          labelEl.classList.remove('opacity-80');
+        }
       }
     });
   };
@@ -826,7 +844,18 @@
     const button = document.createElement('button');
     button.type = 'button';
     button.className =
-      'mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#f7a7b7] via-[#ffce8c] to-[#ffe8b9] px-4 py-2 text-sm font-semibold text-[#431028] shadow-lg shadow-[#4d081d]/20 transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#ffe2d5]/80 focus-visible:ring-offset-2 focus-visible:ring-offset-white hover:-translate-y-0.5 hover:brightness-110';
+      'mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#7649ff] via-[#ff66c4] to-[#ffd166] px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-[#32124d]/25 transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#ffd8f2]/80 focus-visible:ring-offset-2 focus-visible:ring-offset-white hover:-translate-y-0.5 hover:brightness-110';
+
+    const buttonLabel = document.createElement('span');
+    buttonLabel.className =
+      'nurture-button-label bg-gradient-to-r from-[#52f2ff] via-[#ff6ad5] to-[#ffe066] bg-clip-text text-[1.05rem] font-semibold leading-tight text-transparent';
+    const initialCost = calculateNurtureCost(plant);
+    const initialLabel = (strings.gardenNurtureLabel || 'Nurture (-{cost} seeds)').replace(
+      '{cost}',
+      formatNumber(initialCost)
+    );
+    buttonLabel.textContent = initialLabel;
+    button.appendChild(buttonLabel);
     button.addEventListener('click', (event) => {
       event.preventDefault();
       nurtureGardenPlant(plant);
@@ -840,6 +869,7 @@
       progressBar,
       progressValue,
       button,
+      buttonLabel,
     };
 
     updateGardenPlantCard(plant);
