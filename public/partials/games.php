@@ -568,10 +568,10 @@ if ( ! defined( 'ABSPATH' ) ) {
                     <button
                         id="alfawz-egg-play"
                         type="button"
-                        class="relative mt-6 inline-flex items-center gap-2 rounded-full bg-[#8b1e3f] px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-[#4d081d]/25 transition-all duration-300 hover:-translate-y-1 hover:bg-[#a02249] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#8b1e3f]/60 focus-visible:ring-offset-2"
+                        class="relative mt-6 inline-flex items-center gap-2 rounded-full bg-[#8b1e3f] px-6 py-2.5 text-base font-semibold text-white shadow-lg shadow-[#4d081d]/25 transition-all duration-300 hover:-translate-y-1 hover:bg-[#a02249] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#8b1e3f]/60 focus-visible:ring-offset-2"
                     >
-                        <span aria-hidden="true" class="text-base">▶</span>
-                        <span data-role="alfawz-egg-play-label"><?php esc_html_e( 'Play Now', 'alfawzquran' ); ?></span>
+                        <span aria-hidden="true" class="bg-gradient-to-r from-cyan-300 via-sky-400 to-indigo-500 bg-clip-text text-[1.2rem] text-transparent">▶</span>
+                        <span data-role="alfawz-egg-play-label" class="bg-gradient-to-r from-amber-300 via-rose-400 to-purple-500 bg-clip-text text-[1.2rem] text-transparent"><?php esc_html_e( 'Play Now', 'alfawzquran' ); ?></span>
                     </button>
                 </div>
             </section>
