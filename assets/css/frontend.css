@@ -816,6 +816,71 @@
   margin: 0;
   font-size: var(--alfawz-text-small);
   color: rgba(79, 13, 24, 0.7);
+  position: relative;
+  z-index: 1;
+}
+
+.alfawz-egg-message-wrapper {
+  position: relative;
+  display: block;
+}
+
+.alfawz-egg-message-shower-host {
+  position: absolute;
+  top: -0.75rem;
+  left: 50%;
+  width: 130%;
+  height: calc(100% + 1.5rem);
+  transform: translateX(-50%);
+  pointer-events: none;
+  overflow: visible;
+  z-index: 0;
+}
+
+.alfawz-egg-message-shower {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 160ms ease-out;
+}
+
+.alfawz-egg-message-shower.is-active {
+  opacity: 1;
+}
+
+.alfawz-egg-message-shower.is-leaving {
+  opacity: 0;
+}
+
+.alfawz-egg-message-shower__drop {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  margin-left: var(--alfawz-drop-x, 0%);
+  width: 0.65rem;
+  height: 1.1rem;
+  border-radius: 9999px;
+  background: linear-gradient(180deg, hsla(var(--alfawz-drop-hue, 342), 85%, 78%, 0.95), hsla(var(--alfawz-drop-hue, 342), 76%, 66%, 0.85));
+  transform: translate(-50%, -120%) scale(var(--alfawz-drop-scale, 1));
+  opacity: 0;
+  filter: drop-shadow(0 0.35rem 0.45rem rgba(255, 200, 220, 0.35));
+  animation: alfawz-egg-message-drop var(--alfawz-drop-duration, 820ms) cubic-bezier(0.16, 0.84, 0.39, 1.02) forwards;
+  animation-delay: var(--alfawz-drop-delay, 0ms);
+}
+
+@keyframes alfawz-egg-message-drop {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -120%) scale(var(--alfawz-drop-scale, 1.05));
+  }
+  20% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, 140%) scale(calc(var(--alfawz-drop-scale, 1) * 0.85));
+  }
 }
 
 .alfawz-verse-nav {

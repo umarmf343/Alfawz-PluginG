@@ -51,7 +51,10 @@ if ( ! defined( 'ABSPATH' ) ) {
                     </div>
                     <div class="alfawz-egg-stats">
                         <span id="alfawz-egg-count" class="alfawz-egg-count">0 / 0</span>
-                        <p id="alfawz-egg-message" class="alfawz-egg-message"><?php esc_html_e( 'Keep reading to hatch the surprise.', 'alfawzquran' ); ?></p>
+                        <div class="alfawz-egg-message-wrapper">
+                            <p id="alfawz-egg-message" class="alfawz-egg-message"><?php esc_html_e( 'Keep reading to hatch the surprise.', 'alfawzquran' ); ?></p>
+                            <span class="alfawz-egg-message-shower-host" data-role="alfawz-egg-message-splash" aria-hidden="true"></span>
+                        </div>
                     </div>
                 </div>
             </div>

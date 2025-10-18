@@ -574,9 +574,12 @@ if ( ! defined( 'ABSPATH' ) ) {
                     <h3 id="alfawz-egg-title" class="relative mt-4 text-2xl font-black text-[#5f0d26]">
                         <?php esc_html_e( 'Hatch the Knowledge Egg!', 'alfawzquran' ); ?>
                     </h3>
-                    <p id="alfawz-egg-message" class="relative mt-3 text-lg font-medium text-[#7a0f32]">
-                        <?php esc_html_e( 'Recite verses to crack it open.', 'alfawzquran' ); ?>
-                    </p>
+                    <div class="alfawz-egg-message-wrapper relative mt-3">
+                        <p id="alfawz-egg-message" class="relative text-lg font-medium text-[#7a0f32]">
+                            <?php esc_html_e( 'Recite verses to crack it open.', 'alfawzquran' ); ?>
+                        </p>
+                        <span class="alfawz-egg-message-shower-host" data-role="alfawz-egg-message-splash" aria-hidden="true"></span>
+                    </div>
                     <div class="relative mt-6 h-3 w-full overflow-hidden rounded-full bg-[#f2d7cf]/80">
                         <div id="alfawz-egg-progress" class="h-full rounded-full bg-gradient-to-r from-[#8b1e3f] via-[#c43a59] to-[#ffb8c4] transition-all duration-500" style="width:0%"></div>
                     </div>
