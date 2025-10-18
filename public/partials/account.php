@@ -110,427 +110,230 @@ if ( $is_logged_in && $current_user instanceof WP_User ) {
     }
 }
 
-if ( ! function_exists( 'alfawz_get_allowed_login_form_tags' ) ) {
-    /**
-     * Returns a list of tags and attributes that should be preserved when rendering login forms.
-     *
-     * @return array
-     */
-    function alfawz_get_allowed_login_form_tags() {
-        $allowed = wp_kses_allowed_html( 'post' );
+$role_redirects = [
+    'student' => [
+        'label'       => __( 'Student Portal', 'alfawzquran' ),
+        'description' => __( 'Track memorization, goals, and progress.', 'alfawzquran' ),
+        'redirect'    => $student_redirect,
+    ],
+    'teacher' => [
+        'label'       => __( 'Teacher Portal', 'alfawzquran' ),
+        'description' => __( 'Review recitations and guide your class.', 'alfawzquran' ),
+        'redirect'    => $teacher_redirect,
+    ],
+    'admin' => [
+        'label'       => __( 'Administrator Portal', 'alfawzquran' ),
+        'description' => __( 'Manage classes, roles, and school insights.', 'alfawzquran' ),
+        'redirect'    => $admin_redirect,
+    ],
+];
 
-        $allowed['form'] = [
-            'action'       => true,
-            'method'       => true,
-            'id'           => true,
-            'class'        => true,
-            'name'         => true,
-            'autocomplete' => true,
-            'novalidate'   => true,
-        ];
+$logo_url = defined( 'ALFAWZQURAN_PLUGIN_URL' )
+    ? ALFAWZQURAN_PLUGIN_URL . 'public/placeholder-logo.png'
+    : plugins_url( 'public/placeholder-logo.png', dirname( __DIR__, 2 ) . '/alfawzquran.php' );
 
-        $allowed['input'] = [
-            'type'             => true,
-            'name'             => true,
-            'value'            => true,
-            'id'               => true,
-            'class'            => true,
-            'placeholder'      => true,
-            'checked'          => true,
-            'autocomplete'     => true,
-            'required'         => true,
-            'aria-required'    => true,
-            'inputmode'        => true,
-            'size'             => true,
-            'maxlength'        => true,
-            'minlength'        => true,
-            'pattern'          => true,
-            'step'             => true,
-            'aria-describedby' => true,
-            'aria-label'       => true,
-        ];
-
-        $allowed['label'] = [
-            'for'   => true,
-            'class' => true,
-        ];
-
-        $allowed['p'] = array_merge(
-            isset( $allowed['p'] ) ? $allowed['p'] : [],
-            [
-                'class' => true,
-            ]
-        );
-
-        $allowed['div'] = array_merge(
-            isset( $allowed['div'] ) ? $allowed['div'] : [],
-            [
-                'class' => true,
-            ]
-        );
-
-        return $allowed;
-    }
-}
-
-if ( ! function_exists( 'alfawz_customize_login_form_fields' ) ) {
-    /**
-     * Adds placeholders and accessibility attributes to the Alfawz login forms.
-     *
-     * @param string $form_html The rendered form HTML.
-     * @param array  $args      Arguments controlling how inputs are enhanced.
-     *
-     * @return string
-     */
-    function alfawz_customize_login_form_fields( $form_html, $args = [] ) {
-        $defaults = [
-            'id_username'          => '',
-            'id_password'          => '',
-            'placeholder_username' => '',
-            'placeholder_password' => '',
-        ];
-
-        $args = wp_parse_args( $args, $defaults );
-
-        if ( empty( $form_html ) ) {
-            return $form_html;
-        }
-
-        if ( ! empty( $args['id_username'] ) && ! empty( $args['placeholder_username'] ) ) {
-            $pattern     = sprintf( '/id="%s"/', preg_quote( $args['id_username'], '/' ) );
-            $replacement = sprintf(
-                'id="%1$s" placeholder="%2$s" autocomplete="username" inputmode="email" required aria-required="true"',
-                esc_attr( $args['id_username'] ),
-                esc_attr( $args['placeholder_username'] )
-            );
-            $form_html   = preg_replace( $pattern, $replacement, $form_html, 1 );
-        }
-
-        if ( ! empty( $args['id_password'] ) && ! empty( $args['placeholder_password'] ) ) {
-            $pattern     = sprintf( '/id="%s"/', preg_quote( $args['id_password'], '/' ) );
-            $replacement = sprintf(
-                'id="%1$s" placeholder="%2$s" autocomplete="current-password" required aria-required="true"',
-                esc_attr( $args['id_password'] ),
-                esc_attr( $args['placeholder_password'] )
-            );
-            $form_html   = preg_replace( $pattern, $replacement, $form_html, 1 );
-        }
-
-        return $form_html;
-    }
-}
-
-$student_form = '';
-$teacher_form = '';
-$admin_form   = '';
-
-if ( ! $is_logged_in ) {
-    $student_form = wp_login_form(
-        [
-            'echo'           => false,
-            'remember'       => true,
-            'form_id'        => 'alfawz-student-login-form',
-            'label_username' => __( 'Email or Username', 'alfawzquran' ),
-            'label_password' => __( 'Password', 'alfawzquran' ),
-            'label_remember' => __( 'Stay signed in', 'alfawzquran' ),
-            'label_log_in'   => __( 'Login as Student', 'alfawzquran' ),
-            'id_username'    => 'alfawz-student-username',
-            'id_password'    => 'alfawz-student-password',
-            'id_remember'    => 'alfawz-student-remember',
-            'id_submit'      => 'alfawz-student-submit',
-            'redirect'       => $student_redirect,
-        ]
-    );
-
-    $student_form = alfawz_customize_login_form_fields(
-        $student_form,
-        [
-            'id_username'          => 'alfawz-student-username',
-            'id_password'          => 'alfawz-student-password',
-            'placeholder_username' => __( 'Enter your email address', 'alfawzquran' ),
-            'placeholder_password' => __( 'Enter your password', 'alfawzquran' ),
-        ]
-    );
-
-    $teacher_form = wp_login_form(
-        [
-            'echo'           => false,
-            'remember'       => true,
-            'form_id'        => 'alfawz-teacher-login-form',
-            'label_username' => __( 'Email or Username', 'alfawzquran' ),
-            'label_password' => __( 'Password', 'alfawzquran' ),
-            'label_remember' => __( 'Stay signed in', 'alfawzquran' ),
-            'label_log_in'   => __( 'Login as Teacher', 'alfawzquran' ),
-            'id_username'    => 'alfawz-teacher-username',
-            'id_password'    => 'alfawz-teacher-password',
-            'id_remember'    => 'alfawz-teacher-remember',
-            'id_submit'      => 'alfawz-teacher-submit',
-            'redirect'       => $teacher_redirect,
-        ]
-    );
-
-    $teacher_form = alfawz_customize_login_form_fields(
-        $teacher_form,
-        [
-            'id_username'          => 'alfawz-teacher-username',
-            'id_password'          => 'alfawz-teacher-password',
-            'placeholder_username' => __( 'Enter your email address', 'alfawzquran' ),
-            'placeholder_password' => __( 'Enter your password', 'alfawzquran' ),
-        ]
-    );
-
-    $admin_form = wp_login_form(
-        [
-            'echo'           => false,
-            'remember'       => true,
-            'form_id'        => 'alfawz-admin-login-form',
-            'label_username' => __( 'Email or Username', 'alfawzquran' ),
-            'label_password' => __( 'Password', 'alfawzquran' ),
-            'label_remember' => __( 'Stay signed in', 'alfawzquran' ),
-            'label_log_in'   => __( 'Login as Admin', 'alfawzquran' ),
-            'id_username'    => 'alfawz-admin-username',
-            'id_password'    => 'alfawz-admin-password',
-            'id_remember'    => 'alfawz-admin-remember',
-            'id_submit'      => 'alfawz-admin-submit',
-            'redirect'       => $admin_redirect,
-        ]
-    );
-
-    $admin_form = alfawz_customize_login_form_fields(
-        $admin_form,
-        [
-            'id_username'          => 'alfawz-admin-username',
-            'id_password'          => 'alfawz-admin-password',
-            'placeholder_username' => __( 'Enter your email address', 'alfawzquran' ),
-            'placeholder_password' => __( 'Enter your password', 'alfawzquran' ),
-        ]
-    );
-}
+$contact_developer_url = 'https://wa.me/8100362023?text=' . rawurlencode( "Hello! I'd love to learn more about the Advanced SchoolPortal and how it can elevate our school's experience." );
+$home_url             = 'https://victoryeducationalacademy.com.ng/';
+$contact_url          = 'https://victoryeducationalacademy.com.ng/contact';
 ?>
-<div id="alfawz-account" class="alfawz-account-shell relative mx-auto max-w-5xl overflow-hidden px-4 py-12 text-slate-900 sm:px-8 lg:px-0">
-    <div class="alfawz-account-backdrop" aria-hidden="true"></div>
-    <div class="alfawz-account-aurora" aria-hidden="true"></div>
-    <div class="alfawz-account-aurora alfawz-account-aurora--accent" aria-hidden="true"></div>
-    <?php if ( ! empty( $notices ) ) : ?>
-        <div class="alfawz-account-alerts" role="status">
-            <?php foreach ( $notices as $notice ) :
-                $type    = isset( $notice['type'] ) ? $notice['type'] : 'info';
-                $icon    = isset( $notice['icon'] ) ? $notice['icon'] : 'ℹ️';
-                $message = isset( $notice['message'] ) ? $notice['message'] : '';
-
-                if ( empty( $message ) ) {
-                    continue;
-                }
-
-                $class = 'alfawz-account-alert alfawz-account-alert--' . sanitize_html_class( $type );
-                ?>
-                <div class="<?php echo esc_attr( $class ); ?>" role="alert">
-                    <span class="alfawz-account-alert__icon" aria-hidden="true"><?php echo esc_html( $icon ); ?></span>
-                    <p class="alfawz-account-alert__message"><?php echo esc_html( $message ); ?></p>
-                </div>
-            <?php endforeach; ?>
-        </div>
-    <?php endif; ?>
-    <section class="alfawz-account-hero" data-animate="fade">
-        <div class="alfawz-account-hero__content">
-            <span class="alfawz-account-hero__eyebrow"><?php esc_html_e( 'Welcome back to Alfawz', 'alfawzquran' ); ?></span>
-            <h1 class="alfawz-account-hero__title">
-                <?php
-                if ( $is_logged_in && $display_name ) {
-                    printf(
-                        esc_html__( 'Assalamu alaikum, %s', 'alfawzquran' ),
-                        esc_html( $display_name )
-                    );
-                } else {
-                    esc_html_e( 'Choose your learning journey', 'alfawzquran' );
-                }
-                ?>
-            </h1>
-            <p class="alfawz-account-hero__subtitle">
-                <?php
-                if ( $is_logged_in ) {
-                    printf(
-                        esc_html__( 'You are signed in as a %s. Pick a destination to continue.', 'alfawzquran' ),
-                        esc_html( $role_label )
-                    );
-                } else {
-                    esc_html_e( 'Log in as a student to track memorization, as a teacher to guide your class, or as an administrator to orchestrate the programme.', 'alfawzquran' );
-                }
-                ?>
-            </p>
-            <?php if ( $is_logged_in ) : ?>
-                <div class="alfawz-account-hero__actions">
-                    <?php if ( $is_admin_user ) : ?>
-                        <a class="alfawz-account-btn alfawz-account-btn--primary" href="<?php echo esc_url( $admin_portal_url ); ?>">
-                            <?php esc_html_e( 'Open Admin Console', 'alfawzquran' ); ?>
-                        </a>
-                    <?php endif; ?>
-                    <?php if ( $is_student_user ) : ?>
-                        <?php
-                        $student_button_class = $is_admin_user
-                            ? 'alfawz-account-btn alfawz-account-btn--outline'
-                            : 'alfawz-account-btn alfawz-account-btn--primary';
-                        ?>
-                        <a class="<?php echo esc_attr( $student_button_class ); ?>" href="<?php echo esc_url( $student_dashboard_url ); ?>">
-                            <?php esc_html_e( 'Open Student Dashboard', 'alfawzquran' ); ?>
-                        </a>
-                    <?php endif; ?>
-                    <?php if ( $is_teacher_user ) : ?>
-                        <a class="alfawz-account-btn alfawz-account-btn--outline" href="<?php echo esc_url( $teacher_dashboard_url ); ?>">
-                            <?php esc_html_e( 'Go to Teacher Tools', 'alfawzquran' ); ?>
-                        </a>
-                    <?php endif; ?>
-                    <a class="alfawz-account-btn alfawz-account-btn--quiet" href="<?php echo esc_url( $settings_url ); ?>">
-                        <?php esc_html_e( 'Manage preferences', 'alfawzquran' ); ?>
-                    </a>
-                    <?php if ( $is_admin_user ) : ?>
-                        <a class="alfawz-account-btn alfawz-account-btn--quiet" href="<?php echo esc_url( $wp_admin_console_url ); ?>">
-                            <?php esc_html_e( 'Open WordPress Admin', 'alfawzquran' ); ?>
-                        </a>
-                    <?php endif; ?>
-                    <a class="alfawz-account-btn alfawz-account-btn--quiet" href="<?php echo esc_url( $logout_url ); ?>">
-                        <?php esc_html_e( 'Log out', 'alfawzquran' ); ?>
-                    </a>
-                </div>
-            <?php endif; ?>
-        </div>
-        <div class="alfawz-account-hero__visual" aria-hidden="true">
-            <div class="alfawz-account-hero__badge">
-                <span class="alfawz-account-hero__badge-icon">✨</span>
-                <span class="alfawz-account-hero__badge-text"><?php esc_html_e( 'Knowledge Awaits', 'alfawzquran' ); ?></span>
+<div class="min-h-screen bg-gradient-to-br from-green-50 to-yellow-100 flex items-center justify-center p-4">
+    <div class="w-full max-w-md">
+        <div class="text-center mb-8">
+            <div class="flex items-center justify-center mb-4">
+                <img src="<?php echo esc_url( $logo_url ); ?>" alt="Victory Educational Academy logo" class="h-12 w-12 object-contain rounded-md shadow-sm" />
             </div>
-            <div class="alfawz-account-hero__pattern"></div>
+            <h1 class="text-3xl font-bold text-[#2d682d] mb-2"><?php esc_html_e( 'Victory Educational Academy', 'alfawzquran' ); ?></h1>
+            <p class="text-[#b29032]"><?php esc_html_e( 'Victory Educational Academy School Management Portal', 'alfawzquran' ); ?></p>
         </div>
-    </section>
-
-    <?php if ( ! $is_logged_in ) : ?>
-        <section class="alfawz-account-grid" aria-labelledby="alfawz-account-options">
-            <h2 id="alfawz-account-options" class="screen-reader-text"><?php esc_html_e( 'Account options', 'alfawzquran' ); ?></h2>
-
-            <article class="alfawz-account-card" data-animate="fade">
-                <header class="alfawz-account-card__header">
-                    <div class="alfawz-account-card__icon" aria-hidden="true">👩‍🎓</div>
-                    <div>
-                        <h3 class="alfawz-account-card__title"><?php esc_html_e( 'Student Login', 'alfawzquran' ); ?></h3>
-                        <p class="alfawz-account-card__description"><?php esc_html_e( 'Recite, memorize, and track your Qur’an journey with gentle reminders.', 'alfawzquran' ); ?></p>
-                    </div>
-                </header>
-                <ul class="alfawz-account-card__list" role="list">
-                    <li><?php esc_html_e( 'Daily goals and streak tracking', 'alfawzquran' ); ?></li>
-                    <li><?php esc_html_e( 'Interactive memorization tools', 'alfawzquran' ); ?></li>
-                    <li><?php esc_html_e( 'Earn hasanat with every letter recited', 'alfawzquran' ); ?></li>
-                </ul>
-                <div class="alfawz-login-form">
-                    <?php echo wp_kses( $student_form, alfawz_get_allowed_login_form_tags() ); ?>
-                </div>
-                <footer class="alfawz-account-card__footer">
-                    <a href="<?php echo esc_url( $lost_password ); ?>" class="alfawz-account-link"><?php esc_html_e( 'Forgot password?', 'alfawzquran' ); ?></a>
-                    <?php if ( $register_url ) : ?>
-                        <a href="<?php echo esc_url( $register_url ); ?>" class="alfawz-account-link"><?php esc_html_e( 'Create a new student account', 'alfawzquran' ); ?></a>
+        <div class="text-card-foreground flex flex-col gap-6 rounded-xl border py-6 border-[#2d682d]/20 bg-white/95 backdrop-blur shadow-xl">
+            <div class="grid auto-rows-min items-start gap-1.5 px-6">
+                <div class="leading-none font-semibold text-[#2d682d]">
+                    <?php if ( $is_logged_in ) : ?>
+                        <?php esc_html_e( 'You are signed in', 'alfawzquran' ); ?>
+                    <?php else : ?>
+                        <?php esc_html_e( 'Welcome Back', 'alfawzquran' ); ?>
                     <?php endif; ?>
-                </footer>
-            </article>
-
-            <article class="alfawz-account-card" data-animate="fade">
-                <header class="alfawz-account-card__header">
-                    <div class="alfawz-account-card__icon" aria-hidden="true">🧑‍🏫</div>
-                    <div>
-                        <h3 class="alfawz-account-card__title"><?php esc_html_e( 'Teacher Login', 'alfawzquran' ); ?></h3>
-                        <p class="alfawz-account-card__description"><?php esc_html_e( 'Review student recitations, assign lessons, and nurture consistent progress.', 'alfawzquran' ); ?></p>
-                    </div>
-                </header>
-                <ul class="alfawz-account-card__list" role="list">
-                    <li><?php esc_html_e( 'Approve recordings and give feedback', 'alfawzquran' ); ?></li>
-                    <li><?php esc_html_e( 'Send Qa’idah assignments with hotspots', 'alfawzquran' ); ?></li>
-                    <li><?php esc_html_e( 'Track class engagement at a glance', 'alfawzquran' ); ?></li>
-                </ul>
-                <div class="alfawz-login-form">
-                    <?php echo wp_kses( $teacher_form, alfawz_get_allowed_login_form_tags() ); ?>
                 </div>
-                <footer class="alfawz-account-card__footer">
-                    <a href="<?php echo esc_url( $lost_password ); ?>" class="alfawz-account-link"><?php esc_html_e( 'Need help accessing your class?', 'alfawzquran' ); ?></a>
-                    <p class="alfawz-account-note"><?php esc_html_e( 'Teacher access is provided by your program administrator.', 'alfawzquran' ); ?></p>
-                </footer>
-            </article>
-
-            <article class="alfawz-account-card" data-animate="fade">
-                <header class="alfawz-account-card__header">
-                    <div class="alfawz-account-card__icon" aria-hidden="true">🛠️</div>
-                    <div>
-                        <h3 class="alfawz-account-card__title"><?php esc_html_e( 'Administrator Login', 'alfawzquran' ); ?></h3>
-                        <p class="alfawz-account-card__description"><?php esc_html_e( 'Coordinate programmes, manage roles, and keep every classroom in sync.', 'alfawzquran' ); ?></p>
-                    </div>
-                </header>
-                <ul class="alfawz-account-card__list" role="list">
-                    <li><?php esc_html_e( 'Assign teachers and manage enrolment', 'alfawzquran' ); ?></li>
-                    <li><?php esc_html_e( 'Monitor memorisation metrics across cohorts', 'alfawzquran' ); ?></li>
-                    <li><?php esc_html_e( 'Configure programme-wide goals and settings', 'alfawzquran' ); ?></li>
-                </ul>
-                <div class="alfawz-login-form">
-                    <?php echo wp_kses( $admin_form, alfawz_get_allowed_login_form_tags() ); ?>
+                <div class="text-sm text-[#b29032]">
+                    <?php if ( $is_logged_in ) : ?>
+                        <?php
+                        printf(
+                            /* translators: %s: user display name */
+                            esc_html__( 'Assalamu alaikum, %s. Choose where to go next.', 'alfawzquran' ),
+                            esc_html( $display_name )
+                        );
+                        ?>
+                    <?php else : ?>
+                        <?php esc_html_e( 'Sign in to access your school portal', 'alfawzquran' ); ?>
+                    <?php endif; ?>
                 </div>
-                <footer class="alfawz-account-card__footer">
-                    <a href="<?php echo esc_url( $lost_password ); ?>" class="alfawz-account-link"><?php esc_html_e( 'Reset administrator password', 'alfawzquran' ); ?></a>
-                    <p class="alfawz-account-note"><?php esc_html_e( 'Administrator access is invitation-only for safeguarding.', 'alfawzquran' ); ?></p>
-                </footer>
-            </article>
-        </section>
-    <?php else : ?>
-        <section class="alfawz-account-grid" data-animate="fade">
-            <?php if ( $is_student_user ) : ?>
-            <article class="alfawz-account-card alfawz-account-card--compact">
-                <header class="alfawz-account-card__header">
-                    <div class="alfawz-account-card__icon" aria-hidden="true">📊</div>
-                    <div>
-                        <h3 class="alfawz-account-card__title"><?php esc_html_e( 'Student Experience', 'alfawzquran' ); ?></h3>
-                        <p class="alfawz-account-card__description"><?php esc_html_e( 'Continue where you left off and keep your streak alive.', 'alfawzquran' ); ?></p>
+            </div>
+            <?php if ( ! empty( $notices ) ) : ?>
+                <div class="px-6">
+                    <div class="space-y-3">
+                        <?php
+                        foreach ( $notices as $notice ) {
+                            $type    = isset( $notice['type'] ) ? $notice['type'] : 'info';
+                            $icon    = isset( $notice['icon'] ) ? $notice['icon'] : 'ℹ️';
+                            $message = isset( $notice['message'] ) ? $notice['message'] : '';
+
+                            if ( empty( $message ) ) {
+                                continue;
+                            }
+
+                            $styles = [
+                                'error'   => 'border-red-500 bg-red-50 text-red-700',
+                                'warning' => 'border-[#b29032] bg-yellow-50 text-[#7a5e1f]',
+                                'success' => 'border-[#2d682d] bg-green-50 text-[#2d682d]',
+                                'info'    => 'border-[#2d682d] bg-green-50 text-[#2d682d]',
+                            ];
+
+                            $class = isset( $styles[ $type ] ) ? $styles[ $type ] : $styles['info'];
+                            ?>
+                            <div class="flex items-start gap-3 rounded-lg border-l-4 px-4 py-3 text-sm font-medium <?php echo esc_attr( $class ); ?>" role="alert">
+                                <span aria-hidden="true"><?php echo esc_html( $icon ); ?></span>
+                                <span><?php echo esc_html( $message ); ?></span>
+                            </div>
+                            <?php
+                        }
+                        ?>
                     </div>
-                </header>
-                <a class="alfawz-account-btn alfawz-account-btn--primary" href="<?php echo esc_url( $student_dashboard_url ); ?>">
-                    <?php esc_html_e( 'Open student dashboard', 'alfawzquran' ); ?>
-                </a>
-            </article>
+                </div>
             <?php endif; ?>
-            <article class="alfawz-account-card alfawz-account-card--compact">
-                <header class="alfawz-account-card__header">
-                    <div class="alfawz-account-card__icon" aria-hidden="true">⚙️</div>
-                    <div>
-                        <h3 class="alfawz-account-card__title"><?php esc_html_e( 'Update Preferences', 'alfawzquran' ); ?></h3>
-                        <p class="alfawz-account-card__description"><?php esc_html_e( 'Adjust your reciter, daily targets, and notification settings.', 'alfawzquran' ); ?></p>
+
+            <?php if ( $is_logged_in ) : ?>
+                <div class="px-6 space-y-5">
+                    <div class="rounded-lg border border-[#2d682d]/20 bg-green-50/60 px-4 py-3 text-sm text-[#2d682d] shadow-inner">
+                        <?php
+                        if ( $role_label ) {
+                            printf(
+                                /* translators: %s: current user role */
+                                esc_html__( 'You are signed in as a %s.', 'alfawzquran' ),
+                                esc_html( $role_label )
+                            );
+                        }
+                        ?>
                     </div>
-                </header>
-                <a class="alfawz-account-btn alfawz-account-btn--outline" href="<?php echo esc_url( $settings_url ); ?>">
-                    <?php esc_html_e( 'Go to settings', 'alfawzquran' ); ?>
-                </a>
-            </article>
-            <?php if ( $is_admin_user ) : ?>
-                <article class="alfawz-account-card alfawz-account-card--compact">
-                    <header class="alfawz-account-card__header">
-                        <div class="alfawz-account-card__icon" aria-hidden="true">🛠️</div>
-                        <div>
-                            <h3 class="alfawz-account-card__title"><?php esc_html_e( 'Administrator Hub', 'alfawzquran' ); ?></h3>
-                            <p class="alfawz-account-card__description"><?php esc_html_e( 'Oversee classes, people, and the overall platform pulse.', 'alfawzquran' ); ?></p>
+                    <div class="space-y-3">
+                        <?php if ( $is_student_user ) : ?>
+                            <a class="inline-flex w-full items-center justify-center rounded-md bg-[#2d682d] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#2d682d]/90" href="<?php echo esc_url( $student_dashboard_url ); ?>"><?php esc_html_e( 'Open Student Dashboard', 'alfawzquran' ); ?></a>
+                        <?php endif; ?>
+                        <?php if ( $is_teacher_user ) : ?>
+                            <a class="inline-flex w-full items-center justify-center rounded-md border border-[#2d682d]/30 bg-white px-4 py-2 text-sm font-semibold text-[#2d682d] shadow-sm transition hover:bg-green-50" href="<?php echo esc_url( $teacher_dashboard_url ); ?>"><?php esc_html_e( 'Go to Teacher Tools', 'alfawzquran' ); ?></a>
+                        <?php endif; ?>
+                        <?php if ( $is_admin_user ) : ?>
+                            <a class="inline-flex w-full items-center justify-center rounded-md border border-[#2d682d]/30 bg-white px-4 py-2 text-sm font-semibold text-[#2d682d] shadow-sm transition hover:bg-green-50" href="<?php echo esc_url( $admin_portal_url ); ?>"><?php esc_html_e( 'Open Admin Console', 'alfawzquran' ); ?></a>
+                            <a class="inline-flex w-full items-center justify-center rounded-md border border-[#2d682d]/30 bg-white px-4 py-2 text-sm font-semibold text-[#2d682d] shadow-sm transition hover:bg-green-50" href="<?php echo esc_url( $wp_admin_console_url ); ?>"><?php esc_html_e( 'WordPress Dashboard', 'alfawzquran' ); ?></a>
+                        <?php endif; ?>
+                        <a class="inline-flex w-full items-center justify-center rounded-md border border-[#2d682d]/30 bg-white px-4 py-2 text-sm font-semibold text-[#2d682d] shadow-sm transition hover:bg-green-50" href="<?php echo esc_url( $settings_url ); ?>"><?php esc_html_e( 'Manage Preferences', 'alfawzquran' ); ?></a>
+                        <a class="inline-flex w-full items-center justify-center rounded-md border border-[#2d682d]/30 bg-white px-4 py-2 text-sm font-semibold text-[#2d682d] shadow-sm transition hover:bg-green-50" href="<?php echo esc_url( $logout_url ); ?>"><?php esc_html_e( 'Sign Out', 'alfawzquran' ); ?></a>
+                    </div>
+                </div>
+            <?php else : ?>
+                <div class="px-6">
+                    <div class="flex h-9 items-center justify-center rounded-lg bg-green-50 p-[3px] text-sm font-medium text-[#2d682d]" data-alfawz-tablist>
+                        <button type="button" class="inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center rounded-md border border-transparent px-2 py-1 transition data-[active=false]:text-[#2d682d] data-[active=true]:bg-[#2d682d] data-[active=true]:text-white" data-alfawz-tab="login" data-active="true"><?php esc_html_e( 'Login', 'alfawzquran' ); ?></button>
+                        <button type="button" class="inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center rounded-md border border-transparent px-2 py-1 transition data-[active=false]:text-[#2d682d] data-[active=true]:bg-[#2d682d] data-[active=true]:text-white" data-alfawz-tab="register" data-active="false"><?php esc_html_e( 'Register', 'alfawzquran' ); ?></button>
+                    </div>
+                </div>
+                <div class="px-6" data-alfawz-tab-panel="login">
+                    <form method="post" action="<?php echo esc_url( wp_login_url() ); ?>" class="space-y-4" autocomplete="on">
+                        <div class="space-y-2">
+                            <label for="alfawz-login-role" class="text-sm font-medium leading-none text-[#2d682d]"> <?php esc_html_e( 'Role', 'alfawzquran' ); ?> </label>
+                            <select id="alfawz-login-role" name="alfawz_role" class="flex h-9 w-full items-center rounded-md border border-[#2d682d]/20 bg-white px-3 text-sm text-[#2d682d] shadow-xs transition focus:border-[#2d682d] focus:outline-none focus:ring-2 focus:ring-[#2d682d]/30" data-alfawz-role-select>
+                                <?php foreach ( $role_redirects as $role_key => $role_data ) : ?>
+                                    <option value="<?php echo esc_attr( $role_key ); ?>" data-redirect="<?php echo esc_url( $role_data['redirect'] ); ?>"><?php echo esc_html( $role_data['label'] ); ?></option>
+                                <?php endforeach; ?>
+                            </select>
                         </div>
-                    </header>
-                    <a class="alfawz-account-btn alfawz-account-btn--primary" href="<?php echo esc_url( $admin_portal_url ); ?>">
-                        <?php esc_html_e( 'Open admin console', 'alfawzquran' ); ?>
-                    </a>
-                </article>
-            <?php endif; ?>
-            <?php if ( $is_teacher_user ) : ?>
-                <article class="alfawz-account-card alfawz-account-card--compact">
-                    <header class="alfawz-account-card__header">
-                        <div class="alfawz-account-card__icon" aria-hidden="true">🏫</div>
-                        <div>
-                            <h3 class="alfawz-account-card__title"><?php esc_html_e( 'Teacher Tools', 'alfawzquran' ); ?></h3>
-                            <p class="alfawz-account-card__description"><?php esc_html_e( 'Review submissions, share lessons, and inspire your students.', 'alfawzquran' ); ?></p>
+                        <div class="space-y-2">
+                            <label for="alfawz-login-email" class="text-sm font-medium leading-none text-[#2d682d]"> <?php esc_html_e( 'Email or Username', 'alfawzquran' ); ?> </label>
+                            <input type="text" id="alfawz-login-email" name="log" class="flex h-9 w-full rounded-md border border-[#2d682d]/20 bg-transparent px-3 text-sm shadow-xs transition focus:border-[#2d682d] focus:outline-none focus:ring-2 focus:ring-[#2d682d]/30" placeholder="<?php esc_attr_e( 'Enter your email', 'alfawzquran' ); ?>" autocomplete="username" required />
                         </div>
-                    </header>
-                    <a class="alfawz-account-btn alfawz-account-btn--primary" href="<?php echo esc_url( $teacher_dashboard_url ); ?>">
-                        <?php esc_html_e( 'Open teacher dashboard', 'alfawzquran' ); ?>
-                    </a>
-                </article>
+                        <div class="space-y-2">
+                            <label for="alfawz-login-password" class="text-sm font-medium leading-none text-[#2d682d]"> <?php esc_html_e( 'Password', 'alfawzquran' ); ?> </label>
+                            <input type="password" id="alfawz-login-password" name="pwd" class="flex h-9 w-full rounded-md border border-[#2d682d]/20 bg-transparent px-3 text-sm shadow-xs transition focus:border-[#2d682d] focus:outline-none focus:ring-2 focus:ring-[#2d682d]/30" placeholder="<?php esc_attr_e( 'Enter your password', 'alfawzquran' ); ?>" autocomplete="current-password" required />
+                        </div>
+                        <div class="flex items-center justify-between text-sm text-[#2d682d]">
+                            <label class="inline-flex items-center gap-2">
+                                <input type="checkbox" name="rememberme" value="forever" class="h-4 w-4 rounded border border-[#2d682d]/30 text-[#2d682d] focus:ring-[#2d682d]" />
+                                <span><?php esc_html_e( 'Stay signed in', 'alfawzquran' ); ?></span>
+                            </label>
+                            <a href="<?php echo esc_url( $lost_password ); ?>" class="underline-offset-4 hover:underline"> <?php esc_html_e( 'Forgot password?', 'alfawzquran' ); ?> </a>
+                        </div>
+                        <?php do_action( 'login_form' ); ?>
+                        <input type="hidden" name="redirect_to" value="<?php echo esc_url( $student_redirect ); ?>" data-alfawz-redirect-input data-default-redirect="<?php echo esc_url( $student_redirect ); ?>" />
+                        <input type="hidden" name="testcookie" value="1" />
+                        <button type="submit" name="wp-submit" class="inline-flex w-full items-center justify-center rounded-md bg-[#2d682d] px-4 py-2 text-sm font-medium text-white shadow-xs transition hover:bg-[#2d682d]/90"> <?php esc_html_e( 'Sign In', 'alfawzquran' ); ?> </button>
+                        <div class="pt-2 text-center">
+                            <a href="<?php echo esc_url( $contact_developer_url ); ?>" target="_blank" rel="noopener noreferrer" class="text-sm font-medium text-[#2d682d] underline-offset-4 hover:text-[#b29032] hover:underline"><?php esc_html_e( 'Contact Developer', 'alfawzquran' ); ?></a>
+                        </div>
+                    </form>
+                </div>
+                <div class="px-6 hidden" data-alfawz-tab-panel="register">
+                    <?php if ( $register_url ) : ?>
+                        <div class="space-y-4 text-sm text-[#2d682d]">
+                            <p><?php esc_html_e( 'Families and staff can create new accounts using our secure registration form.', 'alfawzquran' ); ?></p>
+                            <a href="<?php echo esc_url( $register_url ); ?>" class="inline-flex w-full items-center justify-center rounded-md border border-[#2d682d]/30 bg-white px-4 py-2 text-sm font-semibold text-[#2d682d] shadow-sm transition hover:bg-green-50"><?php esc_html_e( 'Open Registration Page', 'alfawzquran' ); ?></a>
+                        </div>
+                    <?php else : ?>
+                        <div class="space-y-2 text-sm text-[#2d682d]">
+                            <p><?php esc_html_e( 'Online registration is currently closed. Please contact the school office for assistance.', 'alfawzquran' ); ?></p>
+                            <a href="<?php echo esc_url( $contact_developer_url ); ?>" target="_blank" rel="noopener noreferrer" class="inline-flex w-full items-center justify-center rounded-md border border-[#2d682d]/30 bg-white px-4 py-2 text-sm font-semibold text-[#2d682d] shadow-sm transition hover:bg-green-50"><?php esc_html_e( 'Message the Portal Team', 'alfawzquran' ); ?></a>
+                        </div>
+                    <?php endif; ?>
+                </div>
             <?php endif; ?>
-        </section>
-    <?php endif; ?>
+        </div>
+        <div class="mt-6 flex flex-wrap justify-center gap-3">
+            <a href="<?php echo esc_url( $home_url ); ?>" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center gap-1.5 rounded-md border border-[#2d682d]/20 bg-white/80 px-3 py-2 text-sm font-medium text-[#2d682d] shadow-xs transition hover:bg-white">HOME</a>
+            <a href="<?php echo esc_url( $contact_url ); ?>" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center gap-1.5 rounded-md border border-[#2d682d]/20 bg-white/80 px-3 py-2 text-sm font-medium text-[#2d682d] shadow-xs transition hover:bg-white"><?php esc_html_e( 'CONTACT US', 'alfawzquran' ); ?></a>
+        </div>
+    </div>
 </div>
+<script>
+(function () {
+    document.addEventListener('DOMContentLoaded', function () {
+        const tabButtons = document.querySelectorAll('[data-alfawz-tab]');
+        const tabPanels = document.querySelectorAll('[data-alfawz-tab-panel]');
+        const roleSelect = document.querySelector('[data-alfawz-role-select]');
+        const redirectInput = document.querySelector('[data-alfawz-redirect-input]');
+
+        const activateTab = (target) => {
+            tabButtons.forEach((button) => {
+                const isActive = button.dataset.alfawzTab === target;
+                button.dataset.active = isActive ? 'true' : 'false';
+            });
+            tabPanels.forEach((panel) => {
+                panel.classList.toggle('hidden', panel.dataset.alfawzTabPanel !== target);
+            });
+        };
+
+        tabButtons.forEach((button) => {
+            button.addEventListener('click', () => activateTab(button.dataset.alfawzTab));
+        });
+
+        if (tabButtons.length) {
+            activateTab('login');
+        }
+
+        const updateRedirect = () => {
+            if (!roleSelect || !redirectInput) {
+                return;
+            }
+            const selectedOption = roleSelect.options[roleSelect.selectedIndex];
+            if (selectedOption) {
+                const redirect = selectedOption.getAttribute('data-redirect') || redirectInput.dataset.defaultRedirect;
+                if (redirect) {
+                    redirectInput.value = redirect;
+                }
+            }
+        };
+
+        if (roleSelect) {
+            roleSelect.addEventListener('change', updateRedirect);
+            updateRedirect();
+        }
+    });
+})();
+</script>
