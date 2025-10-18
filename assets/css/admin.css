@@ -269,6 +269,35 @@ body .alfawz-qaidah-board-app :where(button, input, select, textarea) {
   color: #555d66;
 }
 
+/* Increase dashboard typography for improved readability */
+.alfawz-admin-dashboard .text-sm {
+  font-size: 2.625rem !important;
+}
+
+.alfawz-admin-dashboard .text-base {
+  font-size: 3rem !important;
+}
+
+.alfawz-admin-dashboard .text-lg {
+  font-size: 3.375rem !important;
+}
+
+.alfawz-admin-dashboard .text-xl {
+  font-size: 3.75rem !important;
+}
+
+.alfawz-admin-dashboard .text-2xl {
+  font-size: 4.5rem !important;
+}
+
+.alfawz-admin-dashboard .text-3xl {
+  font-size: 5.625rem !important;
+}
+
+.alfawz-admin-dashboard .text-4xl {
+  font-size: 6.75rem !important;
+}
+
 .alfawz-admin-overview {
   margin-top: 24px;
   margin-bottom: 32px;
