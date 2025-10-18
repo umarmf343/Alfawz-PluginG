@@ -4275,7 +4275,13 @@
               <p class="text-xs font-medium uppercase tracking-[0.3em] text-[#a83254]/60">${percent}% of leader</p>
             </div>
           </td>
-          <td class="px-6 py-4 text-right text-base font-semibold text-[#a83254]">${formatNumber(entry?.total_hasanat || 0)}</td>
+          <td class="px-6 py-4 text-right">
+            <div class="inline-flex items-center justify-end gap-2 rounded-full bg-gradient-to-r from-[#a83254] via-[#d44f6a] to-[#f4a261] px-4 py-2 text-sm font-bold text-white shadow-lg shadow-[#a83254]/30 ring-1 ring-white/50">
+              <span class="inline-flex h-2.5 w-2.5 rounded-full bg-white/80 animate-pulse"></span>
+              <span class="tracking-wide drop-shadow-sm">${formatNumber(entry?.total_hasanat || 0)}</span>
+              <span class="text-xs font-semibold uppercase text-white/80">Hasanat</span>
+            </div>
+          </td>
         `;
         tbody.appendChild(tr);
       });
