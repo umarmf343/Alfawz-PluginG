@@ -495,28 +495,28 @@ if ( ! defined( 'ABSPATH' ) ) {
                         <?php esc_html_e( 'Numbers shimmer when they grow — keep the streak alive!', 'alfawzquran' ); ?>
                     </span>
                 </div>
-                <div class="grid grid-cols-1 gap-5 sm:grid-cols-3" id="alfawz-stat-cards">
+                <div class="grid grid-cols-2 gap-5 md:grid-cols-3" id="alfawz-stat-cards">
                     <div class="group relative overflow-hidden rounded-3xl border border-[#8b1e3f]/20 bg-gradient-to-br from-[#fff7fb]/95 via-[#f3f9ff]/95 to-[#fff5eb]/95 p-6 text-center shadow-xl shadow-[#2e0715]/10 transition duration-300 hover:-translate-y-2 hover:shadow-2xl">
                         <div class="pointer-events-none absolute inset-0 bg-gradient-to-br from-[#8b1e3f]/12 via-transparent to-[#f9f1e8]/80 opacity-0 transition duration-300 group-hover:opacity-100"></div>
-                        <div class="relative text-4xl" aria-hidden="true">⭐</div>
-                        <p class="relative mt-3 text-4xl font-black text-[#7a0f32] drop-shadow-sm" data-stat="hasanat">0</p>
-                        <p class="relative mt-2 text-sm font-semibold uppercase tracking-[0.3em] text-[#b4637a]">
+                        <div class="relative text-6xl text-[#36454f]" aria-hidden="true">⭐</div>
+                        <p class="relative mt-3 text-6xl font-black text-[#36454f] drop-shadow-sm" data-stat="hasanat">0</p>
+                        <p class="relative mt-2 text-lg font-semibold uppercase tracking-[0.3em] text-[#36454f]">
                             <?php esc_html_e( 'Hasanat', 'alfawzquran' ); ?>
                         </p>
                     </div>
                     <div class="group relative overflow-hidden rounded-3xl border border-[#8b1e3f]/20 bg-gradient-to-br from-[#f4f9ff]/95 via-[#fff3f6]/95 to-[#fff6e8]/95 p-6 text-center shadow-xl shadow-[#2e0715]/10 transition duration-300 hover:-translate-y-2 hover:shadow-2xl">
                         <div class="pointer-events-none absolute inset-0 bg-gradient-to-br from-[#611229]/12 via-transparent to-[#f5ecde]/80 opacity-0 transition duration-300 group-hover:opacity-100"></div>
-                        <div class="relative text-4xl" aria-hidden="true">📖</div>
-                        <p class="relative mt-3 text-4xl font-black text-[#4d081d] drop-shadow-sm" data-stat="verses">0</p>
-                        <p class="relative mt-2 text-sm font-semibold uppercase tracking-[0.3em] text-[#b4637a]">
+                        <div class="relative text-6xl text-[#36454f]" aria-hidden="true">📖</div>
+                        <p class="relative mt-3 text-6xl font-black text-[#36454f] drop-shadow-sm" data-stat="verses">0</p>
+                        <p class="relative mt-2 text-lg font-semibold uppercase tracking-[0.3em] text-[#36454f]">
                             <?php esc_html_e( 'Verses Read', 'alfawzquran' ); ?>
                         </p>
                     </div>
                     <div class="group relative overflow-hidden rounded-3xl border border-[#8b1e3f]/20 bg-gradient-to-br from-[#fff3f6]/95 via-[#f2f7ff]/95 to-[#fff4eb]/95 p-6 text-center shadow-xl shadow-[#2e0715]/10 transition duration-300 hover:-translate-y-2 hover:shadow-2xl">
                         <div class="pointer-events-none absolute inset-0 bg-gradient-to-br from-[#a53d59]/12 via-transparent to-[#fde6d9]/80 opacity-0 transition duration-300 group-hover:opacity-100"></div>
-                        <div class="relative text-4xl" aria-hidden="true">🔥</div>
-                        <p class="relative mt-3 text-4xl font-black text-[#b3264a] drop-shadow-sm" data-stat="streak">0</p>
-                        <p class="relative mt-2 text-sm font-semibold uppercase tracking-[0.3em] text-[#c56982]">
+                        <div class="relative text-6xl text-[#36454f]" aria-hidden="true">🔥</div>
+                        <p class="relative mt-3 text-6xl font-black text-[#36454f] drop-shadow-sm" data-stat="streak">0</p>
+                        <p class="relative mt-2 text-lg font-semibold uppercase tracking-[0.3em] text-[#36454f]">
                             <?php esc_html_e( 'Day Streak', 'alfawzquran' ); ?>
                         </p>
                     </div>
