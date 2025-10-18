@@ -130,3 +130,20 @@
     font-family: inherit;
   }
 }
+
+@layer components {
+  #alfawz-leaderboard-total,
+  #alfawz-leaderboard-verses,
+  #alfawz-leaderboard-hasanat {
+    font-size: calc(1.875rem * 3);
+    line-height: 1.05;
+  }
+
+  @media (min-width: 640px) {
+    #alfawz-leaderboard-total,
+    #alfawz-leaderboard-verses,
+    #alfawz-leaderboard-hasanat {
+      font-size: calc(2.25rem * 3);
+    }
+  }
+}
