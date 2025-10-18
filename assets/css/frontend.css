@@ -914,13 +914,13 @@
 /* Reader verse typography */
 .alfawz-arabic {
   font-family: 'Scheherazade New', 'Amiri', serif;
-  font-size: clamp(10rem, 18vw, 16rem);
+  font-size: clamp(5rem, 9vw, 8rem);
   line-height: 1.95;
   color: var(--alfawz-maroon-800);
 }
 
 #alfawz-arabic-text {
-  font-size: clamp(10rem, 18vw, 15rem);
+  font-size: clamp(5rem, 9vw, 7.5rem);
 }
 
 .alfawz-transliteration {
