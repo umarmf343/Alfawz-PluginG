@@ -1,0 +1,27 @@
+Introduce a universal accessibility panel that lets users toggle larger font sizes, adjust contrast, and enable dyslexia-friendly typography so seniors can read comfortably while children with emerging literacy get clear text. 
+
+Offer a “Senior Mode” for the bottom navigation that enlarges icons, reduces the number of tabs, and adds persistent text labels to minimize cognitive load for older users who primarily visit reader and profile areas. 
+
+Expand the playful quest system by productizing the existing game concepts—daily verse quests, tajweed timing challenges, and story-driven adventures—to keep children intrinsically motivated with age-appropriate rewards. 
+
+Create a caregiver/teacher dashboard that sits alongside the existing roles so parents or tutors can assign Qa’idah boards, review progress, and simplify navigation for their dependents in one place. 
+
+Extend the speech-recognition engine into voice-guided navigation and prayer reminders, giving young readers and seniors the option to control key actions hands-free or receive spoken prompts. 
+
+Add kid-and-senior friendly audio controls (slow/speedy playback, pitch soften, pause-on-verse) on top of the existing recitation feature so learners can match their preferred tempo. 
+
+Refresh the account landing experience with oversized quick-action tiles (“Continue Memorizing,” “Call Teacher,” “Request Help”) modeled after the current quick actions to reduce friction for seniors and keep children on task. 
+
+Build a guided reflection journal that pairs simple prompts with optional voice dictation, letting children decorate entries while seniors capture contemplations without typing strain. 
+
+Automate weekly caregiver digests that summarize streaks, verses completed, and Hasanat from the existing stats pipeline so parents and seniors’ supporters can monitor engagement without logging in. 
+
+Generate printable progress reports and celebratory certificates from tracked verses and achievements, giving families tangible milestones to celebrate with both kids and elders. 
+
+Personalize daily verse targets by age band—smaller, confidence-building goals for children and gentle pacing for seniors—using the stored daily target preferences already passed to the frontend. 
+
+Provide a “simple login” flow with one-tap magic links or assisted password reset, leveraging the existing reset messaging to reduce credential friction for seniors. 
+
+Package Qa’idah assignments as downloadable, large-print practice sheets and tactile exercises so children and elders can rehearse offline before syncing back their progress. 
+
+Surface prominent toggles for translation and transliteration choices, enabling caregivers to switch to child-friendly paraphrases or senior-preferred languages in a single tap. 
