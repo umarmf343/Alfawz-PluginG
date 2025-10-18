@@ -142,16 +142,16 @@ $role_icons = [
     'admin'   => '🛡️',
 ];
 ?>
-<div class="relative min-h-screen overflow-hidden bg-gradient-to-br from-[#081c15] via-[#1f5133] to-[#f1b722] text-[#0b2a1d]">
+<div class="relative min-h-screen overflow-hidden bg-gradient-to-br from-[#3c0815] via-[#6c1b2a] to-[#d2a679] text-[#3c0815]">
     <div class="pointer-events-none absolute inset-0">
-        <div class="absolute -top-24 -left-16 h-64 w-64 rounded-full bg-[#2d682d]/40 blur-3xl"></div>
-        <div class="absolute bottom-[-6rem] left-1/2 h-72 w-72 -translate-x-1/2 rounded-full bg-[#f5d26c]/40 blur-3xl"></div>
-        <div class="absolute -bottom-24 -right-20 h-64 w-64 rounded-full bg-[#0f3d2e]/50 blur-3xl"></div>
+        <div class="absolute -top-24 -left-16 h-64 w-64 rounded-full bg-[#8f1f3a]/40 blur-3xl"></div>
+        <div class="absolute bottom-[-6rem] left-1/2 h-72 w-72 -translate-x-1/2 rounded-full bg-[#e5c28f]/40 blur-3xl"></div>
+        <div class="absolute -bottom-24 -right-20 h-64 w-64 rounded-full bg-[#4a0d1f]/50 blur-3xl"></div>
     </div>
     <div class="relative z-10 mx-auto flex min-h-screen w-full max-w-6xl items-center justify-center px-4 py-16 sm:px-6 lg:px-10">
         <div class="grid w-full items-stretch gap-8 lg:grid-cols-[1.05fr_0.95fr]">
             <div class="flex flex-col overflow-hidden rounded-3xl border border-white/30 bg-white/95 shadow-2xl backdrop-blur-xl">
-                <div class="relative bg-gradient-to-r from-[#0f3d2e] via-[#2d682d] to-[#f1b722] px-8 py-10 text-white">
+                <div class="relative bg-gradient-to-r from-[#5b1025] via-[#8f1f3a] to-[#d2a679] px-8 py-10 text-white">
                     <div class="absolute inset-x-8 bottom-2 h-px bg-white/30"></div>
                     <div class="flex items-center gap-4">
                         <img src="<?php echo esc_url( $logo_url ); ?>" alt="<?php esc_attr_e( 'Alfawz emblem', 'alfawzquran' ); ?>" class="h-14 w-14 rounded-2xl border border-white/60 bg-white/20 p-2 shadow-lg" />
@@ -189,10 +189,10 @@ $role_icons = [
                                 }
 
                                 $styles = [
-                                    'error'   => 'border-red-500/60 bg-red-50 text-red-700 shadow-sm shadow-red-100',
-                                    'warning' => 'border-[#b29032]/70 bg-amber-50 text-[#7a5e1f] shadow-sm shadow-amber-100',
-                                    'success' => 'border-[#2d682d]/70 bg-emerald-50 text-[#215c36] shadow-sm shadow-emerald-100',
-                                    'info'    => 'border-[#2d682d]/70 bg-emerald-50 text-[#215c36] shadow-sm shadow-emerald-100',
+                                    'error'   => 'border-[#b93844]/60 bg-[#fce9eb] text-[#781822] shadow-sm shadow-rose-100',
+                                    'warning' => 'border-[#d2a679]/70 bg-[#f8f1e6] text-[#8b6230] shadow-sm shadow-amber-100',
+                                    'success' => 'border-[#6c1b2a]/70 bg-[#faecf1] text-[#5b1025] shadow-sm shadow-rose-100',
+                                    'info'    => 'border-[#6c1b2a]/70 bg-[#faecf1] text-[#5b1025] shadow-sm shadow-rose-100',
                                 ];
 
                                 $class = isset( $styles[ $type ] ) ? $styles[ $type ] : $styles['info'];
@@ -209,7 +209,7 @@ $role_icons = [
 
                     <?php if ( $is_logged_in ) : ?>
                         <div class="space-y-6">
-                            <div class="rounded-2xl border border-[#2d682d]/20 bg-gradient-to-br from-emerald-50 via-white to-amber-50 px-5 py-4 text-sm text-[#0f3d2e] shadow-inner">
+                            <div class="rounded-2xl border border-[#6c1b2a]/20 bg-gradient-to-br from-[#fbe9ef] via-white to-[#f8eddf] px-5 py-4 text-sm text-[#5b1025] shadow-inner">
                                 <?php if ( $role_label ) : ?>
                                     <?php
                                     printf(
@@ -235,12 +235,12 @@ $role_icons = [
 
                                     $icon = isset( $role_icons[ $role_key ] ) ? $role_icons[ $role_key ] : '✨';
                                     ?>
-                                    <a class="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-[#2d682d]/15 bg-white/90 p-5 shadow-lg transition hover:-translate-y-1 hover:border-[#2d682d]/40 hover:shadow-emerald-200" href="<?php echo esc_url( $role_data['redirect'] ); ?>">
-                                        <div class="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-[#2d682d] via-[#2d682d] to-[#f1b722] opacity-70 transition group-hover:opacity-100"></div>
-                                        <span class="mb-4 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-100 text-lg"><?php echo esc_html( $icon ); ?></span>
-                                        <h2 class="text-base font-semibold text-[#103422]"><?php echo esc_html( $role_data['label'] ); ?></h2>
-                                        <p class="mt-2 flex-1 text-sm text-[#4c6b58]"><?php echo esc_html( $role_data['description'] ); ?></p>
-                                        <span class="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-[#2d682d]"><?php esc_html_e( 'Enter now', 'alfawzquran' ); ?>
+                                    <a class="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-[#6c1b2a]/15 bg-white/90 p-5 shadow-lg transition hover:-translate-y-1 hover:border-[#6c1b2a]/40 hover:shadow-rose-200" href="<?php echo esc_url( $role_data['redirect'] ); ?>">
+                                        <div class="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-[#6c1b2a] via-[#8f1f3a] to-[#d2a679] opacity-70 transition group-hover:opacity-100"></div>
+                                        <span class="mb-4 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-rose-100 text-lg"><?php echo esc_html( $icon ); ?></span>
+                                        <h2 class="text-base font-semibold text-[#5f142c]"><?php echo esc_html( $role_data['label'] ); ?></h2>
+                                        <p class="mt-2 flex-1 text-sm text-[#8a4c59]"><?php echo esc_html( $role_data['description'] ); ?></p>
+                                        <span class="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-[#8f1f3a]"><?php esc_html_e( 'Enter now', 'alfawzquran' ); ?>
                                             <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true">
                                                 <path d="M5 12h14M13 5l7 7-7 7"></path>
                                             </svg>
@@ -249,16 +249,16 @@ $role_icons = [
                                 <?php endforeach; ?>
                             </div>
                             <div class="grid gap-3 sm:grid-cols-2">
-                                <a class="inline-flex items-center justify-center gap-2 rounded-2xl border border-[#2d682d]/20 bg-white/80 px-4 py-3 text-sm font-semibold text-[#0f3d2e] shadow-md transition hover:-translate-y-0.5 hover:bg-white" href="<?php echo esc_url( $settings_url ); ?>">
+                                <a class="inline-flex items-center justify-center gap-2 rounded-2xl border border-[#6c1b2a]/20 bg-white/80 px-4 py-3 text-sm font-semibold text-[#5b1025] shadow-md transition hover:-translate-y-0.5 hover:bg-white" href="<?php echo esc_url( $settings_url ); ?>">
                                     <span>⚙️</span>
                                     <span><?php esc_html_e( 'Manage Preferences', 'alfawzquran' ); ?></span>
                                 </a>
-                                <a class="inline-flex items-center justify-center gap-2 rounded-2xl border border-[#2d682d]/20 bg-white/80 px-4 py-3 text-sm font-semibold text-[#0f3d2e] shadow-md transition hover:-translate-y-0.5 hover:bg-white" href="<?php echo esc_url( $logout_url ); ?>">
+                                <a class="inline-flex items-center justify-center gap-2 rounded-2xl border border-[#6c1b2a]/20 bg-white/80 px-4 py-3 text-sm font-semibold text-[#5b1025] shadow-md transition hover:-translate-y-0.5 hover:bg-white" href="<?php echo esc_url( $logout_url ); ?>">
                                     <span>🚪</span>
                                     <span><?php esc_html_e( 'Sign Out Securely', 'alfawzquran' ); ?></span>
                                 </a>
                                 <?php if ( $is_admin_user ) : ?>
-                                    <a class="inline-flex items-center justify-center gap-2 rounded-2xl border border-[#2d682d]/20 bg-white/80 px-4 py-3 text-sm font-semibold text-[#0f3d2e] shadow-md transition hover:-translate-y-0.5 hover:bg-white" href="<?php echo esc_url( $wp_admin_console_url ); ?>">
+                                    <a class="inline-flex items-center justify-center gap-2 rounded-2xl border border-[#6c1b2a]/20 bg-white/80 px-4 py-3 text-sm font-semibold text-[#5b1025] shadow-md transition hover:-translate-y-0.5 hover:bg-white" href="<?php echo esc_url( $wp_admin_console_url ); ?>">
                                         <span>🗂️</span>
                                         <span><?php esc_html_e( 'WordPress Dashboard', 'alfawzquran' ); ?></span>
                                     </a>
@@ -267,21 +267,21 @@ $role_icons = [
                         </div>
                     <?php else : ?>
                         <div class="space-y-6">
-                            <div class="flex items-center rounded-full bg-gradient-to-r from-[#2d682d]/10 via-transparent to-[#f1b722]/10 p-1 text-sm font-semibold text-[#2d682d]" data-alfawz-tablist>
-                                <button type="button" class="flex-1 rounded-full px-4 py-2 transition data-[active=true]:bg-white data-[active=true]:shadow data-[active=true]:text-[#0f3d2e]" data-alfawz-tab="login" data-active="true"><?php esc_html_e( 'Login', 'alfawzquran' ); ?></button>
-                                <button type="button" class="flex-1 rounded-full px-4 py-2 transition data-[active=true]:bg-white data-[active=true]:shadow data-[active=true]:text-[#0f3d2e]" data-alfawz-tab="register" data-active="false"><?php esc_html_e( 'Register', 'alfawzquran' ); ?></button>
+                            <div class="flex items-center rounded-full bg-gradient-to-r from-[#8f1f3a]/10 via-transparent to-[#d2a679]/10 p-1 text-sm font-semibold text-[#8f1f3a]" data-alfawz-tablist>
+                                <button type="button" class="flex-1 rounded-full px-4 py-2 transition data-[active=true]:bg-white data-[active=true]:shadow data-[active=true]:text-[#5b1025]" data-alfawz-tab="login" data-active="true"><?php esc_html_e( 'Login', 'alfawzquran' ); ?></button>
+                                <button type="button" class="flex-1 rounded-full px-4 py-2 transition data-[active=true]:bg-white data-[active=true]:shadow data-[active=true]:text-[#5b1025]" data-alfawz-tab="register" data-active="false"><?php esc_html_e( 'Register', 'alfawzquran' ); ?></button>
                             </div>
                             <div data-alfawz-tab-panel="login">
                                 <form method="post" action="<?php echo esc_url( wp_login_url() ); ?>" class="space-y-5" autocomplete="on">
                                     <div class="space-y-2">
-                                        <label for="alfawz-login-role" class="text-xs font-semibold uppercase tracking-wider text-[#1f5133]"> <?php esc_html_e( 'Choose your role', 'alfawzquran' ); ?> </label>
+                                        <label for="alfawz-login-role" class="text-xs font-semibold uppercase tracking-wider text-[#7c1d3a]"> <?php esc_html_e( 'Choose your role', 'alfawzquran' ); ?> </label>
                                         <div class="relative">
-                                            <select id="alfawz-login-role" name="alfawz_role" class="flex h-11 w-full items-center rounded-2xl border border-[#2d682d]/30 bg-white px-4 text-sm font-medium text-[#0f3d2e] shadow-md transition focus:border-[#2d682d] focus:outline-none focus:ring-2 focus:ring-[#2d682d]/30" data-alfawz-role-select>
+                                            <select id="alfawz-login-role" name="alfawz_role" class="flex h-11 w-full items-center rounded-2xl border border-[#8f1f3a]/30 bg-white px-4 text-sm font-medium text-[#5b1025] shadow-md transition focus:border-[#8f1f3a] focus:outline-none focus:ring-2 focus:ring-[#8f1f3a]/30" data-alfawz-role-select>
                                                 <?php foreach ( $role_redirects as $role_key => $role_data ) : ?>
                                                     <option value="<?php echo esc_attr( $role_key ); ?>" data-redirect="<?php echo esc_url( $role_data['redirect'] ); ?>"><?php echo esc_html( $role_data['label'] ); ?></option>
                                                 <?php endforeach; ?>
                                             </select>
-                                            <span class="pointer-events-none absolute inset-y-0 right-4 flex items-center text-[#2d682d]">
+                                            <span class="pointer-events-none absolute inset-y-0 right-4 flex items-center text-[#8f1f3a]">
                                                 <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                                                     <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.188l3.71-3.957a.75.75 0 111.08 1.04l-4.24 4.52a.75.75 0 01-1.08 0l-4.24-4.52a.75.75 0 01.02-1.06z" clip-rule="evenodd"></path>
                                                 </svg>
@@ -289,45 +289,45 @@ $role_icons = [
                                         </div>
                                     </div>
                                     <div class="space-y-2">
-                                        <label for="alfawz-login-email" class="text-xs font-semibold uppercase tracking-wider text-[#1f5133]"> <?php esc_html_e( 'Email or Username', 'alfawzquran' ); ?> </label>
-                                        <input type="text" id="alfawz-login-email" name="log" class="h-11 w-full rounded-2xl border border-[#2d682d]/30 bg-white px-4 text-sm shadow-md transition focus:border-[#2d682d] focus:outline-none focus:ring-2 focus:ring-[#2d682d]/30" placeholder="<?php esc_attr_e( 'Enter your email', 'alfawzquran' ); ?>" autocomplete="username" required />
+                                        <label for="alfawz-login-email" class="text-xs font-semibold uppercase tracking-wider text-[#7c1d3a]"> <?php esc_html_e( 'Email or Username', 'alfawzquran' ); ?> </label>
+                                        <input type="text" id="alfawz-login-email" name="log" class="h-11 w-full rounded-2xl border border-[#8f1f3a]/30 bg-white px-4 text-sm text-[#5b1025] shadow-md transition focus:border-[#8f1f3a] focus:outline-none focus:ring-2 focus:ring-[#8f1f3a]/30" placeholder="<?php esc_attr_e( 'Enter your email', 'alfawzquran' ); ?>" autocomplete="username" required />
                                     </div>
                                     <div class="space-y-2">
-                                        <label for="alfawz-login-password" class="text-xs font-semibold uppercase tracking-wider text-[#1f5133]"> <?php esc_html_e( 'Password', 'alfawzquran' ); ?> </label>
-                                        <input type="password" id="alfawz-login-password" name="pwd" class="h-11 w-full rounded-2xl border border-[#2d682d]/30 bg-white px-4 text-sm shadow-md transition focus:border-[#2d682d] focus:outline-none focus:ring-2 focus:ring-[#2d682d]/30" placeholder="<?php esc_attr_e( 'Enter your password', 'alfawzquran' ); ?>" autocomplete="current-password" required />
+                                        <label for="alfawz-login-password" class="text-xs font-semibold uppercase tracking-wider text-[#7c1d3a]"> <?php esc_html_e( 'Password', 'alfawzquran' ); ?> </label>
+                                        <input type="password" id="alfawz-login-password" name="pwd" class="h-11 w-full rounded-2xl border border-[#8f1f3a]/30 bg-white px-4 text-sm text-[#5b1025] shadow-md transition focus:border-[#8f1f3a] focus:outline-none focus:ring-2 focus:ring-[#8f1f3a]/30" placeholder="<?php esc_attr_e( 'Enter your password', 'alfawzquran' ); ?>" autocomplete="current-password" required />
                                     </div>
-                                    <div class="flex flex-wrap items-center justify-between gap-3 text-sm text-[#1f5133]">
+                                    <div class="flex flex-wrap items-center justify-between gap-3 text-sm text-[#7c1d3a]">
                                         <label class="inline-flex items-center gap-2">
-                                            <input type="checkbox" name="rememberme" value="forever" class="h-4 w-4 rounded border border-[#2d682d]/30 text-[#2d682d] focus:ring-[#2d682d]" />
+                                            <input type="checkbox" name="rememberme" value="forever" class="h-4 w-4 rounded border border-[#8f1f3a]/30 text-[#8f1f3a] focus:ring-[#8f1f3a]" />
                                             <span><?php esc_html_e( 'Stay signed in', 'alfawzquran' ); ?></span>
                                         </label>
-                                        <a href="<?php echo esc_url( $lost_password ); ?>" class="font-semibold text-[#2d682d] underline-offset-4 hover:underline"> <?php esc_html_e( 'Forgot password?', 'alfawzquran' ); ?> </a>
+                                        <a href="<?php echo esc_url( $lost_password ); ?>" class="font-semibold text-[#8f1f3a] underline-offset-4 hover:underline"> <?php esc_html_e( 'Forgot password?', 'alfawzquran' ); ?> </a>
                                     </div>
                                     <?php do_action( 'login_form' ); ?>
                                     <input type="hidden" name="redirect_to" value="<?php echo esc_url( $student_redirect ); ?>" data-alfawz-redirect-input data-default-redirect="<?php echo esc_url( $student_redirect ); ?>" />
                                     <input type="hidden" name="testcookie" value="1" />
-                                    <button type="submit" name="wp-submit" class="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-[#0f3d2e] via-[#2d682d] to-[#f1b722] px-4 py-3 text-sm font-semibold text-white shadow-lg transition hover:shadow-emerald-300">
+                                    <button type="submit" name="wp-submit" class="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-[#5b1025] via-[#8f1f3a] to-[#d2a679] px-4 py-3 text-sm font-semibold text-white shadow-lg transition hover:shadow-rose-300">
                                         <span>🔓</span>
                                         <span><?php esc_html_e( 'Sign in to Alfawz', 'alfawzquran' ); ?></span>
                                     </button>
-                                    <div class="pt-2 text-center text-sm text-[#1f5133]">
-                                        <a href="<?php echo esc_url( $contact_developer_url ); ?>" target="_blank" rel="noopener noreferrer" class="font-semibold text-[#2d682d] underline-offset-4 hover:text-[#0f3d2e] hover:underline"><?php esc_html_e( 'Need help? Chat with the portal team.', 'alfawzquran' ); ?></a>
+                                    <div class="pt-2 text-center text-sm text-[#7c1d3a]">
+                                        <a href="<?php echo esc_url( $contact_developer_url ); ?>" target="_blank" rel="noopener noreferrer" class="font-semibold text-[#8f1f3a] underline-offset-4 hover:text-[#5b1025] hover:underline"><?php esc_html_e( 'Need help? Chat with the portal team.', 'alfawzquran' ); ?></a>
                                     </div>
                                 </form>
                             </div>
                             <div class="hidden" data-alfawz-tab-panel="register">
                                 <?php if ( $register_url ) : ?>
-                                    <div class="space-y-4 text-sm text-[#1f5133]">
-                                        <p class="rounded-2xl border border-[#2d682d]/15 bg-white/70 px-4 py-3 shadow-sm"><?php esc_html_e( 'Families and staff can create new accounts using our secure registration form.', 'alfawzquran' ); ?></p>
-                                        <a href="<?php echo esc_url( $register_url ); ?>" class="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-[#2d682d]/30 bg-white px-4 py-3 text-sm font-semibold text-[#2d682d] shadow-md transition hover:-translate-y-0.5 hover:bg-emerald-50">
+                                    <div class="space-y-4 text-sm text-[#7c1d3a]">
+                                        <p class="rounded-2xl border border-[#6c1b2a]/15 bg-white/70 px-4 py-3 shadow-sm"><?php esc_html_e( 'Families and staff can create new accounts using our secure registration form.', 'alfawzquran' ); ?></p>
+                                        <a href="<?php echo esc_url( $register_url ); ?>" class="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-[#8f1f3a]/30 bg-white px-4 py-3 text-sm font-semibold text-[#8f1f3a] shadow-md transition hover:-translate-y-0.5 hover:bg-rose-50">
                                             <span>📝</span>
                                             <span><?php esc_html_e( 'Open Registration Page', 'alfawzquran' ); ?></span>
                                         </a>
                                     </div>
                                 <?php else : ?>
-                                    <div class="space-y-4 text-sm text-[#1f5133]">
-                                        <p class="rounded-2xl border border-[#2d682d]/15 bg-white/70 px-4 py-3 shadow-sm"><?php esc_html_e( 'Online registration is currently closed. Please contact the school office for assistance.', 'alfawzquran' ); ?></p>
-                                        <a href="<?php echo esc_url( $contact_developer_url ); ?>" target="_blank" rel="noopener noreferrer" class="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-[#2d682d]/30 bg-white px-4 py-3 text-sm font-semibold text-[#2d682d] shadow-md transition hover:-translate-y-0.5 hover:bg-emerald-50">
+                                    <div class="space-y-4 text-sm text-[#7c1d3a]">
+                                        <p class="rounded-2xl border border-[#6c1b2a]/15 bg-white/70 px-4 py-3 shadow-sm"><?php esc_html_e( 'Online registration is currently closed. Please contact the school office for assistance.', 'alfawzquran' ); ?></p>
+                                        <a href="<?php echo esc_url( $contact_developer_url ); ?>" target="_blank" rel="noopener noreferrer" class="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-[#8f1f3a]/30 bg-white px-4 py-3 text-sm font-semibold text-[#8f1f3a] shadow-md transition hover:-translate-y-0.5 hover:bg-rose-50">
                                             <span>💬</span>
                                             <span><?php esc_html_e( 'Message the Portal Team', 'alfawzquran' ); ?></span>
                                         </a>
