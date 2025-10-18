@@ -263,6 +263,15 @@
   opacity: 0.95;
 }
 
+#alfawz-recitation-assistant #alfawz-recitation-verse-content {
+  position: relative;
+  transition: filter 0.3s ease;
+}
+
+#alfawz-recitation-assistant #alfawz-recitation-verse-content[data-blurred='true'] {
+  filter: blur(18px);
+}
+
 #alfawz-recitation-assistant .alfawz-recitation-chip {
   display: inline-flex;
   flex-direction: column;
