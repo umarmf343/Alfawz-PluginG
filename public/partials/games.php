@@ -205,10 +205,21 @@ if ( ! defined( 'ABSPATH' ) ) {
                     <button
                         id="alfawz-puzzle-play"
                         type="button"
-                        class="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#8b1e3f] via-[#c23958] to-[#f59bb4] px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-[#4d081d]/25 transition-all duration-300 hover:-translate-y-1 hover:brightness-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#f59bb4]/60 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+                        class="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#8b1e3f] via-[#c23958] to-[#f59bb4] px-5 py-2.5 text-[1.05rem] font-semibold shadow-lg shadow-[#4d081d]/25 transition-all duration-300 hover:-translate-y-1 hover:brightness-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#f59bb4]/60 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
                     >
-                        <span aria-hidden="true" class="text-base" data-role="puzzle-play-icon">▶</span>
-                        <span data-role="puzzle-play-label"><?php esc_html_e( 'Play Game', 'alfawzquran' ); ?></span>
+                        <span
+                            aria-hidden="true"
+                            class="bg-gradient-to-r from-[#ffe8b9] via-[#f9a8d4] to-[#a5f3fc] bg-clip-text text-transparent"
+                            data-role="puzzle-play-icon"
+                        >
+                            ▶
+                        </span>
+                        <span
+                            class="bg-gradient-to-r from-[#ffe8b9] via-[#f9a8d4] to-[#a5f3fc] bg-clip-text text-transparent drop-shadow-[0_2px_6px_rgba(249,168,212,0.35)]"
+                            data-role="puzzle-play-label"
+                        >
+                            <?php esc_html_e( 'Play Game', 'alfawzquran' ); ?>
+                        </span>
                     </button>
                 </div>
 
