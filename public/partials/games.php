@@ -333,27 +333,27 @@ if ( ! defined( 'ABSPATH' ) ) {
                         </div>
                     </div>
 
-                    <div class="relative mt-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
+                    <div class="relative mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3">
                         <div class="group relative overflow-hidden rounded-3xl border border-white/25 bg-white/10 p-5 text-left shadow-lg shadow-black/15">
                             <div class="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
-                            <p class="text-xs font-semibold uppercase tracking-[0.32em] text-white/70">
+                            <p class="text-2xl font-semibold uppercase tracking-[0.32em] text-[#36454F]">
                                 <?php esc_html_e( 'Day Streak', 'alfawzquran' ); ?>
                             </p>
-                            <p class="mt-3 text-3xl font-black text-white drop-shadow-sm" data-verse-stat="streak">0</p>
+                            <p class="mt-3 text-6xl font-black text-[#36454F] drop-shadow-sm" data-verse-stat="streak">0</p>
                         </div>
                         <div class="group relative overflow-hidden rounded-3xl border border-white/25 bg-white/10 p-5 text-left shadow-lg shadow-black/15">
                             <div class="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
-                            <p class="text-xs font-semibold uppercase tracking-[0.32em] text-white/70">
+                            <p class="text-2xl font-semibold uppercase tracking-[0.32em] text-[#36454F]">
                                 <?php esc_html_e( 'Verses Mastered', 'alfawzquran' ); ?>
                             </p>
-                            <p class="mt-3 text-3xl font-black text-white drop-shadow-sm" data-verse-stat="completed">0</p>
+                            <p class="mt-3 text-6xl font-black text-[#36454F] drop-shadow-sm" data-verse-stat="completed">0</p>
                         </div>
                         <div class="group relative overflow-hidden rounded-3xl border border-white/25 bg-white/10 p-5 text-left shadow-lg shadow-black/15">
                             <div class="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
-                            <p class="text-xs font-semibold uppercase tracking-[0.32em] text-white/70">
+                            <p class="text-2xl font-semibold uppercase tracking-[0.32em] text-[#36454F]">
                                 <?php esc_html_e( 'Answer Accuracy', 'alfawzquran' ); ?>
                             </p>
-                            <p class="mt-3 text-3xl font-black text-white drop-shadow-sm" data-verse-stat="accuracy">0%</p>
+                            <p class="mt-3 text-6xl font-black text-[#36454F] drop-shadow-sm" data-verse-stat="accuracy">0%</p>
                         </div>
                     </div>
                 </div>
