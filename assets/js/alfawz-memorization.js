@@ -1047,6 +1047,9 @@
     }
     const previousPlanId = state.planDetail?.id || state.planSummary?.id || null;
     state.planDetail = await fetchPlanDetail(state.planSummary.id);
+    if (state.planDetail && !Array.isArray(state.planDetail.progress)) {
+      state.planDetail.progress = [];
+    }
     if (state.planDetail) {
       const currentPlanId = state.planDetail?.id || state.planSummary?.id || null;
       if (currentPlanId && currentPlanId !== previousPlanId) {
@@ -1127,7 +1130,11 @@
     if (!state.planDetail) {
       return;
     }
-    const progress = Array.isArray(state.planDetail.progress) ? state.planDetail.progress : [];
+    let progress = Array.isArray(state.planDetail.progress) ? state.planDetail.progress : [];
+    if (!Array.isArray(state.planDetail.progress)) {
+      progress = [...progress];
+      state.planDetail.progress = progress;
+    }
     const existing = progress.find((entry) => Number(entry.verse_id) === Number(verseId));
     if (existing) {
       existing.is_completed = 1;
