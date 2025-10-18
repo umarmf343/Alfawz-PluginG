@@ -2223,10 +2223,12 @@
 
     const playIcon = document.createElement('span');
     playIcon.setAttribute('aria-hidden', 'true');
-    playIcon.className = 'alfawz-quest-play-icon text-base transition-transform duration-300';
+    playIcon.className = 'alfawz-quest-play-icon text-lg text-white transition-transform duration-300';
     playIcon.textContent = '▶';
 
     const playLabel = document.createElement('span');
+    playLabel.className =
+      'alfawz-quest-play-label inline-flex bg-gradient-to-r from-[#ffe082] via-[#ff8a65] to-[#ba68c8] bg-clip-text text-transparent text-[1.2em] font-bold leading-tight';
     playLabel.textContent = strings.playNow;
 
     playButton.appendChild(playIcon);
