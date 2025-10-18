@@ -919,13 +919,13 @@
 /* Reader verse typography */
 .alfawz-arabic {
   font-family: 'Scheherazade New', 'Amiri', serif;
-  font-size: clamp(5rem, 9vw, 8rem);
+  font-size: clamp(3.846rem, 6.923vw, 6.154rem);
   line-height: 1.95;
   color: var(--alfawz-maroon-800);
 }
 
 #alfawz-arabic-text {
-  font-size: clamp(5rem, 9vw, 7.5rem);
+  font-size: clamp(3.846rem, 6.923vw, 5.769rem);
 }
 
 .alfawz-transliteration {
