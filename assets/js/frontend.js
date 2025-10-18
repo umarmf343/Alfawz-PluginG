@@ -1387,6 +1387,7 @@
     const eggCount = qs('#alfawz-egg-count', root);
     const eggProgress = qs('#alfawz-egg-progress-bar', root);
     const eggMessage = qs('#alfawz-egg-message', root);
+    const eggMessageSplashHosts = Array.from(root.querySelectorAll('[data-role="alfawz-egg-message-splash"]'));
     const growthVisual = qs('#alfawz-growth-visual', root);
     const dailyBar = qs('#alfawz-daily-progress-bar', root);
     const dailyLabel = qs('#alfawz-daily-label', root);
@@ -3123,11 +3124,45 @@
       }
     };
 
+    const triggerEggMessageShower = () => {
+      if (prefersReducedMotion() || !eggMessageSplashHosts.length) {
+        return;
+      }
+      const hues = [348, 12, 24, 320];
+      eggMessageSplashHosts.forEach((host) => {
+        const shower = document.createElement('span');
+        shower.className = 'alfawz-egg-message-shower';
+        const dropCount = 9;
+        for (let i = 0; i < dropCount; i += 1) {
+          const drop = document.createElement('span');
+          drop.className = 'alfawz-egg-message-shower__drop';
+          drop.style.setProperty('--alfawz-drop-x', `${-55 + Math.random() * 110}%`);
+          drop.style.setProperty('--alfawz-drop-delay', `${Math.random() * 160}ms`);
+          drop.style.setProperty('--alfawz-drop-duration', `${720 + Math.random() * 360}ms`);
+          drop.style.setProperty('--alfawz-drop-scale', `${0.85 + Math.random() * 0.55}`);
+          drop.style.setProperty('--alfawz-drop-hue', `${hues[Math.floor(Math.random() * hues.length)]}`);
+          shower.appendChild(drop);
+        }
+        host.appendChild(shower);
+        window.requestAnimationFrame(() => {
+          shower.classList.add('is-active');
+        });
+        const leaveDelay = 780;
+        window.setTimeout(() => {
+          shower.classList.add('is-leaving');
+        }, leaveDelay);
+        window.setTimeout(() => {
+          shower.remove();
+        }, leaveDelay + 360);
+      });
+    };
+
     const celebrateEgg = (message = strings.eggCelebration) => {
       if (eggWidget) {
         eggWidget.classList.add('alfawz-egg-celebrate');
         window.setTimeout(() => eggWidget.classList.remove('alfawz-egg-celebrate'), 1200);
       }
+      triggerEggMessageShower();
       spawnConfetti(confettiHost);
       announceCelebration(message || strings.eggCelebration);
     };
