@@ -1885,13 +1885,19 @@
 
       if (Number.isFinite(achievement.reward)) {
         const reward = document.createElement('div');
-        reward.className = `relative z-10 mt-5 inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-semibold shadow-lg transition duration-300 ${
+        reward.className = `relative z-10 mt-5 inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-[1.05rem] font-semibold shadow-lg transition duration-300 ${
           unlocked ? 'bg-white/20 text-white shadow-[#4d081d]/30 backdrop-blur group-hover:shadow-[#4d081d]/45' : 'bg-white/85 text-[#8b1e3f] shadow-[#4d081d]/10'
         }`;
         const rewardIcon = document.createElement('span');
         rewardIcon.setAttribute('aria-hidden', 'true');
+        rewardIcon.className = unlocked
+          ? 'text-amber-200 drop-shadow-[0_0_6px_rgba(255,255,255,0.65)]'
+          : 'text-[#f59bb4] drop-shadow-[0_0_4px_rgba(245,155,180,0.55)]';
         rewardIcon.textContent = '✨';
         const rewardLabel = document.createElement('span');
+        rewardLabel.className = unlocked
+          ? 'bg-gradient-to-r from-amber-200 via-pink-200 to-rose-300 bg-clip-text text-transparent'
+          : 'bg-gradient-to-r from-[#ff7aa8] via-[#ffb347] to-[#7dd3fc] bg-clip-text text-transparent';
         rewardLabel.textContent = `+${formatNumber(achievement.reward)} Hasanat`;
         reward.appendChild(rewardIcon);
         reward.appendChild(rewardLabel);
