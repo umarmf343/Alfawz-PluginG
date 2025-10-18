@@ -884,7 +884,7 @@
 }
 
 .alfawz-verse-nav {
-  position: absolute;
+  position: fixed;
   top: 50%;
   transform: translateY(-50%);
   width: 3.5rem;
@@ -901,7 +901,7 @@
   box-shadow: 0 18px 30px rgba(47, 8, 17, 0.18);
   transition: transform 180ms ease, box-shadow 180ms ease, background 180ms ease, color 180ms ease;
   cursor: pointer;
-  z-index: 2;
+  z-index: 30;
 }
 
 .alfawz-verse-nav:disabled {
@@ -3364,7 +3364,7 @@
 }
 
 .alfawz-verse-nav {
-  position: absolute;
+  position: fixed;
   top: 50%;
   transform: translateY(-50%);
   width: 3rem;
@@ -3380,7 +3380,7 @@
   color: #047857;
   transition: transform 180ms ease, box-shadow 180ms ease, background 180ms ease, color 180ms ease;
   touch-action: manipulation;
-  z-index: 2;
+  z-index: 30;
 }
 
 #alfawz-prev-verse {
