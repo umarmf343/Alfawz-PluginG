@@ -1855,20 +1855,31 @@
         const li = document.createElement('li');
         li.className = 'alfawz-reflection-item';
 
+        const details = document.createElement('details');
+        details.className = 'alfawz-reflection-entry';
+
+        const summary = document.createElement('summary');
+        summary.className = 'alfawz-reflection-summary';
+
         const mood = document.createElement('strong');
         mood.textContent = entry?.mood_label || entry?.mood || 'Reflection';
-        li.appendChild(mood);
+        summary.appendChild(mood);
 
         if (entry?.created_at_label) {
           const time = document.createElement('time');
           time.dateTime = entry?.created_at_gmt || '';
           time.textContent = entry.created_at_label;
-          li.appendChild(time);
+          summary.appendChild(time);
         }
 
-        const body = document.createElement('p');
-        body.textContent = entry?.content || '';
-        li.appendChild(body);
+        details.appendChild(summary);
+
+        const body = document.createElement('div');
+        body.className = 'alfawz-reflection-details';
+
+        const content = document.createElement('p');
+        content.textContent = entry?.content || '';
+        body.appendChild(content);
 
         if (entry?.id) {
           const remove = document.createElement('button');
@@ -1877,9 +1888,11 @@
           remove.addEventListener('click', () => {
             handleReflectionDelete(entry);
           });
-          li.appendChild(remove);
+          body.appendChild(remove);
         }
 
+        details.appendChild(body);
+        li.appendChild(details);
         fragment.appendChild(li);
       });
 
