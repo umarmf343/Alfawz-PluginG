@@ -4922,7 +4922,11 @@ body.alfawz-qaidah-modal-open {
 
 #alfawz-memorization-ayah-transliteration,
 #alfawz-memorization-ayah-translation {
-  font-size: 3.375rem;
+  font-size: 5.0625rem;
+}
+
+#alfawz-memorization-ayah-translation {
+  color: #36454f;
 }
 
 .memorization-verse-shell {
