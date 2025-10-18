@@ -1014,7 +1014,7 @@
       'inline-flex items-center gap-3 rounded-full bg-gradient-to-r from-[#1f1c4f] via-[#4c1d95] to-[#9f1239] px-5 py-2.5 text-center shadow-lg shadow-[#2b0f3a]/35 transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#f9a8d4]/80 focus-visible:ring-offset-2 focus-visible:ring-offset-white hover:-translate-y-0.5 hover:brightness-110';
     const buttonLabel = document.createElement('span');
     buttonLabel.className =
-      'inline-flex items-center text-[1.05rem] font-semibold tracking-tight text-transparent bg-gradient-to-r from-amber-200 via-pink-200 to-sky-300 bg-clip-text drop-shadow-[0_1px_1px_rgba(15,23,42,0.45)]';
+      'inline-flex items-center bg-gradient-to-r from-emerald-300 via-sky-400 to-fuchsia-500 bg-clip-text text-[1.2rem] font-bold tracking-tight text-transparent drop-shadow-[0_1px_1px_rgba(15,23,42,0.4)]';
     button.appendChild(buttonLabel);
     button.addEventListener('click', (event) => {
       event.preventDefault();

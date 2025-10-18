@@ -49,8 +49,13 @@ if ( ! defined( 'ABSPATH' ) ) {
                             type="button"
                             class="inline-flex items-center gap-2 self-start rounded-full bg-gradient-to-r from-[#f7a7b7] via-[#ffce8c] to-[#ffe8b9] px-6 py-3 text-sm font-semibold text-[#431028] shadow-lg shadow-black/20 transition-all duration-300 hover:-translate-y-1 hover:brightness-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#ffe2d5]/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#431028]"
                         >
-                            <span aria-hidden="true" class="text-base" data-role="garden-play-icon">▶</span>
-                            <span data-role="garden-play-label"><?php esc_html_e( 'Play Game', 'alfawzquran' ); ?></span>
+                            <span aria-hidden="true" class="text-base text-white drop-shadow-[0_1px_1px_rgba(15,23,42,0.4)]" data-role="garden-play-icon">▶</span>
+                            <span
+                                class="bg-gradient-to-r from-emerald-300 via-sky-400 to-fuchsia-500 bg-clip-text text-[1.2rem] font-bold leading-tight text-transparent drop-shadow-[0_1px_1px_rgba(15,23,42,0.35)]"
+                                data-role="garden-play-label"
+                            >
+                                <?php esc_html_e( 'Play Game', 'alfawzquran' ); ?>
+                            </span>
                         </button>
                     </div>
                 </div>
