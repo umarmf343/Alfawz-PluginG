@@ -1383,6 +1383,9 @@
     const prevBtn = qs('#alfawz-prev-verse', root);
     const nextBtn = qs('#alfawz-next-verse', root);
     const nextSurahBtn = qs('#alfawz-next-surah', root);
+    const defaultNextSurahLabel = nextSurahBtn
+      ? nextSurahBtn.textContent.trim() || 'Enter Next'
+      : 'Enter Next';
     const eggEmoji = qs('#alfawz-egg-emoji', root);
     const eggCount = qs('#alfawz-egg-count', root);
     const eggProgress = qs('#alfawz-egg-progress-bar', root);
@@ -3339,6 +3342,14 @@
       }
       if (nextSurahBtn) {
         const showNextSurah = Boolean(nextSurah);
+        if (!showNextSurah) {
+          nextSurahBtn.classList.remove('is-loading');
+          if (defaultNextSurahLabel) {
+            safeSetText(nextSurahBtn, defaultNextSurahLabel);
+          }
+        } else if (!nextSurahBtn.classList.contains('is-loading') && defaultNextSurahLabel) {
+          safeSetText(nextSurahBtn, defaultNextSurahLabel);
+        }
         nextSurahBtn.hidden = !showNextSurah;
         nextSurahBtn.disabled = !showNextSurah;
         if (showNextSurah) {
@@ -3649,6 +3660,8 @@
       if (nextSurahBtn) {
         nextSurahBtn.disabled = true;
         nextSurahBtn.setAttribute('aria-busy', 'true');
+        nextSurahBtn.classList.add('is-loading');
+        safeSetText(nextSurahBtn, 'Loading Surah');
       }
       try {
         surahSelect.value = String(nextSurahId);
@@ -3660,6 +3673,10 @@
       } finally {
         if (nextSurahBtn) {
           nextSurahBtn.removeAttribute('aria-busy');
+          nextSurahBtn.classList.remove('is-loading');
+          if (defaultNextSurahLabel) {
+            safeSetText(nextSurahBtn, defaultNextSurahLabel);
+          }
         }
         updateNavigationButtons();
       }
