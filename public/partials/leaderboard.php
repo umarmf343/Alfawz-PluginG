@@ -4,9 +4,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 ?>
 <div id="alfawz-leaderboard" class="alfawz-reader-shell alfawz-no-scrollbar px-4 pt-8 sm:px-6">
-    <div class="alfawz-leaderboard-surface relative mx-auto max-w-5xl space-y-12 p-6 pb-16 sm:p-10 lg:p-12">
+    <div class="alfawz-leaderboard-surface relative space-y-12 p-6 pb-16 sm:p-10 lg:p-12">
         <header class="alfawz-leaderboard-hero relative overflow-hidden">
-            <div class="relative mx-auto flex max-w-6xl flex-col gap-8 px-8 py-10 sm:px-10 sm:py-12 lg:flex-row lg:items-end lg:justify-between">
+            <div class="relative flex flex-col gap-8 px-8 py-10 sm:px-10 sm:py-12 lg:flex-row lg:items-end lg:justify-between">
                 <div class="space-y-5 text-white">
                     <p class="text-xs font-semibold uppercase tracking-[0.35em] text-white/70">
                         <?php esc_html_e( 'Students leaderboard', 'alfawzquran' ); ?>

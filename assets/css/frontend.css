@@ -209,11 +209,11 @@
 }
 
 #alfawz-leaderboard .alfawz-leaderboard-surface {
-  border-radius: var(--alfawz-radius-xl);
-  background: rgba(255, 255, 255, 0.92);
-  border: 1px solid rgba(16, 185, 129, 0.18);
-  box-shadow: 0 32px 70px rgba(15, 118, 110, 0.18);
-  backdrop-filter: blur(12px);
+  border-radius: 0;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  backdrop-filter: none;
   padding: clamp(2.4rem, 3vw, 3.6rem);
   padding-bottom: clamp(3.25rem, 4vw, 4.5rem);
 }
