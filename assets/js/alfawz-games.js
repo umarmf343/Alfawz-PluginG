@@ -901,7 +901,11 @@
     if (task.completed) {
       task.elements.button.disabled = true;
       task.elements.button.classList.add('cursor-not-allowed', 'opacity-60');
-      task.elements.button.textContent = strings.gardenTaskComplete || 'Completed';
+      if (task.elements.buttonLabel) {
+        task.elements.buttonLabel.textContent = strings.gardenTaskComplete || 'Completed';
+      } else {
+        task.elements.button.textContent = strings.gardenTaskComplete || 'Completed';
+      }
       task.elements.button.setAttribute('aria-disabled', 'true');
       task.elements.card?.classList.add('alfawz-quest-complete');
       return;
@@ -915,7 +919,11 @@
         : task.progress >= total - 1
           ? strings.gardenTaskCollect
           : strings.gardenTaskNext;
-    task.elements.button.textContent = label || strings.gardenTaskNext || 'Next Step';
+    if (task.elements.buttonLabel) {
+      task.elements.buttonLabel.textContent = label || strings.gardenTaskNext || 'Next Step';
+    } else {
+      task.elements.button.textContent = label || strings.gardenTaskNext || 'Next Step';
+    }
   };
 
   const createGardenTaskCard = (task) => {
@@ -977,7 +985,11 @@
     const button = document.createElement('button');
     button.type = 'button';
     button.className =
-      'inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#8b1e3f] via-[#c23958] to-[#f59bb4] px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-[#4d081d]/25 transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#f59bb4]/70 focus-visible:ring-offset-2 focus-visible:ring-offset-white hover:-translate-y-0.5 hover:brightness-110';
+      'group inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#8b1e3f] via-[#c23958] to-[#f59bb4] px-5 py-2.5 text-[1.05rem] font-semibold shadow-lg shadow-[#4d081d]/25 transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#f59bb4]/70 focus-visible:ring-offset-2 focus-visible:ring-offset-white hover:-translate-y-0.5 hover:brightness-110';
+    const buttonLabel = document.createElement('span');
+    buttonLabel.className =
+      'bg-gradient-to-r from-emerald-200 via-sky-300 to-rose-400 bg-clip-text text-transparent';
+    button.appendChild(buttonLabel);
     button.addEventListener('click', (event) => {
       event.preventDefault();
       advanceGardenTask(task);
@@ -992,6 +1004,7 @@
       progressBar,
       progressValue,
       button,
+      buttonLabel,
     };
 
     updateGardenTaskCard(task);
