@@ -24,19 +24,19 @@ if ( ! defined( 'ABSPATH' ) ) {
                             <p class="text-[0.7rem] font-semibold uppercase tracking-[0.3em] text-white/75">
                                 <?php esc_html_e( 'Active reciters', 'alfawzquran' ); ?>
                             </p>
-                            <p id="alfawz-leaderboard-total" class="mt-2 text-3xl font-semibold sm:text-4xl">0</p>
+                            <p id="alfawz-leaderboard-total" class="mt-2 text-[5.625rem] font-semibold sm:text-[6.75rem]">0</p>
                         </div>
                         <div class="rounded-3xl bg-white/10 p-5 text-center shadow-lg backdrop-blur">
                             <p class="text-[0.7rem] font-semibold uppercase tracking-[0.3em] text-white/75">
                                 <?php esc_html_e( 'Leading verses', 'alfawzquran' ); ?>
                             </p>
-                            <p id="alfawz-leaderboard-verses" class="mt-2 text-3xl font-semibold sm:text-4xl">0</p>
+                            <p id="alfawz-leaderboard-verses" class="mt-2 text-[5.625rem] font-semibold sm:text-[6.75rem]">0</p>
                         </div>
                         <div class="col-span-2 rounded-3xl bg-white/10 p-5 text-center shadow-lg backdrop-blur sm:col-span-1">
                             <p class="text-[0.7rem] font-semibold uppercase tracking-[0.3em] text-white/75">
                                 <?php esc_html_e( 'Top hasanat', 'alfawzquran' ); ?>
                             </p>
-                            <p id="alfawz-leaderboard-hasanat" class="mt-2 text-3xl font-semibold sm:text-4xl">0</p>
+                            <p id="alfawz-leaderboard-hasanat" class="mt-2 text-[5.625rem] font-semibold sm:text-[6.75rem]">0</p>
                         </div>
                     </div>
                     <button id="alfawz-leaderboard-refresh" type="button" class="group inline-flex items-center justify-center gap-3 rounded-full border border-white/40 bg-white/15 px-6 py-3 text-sm font-semibold uppercase tracking-[0.25em] text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-white/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#741f31]" aria-live="polite">
