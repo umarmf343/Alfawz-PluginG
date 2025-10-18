@@ -15,10 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) {
     </div>
 
     <div class="alfawz-qaidah-surface relative z-10 space-y-10 rounded-[30px] bg-white/90 p-6 backdrop-blur md:p-10">
-        <div class="qaidah-hero relative overflow-hidden rounded-[28px] border border-white/60 bg-gradient-to-br from-[#fef3f2] via-white/95 to-[#fdf3ff] p-6 md:p-8 text-center shadow-2xl">
-            <div class="pointer-events-none absolute -top-16 -right-10 h-48 w-48 rounded-full bg-emerald-200/50 blur-3xl"></div>
-            <div class="pointer-events-none absolute -bottom-20 -left-16 h-56 w-56 rounded-full bg-rose-200/60 blur-3xl"></div>
-            <div class="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(250,200,210,0.35),_transparent_60%)]"></div>
+        <div class="text-center">
             <span class="qaidah-hero-badge mx-auto mb-4 inline-flex items-center gap-2 rounded-full bg-[#7a1a31] px-5 py-2 text-sm font-semibold uppercase tracking-wider text-[#fcefe6] shadow-sm">
                 <span class="inline-block h-2 w-2 rounded-full bg-[#f6d5b5] animate-ping-slow"></span>
                 <?php esc_html_e( 'Qa’idah Studio', 'alfawzquran' ); ?>
@@ -37,7 +34,6 @@ if ( ! defined( 'ABSPATH' ) ) {
             <p class="mx-auto mt-3 max-w-2xl text-lg leading-relaxed text-[#5b3f4a]">
                 <?php esc_html_e( 'Tap into warm maroon vibes, explore each activity, and listen back to audio hotspots as you master every rule.', 'alfawzquran' ); ?>
             </p>
-            <div class="qaidah-hero-glow" aria-hidden="true"></div>
         </div>
 
         <section class="grid gap-6 md:grid-cols-3" aria-label="<?php esc_attr_e( 'Qa’idah learning highlights', 'alfawzquran' ); ?>">
