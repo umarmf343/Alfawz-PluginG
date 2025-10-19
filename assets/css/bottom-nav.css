@@ -204,6 +204,48 @@ body.has-alfawz-bottom-nav {
   animation: alfawzBadgePop 0.4s ease-out;
 }
 
+#alfawz-bottom-nav .alfawz-bottom-nav__tab--hidden-senior {
+  display: none !important;
+}
+
+#alfawz-bottom-nav.alfawz-bottom-nav--senior {
+  background-color: rgba(255, 255, 255, 0.98);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+#alfawz-bottom-nav.alfawz-bottom-nav--senior .alfawz-bottom-nav__scroll-wrapper {
+  justify-content: center;
+}
+
+#alfawz-bottom-nav.alfawz-bottom-nav--senior [data-nav-scroll] {
+  overflow: visible;
+  gap: 0.75rem;
+  justify-content: space-evenly;
+}
+
+#alfawz-bottom-nav.alfawz-bottom-nav--senior .alfawz-bottom-nav__tab {
+  flex: 1 1 0;
+  min-width: 0;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.85rem 1rem;
+  font-size: 0.95rem;
+}
+
+#alfawz-bottom-nav.alfawz-bottom-nav--senior .alfawz-bottom-nav__icon {
+  font-size: 1.75rem;
+}
+
+#alfawz-bottom-nav.alfawz-bottom-nav--senior .alfawz-bottom-nav__label {
+  margin-top: 0;
+  font-size: 0.95rem;
+}
+
+#alfawz-bottom-nav.alfawz-bottom-nav--senior .alfawz-bottom-nav__scroll-indicator {
+  display: none;
+}
+
 @media (min-width: 640px) {
   #alfawz-bottom-nav .alfawz-bottom-nav__tab {
     flex: 1 0 calc(20% - 0.5rem);

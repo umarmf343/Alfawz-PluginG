@@ -1479,15 +1479,65 @@ class Routes {
 
         $quests = [];
 
-        $hasanat_today = (int) ( $daily_summary['hasanat'] ?? 0 );
+        $verses_read        = (int) ( $daily_summary['verses_read'] ?? 0 );
+        $verses_memorized   = (int) ( $daily_summary['verses_memorized'] ?? 0 );
+        $memorization_reps  = (int) ( $daily_summary['memorization_repetitions'] ?? 0 );
+        $hasanat_today      = (int) ( $daily_summary['hasanat'] ?? 0 );
+
+        $nav_resolver = function_exists( 'alfawz_get_bottom_nav_url' ) ? 'alfawz_get_bottom_nav_url' : null;
+        $reader_url   = $nav_resolver ? call_user_func( $nav_resolver, 'reader' ) : '';
+        $game_url     = $nav_resolver ? call_user_func( $nav_resolver, 'game' ) : '';
+        $profile_url  = $nav_resolver ? call_user_func( $nav_resolver, 'profile' ) : '';
+
+        $daily_verse_target = 3;
+        $quests[]           = [
+            'id'           => 'daily-verse-quest',
+            'title'        => __( 'Daily verse quest', 'alfawzquran' ),
+            'description'  => __( 'Read three fresh ayat with their meaning prompts to unlock the verse badge.', 'alfawzquran' ),
+            'icon'         => '📜',
+            'reward_label' => __( 'Verse badge unlocked', 'alfawzquran' ),
+            'play_url'     => $reader_url,
+            'progress'     => $verses_read,
+            'target'       => $daily_verse_target,
+            'status'       => $verses_read >= $daily_verse_target ? 'completed' : 'in_progress',
+        ];
+
+        $tajweed_target = 5;
+        $quests[]        = [
+            'id'           => 'tajweed-timing-challenge',
+            'title'        => __( 'Tajweed timing challenge', 'alfawzquran' ),
+            'description'  => __( 'Complete five tajweed repetitions with steady timing to grow your recital confidence.', 'alfawzquran' ),
+            'icon'         => '⏱️',
+            'reward_label' => __( 'Glow token earned', 'alfawzquran' ),
+            'play_url'     => $game_url,
+            'progress'     => $memorization_reps,
+            'target'       => $tajweed_target,
+            'status'       => $memorization_reps >= $tajweed_target ? 'completed' : 'in_progress',
+        ];
+
+        $story_target = 4;
         $quests[]      = [
-            'id'          => 'hasanat-burst',
-            'title'       => __( 'Earn 500 Hasanat', 'alfawzquran' ),
-            'description' => __( 'Let every letter shine—gather five hundred hasanat today.', 'alfawzquran' ),
-            'reward'      => 180,
-            'progress'    => $hasanat_today,
-            'target'      => 500,
-            'status'      => $hasanat_today >= 500 ? 'completed' : 'in_progress',
+            'id'           => 'story-adventure',
+            'title'        => __( 'Story path adventure', 'alfawzquran' ),
+            'description'  => __( 'Memorise four verses to unlock the next chapter in today’s story map.', 'alfawzquran' ),
+            'icon'         => '🗺️',
+            'reward_label' => __( 'Story crystal discovered', 'alfawzquran' ),
+            'play_url'     => $profile_url ?: $reader_url,
+            'progress'     => $verses_memorized,
+            'target'       => $story_target,
+            'status'       => $verses_memorized >= $story_target ? 'completed' : 'in_progress',
+        ];
+
+        $quests[] = [
+            'id'           => 'hasanat-burst',
+            'title'        => __( 'Earn 500 Hasanat', 'alfawzquran' ),
+            'description'  => __( 'Let every letter shine—gather five hundred hasanat today.', 'alfawzquran' ),
+            'icon'         => '⭐',
+            'reward'       => 180,
+            'play_url'     => $reader_url,
+            'progress'     => $hasanat_today,
+            'target'       => 500,
+            'status'       => $hasanat_today >= 500 ? 'completed' : 'in_progress',
         ];
 
         return new \WP_REST_Response(
@@ -1656,6 +1706,9 @@ class Routes {
             'audio_feedback'          => 'alfawz_pref_audio_feedback',
             'text_size'               => 'alfawz_pref_text_size',
             'interface_language'      => 'alfawz_pref_interface_language',
+            'contrast_mode'           => 'alfawz_pref_contrast_mode',
+            'dyslexia_font'           => 'alfawz_pref_dyslexia_font',
+            'senior_mode'             => 'alfawz_pref_senior_mode',
         ];
 
         foreach ( $map as $key => $meta_key ) {
@@ -1694,6 +1747,16 @@ class Routes {
                         $lang = 'en';
                     }
                     update_user_meta( $user_id, $meta_key, $lang );
+                    break;
+                case 'contrast_mode':
+                    $mode = in_array( $value, [ 'default', 'high' ], true ) ? $value : 'default';
+                    update_user_meta( $user_id, $meta_key, $mode );
+                    break;
+                case 'dyslexia_font':
+                    update_user_meta( $user_id, $meta_key, $value ? 1 : 0 );
+                    break;
+                case 'senior_mode':
+                    update_user_meta( $user_id, $meta_key, $value ? 1 : 0 );
                     break;
             }
         }
@@ -3352,6 +3415,9 @@ class Routes {
             'audio_feedback'          => true,
             'text_size'               => 'medium',
             'interface_language'      => 'en',
+            'contrast_mode'           => 'default',
+            'dyslexia_font'           => false,
+            'senior_mode'             => false,
         ];
 
         $map = [
@@ -3364,6 +3430,9 @@ class Routes {
             'audio_feedback'          => 'alfawz_pref_audio_feedback',
             'text_size'               => 'alfawz_pref_text_size',
             'interface_language'      => 'alfawz_pref_interface_language',
+            'contrast_mode'           => 'alfawz_pref_contrast_mode',
+            'dyslexia_font'           => 'alfawz_pref_dyslexia_font',
+            'senior_mode'             => 'alfawz_pref_senior_mode',
         ];
 
         $preferences = [];
@@ -3376,13 +3445,15 @@ class Routes {
                 continue;
             }
 
-            if ( in_array( $key, [ 'enable_leaderboard', 'audio_feedback' ], true ) ) {
+            if ( in_array( $key, [ 'enable_leaderboard', 'audio_feedback', 'dyslexia_font', 'senior_mode' ], true ) ) {
                 $preferences[ $key ] = (bool) $value;
             } elseif ( in_array( $key, [ 'hasanat_per_letter', 'daily_verse_target' ], true ) ) {
                 $preferences[ $key ] = (int) $value;
             } elseif ( 'interface_language' === $key ) {
                 $lang = substr( sanitize_key( (string) $value ), 0, 2 );
                 $preferences[ $key ] = in_array( $lang, [ 'en', 'ar', 'ur' ], true ) ? $lang : $defaults[ $key ];
+            } elseif ( 'contrast_mode' === $key ) {
+                $preferences[ $key ] = in_array( $value, [ 'default', 'high' ], true ) ? $value : $defaults[ $key ];
             } else {
                 $preferences[ $key ] = $value;
             }

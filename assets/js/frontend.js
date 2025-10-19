@@ -5582,6 +5582,9 @@
       audio_feedback: true,
       text_size: 'medium',
       interface_language: 'en',
+      contrast_mode: 'default',
+      dyslexia_font: false,
+      senior_mode: false,
     };
 
     let preferenceState = { ...fallbackPreferences, ...(wpData.userPreferences || {}) };
@@ -5598,6 +5601,23 @@
     };
 
     applyPreferences(preferenceState);
+
+    window.addEventListener('alfawz:accessibilityChange', (event) => {
+      const detail = event?.detail || {};
+      if (detail.textSize && detail.textSize !== preferenceState.text_size) {
+        preferenceState.text_size = detail.textSize;
+        setActiveTextSize(detail.textSize);
+      }
+      if (typeof detail.contrast !== 'undefined') {
+        preferenceState.contrast_mode = detail.contrast;
+      }
+      if (typeof detail.dyslexia !== 'undefined') {
+        preferenceState.dyslexia_font = Boolean(detail.dyslexia);
+      }
+      if (typeof detail.seniorMode !== 'undefined') {
+        preferenceState.senior_mode = Boolean(detail.seniorMode);
+      }
+    });
 
     const loadProfile = async () => {
       try {

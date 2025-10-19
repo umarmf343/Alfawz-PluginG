@@ -137,6 +137,26 @@
     }
   };
 
+  const seniorTabs = new Set(['dashboard', 'reader', 'profile']);
+
+  const applySeniorMode = (nav, links, enabled) => {
+    nav.classList.toggle('alfawz-bottom-nav--senior', enabled);
+    links.forEach((link) => {
+      const slug = link.dataset.slug;
+      const allow = !enabled || seniorTabs.has(slug);
+      link.classList.toggle('alfawz-bottom-nav__tab--hidden-senior', enabled && !allow);
+    });
+  };
+
+  const initSeniorMode = (nav, links) => {
+    const apply = (enabled) => applySeniorMode(nav, links, enabled);
+    apply(document.documentElement.classList.contains('alfawz-senior-nav'));
+    window.addEventListener('alfawz:accessibilityChange', (event) => {
+      const enabled = Boolean(event?.detail?.seniorMode);
+      apply(enabled);
+    });
+  };
+
   let qaidahIndicatorApi = null;
   let pollTimer = null;
   let visibilityListenerAttached = false;
@@ -330,6 +350,7 @@
 
     activateFromLocation(nav, links);
     initQaidahIndicator(nav);
+    initSeniorMode(nav, links);
 
     nav.addEventListener('click', (event) => {
       const target = event.target.closest('a[data-slug]');
