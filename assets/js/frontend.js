@@ -59,6 +59,236 @@
     return trimmed;
   };
 
+  const accessibilityStrings = {
+    updated: normaliseStoredValue(wpData.strings?.accessibilityUpdated) || 'Accessibility preferences updated.',
+    reset: normaliseStoredValue(wpData.strings?.accessibilityReset) || 'Accessibility preferences reset.',
+    panel: normaliseStoredValue(wpData.strings?.accessibilityPanel) || 'Accessibility',
+    on: normaliseStoredValue(wpData.strings?.toggleOnLabel) || 'enabled',
+    off: normaliseStoredValue(wpData.strings?.toggleOffLabel) || 'disabled',
+  };
+
+  const accessibilityStorageKey =
+    normaliseStoredValue(wpData.accessibility?.storageKey) || 'alfawzAccessibilityPrefs';
+
+  const accessibilityDefaults = {
+    largeText: false,
+    highContrast: false,
+    dyslexia: false,
+    seniorMode: false,
+  };
+
+  const parseAccessibilityPrefs = (rawValue) => {
+    if (!rawValue) {
+      return { ...accessibilityDefaults };
+    }
+    try {
+      const parsed = typeof rawValue === 'string' ? JSON.parse(rawValue) : rawValue;
+      if (!parsed || typeof parsed !== 'object') {
+        return { ...accessibilityDefaults };
+      }
+      return {
+        ...accessibilityDefaults,
+        ...parsed,
+      };
+    } catch (error) {
+      return { ...accessibilityDefaults };
+    }
+  };
+
+  let accessibilityPrefs = parseAccessibilityPrefs(normaliseStoredValue(getPersistentItem(accessibilityStorageKey)));
+
+  const accessibilityClassMap = {
+    largeText: 'alfawz-accessibility-large-text',
+    highContrast: 'alfawz-accessibility-high-contrast',
+    dyslexia: 'alfawz-accessibility-dyslexia',
+    seniorMode: 'alfawz-accessibility-senior',
+  };
+
+  const applyAccessibilityPrefs = (prefs, { silent = false } = {}) => {
+    if (typeof document === 'undefined') {
+      return;
+    }
+    const rootElement = document.documentElement;
+    const body = document.body;
+    if (!rootElement) {
+      return;
+    }
+
+    Object.entries(accessibilityClassMap).forEach(([key, className]) => {
+      if (!className) {
+        return;
+      }
+      const enabled = Boolean(prefs?.[key]);
+      if (enabled) {
+        rootElement.classList.add(className);
+      } else {
+        rootElement.classList.remove(className);
+      }
+    });
+
+    if (body) {
+      const hasAny = Object.values(prefs || {}).some(Boolean);
+      body.classList.toggle('alfawz-accessibility-active', hasAny);
+    }
+
+    if (!silent) {
+      const payloadPrefs = prefs && typeof prefs === 'object' ? { ...prefs } : {};
+      window.dispatchEvent(
+        new CustomEvent('alfawz:accessibility-change', {
+          detail: {
+            prefs: payloadPrefs,
+          },
+        })
+      );
+    }
+  };
+
+  const saveAccessibilityPrefs = (prefs) => {
+    accessibilityPrefs = { ...accessibilityDefaults, ...prefs };
+    setPersistentItem(accessibilityStorageKey, JSON.stringify(accessibilityPrefs));
+  };
+
+  let syncAccessibilityUI = () => {};
+  let announceAccessibility = () => {};
+
+  const initAccessibilityPanel = () => {
+    const root = document.getElementById('alfawz-accessibility-root');
+    if (!root) {
+      return;
+    }
+
+    const trigger = root.querySelector('.alfawz-accessibility__trigger');
+    const panel = root.querySelector('.alfawz-accessibility__panel');
+    const optionButtons = Array.from(root.querySelectorAll('[data-accessibility-toggle]'));
+    const resetButton = root.querySelector('[data-accessibility-reset]');
+    const statusNode = root.querySelector('[data-accessibility-status]');
+
+    announceAccessibility = (message) => {
+      if (!statusNode) {
+        return;
+      }
+      statusNode.textContent = '';
+      requestAnimationFrame(() => {
+        statusNode.textContent = message || '';
+      });
+    };
+
+    const setPanelOpen = (open) => {
+      if (!panel || !trigger) {
+        return;
+      }
+      panel.hidden = !open;
+      trigger.setAttribute('aria-expanded', open ? 'true' : 'false');
+      root.dataset.open = open ? 'true' : 'false';
+      root.classList.toggle('is-open', Boolean(open));
+      if (open) {
+        try {
+          panel.focus({ preventScroll: true });
+        } catch (error) {
+          panel.focus();
+        }
+      }
+    };
+
+    const togglePanel = () => {
+      const open = root.dataset.open === 'true';
+      setPanelOpen(!open);
+    };
+
+    syncAccessibilityUI = () => {
+      optionButtons.forEach((button) => {
+        const key = button.dataset.accessibilityToggle;
+        const active = Boolean(accessibilityPrefs?.[key]);
+        button.setAttribute('aria-pressed', active ? 'true' : 'false');
+        button.classList.toggle('is-active', active);
+      });
+      root.classList.toggle(
+        'has-accessibility-adjustments',
+        Object.values(accessibilityPrefs || {}).some(Boolean)
+      );
+    };
+
+    const updatePreference = (key, value) => {
+      if (!key) {
+        return;
+      }
+      saveAccessibilityPrefs({ ...accessibilityPrefs, [key]: value });
+      applyAccessibilityPrefs(accessibilityPrefs);
+      syncAccessibilityUI();
+
+      const label =
+        optionButtons
+          .find((button) => button.dataset.accessibilityToggle === key)
+          ?.querySelector('.alfawz-accessibility__option-title')?.textContent?.trim() ||
+        key;
+
+      announceAccessibility(
+        `${label}: ${value ? accessibilityStrings.on : accessibilityStrings.off}. ${accessibilityStrings.updated}`
+      );
+    };
+
+    trigger?.addEventListener('click', () => {
+      togglePanel();
+    });
+
+    optionButtons.forEach((button) => {
+      button.addEventListener('click', () => {
+        const key = button.dataset.accessibilityToggle;
+        if (!key) {
+          return;
+        }
+        const next = !Boolean(accessibilityPrefs?.[key]);
+        updatePreference(key, next);
+      });
+    });
+
+    resetButton?.addEventListener('click', () => {
+      saveAccessibilityPrefs({ ...accessibilityDefaults });
+      applyAccessibilityPrefs(accessibilityPrefs);
+      syncAccessibilityUI();
+      announceAccessibility(accessibilityStrings.reset);
+    });
+
+    document.addEventListener('click', (event) => {
+      if (!root.contains(event.target) && root.dataset.open === 'true') {
+        setPanelOpen(false);
+      }
+    });
+
+    root.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && root.dataset.open === 'true') {
+        setPanelOpen(false);
+        trigger?.focus({ preventScroll: true });
+      }
+    });
+
+    syncAccessibilityUI();
+  };
+
+  applyAccessibilityPrefs(accessibilityPrefs, { silent: true });
+
+  const bootAccessibility = () => {
+    initAccessibilityPanel();
+    applyAccessibilityPrefs(accessibilityPrefs);
+  };
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', bootAccessibility);
+  } else {
+    bootAccessibility();
+  }
+
+  window.addEventListener('storage', (event) => {
+    if (event.key !== accessibilityStorageKey) {
+      return;
+    }
+    accessibilityPrefs = parseAccessibilityPrefs(event.newValue);
+    applyAccessibilityPrefs(accessibilityPrefs);
+    if (typeof syncAccessibilityUI === 'function') {
+      syncAccessibilityUI();
+    }
+  });
+
   const headers = {};
   if (wpData.nonce) {
     headers['X-WP-Nonce'] = wpData.nonce;

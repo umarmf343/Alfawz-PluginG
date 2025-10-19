@@ -50,6 +50,7 @@ function alfawz_enqueue_bottom_nav_assets() {
             'nonce'   => wp_create_nonce( 'wp_rest' ),
             'userId'  => get_current_user_id(),
             'role'    => alfawz_get_user_role(),
+            'accessibilityStorageKey' => 'alfawzAccessibilityPrefs',
             'strings' => [
                 'badgeLabel' => __( "new Qa'idah assignments", 'alfawzquran' ),
             ],

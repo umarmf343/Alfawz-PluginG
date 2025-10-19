@@ -27,6 +27,47 @@
     return `${trimmedBase}${cleanPath}`;
   };
 
+  const accessibilityStorageKey = (() => {
+    if (data && typeof data.accessibilityStorageKey === 'string') {
+      return data.accessibilityStorageKey;
+    }
+    const globalData = window.alfawzData;
+    if (globalData?.accessibility?.storageKey) {
+      return String(globalData.accessibility.storageKey);
+    }
+    return 'alfawzAccessibilityPrefs';
+  })();
+
+  const parseAccessibilityPrefs = (rawValue) => {
+    if (!rawValue) {
+      return {};
+    }
+    try {
+      const parsed = typeof rawValue === 'string' ? JSON.parse(rawValue) : rawValue;
+      if (!parsed || typeof parsed !== 'object') {
+        return {};
+      }
+      return parsed;
+    } catch (error) {
+      return {};
+    }
+  };
+
+  const readAccessibilityPrefs = () => {
+    if (!window.localStorage) {
+      return {};
+    }
+    try {
+      const raw = window.localStorage.getItem(accessibilityStorageKey);
+      return parseAccessibilityPrefs(raw);
+    } catch (error) {
+      return {};
+    }
+  };
+
+  const SENIOR_MODE_TABS = ['dashboard', 'reader', 'profile'];
+  let seniorModeEnabled = false;
+
   const storageKey = `alfawzQaidahSeen:${data.userId || 'guest'}`;
 
   const readSeenAssignments = () => {
@@ -298,10 +339,44 @@
       document.body.classList.add('has-alfawz-bottom-nav');
     }
 
-    const links = nav.querySelectorAll('a[data-slug]');
+    const links = Array.from(nav.querySelectorAll('a[data-slug]'));
     if (links.length === 0) {
       return;
     }
+
+    const getAllowedSeniorTabs = () => {
+      const allowed = new Set(SENIOR_MODE_TABS);
+      if (seniorModeEnabled) {
+        const current = nav.dataset.current || '';
+        if (current) {
+          allowed.add(current);
+        }
+      }
+      return allowed;
+    };
+
+    const applySeniorMode = (enabled) => {
+      seniorModeEnabled = Boolean(enabled);
+      nav.classList.toggle('alfawz-bottom-nav--senior', seniorModeEnabled);
+      const allowed = getAllowedSeniorTabs();
+      links.forEach((link) => {
+        const slug = link.dataset.slug || '';
+        const visible = !seniorModeEnabled || allowed.has(slug);
+        link.classList.toggle('alfawz-bottom-nav__tab--hidden', !visible);
+        if (visible) {
+          link.removeAttribute('aria-hidden');
+          link.tabIndex = 0;
+        } else {
+          link.setAttribute('aria-hidden', 'true');
+          link.tabIndex = -1;
+        }
+      });
+    };
+
+    const syncSeniorMode = (prefs) => {
+      const source = prefs && typeof prefs === 'object' ? prefs : readAccessibilityPrefs();
+      applySeniorMode(Boolean(source.seniorMode));
+    };
 
     const scroller = nav.querySelector('[data-nav-scroll]');
     if (scroller) {
@@ -329,7 +404,18 @@
     }
 
     activateFromLocation(nav, links);
+    syncSeniorMode();
     initQaidahIndicator(nav);
+
+    window.addEventListener('alfawz:accessibility-change', (event) => {
+      syncSeniorMode(event?.detail?.prefs);
+    });
+
+    window.addEventListener('storage', (event) => {
+      if (event.key === accessibilityStorageKey) {
+        syncSeniorMode(parseAccessibilityPrefs(event.newValue));
+      }
+    });
 
     nav.addEventListener('click', (event) => {
       const target = event.target.closest('a[data-slug]');
@@ -337,6 +423,12 @@
         return;
       }
       setActiveLink(links, target);
+      if (target.dataset.slug) {
+        nav.dataset.current = target.dataset.slug;
+      }
+      if (seniorModeEnabled) {
+        applySeniorMode(true);
+      }
       if (target.dataset.slug === 'qaidah' && qaidahIndicatorApi && typeof qaidahIndicatorApi.markAssignmentsAsSeen === 'function') {
         qaidahIndicatorApi.markAssignmentsAsSeen();
       }

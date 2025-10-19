@@ -1479,15 +1479,71 @@ class Routes {
 
         $quests = [];
 
-        $hasanat_today = (int) ( $daily_summary['hasanat'] ?? 0 );
+        $verses_read         = (int) ( $daily_summary['verses_read'] ?? 0 );
+        $verses_memorized    = (int) ( $daily_summary['verses_memorized'] ?? 0 );
+        $memorization_loops  = (int) ( $daily_summary['memorization_repetitions'] ?? 0 );
+        $hasanat_today       = (int) ( $daily_summary['hasanat'] ?? 0 );
+
+        $reader_url     = function_exists( 'alfawz_get_bottom_nav_url' ) ? alfawz_get_bottom_nav_url( 'reader' ) : home_url( '/alfawz-reader/' );
+        $memorizer_url  = function_exists( 'alfawz_get_bottom_nav_url' ) ? alfawz_get_bottom_nav_url( 'memorizer' ) : home_url( '/alfawz-memorizer/' );
+        $game_world_url = function_exists( 'alfawz_get_bottom_nav_url' ) ? alfawz_get_bottom_nav_url( 'game' ) : home_url( '/alfawz-games/' );
+
+        $verse_target = (int) get_option( 'alfawz_daily_verse_target', 7 );
+        if ( $verse_target < 1 ) {
+            $verse_target = 7;
+        }
+
+        $quests[] = [
+            'id'          => 'daily-verse-quest',
+            'icon'        => '📖',
+            'title'       => __( 'Daily verse quest', 'alfawzquran' ),
+            'description' => __( 'Recite and reflect on today’s ayat set to keep your nur lantern glowing.', 'alfawzquran' ),
+            'reward'      => 120,
+            'progress'    => $verses_read,
+            'target'      => $verse_target,
+            'status'      => $verses_read >= $verse_target ? 'completed' : 'in_progress',
+            'play_url'    => $reader_url,
+        ];
+
+        $tajweed_target = 3;
+        $quests[]       = [
+            'id'          => 'tajweed-timing-challenge',
+            'icon'        => '⏱️',
+            'title'       => __( 'Tajwīd timing challenge', 'alfawzquran' ),
+            'description' => __( 'Complete three steady tajwīd runs with the metronome guidance to earn a timing trophy.', 'alfawzquran' ),
+            'reward'      => 150,
+            'progress'    => $memorization_loops,
+            'target'      => $tajweed_target,
+            'status'      => $memorization_loops >= $tajweed_target ? 'completed' : 'in_progress',
+            'play_url'    => $memorizer_url,
+        ];
+
+        $story_target = 3;
+        $quests[]     = [
+            'id'             => 'story-adventure',
+            'icon'           => '🗺️',
+            'title'          => __( 'Noorland story adventure', 'alfawzquran' ),
+            'description'    => __( 'Unlock a chapter in the story map by finishing three quest nodes with your mentor character.', 'alfawzquran' ),
+            'reward'         => null,
+            'progress'       => $verses_memorized,
+            'target'         => $story_target,
+            'status'         => $verses_memorized >= $story_target ? 'completed' : 'in_progress',
+            'play_url'       => $game_world_url,
+            'reward_label'   => __( 'Adventure badge unlocked', 'alfawzquran' ),
+            'open_in_new_tab' => true,
+        ];
+
+        $garden_target = 500;
         $quests[]      = [
-            'id'          => 'hasanat-burst',
-            'title'       => __( 'Earn 500 Hasanat', 'alfawzquran' ),
-            'description' => __( 'Let every letter shine—gather five hundred hasanat today.', 'alfawzquran' ),
+            'id'          => 'virtue-garden-harvest',
+            'icon'        => '🌳',
+            'title'       => __( 'Virtue Garden harvest', 'alfawzquran' ),
+            'description' => __( 'Gather five hundred hasanat to bloom every sanctuary tree before the day ends.', 'alfawzquran' ),
             'reward'      => 180,
             'progress'    => $hasanat_today,
-            'target'      => 500,
-            'status'      => $hasanat_today >= 500 ? 'completed' : 'in_progress',
+            'target'      => $garden_target,
+            'status'      => $hasanat_today >= $garden_target ? 'completed' : 'in_progress',
+            'play_url'    => $game_world_url,
         ];
 
         return new \WP_REST_Response(

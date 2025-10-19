@@ -6416,3 +6416,262 @@ body.alfawz-qaidah-modal-open {
 .alfawz-verse-option[data-state='disabled'] {
   opacity: 0.65;
 }
+.alfawz-accessibility {
+  position: fixed;
+  right: 1.25rem;
+  bottom: 2rem;
+  z-index: 90;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.75rem;
+}
+
+body.has-alfawz-bottom-nav .alfawz-accessibility {
+  bottom: calc(env(safe-area-inset-bottom) + 6.25rem);
+}
+
+html.alfawz-accessibility-senior body.has-alfawz-bottom-nav .alfawz-accessibility {
+  bottom: calc(env(safe-area-inset-bottom) + 7.5rem);
+}
+
+.alfawz-accessibility__trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-radius: 9999px;
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.15), rgba(236, 72, 153, 0.1));
+  color: #4b5563;
+  font-weight: 600;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18);
+  backdrop-filter: blur(12px);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.25s ease, color 0.2s ease,
+    border-color 0.25s ease;
+}
+
+.alfawz-accessibility__trigger:hover,
+.alfawz-accessibility__trigger:focus-visible {
+  transform: translateY(-2px);
+  border-color: rgba(249, 115, 22, 0.45);
+  background: linear-gradient(135deg, rgba(249, 115, 22, 0.2), rgba(236, 72, 153, 0.2));
+  color: #7f1d1d;
+}
+
+.alfawz-accessibility__trigger:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(252, 211, 77, 0.45), 0 16px 32px rgba(124, 58, 237, 0.2);
+}
+
+.alfawz-accessibility__trigger-icon {
+  font-size: 1.15rem;
+}
+
+.alfawz-accessibility__panel {
+  width: 320px;
+  max-width: calc(100vw - 2rem);
+  padding: 1.25rem 1.5rem;
+  border-radius: 1.5rem;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(254, 249, 195, 0.92));
+  box-shadow: 0 28px 70px -30px rgba(15, 23, 42, 0.45);
+  color: #374151;
+  backdrop-filter: blur(16px);
+}
+
+.alfawz-accessibility__panel[hidden] {
+  display: none;
+}
+
+.alfawz-accessibility__panel-header {
+  margin-bottom: 1rem;
+}
+
+.alfawz-accessibility__panel-title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #7f1d1d;
+}
+
+.alfawz-accessibility__panel-description {
+  margin: 0.35rem 0 0;
+  font-size: 0.95rem;
+  color: #9f1239;
+  opacity: 0.82;
+}
+
+.alfawz-accessibility__options {
+  display: grid;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.alfawz-accessibility__option {
+  width: 100%;
+  text-align: left;
+  padding: 0.85rem 1rem;
+  border-radius: 1.1rem;
+  border: 1px solid rgba(148, 163, 184, 0.45);
+  background: rgba(255, 255, 255, 0.9);
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease, background 0.2s ease;
+  font-weight: 600;
+  color: #374151;
+}
+
+.alfawz-accessibility__option:hover,
+.alfawz-accessibility__option:focus-visible {
+  transform: translateY(-1px);
+  border-color: rgba(249, 115, 22, 0.4);
+  box-shadow: 0 16px 36px -24px rgba(249, 115, 22, 0.5);
+}
+
+.alfawz-accessibility__option:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.55), 0 16px 32px -24px rgba(251, 191, 36, 0.45);
+}
+
+.alfawz-accessibility__option.is-active {
+  border-color: rgba(167, 139, 250, 0.65);
+  background: linear-gradient(135deg, rgba(199, 210, 254, 0.45), rgba(248, 250, 252, 0.95));
+  box-shadow: 0 22px 48px -28px rgba(129, 140, 248, 0.6);
+}
+
+.alfawz-accessibility__option-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #7f1d1d;
+}
+
+.alfawz-accessibility__option-description {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.alfawz-accessibility__actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.alfawz-accessibility__reset {
+  border: none;
+  background: none;
+  color: #7f1d1d;
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+}
+
+.alfawz-accessibility__reset:hover,
+.alfawz-accessibility__reset:focus-visible {
+  color: #9f1239;
+  outline: none;
+}
+
+.alfawz-accessibility.is-open .alfawz-accessibility__trigger {
+  background: linear-gradient(135deg, rgba(248, 250, 252, 0.95), rgba(199, 210, 254, 0.5));
+  color: #1f2937;
+  border-color: rgba(129, 140, 248, 0.55);
+}
+
+.alfawz-accessibility.has-accessibility-adjustments .alfawz-accessibility__trigger::after {
+  content: '';
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 9999px;
+  background: radial-gradient(circle, rgba(56, 189, 248, 0.85), rgba(37, 99, 235, 0.85));
+  box-shadow: 0 0 0 4px rgba(191, 219, 254, 0.45);
+}
+
+@media (max-width: 640px) {
+  .alfawz-accessibility {
+    right: 1rem;
+    left: 1rem;
+    bottom: calc(env(safe-area-inset-bottom) + 5.5rem);
+    align-items: stretch;
+  }
+
+  .alfawz-accessibility__panel {
+    width: 100%;
+  }
+}
+
+html.alfawz-accessibility-large-text {
+  font-size: 112.5%;
+}
+
+html.alfawz-accessibility-large-text body {
+  line-height: 1.7;
+}
+
+html.alfawz-accessibility-large-text .alfawz-accessibility__option-title {
+  font-size: 1.05rem;
+}
+
+html.alfawz-accessibility-large-text .alfawz-accessibility__option-description {
+  font-size: 0.95rem;
+}
+
+html.alfawz-accessibility-high-contrast body {
+  background-color: #0f172a;
+  color: #f8fafc;
+}
+
+html.alfawz-accessibility-high-contrast a {
+  color: #38bdf8;
+}
+
+html.alfawz-accessibility-high-contrast .alfawz-accessibility__panel {
+  background: #0f172a;
+  border-color: rgba(148, 163, 184, 0.5);
+  color: #f8fafc;
+  box-shadow: 0 28px 64px -28px rgba(15, 23, 42, 0.7);
+}
+
+html.alfawz-accessibility-high-contrast .alfawz-accessibility__option {
+  background: #111827;
+  border-color: rgba(148, 163, 184, 0.6);
+  color: #f8fafc;
+}
+
+html.alfawz-accessibility-high-contrast .alfawz-accessibility__option-title {
+  color: #facc15;
+}
+
+html.alfawz-accessibility-high-contrast .alfawz-accessibility__option-description {
+  color: #e5e7eb;
+}
+
+html.alfawz-accessibility-high-contrast .alfawz-accessibility__option.is-active {
+  border-color: rgba(56, 189, 248, 0.75);
+  background: rgba(30, 64, 175, 0.55);
+}
+
+html.alfawz-accessibility-high-contrast .alfawz-accessibility__trigger {
+  border-color: rgba(148, 163, 184, 0.65);
+  color: #f8fafc;
+  background: rgba(30, 64, 175, 0.45);
+}
+
+html.alfawz-accessibility-dyslexia body {
+  font-family: 'Atkinson Hyperlegible', 'Lexend', 'Verdana', 'Arial', sans-serif;
+  letter-spacing: 0.025em;
+  word-spacing: 0.08em;
+}
+
+html.alfawz-accessibility-dyslexia p,
+html.alfawz-accessibility-dyslexia li,
+html.alfawz-accessibility-dyslexia span,
+html.alfawz-accessibility-dyslexia a,
+html.alfawz-accessibility-dyslexia button {
+  letter-spacing: 0.025em;
+}
+
+html.alfawz-accessibility-dyslexia .alfawz-accessibility__panel-title {
+  font-family: inherit;
+}
