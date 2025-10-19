@@ -54,6 +54,17 @@
     reviewButton: root.querySelector('#review-later'),
     surahContents: root.querySelector('#alfawz-memorization-surah-contents'),
     verseList: root.querySelector('#alfawz-memorization-verse-list'),
+    planBrowser: root.querySelector('#alfawz-plan-browser'),
+    planList: root.querySelector('#alfawz-plan-list'),
+    planGalleryEmpty: root.querySelector('#alfawz-memorization-plan-empty'),
+    planViewer: root.querySelector('#alfawz-plan-viewer'),
+    planViewerSurah: root.querySelector('#alfawz-plan-viewer-surah'),
+    planViewerTitle: root.querySelector('#alfawz-plan-viewer-title'),
+    planViewerRange: root.querySelector('#alfawz-plan-viewer-range'),
+    planViewerProgress: root.querySelector('#alfawz-plan-viewer-progress'),
+    planViewerDescription: root.querySelector('#alfawz-plan-viewer-description'),
+    planViewerVerses: root.querySelector('#alfawz-plan-viewer-verses'),
+    planViewerClose: root.querySelector('#alfawz-plan-viewer-close'),
   };
 
   const state = {
@@ -79,9 +90,290 @@
     savedPlans: [],
     lastVerseCelebrationKey: null,
     lastPlanCelebrationKey: null,
+    planCollection: [],
+    selectedPlanId: null,
+    planViewerOpen: false,
+    planVerseVisibility: new Map(),
   };
 
   const SAVED_PLANS_KEY = 'alfawz_memo_saved_plans';
+
+  const PLAN_CARD_ACTIVE_CLASSES = ['ring-4', 'ring-pink-200', 'bg-white/20', 'shadow-2xl'];
+
+  const getVerseVisibilitySet = (planId) => {
+    const numericId = Number(planId || 0);
+    if (!numericId) {
+      return new Set();
+    }
+    if (!state.planVerseVisibility.has(numericId)) {
+      state.planVerseVisibility.set(numericId, new Set());
+    }
+    return state.planVerseVisibility.get(numericId);
+  };
+
+  const updatePlanViewerVisibility = () => {
+    if (!el.planViewer) {
+      return;
+    }
+    const shouldShow = !!state.planViewerOpen;
+    toggleElement(el.planViewer, shouldShow);
+    if (!shouldShow && el.planViewerVerses) {
+      el.planViewerVerses.innerHTML = '';
+    }
+  };
+
+  const planStatusLabel = (plan) => {
+    const status = (plan?.status || '').toLowerCase();
+    if (status === 'completed') {
+      return wpData.planStatusCompleted || 'Completed';
+    }
+    return wpData.planStatusActive || 'Active';
+  };
+
+  const updatePlanGalleryActiveState = () => {
+    if (!el.planList) {
+      return;
+    }
+    const activeId = Number(state.planDetail?.id || state.planSummary?.id || state.selectedPlanId || 0);
+    el.planList.querySelectorAll('[data-plan-id]').forEach((node) => {
+      const isActive = Number(node.dataset.planId) === activeId;
+      node.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+      PLAN_CARD_ACTIVE_CLASSES.forEach((className) => {
+        node.classList.toggle(className, isActive);
+      });
+    });
+  };
+
+  const renderPlanGallery = (plans = []) => {
+    if (!el.planList) {
+      return;
+    }
+    el.planList.innerHTML = '';
+    if (!plans.length) {
+      toggleElement(el.planGalleryEmpty, true);
+      updatePlanGalleryActiveState();
+      return;
+    }
+    toggleElement(el.planGalleryEmpty, false);
+    plans.forEach((plan) => {
+      const card = document.createElement('button');
+      card.type = 'button';
+      card.dataset.planId = plan.id;
+      card.className =
+        'group relative overflow-hidden rounded-3xl border border-white/20 bg-white/5 p-6 text-left text-white shadow-lg transition duration-500 ease-out hover:-translate-y-1 hover:bg-white/10 focus:outline-none focus-visible:ring-4 focus-visible:ring-pink-200 focus-visible:ring-offset-2 focus-visible:ring-offset-[#16000c]';
+      const surah = state.surahMap.get(Number(plan.surah_id));
+      const planName = plan.plan_name || surah?.englishName || `${wpData.selectSurahLabel || 'Surah'} ${plan.surah_id}`;
+      const rangeText = `${wpData.verseLabel || 'Ayah'} ${formatNumber(plan.start_verse)} – ${formatNumber(plan.end_verse)}`;
+      const total = Number(plan.total_verses || plan.end_verse - plan.start_verse + 1 || 0);
+      const completed = Number(plan.completed_verses || plan.completedVerses || plan.verses_completed || 0);
+      const percent = Number(plan.completion_percentage || plan.completionPercentage || 0);
+      card.innerHTML = `
+        <div class="flex items-start justify-between gap-4">
+          <div class="space-y-2">
+            <p class="text-xs font-semibold uppercase tracking-[0.35em] text-rose-100/70">${planStatusLabel(plan)}</p>
+            <h4 class="text-2xl font-semibold leading-snug">${planName}</h4>
+            <p class="text-base text-rose-100/80">${rangeText}</p>
+          </div>
+          <span class="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-full bg-white/10 text-2xl shadow-inner" aria-hidden="true">📖</span>
+        </div>
+        <div class="mt-5 flex items-center justify-between text-lg font-semibold">
+          <span>${formatNumber(completed)} / ${formatNumber(total)} ${wpData.versesLabel || 'Verses'}</span>
+          <span class="rounded-full bg-white/10 px-3 py-1 text-sm font-semibold text-rose-50/90">${formatPercent(percent)}</span>
+        </div>
+      `;
+      card.addEventListener('click', () => {
+        if (!plan?.id) {
+          return;
+        }
+        state.planViewerOpen = true;
+        state.selectedPlanId = Number(plan.id);
+        updatePlanGalleryActiveState();
+        updatePlanViewerVisibility();
+        showPlanViewerMessage(wpData.planViewerLoadingVerses || 'Loading verses…');
+        refreshPlan(plan.id).catch((error) => {
+          console.error('[Alfawz Memorization] Unable to select plan', error);
+        });
+      });
+      el.planList.appendChild(card);
+    });
+    updatePlanGalleryActiveState();
+  };
+
+  const updatePlanViewerHeader = (plan) => {
+    if (!el.planViewerTitle || !el.planViewerRange || !el.planViewerProgress) {
+      return;
+    }
+    if (!plan) {
+      if (el.planViewerSurah) {
+        el.planViewerSurah.textContent = '';
+      }
+      el.planViewerTitle.textContent = '';
+      el.planViewerRange.textContent = '';
+      el.planViewerProgress.textContent = '';
+      return;
+    }
+    const surah = state.surahMap.get(Number(plan.surah_id));
+    if (el.planViewerSurah) {
+      el.planViewerSurah.textContent = surah
+        ? `${surah.englishName || ''}${surah.englishNameTranslation ? ` • ${surah.englishNameTranslation}` : ''}`
+        : '';
+    }
+    el.planViewerTitle.textContent =
+      plan.plan_name || surah?.englishName || `${wpData.selectSurahLabel || 'Surah'} ${formatNumber(plan.surah_id)}`;
+    el.planViewerRange.textContent = `${wpData.verseLabel || 'Ayah'} ${formatNumber(plan.start_verse)} – ${formatNumber(
+      plan.end_verse,
+    )}`;
+    const total = Number(plan.total_verses || plan.end_verse - plan.start_verse + 1 || 0);
+    const completed = Number(plan.completed_verses || plan.completedVerses || plan.verses_completed || 0);
+    el.planViewerProgress.textContent = `${formatNumber(completed)} / ${formatNumber(total)} ${
+      wpData.versesLabel || 'Verses'
+    } • ${formatPercent(total === 0 ? 0 : (completed / total) * 100)}`;
+  };
+
+  const showPlanViewerMessage = (message, tone = 'muted') => {
+    if (!el.planViewerVerses) {
+      return;
+    }
+    const toneClass =
+      tone === 'error'
+        ? 'bg-red-500/10 text-red-100'
+        : tone === 'success'
+        ? 'bg-emerald-500/10 text-emerald-100'
+        : 'bg-white/10 text-rose-100/80';
+    el.planViewerVerses.innerHTML = `<p class="rounded-3xl px-5 py-4 text-lg font-medium ${toneClass}">${message}</p>`;
+  };
+
+  const highlightPlanViewerVerse = () => {
+    if (!el.planViewerVerses) {
+      return;
+    }
+    const current = Number(state.currentVerse || 0);
+    el.planViewerVerses.querySelectorAll('[data-plan-verse]').forEach((node) => {
+      const verseId = Number(node.getAttribute('data-plan-verse') || 0);
+      const isActive = verseId === current;
+      node.classList.toggle('ring-2', isActive);
+      node.classList.toggle('ring-pink-200', isActive);
+      node.classList.toggle('bg-white/20', isActive);
+    });
+  };
+
+  const renderPlanViewerVerses = async (plan) => {
+    if (!plan || !el.planViewerVerses) {
+      return;
+    }
+    showPlanViewerMessage(wpData.planViewerLoadingVerses || 'Loading verses…');
+    try {
+      const bundle = await fetchSurahContent(plan.surah_id);
+      if (!bundle) {
+        showPlanViewerMessage(wpData.planViewerError || 'We could not load the verses for this plan.', 'error');
+        return;
+      }
+      const hiddenSet = getVerseVisibilitySet(plan.id);
+      const verseMap = new Map();
+      bundle.verses.forEach((verse) => {
+        verseMap.set(Number(verse.numberInSurah || verse.verseId || verse.verse_id), verse);
+      });
+      const start = Number(plan.start_verse || 1);
+      const end = Number(plan.end_verse || start);
+      el.planViewerVerses.innerHTML = '';
+      for (let verseNumber = start; verseNumber <= end; verseNumber += 1) {
+        const verseData = verseMap.get(verseNumber) || { arabic: '', translation: '', transliteration: '' };
+        const card = document.createElement('article');
+        card.dataset.planVerse = verseNumber;
+        card.className =
+          'group relative overflow-hidden rounded-3xl border border-white/15 bg-white/10 p-6 text-left text-white shadow-lg transition duration-500 ease-out hover:border-pink-200 hover:shadow-xl';
+        const header = document.createElement('div');
+        header.className = 'flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between';
+        const titleWrap = document.createElement('div');
+        titleWrap.className = 'space-y-1';
+        const title = document.createElement('p');
+        title.className = 'text-2xl font-semibold';
+        title.textContent = `${wpData.verseLabel || 'Ayah'} ${formatNumber(verseNumber)}`;
+        const meta = document.createElement('p');
+        meta.className = 'text-sm uppercase tracking-[0.35em] text-rose-100/70';
+        meta.textContent = planStatusLabel(plan);
+        titleWrap.appendChild(title);
+        titleWrap.appendChild(meta);
+        header.appendChild(titleWrap);
+        const toggleButton = document.createElement('button');
+        toggleButton.type = 'button';
+        toggleButton.className =
+          'relative inline-flex h-12 w-28 items-center justify-start rounded-full border-2 border-white/30 bg-white/20 px-2 transition-all duration-300 focus:outline-none focus-visible:ring-4 focus-visible:ring-pink-200 focus-visible:ring-offset-2 focus-visible:ring-offset-[#1a0008]';
+        toggleButton.setAttribute('role', 'switch');
+        const knob = document.createElement('span');
+        knob.className =
+          'absolute left-1 flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-white to-rose-100 text-[#5c1025] shadow-lg transition-transform duration-300 ease-out';
+        const knobIcon = document.createElement('span');
+        knobIcon.textContent = '👁️';
+        knob.appendChild(knobIcon);
+        toggleButton.appendChild(knob);
+        const toggleLabel = document.createElement('span');
+        toggleLabel.className = 'ml-auto text-base font-semibold';
+        toggleButton.appendChild(toggleLabel);
+        header.appendChild(toggleButton);
+        card.appendChild(header);
+        const contentWrapper = document.createElement('div');
+        contentWrapper.className = 'mt-4 space-y-3 text-left transition-all duration-500 ease-out';
+        const arabicLine = document.createElement('p');
+        arabicLine.className = 'text-3xl font-semibold leading-relaxed';
+        arabicLine.dir = 'rtl';
+        arabicLine.lang = 'ar';
+        arabicLine.textContent = verseData.arabic || '';
+        contentWrapper.appendChild(arabicLine);
+        if (verseData.transliteration) {
+          const transliterationLine = document.createElement('p');
+          transliterationLine.className = 'text-xl italic text-rose-100/80';
+          transliterationLine.textContent = verseData.transliteration;
+          contentWrapper.appendChild(transliterationLine);
+        }
+        const translationLine = document.createElement('p');
+        translationLine.className = 'text-xl text-rose-100/80';
+        translationLine.textContent = verseData.translation || '';
+        contentWrapper.appendChild(translationLine);
+        card.appendChild(contentWrapper);
+        const updateToggleState = (visible) => {
+          const buttonWidth = toggleButton.offsetWidth || 112;
+          const knobWidth = knob.offsetWidth || 36;
+          const translate = Math.max(0, buttonWidth - knobWidth - 12);
+          knob.style.transform = visible ? `translateX(${translate}px)` : 'translateX(0px)';
+          knobIcon.textContent = visible ? '👁️' : '🚫';
+          toggleLabel.textContent = visible
+            ? wpData.planViewerHideLabel || 'Hide verse'
+            : wpData.planViewerShowLabel || 'Show verse';
+          toggleButton.setAttribute('aria-checked', visible ? 'true' : 'false');
+          toggleButton.classList.toggle('bg-emerald-400/40', visible);
+          toggleButton.classList.toggle('border-emerald-200/60', visible);
+          card.classList.toggle('opacity-60', !visible);
+          contentWrapper.classList.toggle('hidden', !visible);
+        };
+        const visible = !hiddenSet.has(verseNumber);
+        toggleButton.addEventListener('click', (event) => {
+          event.stopPropagation();
+          if (hiddenSet.has(verseNumber)) {
+            hiddenSet.delete(verseNumber);
+          } else {
+            hiddenSet.add(verseNumber);
+          }
+          const nowVisible = !hiddenSet.has(verseNumber);
+          updateToggleState(nowVisible);
+        });
+        card.addEventListener('click', (event) => {
+          if (event.target.closest('button')) {
+            return;
+          }
+          goToVerse(verseNumber);
+        });
+        el.planViewerVerses.appendChild(card);
+        window.requestAnimationFrame(() => {
+          updateToggleState(visible);
+        });
+      }
+      highlightPlanViewerVerse();
+    } catch (error) {
+      console.error('[Alfawz Memorization] Unable to render plan verses', error);
+      showPlanViewerMessage(wpData.planViewerError || 'We could not load the verses for this plan.', 'error');
+    }
+  };
 
   const broadcast = (name, detail = {}) => {
     if (typeof document === 'undefined') {
@@ -539,6 +831,7 @@
     }
     if (state.currentVerse === numericVerse) {
       highlightActiveVerse();
+      highlightPlanViewerVerse();
       return;
     }
     state.currentVerse = numericVerse;
@@ -1003,6 +1296,7 @@
       resetRepetition();
       updateNavigationState();
       highlightActiveVerse();
+      highlightPlanViewerVerse();
       prefetchAdjacentVerses();
     } catch (error) {
       console.error('[Alfawz Memorization] Failed to render verse', error);
@@ -1025,10 +1319,22 @@
     toggleElement(el.emptyState, !hasPlan);
   };
 
-  const refreshPlan = async () => {
+  const refreshPlan = async (targetPlanId = null) => {
     const previousSurahId = state.planDetail?.surah_id || null;
     const plans = await fetchPlans();
-    state.planSummary = chooseActivePlan(plans);
+    state.planCollection = plans;
+    await fetchSurahs().catch(() => []);
+    renderPlanGallery(plans);
+    let chosenPlan = null;
+    const forcedPlanId = targetPlanId ? Number(targetPlanId) : state.selectedPlanId || null;
+    if (forcedPlanId) {
+      chosenPlan = plans.find((plan) => Number(plan.id) === Number(forcedPlanId)) || null;
+    }
+    if (!chosenPlan) {
+      chosenPlan = chooseActivePlan(plans);
+    }
+    state.planSummary = chosenPlan;
+    state.selectedPlanId = chosenPlan ? Number(chosenPlan.id) : null;
     if (!state.planSummary) {
       state.planDetail = null;
       state.currentVerse = null;
@@ -1041,6 +1347,9 @@
       setStatus(wpData.noPlanMessage || 'Create your first plan to begin memorizing.', 'muted');
       setRepeatButtonState();
       await syncSurahVisibility();
+      updatePlanViewerHeader(null);
+      state.planViewerOpen = false;
+      updatePlanViewerVisibility();
       broadcast('alfawz:memorizationPlan', { active: false });
       broadcast('alfawz:memorizationVerse', { planId: null, surahId: null, verseId: null });
       return;
@@ -1069,14 +1378,17 @@
         setButtonLabel(el.audioButton, state.audioButtonDefaultLabel || wpData.playAudioLabel || 'Play verse audio');
       }
       await syncSurahVisibility();
+      updatePlanViewerHeader(null);
+      updatePlanViewerVisibility();
       broadcast('alfawz:memorizationPlan', { active: false });
       return;
     }
     if (previousSurahId && Number(previousSurahId) !== Number(state.planDetail.surah_id)) {
       state.fullSurahVisible = false;
     }
-    await fetchSurahs();
     setPlanHeader(state.planDetail);
+    updatePlanViewerHeader(state.planDetail);
+    updatePlanGalleryActiveState();
     updateStats(state.planDetail);
     broadcast('alfawz:memorizationPlan', {
       active: true,
@@ -1119,11 +1431,19 @@
         complete: true,
       });
       celebratePlanCompletion();
+      if (state.planViewerOpen) {
+        await renderPlanViewerVerses(state.planDetail);
+      }
+      updatePlanViewerVisibility();
       return;
     }
     toggleElement(el.repeatButton, true);
     await renderVerse();
     await syncSurahVisibility();
+    if (state.planViewerOpen) {
+      await renderPlanViewerVerses(state.planDetail);
+    }
+    updatePlanViewerVisibility();
   };
 
   const recordCompletion = (verseId) => {
@@ -1304,6 +1624,12 @@
       await syncSurahVisibility();
     });
 
+    el.planViewerClose?.addEventListener('click', () => {
+      state.planViewerOpen = false;
+      updatePlanViewerVisibility();
+      updatePlanGalleryActiveState();
+    });
+
     el.continueButton?.addEventListener('click', handleContinue);
     el.reviewButton?.addEventListener('click', handleReviewLater);
   };
@@ -1314,6 +1640,9 @@
     constrainRangeInputs();
     updateTranslationToggleLabel();
     updateSurahToggleLabel();
+    if (el.planViewerDescription && wpData.planViewerDescription) {
+      el.planViewerDescription.textContent = wpData.planViewerDescription;
+    }
     initEventListeners();
     await refreshPlan();
     updateProgressUI();
