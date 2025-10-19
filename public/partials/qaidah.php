@@ -59,7 +59,7 @@ if ( ! defined( 'ABSPATH' ) ) {
                     <h3 class="text-4xl font-semibold leading-tight text-[#fdf3ea]">
                         <?php esc_html_e( 'Track your glow', 'alfawzquran' ); ?>
                     </h3>
-                    <p class="text-2xl leading-relaxed text-[#fef9f5]">
+                    <p class="text-2xl leading-relaxed text-[#000000]">
                         <?php esc_html_e( 'Spot completed lessons instantly—finished cards shimmer so you know where to focus next.', 'alfawzquran' ); ?>
                     </p>
                 </div>
