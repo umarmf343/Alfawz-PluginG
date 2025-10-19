@@ -51,6 +51,12 @@ foreach ( $users as $user_id ) {
     delete_user_meta( $user_id, 'alfawz_pref_hasanat_per_letter' );
     delete_user_meta( $user_id, 'alfawz_pref_daily_target' );
     delete_user_meta( $user_id, 'alfawz_pref_enable_leaderboard' );
+    delete_user_meta( $user_id, 'alfawz_pref_audio_feedback' );
+    delete_user_meta( $user_id, 'alfawz_pref_text_size' );
+    delete_user_meta( $user_id, 'alfawz_pref_interface_language' );
+    delete_user_meta( $user_id, 'alfawz_pref_contrast_mode' );
+    delete_user_meta( $user_id, 'alfawz_pref_dyslexia_font' );
+    delete_user_meta( $user_id, 'alfawz_pref_senior_mode' );
     delete_user_meta( $user_id, 'alfawz_reflection_last_mood' );
     delete_user_meta( $user_id, 'daily_recited_verses' );
     delete_user_meta( $user_id, 'alfawz_daily_recited_verses_log' );

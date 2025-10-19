@@ -163,6 +163,8 @@ class Frontend {
                     'growthCelebrationMessage' => __('Takbir! Your tree blossomed into a new canopy.', 'alfawzquran'),
                     'readerGrowthInProgress' => __('Keep nurturing your tree with every verse.', 'alfawzquran'),
                     'readerGrowthComplete' => __('Takbir! Your tree blossomed—strive for the next canopy.', 'alfawzquran'),
+                    'accessibilitySaved' => __('Accessibility preferences saved.', 'alfawzquran'),
+                    'accessibilityError' => __('Unable to save accessibility preferences. Please try again.', 'alfawzquran'),
                     'playAyah'          => __('Play this ayah', 'alfawzquran'),
                     'focusAyah'         => __('Focus this ayah', 'alfawzquran'),
                     'toggleVerseMode'   => __('Navigate verse by verse', 'alfawzquran'),
@@ -690,6 +692,12 @@ class Frontend {
             'hasanat_per_letter'      => (int) get_option('alfawz_hasanat_per_letter', 10),
             'daily_verse_target'      => (int) get_option('alfawz_daily_verse_target', 10),
             'enable_leaderboard'      => (bool) get_option('alfawz_enable_leaderboard', 1),
+            'audio_feedback'          => true,
+            'text_size'               => 'medium',
+            'interface_language'      => 'en',
+            'contrast_mode'           => 'default',
+            'dyslexia_font'           => false,
+            'senior_mode'             => false,
         ];
 
         $user_id = get_current_user_id();
@@ -700,6 +708,12 @@ class Frontend {
             'hasanat_per_letter'      => 'alfawz_pref_hasanat_per_letter',
             'daily_verse_target'      => 'alfawz_pref_daily_target',
             'enable_leaderboard'      => 'alfawz_pref_enable_leaderboard',
+            'audio_feedback'          => 'alfawz_pref_audio_feedback',
+            'text_size'               => 'alfawz_pref_text_size',
+            'interface_language'      => 'alfawz_pref_interface_language',
+            'contrast_mode'           => 'alfawz_pref_contrast_mode',
+            'dyslexia_font'           => 'alfawz_pref_dyslexia_font',
+            'senior_mode'             => 'alfawz_pref_senior_mode',
         ];
 
         $preferences = [];
@@ -712,10 +726,16 @@ class Frontend {
                 continue;
             }
 
-            if ('enable_leaderboard' === $key) {
+            if (in_array($key, ['enable_leaderboard', 'audio_feedback', 'dyslexia_font', 'senior_mode'], true)) {
                 $preferences[$key] = (bool) $value;
             } elseif (in_array($key, ['hasanat_per_letter', 'daily_verse_target'], true)) {
                 $preferences[$key] = (int) $value;
+            } elseif ('contrast_mode' === $key) {
+                $allowed = ['default', 'high'];
+                $preferences[$key] = in_array($value, $allowed, true) ? $value : $defaults[$key];
+            } elseif ('interface_language' === $key) {
+                $lang = substr(sanitize_key((string) $value), 0, 2);
+                $preferences[$key] = in_array($lang, ['en', 'ar', 'ur'], true) ? $lang : $defaults[$key];
             } else {
                 $preferences[$key] = $value;
             }
