@@ -16,61 +16,61 @@ $avatar_preview_url   = $avatar_gender && isset( $avatar_choices[ $avatar_gender
 $avatar_default_alt   = esc_attr__( 'Profile photo', 'alfawzquran' );
 $avatar_gender_attr   = esc_attr( $avatar_gender );
 ?>
-<div id="alfawz-profile" class="alfawz-profile-shell relative mx-auto max-w-5xl space-y-12 px-4 py-10 text-slate-900 sm:px-8 lg:px-0">
-    <div class="pointer-events-none absolute inset-x-6 -top-8 bottom-0 -z-10 rounded-[3rem] bg-gradient-to-br from-[#f8efe5]/70 via-[#fff4e6]/95 to-white/40 blur-3xl"></div>
+<div id="alfawz-profile" class="alfawz-profile-shell relative mx-auto max-w-5xl space-y-12 px-4 py-10 text-[#333333] sm:px-8 lg:px-0">
+    <div class="pointer-events-none absolute inset-x-6 -top-8 bottom-0 -z-10 rounded-[3rem] bg-[linear-gradient(135deg,_#800000_0%,_#a52a2a_40%,_#fdf6f0_100%)] opacity-20 blur-3xl"></div>
 
     <section
-        class="alfawz-profile-hero relative overflow-hidden rounded-[2.75rem] border border-white/20 bg-gradient-to-br from-[#4b0d18] via-[#741f31] to-[#a83254] p-10 text-left text-[#fff5ea] shadow-2xl shadow-[#4b0d18]/30 sm:p-12"
+        class="alfawz-profile-hero relative overflow-hidden rounded-[2.75rem] border border-white/30 bg-[linear-gradient(135deg,_#800000_0%,_#a52a2a_40%,_#fdf6f0_100%)] p-10 text-left text-[#333333] shadow-2xl shadow-[#4b0d18]/20 sm:p-12"
         data-animate="fade"
     >
-        <div class="absolute -left-10 -top-16 h-44 w-44 rounded-full bg-white/10 blur-3xl"></div>
-        <div class="absolute -right-20 bottom-0 h-72 w-72 rounded-full bg-[#ffcf99]/10 blur-3xl"></div>
-        <div class="absolute inset-0 bg-[radial-gradient(circle_at_top,#ffffff1f,transparent_55%)]"></div>
+        <div class="absolute -left-10 -top-16 h-44 w-44 rounded-full bg-[#800000]/25 blur-3xl"></div>
+        <div class="absolute -right-20 bottom-0 h-72 w-72 rounded-full bg-[#f6d6c8]/50 blur-3xl"></div>
+        <div class="absolute inset-0 bg-white/40 mix-blend-lighten"></div>
 
         <div class="relative flex flex-col gap-10 lg:flex-row lg:items-center">
-            <div class="flex-1 space-y-8 text-white/95">
-                <span class="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-1 text-xs font-semibold uppercase tracking-[0.35em] text-white/80 backdrop-blur-sm">
-                    <span class="h-2 w-2 rounded-full bg-gradient-to-r from-[#ffcf99] to-[#ffe7d6]"></span>
+            <div class="flex-1 space-y-8 text-[#333333]">
+                <span class="inline-flex items-center gap-2 rounded-full border border-white/40 bg-white/70 px-4 py-1 text-xs font-semibold uppercase tracking-[0.35em] text-[#800000] backdrop-blur-sm">
+                    <span class="h-2 w-2 rounded-full bg-[#800000]"></span>
                     <?php esc_html_e( 'Daily Qur’an Momentum', 'alfawzquran' ); ?>
                 </span>
 
-                <div class="space-y-4 rounded-3xl border border-white/15 bg-white/10 p-6 shadow-lg shadow-[#2d0a14]/30 backdrop-blur">
+                <div class="space-y-4 rounded-3xl border border-white/40 bg-white/75 p-6 shadow-lg shadow-[#800000]/20 backdrop-blur">
                     <h1
                         id="alfawz-profile-name"
-                        class="text-4xl font-black leading-tight tracking-tight text-white sm:text-5xl lg:text-6xl"
+                        class="text-4xl font-black leading-tight tracking-tight text-[#333333] sm:text-5xl lg:text-6xl"
                     >
                         <?php echo esc_html( $display_name ); ?>
                     </h1>
                     <p
                         id="alfawz-profile-tagline"
-                        class="max-w-2xl text-base font-medium text-[#ffe7d6] sm:text-lg"
+                        class="max-w-2xl text-base font-medium text-[#4f1d1d] sm:text-lg"
                     >
                         <?php esc_html_e( 'Walking with the Qur’an each day.', 'alfawzquran' ); ?>
                     </p>
                     <p
                         id="alfawz-profile-hero-note"
-                        class="text-lg font-semibold text-[#ffe0b7]"
+                        class="text-lg font-semibold text-[#800000]"
                     ></p>
                 </div>
 
                 <div class="grid gap-4 sm:grid-cols-2">
-                    <div class="alfawz-hero-stat rounded-2xl border border-white/20 bg-gradient-to-br from-[#4f0d1c] via-[#70162a] to-[#f3d9ca] p-5 text-left shadow-lg shadow-[#2d0a14]/20 backdrop-blur">
-                        <span class="alfawz-hero-stat-label text-white"><?php esc_html_e( 'Days streak', 'alfawzquran' ); ?></span>
-                        <span id="alfawz-profile-streak-days" class="alfawz-hero-stat-value text-2xl sm:text-4xl text-white">0</span>
+                    <div class="alfawz-hero-stat rounded-2xl border border-white/40 bg-gradient-to-br from-white/85 via-[#fbe4d8]/90 to-[#f6d6c8]/90 p-5 text-left text-[#333333] shadow-lg shadow-[#800000]/20 backdrop-blur">
+                        <span class="alfawz-hero-stat-label text-sm font-semibold uppercase tracking-wide text-[#800000]"><?php esc_html_e( 'Days streak', 'alfawzquran' ); ?></span>
+                        <span id="alfawz-profile-streak-days" class="alfawz-hero-stat-value text-2xl sm:text-4xl text-[#333333]">0</span>
                     </div>
-                    <div class="alfawz-hero-stat rounded-2xl border border-white/20 bg-gradient-to-br from-[#4f0d1c] via-[#70162a] to-[#f3d9ca] p-5 text-left shadow-lg shadow-[#2d0a14]/20 backdrop-blur">
-                        <span class="alfawz-hero-stat-label text-white"><?php esc_html_e( 'Hasanat earned', 'alfawzquran' ); ?></span>
-                        <span id="alfawz-profile-hasanat-total" class="alfawz-hero-stat-value text-2xl sm:text-4xl text-white">0</span>
+                    <div class="alfawz-hero-stat rounded-2xl border border-white/40 bg-gradient-to-br from-white/85 via-[#fbe4d8]/90 to-[#f6d6c8]/90 p-5 text-left text-[#333333] shadow-lg shadow-[#800000]/20 backdrop-blur">
+                        <span class="alfawz-hero-stat-label text-sm font-semibold uppercase tracking-wide text-[#800000]"><?php esc_html_e( 'Hasanat earned', 'alfawzquran' ); ?></span>
+                        <span id="alfawz-profile-hasanat-total" class="alfawz-hero-stat-value text-2xl sm:text-4xl text-[#333333]">0</span>
                     </div>
                 </div>
 
-                <div class="flex flex-col gap-4 text-sm text-white/80 sm:flex-row sm:items-center">
-                    <p class="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 shadow-lg shadow-[#2d0a14]/10">
-                        <span class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#ffe7d6]/15 text-lg">✨</span>
+                <div class="flex flex-col gap-4 text-sm text-[#4f1d1d] sm:flex-row sm:items-center">
+                    <p class="flex items-center gap-3 rounded-2xl border border-white/30 bg-white/70 px-4 py-3 shadow-lg shadow-[#800000]/10">
+                        <span class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#fbe4d8] text-lg text-[#800000]">✨</span>
                         <?php esc_html_e( 'Stay consistent and watch your blessings grow.', 'alfawzquran' ); ?>
                     </p>
                     <a
-                        class="inline-flex items-center justify-center rounded-full bg-gradient-to-r from-[#ffe7d6] via-[#ffd1b6] to-[#ffb28d] px-6 py-2 text-sm font-semibold text-[#4b0d18] shadow-lg shadow-black/10 transition duration-300 hover:-translate-y-0.5 hover:shadow-[#2d0a14]/40"
+                        class="inline-flex items-center justify-center rounded-full bg-gradient-to-r from-emerald-400 via-sky-500 to-rose-500 px-6 py-2 text-sm font-semibold text-white shadow-lg shadow-[#0f3f3a]/25 transition duration-300 hover:-translate-y-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-200/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#800000]/40"
                         href="#alfawz-profile-goal"
                     >
                         <?php esc_html_e( 'Review today’s plan', 'alfawzquran' ); ?>
@@ -80,8 +80,8 @@ $avatar_gender_attr   = esc_attr( $avatar_gender );
             </div>
 
             <div class="mx-auto flex flex-col items-center justify-center text-center sm:items-stretch sm:text-left">
-                <div class="relative flex h-40 w-40 items-center justify-center rounded-full bg-[#fff4e6]/20 p-2 shadow-[0_30px_60px_rgba(0,0,0,0.28)] backdrop-blur-sm sm:h-48 sm:w-48 lg:h-56 lg:w-56">
-                    <div class="alfawz-avatar-glow relative h-full w-full overflow-hidden rounded-full border-4 border-[#fff4e6]/70 bg-[#fff4e6]/30 shadow-inner shadow-black/10">
+                <div class="relative flex h-40 w-40 items-center justify-center rounded-full bg-white/60 p-2 shadow-[0_30px_60px_rgba(128,0,0,0.18)] backdrop-blur-sm sm:h-48 sm:w-48 lg:h-56 lg:w-56">
+                    <div class="alfawz-avatar-glow relative h-full w-full overflow-hidden rounded-full border-4 border-white/70 bg-white/80 shadow-inner shadow-[#800000]/10">
                         <img
                             id="alfawz-profile-avatar-preview"
                             src="<?php echo $avatar_preview_url; ?>"
@@ -94,7 +94,7 @@ $avatar_gender_attr   = esc_attr( $avatar_gender );
                         <button
                             type="button"
                             id="alfawz-profile-avatar-button"
-                            class="absolute bottom-2 left-1/2 -translate-x-1/2 flex items-center gap-2 rounded-full bg-white/90 px-4 py-2 text-sm font-semibold text-[#741f31] shadow-lg transition duration-300 hover:-translate-y-0.5 hover:bg-white focus:outline-none focus:ring-2 focus:ring-[#ffe7d6]"
+                            class="absolute bottom-2 left-1/2 -translate-x-1/2 flex items-center gap-2 rounded-full bg-white/90 px-4 py-2 text-sm font-semibold text-[#800000] shadow-lg transition duration-300 hover:-translate-y-0.5 hover:bg-white focus:outline-none focus:ring-2 focus:ring-[#a52a2a]/40"
                         >
                             <span aria-hidden="true">
                                 <img
@@ -109,7 +109,7 @@ $avatar_gender_attr   = esc_attr( $avatar_gender );
                         </button>
                     </div>
                 </div>
-                <p class="mt-4 max-w-xs text-sm text-[#ffe7d6]/90 sm:ml-auto sm:mt-6">
+                <p class="mt-4 max-w-xs text-sm text-[#4f1d1d]/80 sm:ml-auto sm:mt-6">
                     <?php esc_html_e( 'Choose a respectful silhouette that represents you. You can update this anytime.', 'alfawzquran' ); ?>
                 </p>
                 <p
@@ -194,31 +194,31 @@ $avatar_gender_attr   = esc_attr( $avatar_gender );
         </div>
     </div>
 
-    <section class="alfawz-card-grid grid grid-cols-2 gap-4 sm:grid-cols-4" aria-labelledby="alfawz-profile-overview">
+    <section class="alfawz-card-grid grid grid-cols-2 gap-4 text-[#333333] sm:grid-cols-4" aria-labelledby="alfawz-profile-overview">
         <h2 id="alfawz-profile-overview" class="sr-only"><?php esc_html_e( 'Progress overview', 'alfawzquran' ); ?></h2>
-        <article class="alfawz-profile-card" data-animate="fade">
+        <article class="alfawz-profile-card rounded-3xl border border-[#800000]/15 bg-white/90 p-5 shadow-lg shadow-[#800000]/10" data-animate="fade">
             <div class="alfawz-profile-card-icon" aria-hidden="true">🧠</div>
             <p id="alfawz-profile-memorized-count" class="alfawz-profile-card-value text-2xl sm:text-4xl">0</p>
             <p class="alfawz-profile-label text-lg sm:text-xl"><?php esc_html_e( 'Verses Memorized', 'alfawzquran' ); ?></p>
         </article>
-        <article class="alfawz-profile-card" data-animate="fade">
+        <article class="alfawz-profile-card rounded-3xl border border-[#800000]/15 bg-white/90 p-5 shadow-lg shadow-[#800000]/10" data-animate="fade">
             <div class="alfawz-profile-card-icon" aria-hidden="true">📖</div>
             <p id="alfawz-profile-read-count" class="alfawz-profile-card-value text-2xl sm:text-4xl">0</p>
             <p class="alfawz-profile-label text-lg sm:text-xl"><?php esc_html_e( 'Verses Read', 'alfawzquran' ); ?></p>
         </article>
-        <article class="alfawz-profile-card" data-animate="fade">
+        <article class="alfawz-profile-card rounded-3xl border border-[#800000]/15 bg-white/90 p-5 shadow-lg shadow-[#800000]/10" data-animate="fade">
             <div class="alfawz-profile-card-icon animate-pulse" aria-hidden="true">🔥</div>
             <p id="alfawz-profile-current-streak" class="alfawz-profile-card-value text-2xl sm:text-4xl">0</p>
             <p class="alfawz-profile-label text-lg sm:text-xl"><?php esc_html_e( 'Current Streak', 'alfawzquran' ); ?></p>
         </article>
-        <article class="alfawz-profile-card" data-animate="fade">
+        <article class="alfawz-profile-card rounded-3xl border border-[#800000]/15 bg-white/90 p-5 shadow-lg shadow-[#800000]/10" data-animate="fade">
             <div class="alfawz-profile-card-icon" aria-hidden="true">📝</div>
             <p id="alfawz-profile-active-plans" class="alfawz-profile-card-value text-2xl sm:text-4xl">0</p>
             <p class="alfawz-profile-label text-lg sm:text-xl"><?php esc_html_e( 'Active Plans', 'alfawzquran' ); ?></p>
         </article>
     </section>
 
-    <section class="alfawz-panel" data-animate="fade" aria-labelledby="alfawz-profile-memorization">
+    <section class="alfawz-panel rounded-3xl border border-[#800000]/15 bg-white/90 p-8 shadow-xl shadow-[#800000]/10" data-animate="fade" aria-labelledby="alfawz-profile-memorization">
         <div class="alfawz-panel-heading">
             <span class="alfawz-panel-icon" aria-hidden="true">🧠</span>
             <h2 id="alfawz-profile-memorization" class="alfawz-panel-title">
@@ -228,7 +228,7 @@ $avatar_gender_attr   = esc_attr( $avatar_gender );
         <div id="alfawz-profile-timeline" class="alfawz-timeline space-y-6"></div>
     </section>
 
-    <section class="alfawz-panel" data-animate="fade" aria-labelledby="alfawz-profile-goal">
+    <section class="alfawz-panel rounded-3xl border border-[#800000]/15 bg-white/90 p-8 shadow-xl shadow-[#800000]/10" data-animate="fade" aria-labelledby="alfawz-profile-goal">
         <div class="alfawz-panel-heading">
             <span class="alfawz-panel-icon" aria-hidden="true">🎯</span>
             <h2 id="alfawz-profile-goal" class="alfawz-panel-title"><?php esc_html_e( 'Today’s Recitation Goal', 'alfawzquran' ); ?></h2>
@@ -237,7 +237,7 @@ $avatar_gender_attr   = esc_attr( $avatar_gender );
             <div class="alfawz-progress-soft h-3 w-full overflow-hidden rounded-full">
                 <div
                     id="alfawz-profile-goal-fill"
-                    class="h-3 rounded-full bg-gradient-to-r from-[#ffcf99] via-[#f59f82] to-[#e4637e]"
+                    class="h-3 rounded-full bg-gradient-to-r from-[#800000] via-[#a52a2a] to-[#f6d6c8]"
                     style="width:0%"
                     role="progressbar"
                     aria-valuemin="0"
@@ -245,13 +245,13 @@ $avatar_gender_attr   = esc_attr( $avatar_gender );
                     aria-valuenow="0"
                 ></div>
             </div>
-            <p id="alfawz-profile-goal-text" class="text-lg font-semibold text-[#4b0d18]">0 / 0 <?php esc_html_e( 'Verses Completed', 'alfawzquran' ); ?></p>
+            <p id="alfawz-profile-goal-text" class="text-lg font-semibold text-[#333333]">0 / 0 <?php esc_html_e( 'Verses Completed', 'alfawzquran' ); ?></p>
         </div>
-        <div class="flex flex-col gap-3 text-base text-[#741f31]/90 sm:flex-row sm:items-center sm:justify-between">
-            <span id="alfawz-profile-daily-note" class="font-semibold text-[#a83254]">
+        <div class="flex flex-col gap-3 text-base text-[#4f1d1d] sm:flex-row sm:items-center sm:justify-between">
+            <span id="alfawz-profile-daily-note" class="font-semibold text-[#800000]">
                 <?php esc_html_e( 'Keep going! 🌟', 'alfawzquran' ); ?>
             </span>
-            <span id="alfawz-profile-daily-reset" class="text-sm uppercase tracking-[0.25em] text-[#741f31]/70">
+            <span id="alfawz-profile-daily-reset" class="text-sm uppercase tracking-[0.25em] text-[#800000]/70">
                 <?php esc_html_e( 'Resets at midnight', 'alfawzquran' ); ?>
             </span>
         </div>
