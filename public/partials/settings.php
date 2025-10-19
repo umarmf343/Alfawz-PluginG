@@ -20,6 +20,9 @@ $avatar_preview_url = $avatar_gender && isset( $avatar_choices[ $avatar_gender ]
     : get_avatar_url( get_current_user_id(), [ 'size' => 160 ] );
 $avatar_preview_url = esc_url( $avatar_preview_url );
 $avatar_default_alt = esc_attr__( 'Profile photo', 'alfawzquran' );
+$age_band_meta      = get_user_meta( get_current_user_id(), 'alfawz_profile_age_band', true );
+$allowed_age_bands  = [ 'child', 'teen', 'adult', 'senior' ];
+$age_band           = in_array( $age_band_meta, $allowed_age_bands, true ) ? $age_band_meta : 'adult';
 ?>
 <section id="alfawz-settings" class="bg-stone-50 py-10 sm:py-14">
     <div class="mx-auto w-full max-w-4xl px-4 sm:px-6 lg:px-8">
@@ -109,6 +112,20 @@ $avatar_default_alt = esc_attr__( 'Profile photo', 'alfawzquran' );
                             class="w-full p-3 border border-gray-300 rounded-lg text-base focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                             autocomplete="name"
                         />
+                    </div>
+                    <div>
+                        <label for="alfawz-settings-age-band" class="block text-sm font-medium text-gray-700 mb-1"><?php esc_html_e( 'Age band', 'alfawzquran' ); ?></label>
+                        <select
+                            id="alfawz-settings-age-band"
+                            name="age_band"
+                            class="w-full p-3 border border-gray-300 rounded-lg text-base focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                        >
+                            <option value="child" <?php selected( $age_band, 'child' ); ?>><?php esc_html_e( 'Child – smaller, confidence-building steps', 'alfawzquran' ); ?></option>
+                            <option value="teen" <?php selected( $age_band, 'teen' ); ?>><?php esc_html_e( 'Teen – steady rhythm with purposeful stretches', 'alfawzquran' ); ?></option>
+                            <option value="adult" <?php selected( $age_band, 'adult' ); ?>><?php esc_html_e( 'Adult – self-directed pacing', 'alfawzquran' ); ?></option>
+                            <option value="senior" <?php selected( $age_band, 'senior' ); ?>><?php esc_html_e( 'Senior – gentle pace for lasting comfort', 'alfawzquran' ); ?></option>
+                        </select>
+                        <p class="mt-2 text-sm text-gray-500"><?php esc_html_e( 'We’ll tune daily verse goals to match this learner. Adjust the band whenever their needs change.', 'alfawzquran' ); ?></p>
                     </div>
 
                     <div>

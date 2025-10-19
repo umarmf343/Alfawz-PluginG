@@ -107,6 +107,132 @@
     audioStatusEl: null,
   };
 
+  const escapeHtml = (value) =>
+    String(value == null ? '' : value).replace(/[&<>'"]/g, (char) => {
+      const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' };
+      return map[char] || char;
+    });
+
+  const percentValue = (value) => {
+    const numeric = Number.parseFloat(String(value ?? '').toString().replace('%', ''));
+    if (Number.isNaN(numeric)) {
+      return 0;
+    }
+    return Math.max(0, numeric);
+  };
+
+  const slugify = (value) =>
+    String(value || 'qaidah-practice')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)+/g, '') || 'qaidah-practice';
+
+  const buildHotspotSummary = (hotspot, index) => {
+    const label = hotspot?.label ? escapeHtml(hotspot.label) : `${escapeHtml(strings.hotspotTitle || 'Hotspot')} ${index + 1}`;
+    const x = Math.round(percentValue(hotspot?.x));
+    const y = Math.round(percentValue(hotspot?.y));
+    const width = Math.round(percentValue(hotspot?.width));
+    const height = Math.round(percentValue(hotspot?.height));
+    return { label, x, y, width, height };
+  };
+
+  const openLargePrintSheet = (assignment) => {
+    if (!assignment) {
+      return;
+    }
+    const practiceWindow = window.open('', '_blank', 'noopener');
+    if (!practiceWindow) {
+      console.warn('[AlfawzQuran] Unable to open large-print sheet window.');
+      return;
+    }
+
+    const title = escapeHtml(assignment.title || strings.sheetTitle || 'Qa’idah practice sheet');
+    const teacher = escapeHtml(assignment.teacher?.name || '');
+    const subtitle = escapeHtml(strings.sheetSubtitle || 'Print this sheet for offline rehearsal.');
+    const hotspotHeading = escapeHtml(strings.sheetHotspotHeading || 'Practice focus points');
+    const footer = escapeHtml(strings.sheetFooter || 'Mark each spotlight after rehearsing and sync progress inside Alfawz.');
+    const imageUrl = assignment.image?.url || '';
+    const hotspots = Array.isArray(assignment.hotspots) ? assignment.hotspots : [];
+    const focusItems = hotspots.map((spot, index) => {
+      const summary = buildHotspotSummary(spot, index);
+      return `
+        <li style="margin-bottom:0.9rem;">
+          <strong>${summary.label}</strong>
+          <span style="display:block;font-size:0.95rem;">${summary.y}% down, ${summary.x}% from the left. Approx. ${summary.width}% width × ${summary.height}% height.</span>
+        </li>`;
+    });
+
+    const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>${title}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body { font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; margin: 0; padding: 2rem; color: #2c1c1c; background: #faf8f6; }
+    h1 { font-size: 2.25rem; margin-bottom: 0.5rem; }
+    h2 { font-size: 1.5rem; margin-top: 2rem; margin-bottom: 1rem; }
+    p { font-size: 1.1rem; line-height: 1.6; }
+    figure { margin: 2rem 0; }
+    img { max-width: 100%; height: auto; border-radius: 1rem; box-shadow: 0 18px 35px rgba(122, 26, 49, 0.2); }
+    ol { font-size: 1.1rem; padding-left: 1.2rem; }
+    footer { margin-top: 3rem; font-size: 1rem; color: #7a4c49; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>${title}</h1>
+    ${teacher ? `<p><strong>${escapeHtml(strings.fromLabel || 'From')}:</strong> ${teacher}</p>` : ''}
+    <p>${subtitle}</p>
+  </header>
+  ${imageUrl ? `<figure><img src="${imageUrl}" alt="${title}" /></figure>` : ''}
+  <section>
+    <h2>${hotspotHeading}</h2>
+    ${focusItems.length ? `<ol>${focusItems.join('')}</ol>` : `<p>${escapeHtml(strings.noAssignments || 'Your teacher will share hotspots for this sheet soon.')}</p>`}
+  </section>
+  <footer>${footer}</footer>
+  <script>window.addEventListener('load', function() { setTimeout(function() { window.focus(); window.print(); }, 350); });</script>
+</body>
+</html>`;
+
+    practiceWindow.document.write(html);
+    practiceWindow.document.close();
+  };
+
+  const downloadTactileGuide = (assignment) => {
+    if (!assignment) {
+      return;
+    }
+    const hotspots = Array.isArray(assignment.hotspots) ? assignment.hotspots : [];
+    const intro = strings.tactileIntro || 'Create a tactile version of this lesson. Use raised stickers or textured cards to mark each focus area.';
+    const reminder = strings.tactileReminder || 'When you return online, tap the hotspots in Alfawz to sync your progress.';
+    const lines = [
+      assignment.title ? assignment.title : (strings.sheetTitle || 'Qa’idah practice sheet'),
+      '',
+      intro,
+      '',
+    ];
+    if (hotspots.length) {
+      hotspots.forEach((spot, index) => {
+        const summary = buildHotspotSummary(spot, index);
+        lines.push(`${index + 1}. ${summary.label} — place a raised marker about ${summary.x}% from the left and ${summary.y}% down. Shape covers roughly ${summary.width}% width by ${summary.height}% height.`);
+      });
+    } else {
+      lines.push(strings.noAssignments || 'Hotspots will appear here once your teacher adds them.');
+    }
+    lines.push('', reminder);
+
+    const blob = new Blob([lines.join('\n')], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${slugify(assignment.title)}-tactile-guide.txt`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   const resetRecordingUI = () => {
     const controls = teacherState.recordControls;
     if (!controls) {
@@ -1062,6 +1188,31 @@
         header.appendChild(info);
         header.appendChild(badge);
 
+        const utilities = document.createElement('div');
+        utilities.className = 'flex flex-wrap items-center gap-3 pt-1';
+        utilities.setAttribute('role', 'group');
+
+        const addUtilityButton = (label, handler, modifierClass = '') => {
+          if (!label || typeof handler !== 'function') {
+            return;
+          }
+          const utilityButton = document.createElement('button');
+          utilityButton.type = 'button';
+          utilityButton.className = `qaidah-assignment-card__utility inline-flex items-center gap-2 rounded-full border border-[#f2d6c3] bg-white/70 px-4 py-2 text-sm font-semibold text-[#7a1a31] shadow-sm transition-colors duration-200 hover:bg-[#fdeee2] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#7a1a31] ${modifierClass}`.trim();
+          utilityButton.textContent = label;
+          utilityButton.addEventListener('click', (event) => {
+            event.stopPropagation();
+            handler();
+          });
+          utilities.appendChild(utilityButton);
+        };
+
+        const largePrintLabel = strings.downloadSheet || 'Download large-print practice sheet';
+        const tactileLabel = strings.downloadTactile || 'Download tactile practice guide';
+
+        addUtilityButton(largePrintLabel, () => openLargePrintSheet(assignment));
+        addUtilityButton(tactileLabel, () => downloadTactileGuide(assignment), 'md:ml-auto');
+
         const button = document.createElement('button');
         button.type = 'button';
         button.className = 'qaidah-assignment-card__cta inline-flex items-center gap-3 self-start rounded-full bg-gradient-to-r from-[#7a1a31] to-[#a43246] px-5 py-2 text-base font-semibold text-[#fdeee2] shadow-md transition-all duration-200 hover:from-[#8d243d] hover:to-[#bc3c4e] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#7a1a31]';
@@ -1074,8 +1225,10 @@
         });
 
         content.appendChild(header);
+        if (utilities.childNodes.length) {
+          content.appendChild(utilities);
+        }
         content.appendChild(button);
-        item.appendChild(content);
         assignmentList.appendChild(item);
       });
     };

@@ -11,6 +11,7 @@ $logout_url     = wp_logout_url( get_permalink() );
 $can_register   = function_exists( 'wp_registration_enabled' ) ? wp_registration_enabled() : (bool) get_option( 'users_can_register' );
 $register_url   = $can_register ? wp_registration_url() : '';
 $lost_password  = wp_lostpassword_url( get_permalink() );
+$magic_redirect = add_query_arg( 'alfawz_notice[]', 'check_email', get_permalink() );
 
 $student_dashboard_url = function_exists( 'alfawz_get_bottom_nav_url' )
     ? alfawz_get_bottom_nav_url( 'dashboard' )
@@ -304,6 +305,18 @@ $role_icons = [
                                         </label>
                                         <a href="<?php echo esc_url( $lost_password ); ?>" class="font-semibold text-[#a52a2a] underline-offset-4 hover:text-[#800000] hover:underline"> <?php esc_html_e( 'Forgot password?', 'alfawzquran' ); ?> </a>
                                     </div>
+                                    <div class="space-y-3 rounded-2xl border border-[#800000]/15 bg-white/85 px-4 py-3 text-sm text-[#5b3f4a] shadow-sm">
+                                        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                                            <div>
+                                                <p class="font-semibold text-[#800000]"><?php esc_html_e( 'Need a simple login?', 'alfawzquran' ); ?></p>
+                                                <p class="text-[#5b3f4a]"><?php esc_html_e( 'We can email you a one-tap link using the address above.', 'alfawzquran' ); ?></p>
+                                            </div>
+                                            <button type="button" data-alfawz-magic-link class="inline-flex items-center justify-center rounded-full bg-[#800000] px-4 py-2 text-sm font-semibold text-white shadow transition hover:bg-[#5f1a1a] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#a52a2a]/60">
+                                                <?php esc_html_e( 'Email me a login link', 'alfawzquran' ); ?>
+                                            </button>
+                                        </div>
+                                        <p id="alfawz-magic-link-message" class="mt-1 hidden text-sm text-slate-600" aria-live="polite"></p>
+                                    </div>
                                     <?php do_action( 'login_form' ); ?>
                                     <input type="hidden" name="redirect_to" value="<?php echo esc_url( $student_redirect ); ?>" data-alfawz-redirect-input data-default-redirect="<?php echo esc_url( $student_redirect ); ?>" />
                                     <input type="hidden" name="testcookie" value="1" />
@@ -316,6 +329,11 @@ $role_icons = [
                                     <div class="pt-2 text-center text-sm text-[#333333]">
                                         <a href="<?php echo esc_url( $contact_developer_url ); ?>" target="_blank" rel="noopener noreferrer" class="font-semibold text-[#a52a2a] underline-offset-4 hover:text-[#800000] hover:underline"><?php esc_html_e( 'Need help? Chat with the portal team.', 'alfawzquran' ); ?></a>
                                     </div>
+                                </form>
+                                <form id="alfawz-magic-link-form" method="post" action="<?php echo esc_url( wp_lostpassword_url( $magic_redirect ) ); ?>" class="hidden" aria-hidden="true">
+                                    <?php wp_nonce_field( 'lost_password', '_wpnonce', true, true ); ?>
+                                    <input type="hidden" name="user_login" value="" />
+                                    <input type="hidden" name="redirect_to" value="<?php echo esc_attr( $magic_redirect ); ?>" />
                                 </form>
                             </div>
                             <div class="hidden" data-alfawz-tab-panel="register">
@@ -406,6 +424,66 @@ $role_icons = [
         const tabPanels = document.querySelectorAll('[data-alfawz-tab-panel]');
         const roleSelect = document.querySelector('[data-alfawz-role-select]');
         const redirectInput = document.querySelector('[data-alfawz-redirect-input]');
+        const loginEmailInput = document.getElementById('alfawz-login-email');
+        const magicLinkButton = document.querySelector('[data-alfawz-magic-link]');
+        const magicLinkForm = document.getElementById('alfawz-magic-link-form');
+        const magicLinkEmailInput = magicLinkForm ? magicLinkForm.querySelector('input[name="user_login"]') : null;
+        const magicLinkMessage = document.getElementById('alfawz-magic-link-message');
+        const magicStrings = {
+            missing: '<?php echo esc_js( __( 'Please enter your email so we can send a login link.', 'alfawzquran' ) ); ?>',
+            sending: '<?php echo esc_js( __( 'Sending a secure login link…', 'alfawzquran' ) ); ?>',
+            ready: '<?php echo esc_js( __( 'Check your email for a one-tap login link.', 'alfawzquran' ) ); ?>',
+            error: '<?php echo esc_js( __( 'We could not send your login link. Please refresh and try again.', 'alfawzquran' ) ); ?>'
+        };
+
+        let magicLinkPending = false;
+        let magicLinkTimer = null;
+
+        const showMagicLinkMessage = (text, tone = 'info') => {
+            if (!magicLinkMessage) {
+                return;
+            }
+            if (!text) {
+                magicLinkMessage.textContent = '';
+                magicLinkMessage.classList.add('hidden');
+                return;
+            }
+            magicLinkMessage.textContent = text;
+            magicLinkMessage.classList.remove('hidden', 'text-emerald-700', 'text-rose-600', 'text-slate-600');
+            if (tone === 'success') {
+                magicLinkMessage.classList.add('text-emerald-700');
+            } else if (tone === 'error') {
+                magicLinkMessage.classList.add('text-rose-600');
+            } else {
+                magicLinkMessage.classList.add('text-slate-600');
+            }
+        };
+
+        const clearMagicLinkTimer = () => {
+            if (magicLinkTimer) {
+                window.clearTimeout(magicLinkTimer);
+                magicLinkTimer = null;
+            }
+        };
+
+        const queueMagicLinkSuccess = () => {
+            clearMagicLinkTimer();
+            magicLinkTimer = window.setTimeout(() => {
+                if (magicLinkPending) {
+                    showMagicLinkMessage(magicStrings.ready, 'success');
+                    magicLinkPending = false;
+                }
+            }, 1400);
+        };
+
+        const handleMagicLinkError = () => {
+            if (!magicLinkPending) {
+                return;
+            }
+            clearMagicLinkTimer();
+            magicLinkPending = false;
+            showMagicLinkMessage(magicStrings.error, 'error');
+        };
 
         const activateTab = (target) => {
             tabButtons.forEach((button) => {
@@ -441,6 +519,40 @@ $role_icons = [
         if (roleSelect) {
             roleSelect.addEventListener('change', updateRedirect);
             updateRedirect();
+        }
+
+        if (magicLinkButton && magicLinkForm) {
+            magicLinkForm.addEventListener('submit', () => {
+                magicLinkPending = true;
+                queueMagicLinkSuccess();
+            });
+
+            window.addEventListener('error', handleMagicLinkError);
+            window.addEventListener('unhandledrejection', handleMagicLinkError);
+
+            magicLinkButton.addEventListener('click', () => {
+                clearMagicLinkTimer();
+                magicLinkPending = false;
+                const email = (loginEmailInput?.value || '').trim();
+                if (!email) {
+                    showMagicLinkMessage(magicStrings.missing, 'error');
+                    return;
+                }
+                if (magicLinkEmailInput) {
+                    magicLinkEmailInput.value = email;
+                }
+                showMagicLinkMessage(magicStrings.sending, 'info');
+                try {
+                    if (typeof magicLinkForm.requestSubmit === 'function') {
+                        magicLinkForm.requestSubmit();
+                    } else {
+                        magicLinkForm.submit();
+                    }
+                } catch (error) {
+                    console.error('[AlfawzQuran] Magic link submission failed', error);
+                    handleMagicLinkError();
+                }
+            });
         }
     });
 })();

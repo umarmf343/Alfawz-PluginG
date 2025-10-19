@@ -166,6 +166,7 @@
     hasanatBadgeCount: null,
     refreshLeaderboard: null,
     leaderboardLoading: null,
+    ageBand: wpData.ageBand || wpData.userPreferences?.age_band || 'adult',
   };
 
   const clearLanguageCaches = () => {
@@ -1186,7 +1187,13 @@
         smartGoalTarget.textContent = formatNumber(dynamic.suggested_target || insights.target || wpData.dailyTarget || 10);
       }
       if (smartGoalTargetHint) {
-        smartGoalTargetHint.textContent = dynamic.goal_message ? '' : 'Personalised suggestion based on your recent pace.';
+        if (dynamic.goal_message) {
+          smartGoalTargetHint.textContent = '';
+        } else {
+          const targetValue = Number(dynamic.suggested_target || insights.target || wpData.dailyTarget || 10);
+          const ageHint = describeAgeBandGoal(targetValue);
+          smartGoalTargetHint.textContent = ageHint || 'Personalised suggestion based on your recent pace.';
+        }
       }
       if (smartGoalAverage) {
         smartGoalAverage.textContent = formatDecimal(dynamic.range_average || 0, 1);
@@ -3684,22 +3691,47 @@
       }
     };
 
-    const updateDailyWidget = (state) => {
-      const resolved = state || {
+    const describeAgeBandGoal = (target) => {
+      const templates = {
+        child: wpData.strings?.childGoalHint,
+        teen: wpData.strings?.teenGoalHint,
+        adult: wpData.strings?.adultGoalHint,
+        senior: wpData.strings?.seniorGoalHint,
+      };
+      const activeTemplate = templates[state.ageBand] || templates.adult;
+      if (!activeTemplate) {
+        return '';
+      }
+      return activeTemplate.replace('{target}', formatNumber(target || defaultDailyTarget));
+    };
+
+    if (typeof window !== 'undefined') {
+      window.describeAgeBandGoal = describeAgeBandGoal;
+    }
+
+    const updateDailyWidget = (goalState) => {
+      const resolved = goalState || {
         count: 0,
         target: defaultDailyTarget,
         remaining: defaultDailyTarget,
         percentage: 0,
       };
+      if (resolved.age_band) {
+        state.ageBand = resolved.age_band;
+      }
       const percentage = Math.min(100, Number(resolved.percentage ?? (resolved.target ? (resolved.count / resolved.target) * 100 : 0)));
       animateBar(dailyBar, percentage);
       safeSetText(dailyLabel, `${resolved.count || 0} / ${resolved.target || defaultDailyTarget} Verses Today`);
       if (dailyNote) {
+        const targetForMessage = resolved.target || defaultDailyTarget;
+        const ageHint = describeAgeBandGoal(targetForMessage);
         if (resolved.remaining <= 0) {
-          dailyNote.textContent = wpData.strings?.goalComplete || 'Goal completed for today!';
+          const completion = wpData.strings?.goalComplete || 'Goal completed for today!';
+          dailyNote.textContent = ageHint ? `${completion} ${ageHint}` : completion;
         } else {
           const remaining = resolved.remaining ?? Math.max(0, (resolved.target || defaultDailyTarget) - (resolved.count || 0));
-          dailyNote.textContent = `${remaining} ${remaining === 1 ? 'verse' : 'verses'} left to reach today's goal.`;
+          const baseMessage = `${remaining} ${remaining === 1 ? 'verse' : 'verses'} left to reach today's goal.`;
+          dailyNote.textContent = ageHint ? `${baseMessage} ${ageHint}` : baseMessage;
         }
       }
     };
@@ -5200,7 +5232,10 @@
         const detailParts = [];
         detailParts.push(`${formatNumber(completedVerses)} of ${formatNumber(totalVerses)} verses memorized.`);
         if (activePlan.daily_goal) {
-          detailParts.push(`Goal: ${formatNumber(activePlan.daily_goal)} verses/day.`);
+          const goalTarget = Number(activePlan.daily_goal);
+          const goalSummary = `Goal: ${formatNumber(goalTarget)} verses/day.`;
+          const goalHint = describeAgeBandGoal(goalTarget);
+          detailParts.push(goalHint ? `${goalSummary} ${goalHint}` : goalSummary);
         }
         timelineEl.appendChild(
           buildTimelineCard({
@@ -5225,9 +5260,12 @@
     };
 
     const updateDailyGoal = (goalState) => {
-      const state = goalState && typeof goalState === 'object' ? goalState : {};
-      const count = Number(state.count || 0);
-      const target = Number(state.target || state.daily_goal_target || 0);
+      const goal = goalState && typeof goalState === 'object' ? goalState : {};
+      if (goal.age_band) {
+        state.ageBand = goal.age_band;
+      }
+      const count = Number(goal.count || 0);
+      const target = Number(goal.target || goal.daily_goal_target || 0);
       const percentage = target > 0 ? Math.min(100, Math.round((count / target) * 100)) : 0;
       if (goalFillEl) {
         goalFillEl.style.width = `${percentage}%`;
@@ -5238,13 +5276,14 @@
       }
       if (goalNoteEl) {
         const remaining = Math.max(0, target - count);
-        const message = percentage >= 100
+        const baseMessage = percentage >= 100
           ? 'MashaAllah! Today’s goal is complete—every verse is a jewel.'
           : `Only ${formatNumber(remaining)} verses to reach today’s goal.`;
-        setText(goalNoteEl, message);
+        const hint = target > 0 ? describeAgeBandGoal(target) : '';
+        setText(goalNoteEl, hint ? `${baseMessage} ${hint}` : baseMessage);
       }
       if (goalResetEl) {
-        const resetLabel = state.last_reset ? `Last reset ${formatResetTimestamp(state.last_reset)}` : 'Resets at midnight';
+        const resetLabel = goal.last_reset ? `Last reset ${formatResetTimestamp(goal.last_reset)}` : 'Resets at midnight';
         setText(goalResetEl, resetLabel);
       }
     };
@@ -5261,6 +5300,9 @@
       }
 
       if (stats) {
+        if (stats.age_band) {
+          state.ageBand = stats.age_band;
+        }
         setText(nameEl, stats.display_name || nameEl?.textContent || 'Beloved Student');
         const tagline = stats.member_since
           ? `Walking with the Qur’an since ${stats.member_since}`
@@ -5311,6 +5353,7 @@
     const profileForm = qs('#alfawz-settings-profile-form', root);
     const fullNameField = qs('#alfawz-settings-full-name', profileForm);
     const emailField = qs('#alfawz-settings-email', profileForm);
+    const ageBandField = qs('#alfawz-settings-age-band', profileForm);
     const profileSaveBtn = qs('#alfawz-settings-profile-save', profileForm);
     const profileStatus = qs('#alfawz-profile-status', root);
     const profileMessage = qs('#alfawz-profile-message', profileForm);
@@ -5628,6 +5671,10 @@
         if (profile?.email && emailField) {
           emailField.value = profile.email;
         }
+        if (profile?.age_band && ageBandField) {
+          ageBandField.value = profile.age_band;
+          state.ageBand = profile.age_band;
+        }
         if (profile) {
           const avatarPayload = profile.avatar || {
             gender: profile.avatar_gender,
@@ -5842,15 +5889,25 @@
       }
 
       try {
+        const payload = { full_name: fullName };
+        if (ageBandField) {
+          payload.age_band = ageBandField.value || '';
+        }
         const response = await apiRequest('user-profile', {
           method: 'POST',
-          body: { full_name: fullName },
+          body: payload,
         });
         if (response?.display_name && fullNameField) {
           fullNameField.value = response.display_name;
         }
         if (response?.email && emailField) {
           emailField.value = response.email;
+        }
+        if (typeof response?.age_band !== 'undefined' && ageBandField) {
+          ageBandField.value = response.age_band || 'adult';
+          if (response.age_band) {
+            state.ageBand = response.age_band;
+          }
         }
         if (response) {
           const avatarPayload = response.avatar || {
