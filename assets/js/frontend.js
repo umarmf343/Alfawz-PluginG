@@ -8,8 +8,12 @@
   const GWANI_ARCHIVE_METADATA_URL = 'https://archive.org/metadata/MoshafGwaniDahir';
   const RECITER_EDITION = wpData.defaultReciter || CDN_FALLBACK_RECITER;
   let currentReciter = wpData.userPreferences?.default_reciter || RECITER_EDITION;
-  const TRANSLATION_EDITION = wpData.defaultTranslation || 'en.sahih';
-  const TRANSLITERATION_EDITION = wpData.defaultTransliteration || 'en.transliteration';
+  const DEFAULT_TRANSLATION_EDITION =
+    wpData.userPreferences?.default_translation || wpData.defaultTranslation || 'en.sahih';
+  const DEFAULT_TRANSLITERATION_EDITION =
+    wpData.userPreferences?.default_transliteration ||
+    wpData.defaultTransliteration ||
+    'en.transliteration';
   const HASANAT_PER_LETTER = 10;
 
   const safeStorage = (() => {
@@ -59,6 +63,90 @@
     return trimmed;
   };
 
+  const translationProfiles = [
+    {
+      id: 'standard',
+      edition: 'en.sahih',
+      label: 'Study-ready',
+    },
+    {
+      id: 'family',
+      edition: 'en.clearquran',
+      label: 'Family paraphrase',
+    },
+    {
+      id: 'senior',
+      edition: 'en.yusufali',
+      label: 'Senior classic',
+    },
+    {
+      id: 'heritage',
+      edition: 'en.pickthall',
+      label: 'Heritage tone',
+    },
+  ];
+
+  const translationProfileMap = translationProfiles.reduce((map, profile) => {
+    map[profile.id] = profile;
+    return map;
+  }, {});
+
+  const translationEditionToProfile = translationProfiles.reduce((map, profile) => {
+    if (profile.edition) {
+      map[profile.edition] = profile.id;
+    }
+    return map;
+  }, {});
+
+  const transliterationProfiles = [
+    {
+      id: 'standard',
+      edition: DEFAULT_TRANSLITERATION_EDITION,
+      mode: 'standard',
+    },
+    {
+      id: 'gentle',
+      edition: DEFAULT_TRANSLITERATION_EDITION,
+      mode: 'simplified',
+    },
+    {
+      id: 'assistive',
+      edition: DEFAULT_TRANSLITERATION_EDITION,
+      mode: 'assistive',
+    },
+  ];
+
+  const transliterationProfileMap = transliterationProfiles.reduce((map, profile) => {
+    map[profile.id] = profile;
+    return map;
+  }, {});
+
+  const storedTranslationProfile = normaliseStoredValue(
+    getPersistentItem('alfawz.translationProfile'),
+  );
+  const storedTransliterationProfile = normaliseStoredValue(
+    getPersistentItem('alfawz.transliterationProfile'),
+  );
+
+  let activeTranslationProfileId = translationProfileMap[storedTranslationProfile]
+    ? storedTranslationProfile
+    : translationEditionToProfile[DEFAULT_TRANSLATION_EDITION] || translationProfiles[0].id;
+  let activeTranslationEdition =
+    translationProfileMap[activeTranslationProfileId]?.edition || DEFAULT_TRANSLATION_EDITION;
+
+  let activeTransliterationProfileId = transliterationProfileMap[storedTransliterationProfile]
+    ? storedTransliterationProfile
+    : transliterationProfiles[0].id;
+  let activeTransliterationEdition =
+    transliterationProfileMap[activeTransliterationProfileId]?.edition ||
+    DEFAULT_TRANSLITERATION_EDITION;
+
+  const getActiveTranslationEdition = () =>
+    activeTranslationEdition || DEFAULT_TRANSLATION_EDITION || 'en.sahih';
+
+  const getActiveTransliterationEdition = () =>
+    activeTransliterationEdition || DEFAULT_TRANSLITERATION_EDITION || '';
+
   const headers = {};
   if (wpData.nonce) {
     headers['X-WP-Nonce'] = wpData.nonce;
@@ -78,6 +166,13 @@
     hasanatBadgeCount: null,
     refreshLeaderboard: null,
     leaderboardLoading: null,
+  };
+
+  const clearLanguageCaches = () => {
+    state.verseCache.clear();
+    state.versePromises.clear();
+    state.surahCache.clear();
+    state.surahPromises.clear();
   };
 
   const qs = (selector, scope = document) => scope.querySelector(selector);
@@ -529,14 +624,14 @@
   };
 
   const verseCacheKey = (surahId, verseId) => {
-    const translationKey = TRANSLATION_EDITION || 'default';
-    const transliterationKey = TRANSLITERATION_EDITION || 'none';
+    const translationKey = getActiveTranslationEdition() || 'default';
+    const transliterationKey = getActiveTransliterationEdition() || 'none';
     return `${surahId}:${verseId}:${translationKey}:${transliterationKey}`;
   };
 
   const surahCacheKey = (surahId) => {
-    const translationKey = TRANSLATION_EDITION || 'default';
-    const transliterationKey = TRANSLITERATION_EDITION || 'none';
+    const translationKey = getActiveTranslationEdition() || 'default';
+    const transliterationKey = getActiveTransliterationEdition() || 'none';
     return `${surahId}:${translationKey}:${transliterationKey}`;
   };
 
@@ -566,8 +661,8 @@
     }
 
     const query = buildApiQuery({
-      translation: TRANSLATION_EDITION,
-      transliteration: TRANSLITERATION_EDITION,
+      translation: getActiveTranslationEdition(),
+      transliteration: getActiveTransliterationEdition(),
     });
 
     const request = (async () => {
@@ -632,8 +727,8 @@
     const request = (async () => {
       try {
         const query = buildApiQuery({
-          translation: TRANSLATION_EDITION,
-          transliteration: TRANSLITERATION_EDITION,
+          translation: getActiveTranslationEdition(),
+          transliteration: getActiveTransliterationEdition(),
         });
 
         const payload = await apiRequest(`surahs/${surahId}/verses${query}`);
@@ -1379,6 +1474,12 @@
     const translationEl = qs('#alfawz-translation', root);
     const transliterationToggle = qs('#alfawz-toggle-transliteration', root);
     const translationToggle = qs('#alfawz-toggle-translation', root);
+    const translationChips = Array.from(
+      root.querySelectorAll('[data-translation-option]'),
+    );
+    const transliterationChips = Array.from(
+      root.querySelectorAll('[data-transliteration-option]'),
+    );
     const verseContent = qs('#alfawz-verse-content', root);
     const prevBtn = qs('#alfawz-prev-verse', root);
     const nextBtn = qs('#alfawz-next-verse', root);
@@ -1436,6 +1537,8 @@
       ? Array.from(reflectionWidget.querySelectorAll('.alfawz-reflection-mood'))
       : [];
     const reflectionSaveDefaultLabel = reflectionSaveButton?.textContent?.trim() || 'Save reflection';
+
+    let currentVerseData = null;
 
     const strings = {
       playAyah: wpData.strings?.playAyah || 'Play this ayah',
@@ -2189,6 +2292,219 @@
     let hasTransliteration = false;
     let hasTranslation = false;
 
+    const expandLongVowels = (input) =>
+      String(input || '').replace(/[ĀāĪīŪū]/g, (char) => {
+        const map = {
+          Ā: 'Aa',
+          ā: 'aa',
+          Ī: 'Ee',
+          ī: 'ee',
+          Ū: 'Oo',
+          ū: 'oo',
+        };
+        return map[char] || char;
+      });
+
+    const simplifyTransliteration = (text) => {
+      if (!text) {
+        return '';
+      }
+      const expanded = expandLongVowels(text);
+      return expanded
+        .normalize('NFD')
+        .replace(/[̀-ͯ]/g, '')
+        .replace(/[’'‘`ʿʾˀˁ]/g, '')
+        .replace(/-/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+    };
+
+    const formatTransliterationText = (text) => {
+      if (!text) {
+        return '';
+      }
+      const profile = transliterationProfileMap[activeTransliterationProfileId];
+      if (!profile) {
+        return text;
+      }
+      const mode = profile.mode || 'standard';
+      if (mode === 'simplified' || mode === 'assistive') {
+        const simplified = simplifyTransliteration(text);
+        return mode === 'assistive' ? simplified.toUpperCase() : simplified;
+      }
+      return text;
+    };
+
+    const applyTransliterationProfileToElement = (element, sourceText) => {
+      if (!element) {
+        return;
+      }
+      const formatted = formatTransliterationText(sourceText);
+      element.textContent = formatted || '';
+      element.dataset.profile = activeTransliterationProfileId;
+      element.classList.toggle(
+        'alfawz-transliteration--assistive',
+        activeTransliterationProfileId === 'assistive',
+      );
+    };
+
+    const updateTranslationChips = () => {
+      translationChips.forEach((chip) => {
+        const { translationOption } = chip.dataset || {};
+        const isActive = translationOption === activeTranslationProfileId;
+        chip.classList.toggle('is-active', isActive);
+        chip.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+      });
+    };
+
+    const updateTransliterationChips = () => {
+      transliterationChips.forEach((chip) => {
+        const { transliterationOption } = chip.dataset || {};
+        const isActive = transliterationOption === activeTransliterationProfileId;
+        chip.classList.toggle('is-active', isActive);
+        chip.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+      });
+    };
+
+    const refreshTransliterationContent = () => {
+      if (transliterationEl && currentVerseData) {
+        applyTransliterationProfileToElement(
+          transliterationEl,
+          currentVerseData.transliteration || '',
+        );
+        transliterationEl.classList.toggle(
+          'hidden',
+          !hasTransliteration || !showTransliteration,
+        );
+      }
+      if (surahListBody && Array.isArray(cachedSurahVerses) && cachedSurahVerses.length) {
+        const items = Array.from(surahListBody.querySelectorAll('.alfawz-surah-item'));
+        items.forEach((item) => {
+          const verseId = Number(item.dataset.verseId);
+          if (!verseId) {
+            return;
+          }
+          const verse = cachedSurahVerses.find((entry) => Number(entry.verseId) === verseId);
+          const transliterationNode = item.querySelector('.alfawz-surah-item__transliteration');
+          if (transliterationNode) {
+            applyTransliterationProfileToElement(
+              transliterationNode,
+              verse?.transliteration || '',
+            );
+            transliterationNode.classList.toggle(
+              'hidden',
+              !showTransliteration || !verse?.transliteration,
+            );
+          }
+        });
+      }
+      syncSurahTransliterationVisibility();
+    };
+
+    const handleTranslationProfileChange = async (profileId) => {
+      const profile = translationProfileMap[profileId];
+      if (!profile) {
+        return;
+      }
+      const previousEdition = activeTranslationEdition;
+      const nextEdition = profile.edition || DEFAULT_TRANSLATION_EDITION;
+      if (profileId === activeTranslationProfileId && nextEdition === previousEdition) {
+        return;
+      }
+      activeTranslationProfileId = profileId;
+      activeTranslationEdition = nextEdition;
+      setPersistentItem('alfawz.translationProfile', profileId);
+      updateTranslationChips();
+      clearLanguageCaches();
+      cachedSurahVerses = [];
+      cachedSurahId = null;
+      if (surahListBody) {
+        surahListBody.innerHTML = '';
+      }
+      if (!currentSurahId || !currentVerseId) {
+        return;
+      }
+      setLoadingState(true, 'Updating translation…');
+      try {
+        await renderVerse(currentSurahId, currentVerseId);
+        if (showFullSurah) {
+          await ensureSurahView(currentSurahId, currentVerseId);
+        }
+      } catch (error) {
+        console.warn('[AlfawzQuran] unable to switch translation', error);
+      } finally {
+        setLoadingState(false);
+      }
+    };
+
+    const handleTransliterationProfileChange = async (profileId) => {
+      const profile = transliterationProfileMap[profileId];
+      if (!profile) {
+        return;
+      }
+      const previousEdition = activeTransliterationEdition;
+      const previousProfileId = activeTransliterationProfileId;
+      const nextEdition = profile.edition || DEFAULT_TRANSLITERATION_EDITION;
+      if (profileId === previousProfileId && nextEdition === previousEdition) {
+        return;
+      }
+      activeTransliterationProfileId = profileId;
+      activeTransliterationEdition = nextEdition;
+      setPersistentItem('alfawz.transliterationProfile', profileId);
+      updateTransliterationChips();
+      if (previousEdition !== nextEdition) {
+        clearLanguageCaches();
+        cachedSurahVerses = [];
+        cachedSurahId = null;
+        if (surahListBody) {
+          surahListBody.innerHTML = '';
+        }
+        if (!currentSurahId || !currentVerseId) {
+          return;
+        }
+        setLoadingState(true, 'Updating transliteration…');
+        try {
+          await renderVerse(currentSurahId, currentVerseId);
+          if (showFullSurah) {
+            await ensureSurahView(currentSurahId, currentVerseId);
+          }
+        } catch (error) {
+          console.warn('[AlfawzQuran] unable to switch transliteration edition', error);
+        } finally {
+          setLoadingState(false);
+        }
+        return;
+      }
+      refreshTransliterationContent();
+    };
+
+    updateTranslationChips();
+    updateTransliterationChips();
+
+    translationChips.forEach((chip) => {
+      chip.addEventListener('click', () => {
+        const { translationOption } = chip.dataset || {};
+        if (!translationOption) {
+          return;
+        }
+        handleTranslationProfileChange(translationOption).catch((error) => {
+          console.warn('[AlfawzQuran] unable to apply translation preference', error);
+        });
+      });
+    });
+
+    transliterationChips.forEach((chip) => {
+      chip.addEventListener('click', () => {
+        const { transliterationOption } = chip.dataset || {};
+        if (!transliterationOption) {
+          return;
+        }
+        handleTransliterationProfileChange(transliterationOption).catch((error) => {
+          console.warn('[AlfawzQuran] unable to apply transliteration preference', error);
+        });
+      });
+    });
+
     const defaultDailyTarget = Number(wpData.dailyTarget || 10);
 
     const safeSetText = (element, value) => {
@@ -2908,12 +3224,13 @@
       verses.forEach((verse) => {
         const item = document.createElement('article');
         item.className = 'alfawz-surah-item';
+        const normalizedVerseId = Number(verse.verseId);
+        item.dataset.verseId = String(normalizedVerseId);
         item.setAttribute('tabindex', '0');
         item.setAttribute('role', 'button');
         const verseLabel = getDisplayVerseLabel(verse, strings);
         const announcement = verseLabel || `${strings.ayahLabel} ${verse.verseId}`;
         item.setAttribute('aria-label', `${strings.focusAyah} ${announcement}`);
-        const normalizedVerseId = Number(verse.verseId);
         const isActiveVerse = normalizedVerseId === Number(activeVerseId);
         if (isActiveVerse) {
           item.classList.add('is-active');
@@ -2946,7 +3263,7 @@
         if (verse.transliteration) {
           const transliteration = document.createElement('p');
           transliteration.className = 'alfawz-surah-item__transliteration';
-          transliteration.textContent = verse.transliteration;
+          applyTransliterationProfileToElement(transliteration, verse.transliteration);
           transliteration.classList.toggle('hidden', !showTransliteration);
           item.appendChild(transliteration);
         }
@@ -3428,6 +3745,7 @@
         startVerseTransition();
         const verse = await loadVerse(surahId, verseId);
         currentVerseId = verseId;
+        currentVerseData = verse;
         isLoading = false;
         setLoadingState(false);
         if (verseSelect) {
@@ -3463,7 +3781,7 @@
         safeSetText(arabicEl, verse.arabic);
         if (transliterationEl) {
           hasTransliteration = Boolean(verse.transliteration);
-          transliterationEl.textContent = verse.transliteration || '';
+          applyTransliterationProfileToElement(transliterationEl, verse.transliteration || '');
           syncTransliterationVisibility();
           if (transliterationToggle) {
             setToggleAvailability(transliterationToggle, hasTransliteration);
@@ -3501,6 +3819,7 @@
         return verse;
       } catch (error) {
         isLoading = false;
+        currentVerseData = null;
         console.warn('[AlfawzQuran] Unable to load verse', error);
         setLoadingState(true, 'Unable to load verse. Please try again.');
         if (audioPanel) {
@@ -3546,6 +3865,7 @@
       currentSurahId = surahId || null;
       currentSurah = surahId ? getSurahById(surahId) : null;
       currentVerseId = null;
+      currentVerseData = null;
       cachedSurahVerses = [];
       cachedSurahId = null;
       if (surahListBody) {

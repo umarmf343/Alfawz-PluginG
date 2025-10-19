@@ -1027,6 +1027,98 @@
   color: rgba(68, 36, 38, 0.75);
 }
 
+.alfawz-language-preferences {
+  margin-top: clamp(1.5rem, 4vw, 2.75rem);
+  display: grid;
+  gap: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .alfawz-language-preferences {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.alfawz-language-preferences__group {
+  position: relative;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(79, 13, 24, 0.16);
+  border-radius: 1.5rem;
+  padding: clamp(1.25rem, 3vw, 1.75rem);
+  box-shadow: 0 16px 40px rgba(79, 13, 24, 0.08);
+  backdrop-filter: blur(6px);
+}
+
+.alfawz-language-preferences__title {
+  margin: 0;
+  font-size: clamp(1.2rem, 2vw, 1.45rem);
+  font-weight: 700;
+  color: var(--alfawz-maroon-900);
+}
+
+.alfawz-language-preferences__hint {
+  margin: 0.35rem 0 0;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: rgba(79, 13, 24, 0.7);
+}
+
+.alfawz-language-preferences__options {
+  margin-top: 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.alfawz-language-chip {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.25rem;
+  min-width: 0;
+  padding: 0.85rem 1.1rem;
+  border-radius: 1.25rem;
+  border: 1px solid rgba(79, 13, 24, 0.16);
+  background: rgba(255, 255, 255, 0.85);
+  color: var(--alfawz-maroon-800);
+  text-align: left;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.alfawz-language-chip:hover,
+.alfawz-language-chip:focus-visible {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 22px rgba(79, 13, 24, 0.12);
+  border-color: rgba(79, 13, 24, 0.28);
+  outline: none;
+}
+
+.alfawz-language-chip.is-active,
+.alfawz-language-chip[aria-pressed='true'] {
+  background: linear-gradient(135deg, rgba(254, 226, 226, 0.95), rgba(254, 202, 202, 0.85));
+  border-color: rgba(190, 18, 60, 0.45);
+  box-shadow: 0 18px 34px rgba(190, 18, 60, 0.25);
+  color: rgba(96, 20, 39, 0.92);
+}
+
+.alfawz-language-chip__icon {
+  font-size: 1.35rem;
+  line-height: 1;
+}
+
+.alfawz-language-chip__label {
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.alfawz-language-chip__hint {
+  font-size: 0.85rem;
+  color: rgba(79, 13, 24, 0.62);
+}
+
 .alfawz-verse-toggles {
   margin-top: clamp(2rem, 5vw, 3rem);
   display: flex;
@@ -1058,6 +1150,23 @@
 .alfawz-verse-toggle[aria-pressed='false'] {
   background: rgba(79, 13, 24, 0.04);
   color: rgba(79, 13, 24, 0.72);
+}
+
+.alfawz-transliteration--assistive {
+  font-size: clamp(3.4rem, 7.8vw, 5.2rem);
+  letter-spacing: 0.04em;
+  font-weight: 600;
+}
+
+.alfawz-surah-item__transliteration[aria-hidden='true'] {
+  display: none !important;
+}
+
+.alfawz-surah-item__transliteration[data-profile='assistive'],
+.alfawz-surah-item__transliteration.alfawz-transliteration--assistive {
+  font-size: 1.2rem;
+  letter-spacing: 0.04em;
+  font-weight: 600;
 }
 
 .alfawz-view-toggle {
