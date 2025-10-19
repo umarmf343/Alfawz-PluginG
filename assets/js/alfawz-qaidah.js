@@ -33,6 +33,13 @@
     openLesson: 'Open Lesson',
     stopRecording: 'Stop',
     newBadge: 'New',
+    downloadPreparing: 'Preparing download…',
+    downloadSheetReady: 'Large-print practice sheet downloaded. 🌟',
+    downloadSheetError: 'Unable to prepare the practice sheet right now.',
+    downloadGuideReady: 'Tactile guide downloaded. Share it with your learner.',
+    downloadGuideError: 'Unable to generate the tactile guide right now.',
+    downloadUnavailable: 'This assignment does not include an image yet.',
+    downloadSheetInstruction: 'Trace, point, and recite each numbered hotspot.',
     ...(settings.strings || {}),
   };
 
@@ -105,6 +112,7 @@
     currentAudio: null,
     playingHotspot: null,
     audioStatusEl: null,
+    activeAssignment: null,
   };
 
   const resetRecordingUI = () => {
@@ -162,6 +170,35 @@
     } catch (error) {
       return value;
     }
+  };
+
+  const loadImage = (src) =>
+    new Promise((resolve, reject) => {
+      if (!src) {
+        reject(new Error('Missing image source'));
+        return;
+      }
+      const image = new Image();
+      image.crossOrigin = 'anonymous';
+      image.onload = () => resolve(image);
+      image.onerror = () => reject(new Error('Unable to load image'));
+      image.src = src;
+    });
+
+  const slugify = (value) => {
+    const normalised = String(value || 'qaidah-lesson')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+    return normalised || 'qaidah-lesson';
+  };
+
+  const parsePercentage = (value) => {
+    const number = Number.parseFloat(String(value || '0').replace('%', ''));
+    if (!Number.isFinite(number)) {
+      return 0;
+    }
+    return Math.max(0, Math.min(100, number));
   };
 
   const initTeacherView = () => {
@@ -1000,8 +1037,173 @@
     const modalImage = document.getElementById('alfawz-qaidah-modal-image');
     const modalHotspots = document.getElementById('alfawz-qaidah-modal-hotspots');
     const audioStatus = document.getElementById('alfawz-qaidah-audio-status');
+    const downloadSheetBtn = document.getElementById('alfawz-qaidah-download-sheet');
+    const downloadTactileBtn = document.getElementById('alfawz-qaidah-download-tactile');
+    const downloadStatus = document.getElementById('alfawz-qaidah-download-status');
 
     studentState.audioStatusEl = audioStatus;
+
+    const setDownloadStatus = (message = '', tone = 'muted') => {
+      if (!downloadStatus) {
+        return;
+      }
+      downloadStatus.textContent = message || '';
+      let colour = '#6d4b45';
+      if (tone === 'success') {
+        colour = '#1d4e3e';
+      } else if (tone === 'error') {
+        colour = '#b91c1c';
+      }
+      downloadStatus.style.color = colour;
+    };
+
+    const downloadPracticeSheet = async (assignment) => {
+      if (!assignment || !assignment.image || !assignment.image.url) {
+        setDownloadStatus(strings.downloadUnavailable || 'This assignment does not include an image yet.', 'error');
+        throw new Error('Missing assignment image');
+      }
+
+      setDownloadStatus(strings.downloadPreparing || 'Preparing download…');
+
+      const image = await loadImage(assignment.image.url);
+      const baseWidth = Number(assignment.image.width || image.naturalWidth || image.width || 1600);
+      const baseHeight = Number(assignment.image.height || image.naturalHeight || image.height || 1200);
+      const targetWidth = Math.max(baseWidth, 1800);
+      const scale = targetWidth / baseWidth;
+      const targetHeight = Math.round(baseHeight * scale);
+      const margin = Math.round(targetWidth * 0.12);
+      const headerHeight = Math.round(margin * 1.6);
+      const canvas = document.createElement('canvas');
+      canvas.width = targetWidth + margin * 2;
+      canvas.height = targetHeight + margin * 2 + headerHeight;
+      const ctx = canvas.getContext('2d');
+
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      const title = assignment.title || 'Qa’idah lesson';
+      ctx.fillStyle = '#5b3f4a';
+      ctx.font = `${Math.round(margin * 0.6)}px "Nunito Sans", "Helvetica Neue", Arial, sans-serif`;
+      ctx.fillText(title, margin, margin + Math.round(margin * 0.4));
+      ctx.font = `${Math.round(margin * 0.35)}px "Nunito Sans", "Helvetica Neue", Arial, sans-serif`;
+      ctx.fillStyle = '#7a5c52';
+      ctx.fillText(
+        strings.downloadSheetInstruction || 'Trace, point, and recite each numbered hotspot.',
+        margin,
+        margin + Math.round(margin * 0.9),
+      );
+
+      const imageTop = margin + headerHeight - Math.round(margin * 0.3);
+      ctx.drawImage(image, margin, imageTop, targetWidth, targetHeight);
+
+      if (Array.isArray(assignment.hotspots)) {
+        assignment.hotspots.forEach((hotspot, index) => {
+          const percentX = parsePercentage(hotspot.x);
+          const percentY = parsePercentage(hotspot.y);
+          const pointX = margin + (percentX / 100) * targetWidth;
+          const pointY = imageTop + (percentY / 100) * targetHeight;
+          const radius = Math.max(16, Math.round(margin * 0.3));
+
+          ctx.beginPath();
+          ctx.fillStyle = '#ffffff';
+          ctx.strokeStyle = '#047857';
+          ctx.lineWidth = Math.max(4, Math.round(radius * 0.2));
+          ctx.arc(pointX, pointY, radius, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.stroke();
+
+          ctx.fillStyle = '#047857';
+          ctx.font = `bold ${Math.round(radius * 0.9)}px "Nunito Sans", Arial, sans-serif`;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(String(index + 1), pointX, pointY);
+        });
+      }
+
+      const blob = await new Promise((resolve, reject) => {
+        if (!canvas.toBlob) {
+          try {
+            const dataUrl = canvas.toDataURL('image/png');
+            const data = atob(dataUrl.split(',')[1]);
+            const array = new Uint8Array(data.length);
+            for (let i = 0; i < data.length; i += 1) {
+              array[i] = data.charCodeAt(i);
+            }
+            resolve(new Blob([array], { type: 'image/png' }));
+          } catch (error) {
+            reject(error);
+          }
+          return;
+        }
+
+        canvas.toBlob((createdBlob) => {
+          if (createdBlob) {
+            resolve(createdBlob);
+          } else {
+            reject(new Error('Unable to export practice sheet'));
+          }
+        }, 'image/png', 0.95);
+      });
+
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${slugify(title)}-practice-sheet.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      setDownloadStatus(strings.downloadSheetReady || 'Large-print practice sheet downloaded. 🌟', 'success');
+    };
+
+    const downloadTactileGuide = async (assignment) => {
+      if (!assignment) {
+        setDownloadStatus(strings.downloadGuideError || 'Unable to generate the tactile guide right now.', 'error');
+        throw new Error('Missing assignment');
+      }
+
+      setDownloadStatus(strings.downloadPreparing || 'Preparing download…');
+
+      const title = assignment.title || 'Qa’idah lesson';
+      const lines = [];
+      lines.push(`${title} — tactile practice guide`);
+      if (assignment.teacher?.name) {
+        lines.push(`Teacher: ${assignment.teacher.name}`);
+      }
+      if (assignment.updated) {
+        lines.push(`Updated: ${formatDate(assignment.updated)}`);
+      }
+      lines.push('');
+      lines.push('Instructions: Print the large sheet and add raised stickers or textured tape to each numbered circle. Trace, tap, and recite slowly.');
+      lines.push('');
+
+      if (Array.isArray(assignment.hotspots) && assignment.hotspots.length) {
+        assignment.hotspots.forEach((hotspot, index) => {
+          const label = hotspot.label || `${strings.hotspotTitle || 'Hotspot'} ${index + 1}`;
+          lines.push(
+            `${index + 1}. ${label} — Place a tactile marker, then recite the sound three times while tracing with the fingertip.`,
+          );
+        });
+      } else {
+        lines.push('Practice tracing each letter on the sheet and recite it three times with gentle pacing.');
+      }
+
+      lines.push('');
+      lines.push('Tip: Encourage learners to describe the texture they feel before reciting to build sensory memory.');
+
+      const blob = new Blob([lines.join('\n')], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${slugify(title)}-tactile-guide.txt`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      setDownloadStatus(strings.downloadGuideReady || 'Tactile guide downloaded. Share it with your learner.', 'success');
+    };
 
     const renderAssignments = () => {
       if (!assignmentList) {
@@ -1009,6 +1211,13 @@
       }
       assignmentList.innerHTML = '';
       assignmentList.setAttribute('aria-busy', 'false');
+      setDownloadStatus('');
+      if (downloadSheetBtn) {
+        downloadSheetBtn.disabled = true;
+      }
+      if (downloadTactileBtn) {
+        downloadTactileBtn.disabled = true;
+      }
 
       if (!studentState.assignments.length) {
         if (emptyMessage) {
@@ -1085,9 +1294,17 @@
         return;
       }
       stopStudentAudio();
+      studentState.activeAssignment = assignment;
       modalImage.src = assignment.image?.url || '';
       modalHotspots.innerHTML = '';
       studentState.audioStatusEl?.classList.add('hidden');
+      setDownloadStatus('');
+      if (downloadSheetBtn) {
+        downloadSheetBtn.disabled = !(assignment?.image && assignment.image.url);
+      }
+      if (downloadTactileBtn) {
+        downloadTactileBtn.disabled = false;
+      }
 
       if (modalTitle) {
         modalTitle.textContent = assignment.title || '';
@@ -1180,12 +1397,16 @@
 
     modalClose?.addEventListener('click', () => {
       stopStudentAudio();
+      studentState.activeAssignment = null;
+      setDownloadStatus('');
       closeModal(modal);
     });
 
     modal?.addEventListener('click', (event) => {
       if (event.target === modal) {
         stopStudentAudio();
+        studentState.activeAssignment = null;
+        setDownloadStatus('');
         closeModal(modal);
       }
     });
@@ -1193,9 +1414,47 @@
     document.addEventListener('keydown', (event) => {
       if (event.key === 'Escape' && modal && !modal.classList.contains('hidden')) {
         stopStudentAudio();
+        studentState.activeAssignment = null;
+        setDownloadStatus('');
         closeModal(modal);
       }
     });
+
+    if (downloadSheetBtn) {
+      downloadSheetBtn.addEventListener('click', async () => {
+        if (!studentState.activeAssignment) {
+          setDownloadStatus(strings.downloadUnavailable || 'This assignment does not include an image yet.', 'error');
+          return;
+        }
+        downloadSheetBtn.disabled = true;
+        try {
+          await downloadPracticeSheet(studentState.activeAssignment);
+        } catch (error) {
+          console.error('[AlfawzQuran] Unable to build practice sheet', error);
+          setDownloadStatus(strings.downloadSheetError || 'Unable to prepare the practice sheet right now.', 'error');
+        } finally {
+          downloadSheetBtn.disabled = false;
+        }
+      });
+    }
+
+    if (downloadTactileBtn) {
+      downloadTactileBtn.addEventListener('click', async () => {
+        if (!studentState.activeAssignment) {
+          setDownloadStatus(strings.downloadGuideError || 'Unable to generate the tactile guide right now.', 'error');
+          return;
+        }
+        downloadTactileBtn.disabled = true;
+        try {
+          await downloadTactileGuide(studentState.activeAssignment);
+        } catch (error) {
+          console.error('[AlfawzQuran] Unable to export tactile guide', error);
+          setDownloadStatus(strings.downloadGuideError || 'Unable to generate the tactile guide right now.', 'error');
+        } finally {
+          downloadTactileBtn.disabled = false;
+        }
+      });
+    }
 
     loadAssignments();
   };

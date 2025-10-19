@@ -16,6 +16,45 @@
     'en.transliteration';
   const HASANAT_PER_LETTER = 10;
 
+  const AGE_BAND_MULTIPLIERS = {
+    child: 0.5,
+    teen: 0.8,
+    adult: 1,
+    senior: 0.6,
+  };
+
+  const normaliseAgeBand = (value) => {
+    const band = String(value || 'adult').toLowerCase();
+    return Object.prototype.hasOwnProperty.call(AGE_BAND_MULTIPLIERS, band)
+      ? band
+      : 'adult';
+  };
+
+  const resolveAgeAdjustedTarget = (baseTarget, ageBand) => {
+    const safeBase = Number(baseTarget || 0);
+    const band = normaliseAgeBand(ageBand);
+    const multiplier = AGE_BAND_MULTIPLIERS[band] ?? 1;
+    const adjusted = Math.round(Math.max(1, safeBase) * multiplier);
+    if (!Number.isFinite(adjusted) || adjusted <= 0) {
+      return Math.max(1, Math.round(safeBase) || 1);
+    }
+    return Math.max(1, Math.min(adjusted, Math.round(Math.max(1, safeBase))));
+  };
+
+  const deriveBaseDailyTarget = () => {
+    const base = Number(
+      wpData.userPreferences?.daily_verse_target ?? wpData.dailyTarget ?? 10,
+    );
+    if (!Number.isFinite(base) || base <= 0) {
+      return 10;
+    }
+    return base;
+  };
+
+  let currentAgeBand = normaliseAgeBand(wpData.userPreferences?.age_band);
+  let baseDailyTarget = deriveBaseDailyTarget();
+  let defaultDailyTarget = resolveAgeAdjustedTarget(baseDailyTarget, currentAgeBand);
+
   const safeStorage = (() => {
     try {
       if (typeof window === 'undefined' || !window.localStorage) {
@@ -1183,7 +1222,9 @@
           : '';
       }
       if (smartGoalTarget) {
-        smartGoalTarget.textContent = formatNumber(dynamic.suggested_target || insights.target || wpData.dailyTarget || 10);
+        smartGoalTarget.textContent = formatNumber(
+          dynamic.suggested_target || insights.target || defaultDailyTarget,
+        );
       }
       if (smartGoalTargetHint) {
         smartGoalTargetHint.textContent = dynamic.goal_message ? '' : 'Personalised suggestion based on your recent pace.';
@@ -2505,7 +2546,8 @@
       });
     });
 
-    const defaultDailyTarget = Number(wpData.dailyTarget || 10);
+    baseDailyTarget = deriveBaseDailyTarget();
+    defaultDailyTarget = resolveAgeAdjustedTarget(baseDailyTarget, currentAgeBand);
 
     const safeSetText = (element, value) => {
       if (element) {
@@ -5341,6 +5383,7 @@
     const prefStatus = qs('#alfawz-preferences-status', preferencesForm);
     const prefMessage = qs('#alfawz-preferences-message', preferencesForm);
     const prefSaveBtn = qs('#alfawz-preferences-save', preferencesForm);
+    const ageBandButtons = Array.from(preferencesForm?.querySelectorAll('[data-age-band]') || []);
 
     const indicatorTimers = new WeakMap();
 
@@ -5570,31 +5613,74 @@
       });
     };
 
+    const setActiveAgeBand = (band) => {
+      const resolved = normaliseAgeBand(band);
+      ageBandButtons.forEach((button) => {
+        const buttonBand = normaliseAgeBand(button.dataset.ageBand);
+        const isActive = buttonBand === resolved;
+        button.classList.toggle('ring-2', isActive);
+        button.classList.toggle('ring-emerald-500', isActive);
+        button.classList.toggle('bg-emerald-50', isActive);
+        button.classList.toggle('text-emerald-700', isActive);
+        button.classList.toggle('shadow-md', isActive);
+        button.dataset.active = isActive ? 'true' : 'false';
+        button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+      });
+    };
+
+    const updateAgeBandCounts = () => {
+      const base = Number(preferenceState.daily_verse_target || fallbackPreferences.daily_verse_target || 10);
+      ageBandButtons.forEach((button) => {
+        const countEl = button.querySelector('[data-age-band-count]');
+        if (!countEl) {
+          return;
+        }
+        const adjusted = resolveAgeAdjustedTarget(base, button.dataset.ageBand);
+        countEl.textContent = `${formatNumber(adjusted)} / day`;
+      });
+    };
+
     const fallbackPreferences = {
       default_reciter: wpData.defaultReciter || 'ar.alafasy',
       default_translation: wpData.defaultTranslation || 'en.sahih',
       default_transliteration: wpData.defaultTransliteration ?? 'en.transliteration',
       hasanat_per_letter: Number(wpData.hasanatPerLetter || 10),
-      daily_verse_target: Number(wpData.dailyTarget || 10),
+      daily_verse_target: baseDailyTarget,
       enable_leaderboard: Boolean(
         wpData.userPreferences?.enable_leaderboard ?? wpData.enableLeaderboard ?? true
       ),
       audio_feedback: true,
       text_size: 'medium',
       interface_language: 'en',
+      age_band: currentAgeBand,
     };
 
-    let preferenceState = { ...fallbackPreferences, ...(wpData.userPreferences || {}) };
+    let preferenceState = {
+      ...fallbackPreferences,
+      ...(wpData.userPreferences || {}),
+      age_band: normaliseAgeBand(wpData.userPreferences?.age_band || fallbackPreferences.age_band),
+    };
 
     const applyPreferences = (preferences = {}) => {
       preferenceState = { ...preferenceState, ...preferences };
+      preferenceState.age_band = normaliseAgeBand(
+        preferenceState.age_band || fallbackPreferences.age_band,
+      );
       if (audioToggle) {
         audioToggle.checked = Boolean(preferenceState.audio_feedback);
       }
       setActiveTextSize(preferenceState.text_size || 'medium');
+      setActiveAgeBand(preferenceState.age_band || currentAgeBand);
       if (languageSelect) {
         languageSelect.value = preferenceState.interface_language || 'en';
       }
+      currentAgeBand = normaliseAgeBand(preferenceState.age_band || currentAgeBand);
+      baseDailyTarget = Number(preferenceState.daily_verse_target || fallbackPreferences.daily_verse_target || baseDailyTarget);
+      if (!Number.isFinite(baseDailyTarget) || baseDailyTarget <= 0) {
+        baseDailyTarget = deriveBaseDailyTarget();
+      }
+      defaultDailyTarget = resolveAgeAdjustedTarget(baseDailyTarget, currentAgeBand);
+      updateAgeBandCounts();
     };
 
     applyPreferences(preferenceState);
@@ -5749,6 +5835,15 @@
           body: payload,
         });
         applyPreferences(response || payload);
+        if (response) {
+          wpData.userPreferences = { ...(wpData.userPreferences || {}), ...response };
+          currentAgeBand = normaliseAgeBand(response.age_band || currentAgeBand);
+          baseDailyTarget = Number(response.daily_verse_target || baseDailyTarget || 10);
+          if (!Number.isFinite(baseDailyTarget) || baseDailyTarget <= 0) {
+            baseDailyTarget = deriveBaseDailyTarget();
+          }
+          defaultDailyTarget = resolveAgeAdjustedTarget(baseDailyTarget, currentAgeBand);
+        }
         flashIndicator(prefStatus);
         showMessage(prefMessage, wpData.strings?.settingsSaved || 'Preferences updated!', 'success');
       } catch (error) {
@@ -5790,6 +5885,21 @@
         }
         preferenceState.text_size = textSize;
         setActiveTextSize(textSize);
+        schedulePreferenceSave();
+      });
+    });
+
+    ageBandButtons.forEach((button) => {
+      button.addEventListener('click', () => {
+        const chosenBand = normaliseAgeBand(button.dataset.ageBand);
+        if (chosenBand === preferenceState.age_band) {
+          return;
+        }
+        preferenceState.age_band = chosenBand;
+        currentAgeBand = chosenBand;
+        setActiveAgeBand(chosenBand);
+        defaultDailyTarget = resolveAgeAdjustedTarget(baseDailyTarget, currentAgeBand);
+        updateAgeBandCounts();
         schedulePreferenceSave();
       });
     });

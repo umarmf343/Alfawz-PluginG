@@ -267,6 +267,33 @@ $avatar_default_alt = esc_attr__( 'Profile photo', 'alfawzquran' );
                     </div>
 
                     <div>
+                        <div class="font-medium text-base text-gray-800 mb-1"><?php esc_html_e( 'Recitation pace', 'alfawzquran' ); ?></div>
+                        <p class="text-sm text-gray-600 mb-3"><?php esc_html_e( 'Choose the age band that best matches your learner to tune today’s verse target.', 'alfawzquran' ); ?></p>
+                        <div class="grid gap-3 sm:grid-cols-2" role="group" aria-label="<?php esc_attr_e( 'Select recitation pace', 'alfawzquran' ); ?>">
+                            <button type="button" data-age-band="child" data-active="false" class="flex flex-col gap-1 rounded-xl border border-gray-200 bg-white px-4 py-3 text-left shadow-sm transition focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                                <span class="font-semibold text-gray-800"><?php esc_html_e( 'Child pace', 'alfawzquran' ); ?></span>
+                                <span class="text-sm font-semibold text-emerald-700" data-age-band-count>0 / day</span>
+                                <span class="text-xs text-gray-500"><?php esc_html_e( 'Gentle bursts to build confidence.', 'alfawzquran' ); ?></span>
+                            </button>
+                            <button type="button" data-age-band="teen" data-active="false" class="flex flex-col gap-1 rounded-xl border border-gray-200 bg-white px-4 py-3 text-left shadow-sm transition focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                                <span class="font-semibold text-gray-800"><?php esc_html_e( 'Teen pace', 'alfawzquran' ); ?></span>
+                                <span class="text-sm font-semibold text-emerald-700" data-age-band-count>0 / day</span>
+                                <span class="text-xs text-gray-500"><?php esc_html_e( 'Balanced sessions for emerging fluency.', 'alfawzquran' ); ?></span>
+                            </button>
+                            <button type="button" data-age-band="adult" data-active="false" class="flex flex-col gap-1 rounded-xl border border-gray-200 bg-white px-4 py-3 text-left shadow-sm transition focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                                <span class="font-semibold text-gray-800"><?php esc_html_e( 'Adult pace', 'alfawzquran' ); ?></span>
+                                <span class="text-sm font-semibold text-emerald-700" data-age-band-count>0 / day</span>
+                                <span class="text-xs text-gray-500"><?php esc_html_e( 'Standard intentions to maintain momentum.', 'alfawzquran' ); ?></span>
+                            </button>
+                            <button type="button" data-age-band="senior" data-active="false" class="flex flex-col gap-1 rounded-xl border border-gray-200 bg-white px-4 py-3 text-left shadow-sm transition focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                                <span class="font-semibold text-gray-800"><?php esc_html_e( 'Senior pace', 'alfawzquran' ); ?></span>
+                                <span class="text-sm font-semibold text-emerald-700" data-age-band-count>0 / day</span>
+                                <span class="text-xs text-gray-500"><?php esc_html_e( 'Gentle pacing with extra breathing room.', 'alfawzquran' ); ?></span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div>
                         <label for="alfawz-pref-language" class="block text-sm font-medium text-gray-700 mb-1"><?php esc_html_e( 'Interface Language', 'alfawzquran' ); ?></label>
                         <select id="alfawz-pref-language" class="w-full p-3 border border-gray-300 rounded-lg text-base focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
                             <option value="en"><?php esc_html_e( 'English', 'alfawzquran' ); ?></option>

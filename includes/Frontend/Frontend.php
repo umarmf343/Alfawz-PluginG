@@ -306,6 +306,13 @@ class Frontend {
                     'fromLabel'      => __('From', 'alfawzquran'),
                     'stopRecording'  => __('Stop', 'alfawzquran'),
                     'newBadge'       => __('New', 'alfawzquran'),
+                    'downloadPreparing' => __('Preparing download…', 'alfawzquran'),
+                    'downloadSheetReady' => __('Large-print practice sheet downloaded. 🌟', 'alfawzquran'),
+                    'downloadSheetError' => __('Unable to prepare the practice sheet right now.', 'alfawzquran'),
+                    'downloadGuideReady' => __('Tactile guide downloaded. Share it with your learner.', 'alfawzquran'),
+                    'downloadGuideError' => __('Unable to generate the tactile guide right now.', 'alfawzquran'),
+                    'downloadUnavailable' => __('This assignment does not include an image yet.', 'alfawzquran'),
+                    'downloadSheetInstruction' => __('Trace, point, and recite each numbered hotspot.', 'alfawzquran'),
                 ],
                 'mediaSettings' => [
                     'title'  => __('Select Qa’idah Image', 'alfawzquran'),
@@ -367,6 +374,13 @@ class Frontend {
                     'fromLabel'      => __('From', 'alfawzquran'),
                     'stopRecording'  => __('Stop', 'alfawzquran'),
                     'newBadge'       => __('New', 'alfawzquran'),
+                    'downloadPreparing' => __('Preparing download…', 'alfawzquran'),
+                    'downloadSheetReady' => __('Large-print practice sheet downloaded. 🌟', 'alfawzquran'),
+                    'downloadSheetError' => __('Unable to prepare the practice sheet right now.', 'alfawzquran'),
+                    'downloadGuideReady' => __('Tactile guide downloaded. Share it with your learner.', 'alfawzquran'),
+                    'downloadGuideError' => __('Unable to generate the tactile guide right now.', 'alfawzquran'),
+                    'downloadUnavailable' => __('This assignment does not include an image yet.', 'alfawzquran'),
+                    'downloadSheetInstruction' => __('Trace, point, and recite each numbered hotspot.', 'alfawzquran'),
                 ],
                 'mediaSettings' => [
                     'title'  => __('Select Qa’idah Image', 'alfawzquran'),
@@ -690,6 +704,7 @@ class Frontend {
             'hasanat_per_letter'      => (int) get_option('alfawz_hasanat_per_letter', 10),
             'daily_verse_target'      => (int) get_option('alfawz_daily_verse_target', 10),
             'enable_leaderboard'      => (bool) get_option('alfawz_enable_leaderboard', 1),
+            'age_band'                => 'adult',
         ];
 
         $user_id = get_current_user_id();
@@ -700,6 +715,7 @@ class Frontend {
             'hasanat_per_letter'      => 'alfawz_pref_hasanat_per_letter',
             'daily_verse_target'      => 'alfawz_pref_daily_target',
             'enable_leaderboard'      => 'alfawz_pref_enable_leaderboard',
+            'age_band'                => 'alfawz_pref_age_band',
         ];
 
         $preferences = [];
@@ -716,12 +732,25 @@ class Frontend {
                 $preferences[$key] = (bool) $value;
             } elseif (in_array($key, ['hasanat_per_letter', 'daily_verse_target'], true)) {
                 $preferences[$key] = (int) $value;
+            } elseif ('age_band' === $key) {
+                $preferences[$key] = $this->normalise_age_band_for_frontend($value);
             } else {
                 $preferences[$key] = $value;
             }
         }
 
         return $preferences;
+    }
+
+    private function normalise_age_band_for_frontend($value) {
+        $band = strtolower(trim((string) $value));
+        $allowed = ['child', 'teen', 'adult', 'senior'];
+
+        if (in_array($band, $allowed, true)) {
+            return $band;
+        }
+
+        return 'adult';
     }
 
     private function current_user_is_teacher() {

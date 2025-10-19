@@ -37,6 +37,8 @@ use function wp_json_encode;
 use function wp_trim_words;
 use function update_user_meta;
 use function is_email;
+use function retrieve_password;
+use function wp_validate_redirect;
 
 /**
  * Register REST API routes for the plugin.
@@ -430,6 +432,16 @@ class Routes {
                 'methods'             => WP_REST_Server::CREATABLE,
                 'callback'            => [ $this, 'update_user_profile' ],
                 'permission_callback' => [ $this, 'check_permission' ],
+            ]
+        );
+
+        register_rest_route(
+            $namespace,
+            '/simple-login',
+            [
+                'methods'             => WP_REST_Server::CREATABLE,
+                'callback'            => [ $this, 'send_simple_login_link' ],
+                'permission_callback' => '__return_true',
             ]
         );
 
@@ -1626,6 +1638,54 @@ class Routes {
         return new WP_REST_Response( $this->prepare_profile_payload( $user ), 200 );
     }
 
+    public function send_simple_login_link( WP_REST_Request $request ) {
+        $login = sanitize_text_field( (string) $request->get_param( 'login' ) );
+
+        if ( '' === $login ) {
+            return new WP_REST_Response(
+                [
+                    'success' => false,
+                    'message' => __( 'Please enter your email address so we can send the link.', 'alfawzquran' ),
+                ],
+                400
+            );
+        }
+
+        $redirect = $request->get_param( 'redirect_to' );
+        $validated_redirect = '';
+
+        if ( $redirect ) {
+            $validated_redirect = wp_validate_redirect( $redirect, '' );
+            if ( $validated_redirect ) {
+                $_POST['redirect_to'] = $validated_redirect; // phpcs:ignore WordPress.Security.NonceVerification.Missing
+            }
+        }
+
+        $result = retrieve_password( $login );
+
+        if ( $validated_redirect ) {
+            unset( $_POST['redirect_to'] );
+        }
+
+        if ( is_wp_error( $result ) ) {
+            return new WP_REST_Response(
+                [
+                    'success' => true,
+                    'message' => __( 'If an Alfawz account matches this email, a gentle reset link is already on the way.', 'alfawzquran' ),
+                ],
+                200
+            );
+        }
+
+        return new WP_REST_Response(
+            [
+                'success' => true,
+                'message' => __( 'Check your email for a secure, one-tap login link with reset instructions.', 'alfawzquran' ),
+            ],
+            200
+        );
+    }
+
     public function get_user_preferences( WP_REST_Request $request ) {
         $user_id = get_current_user_id();
         if ( empty( $user_id ) ) {
@@ -1656,6 +1716,7 @@ class Routes {
             'audio_feedback'          => 'alfawz_pref_audio_feedback',
             'text_size'               => 'alfawz_pref_text_size',
             'interface_language'      => 'alfawz_pref_interface_language',
+            'age_band'                => 'alfawz_pref_age_band',
         ];
 
         foreach ( $map as $key => $meta_key ) {
@@ -1694,6 +1755,9 @@ class Routes {
                         $lang = 'en';
                     }
                     update_user_meta( $user_id, $meta_key, $lang );
+                    break;
+                case 'age_band':
+                    update_user_meta( $user_id, $meta_key, $this->normalise_age_band( $value ) );
                     break;
             }
         }
@@ -3326,7 +3390,7 @@ class Routes {
                     'egg_percentage'    => $progress['percentage'],
                     'last_completion'   => $progress['previous_target'],
                     'daily_goal_count'  => $daily_count,
-                    'daily_goal_target' => self::DAILY_GOAL_TARGET,
+                    'daily_goal_target' => $this->resolve_user_daily_target( $user->ID ),
                 ];
             },
             $users
@@ -3352,6 +3416,7 @@ class Routes {
             'audio_feedback'          => true,
             'text_size'               => 'medium',
             'interface_language'      => 'en',
+            'age_band'                => 'adult',
         ];
 
         $map = [
@@ -3364,6 +3429,7 @@ class Routes {
             'audio_feedback'          => 'alfawz_pref_audio_feedback',
             'text_size'               => 'alfawz_pref_text_size',
             'interface_language'      => 'alfawz_pref_interface_language',
+            'age_band'                => 'alfawz_pref_age_band',
         ];
 
         $preferences = [];
@@ -3383,6 +3449,8 @@ class Routes {
             } elseif ( 'interface_language' === $key ) {
                 $lang = substr( sanitize_key( (string) $value ), 0, 2 );
                 $preferences[ $key ] = in_array( $lang, [ 'en', 'ar', 'ur' ], true ) ? $lang : $defaults[ $key ];
+            } elseif ( 'age_band' === $key ) {
+                $preferences[ $key ] = $this->normalise_age_band( $value );
             } else {
                 $preferences[ $key ] = $value;
             }
@@ -3416,7 +3484,47 @@ class Routes {
             $target = self::DAILY_GOAL_TARGET;
         }
 
+        $age_band = $this->get_user_age_band( $user_id );
+        $target   = $this->apply_age_band_to_target( $target, $age_band );
+
         return max( 1, (int) $target );
+    }
+
+    private function get_user_age_band( $user_id ) {
+        $stored = get_user_meta( $user_id, 'alfawz_pref_age_band', true );
+
+        if ( '' === $stored || null === $stored ) {
+            return 'adult';
+        }
+
+        return $this->normalise_age_band( $stored );
+    }
+
+    private function apply_age_band_to_target( $target, $age_band ) {
+        $target      = max( 1, (int) $target );
+        $multipliers = [
+            'child'  => 0.5,
+            'teen'   => 0.8,
+            'adult'  => 1.0,
+            'senior' => 0.6,
+        ];
+
+        $multiplier = isset( $multipliers[ $age_band ] ) ? (float) $multipliers[ $age_band ] : 1.0;
+        $adjusted   = (int) round( $target * $multiplier );
+
+        if ( $adjusted < 1 ) {
+            $adjusted = 1;
+        }
+
+        return min( $target, $adjusted );
+    }
+
+    private function normalise_age_band( $value ) {
+        $band     = strtolower( trim( (string) $value ) );
+        $allowed  = [ 'child', 'teen', 'adult', 'senior' ];
+        $fallback = 'adult';
+
+        return in_array( $band, $allowed, true ) ? $band : $fallback;
     }
 
     /**
@@ -3673,7 +3781,7 @@ class Routes {
         $this->maybe_reset_daily_goal( $user_id, $timezone_offset );
 
         $count      = (int) get_user_meta( $user_id, self::DAILY_GOAL_META_COUNT, true );
-        $target     = self::DAILY_GOAL_TARGET;
+        $target     = $this->resolve_user_daily_target( $user_id );
         $percentage = $target > 0 ? round( ( $count / $target ) * 100, 2 ) : 0;
         $remaining  = max( 0, $target - $count );
         $last_reset = get_user_meta( $user_id, self::DAILY_GOAL_META_LAST_RESET, true );
@@ -3689,6 +3797,7 @@ class Routes {
             'percentage' => min( 100, $percentage ),
             'remaining'  => $remaining,
             'last_reset' => $last_reset,
+            'age_band'   => $this->get_user_age_band( $user_id ),
         ];
     }
 
@@ -3725,6 +3834,7 @@ class Routes {
     private function increment_daily_goal_progress( $user_id, $verse_key, $timezone_offset = null ) {
         $state          = $this->prepare_daily_goal_state( $user_id, $timezone_offset );
         $previous_count = (int) $state['count'];
+        $target         = isset( $state['target'] ) ? (int) $state['target'] : $this->resolve_user_daily_target( $user_id );
 
         $log = get_user_meta( $user_id, self::DAILY_GOAL_META_LOG, true );
         if ( ! is_array( $log ) ) {
@@ -3743,7 +3853,7 @@ class Routes {
         update_user_meta( $user_id, self::DAILY_GOAL_META_LOG, $log );
         update_user_meta( $user_id, self::DAILY_GOAL_META_COUNT, $count );
 
-        $just_completed = ( $previous_count < self::DAILY_GOAL_TARGET ) && ( $count >= self::DAILY_GOAL_TARGET ) && ! $already_counted;
+        $just_completed = ( $previous_count < $target ) && ( $count >= $target ) && ! $already_counted;
 
         if ( $just_completed ) {
             update_user_meta( $user_id, self::DAILY_GOAL_META_LAST_COMPLETION, current_time( 'mysql' ) );
@@ -3751,12 +3861,13 @@ class Routes {
 
         return [
             'count'           => $count,
-            'target'          => self::DAILY_GOAL_TARGET,
-            'remaining'       => max( 0, self::DAILY_GOAL_TARGET - $count ),
-            'percentage'      => min( 100, self::DAILY_GOAL_TARGET > 0 ? round( ( $count / self::DAILY_GOAL_TARGET ) * 100, 2 ) : 0 ),
+            'target'          => $target,
+            'remaining'       => max( 0, $target - $count ),
+            'percentage'      => min( 100, $target > 0 ? round( ( $count / $target ) * 100, 2 ) : 0 ),
             'just_completed'  => $just_completed,
             'already_counted' => $already_counted,
             'last_reset'      => $state['last_reset'],
+            'age_band'        => $state['age_band'] ?? $this->get_user_age_band( $user_id ),
         ];
     }
 

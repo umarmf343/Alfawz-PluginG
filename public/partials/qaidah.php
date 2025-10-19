@@ -129,6 +129,20 @@ if ( ! defined( 'ABSPATH' ) ) {
             >
                 🔊 <?php esc_html_e( 'Playing... Tap hotspot again to replay', 'alfawzquran' ); ?>
             </div>
+            <div class="space-y-3 rounded-2xl border border-[#f4d5c2]/70 bg-[#fff7f0]/85 p-4" id="alfawz-qaidah-download-panel">
+                <p class="text-sm font-semibold text-[#5b3f4a]"><?php esc_html_e( 'Offline practice kit', 'alfawzquran' ); ?></p>
+                <div class="flex flex-col gap-2 sm:flex-row">
+                    <button type="button" id="alfawz-qaidah-download-sheet" class="inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#7a1a31] via-[#c026d3] to-[#0ea5e9] px-4 py-2 text-sm font-semibold text-white shadow-md transition hover:brightness-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#7a1a31]">
+                        <span>🖨️</span>
+                        <span><?php esc_html_e( 'Download large-print sheet', 'alfawzquran' ); ?></span>
+                    </button>
+                    <button type="button" id="alfawz-qaidah-download-tactile" class="inline-flex items-center justify-center gap-2 rounded-full border border-[#7a1a31]/30 px-4 py-2 text-sm font-semibold text-[#7a1a31] shadow-sm transition hover:-translate-y-0.5 hover:bg-[#fdf6f0] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#7a1a31]">
+                        <span>🧩</span>
+                        <span><?php esc_html_e( 'Download tactile guide', 'alfawzquran' ); ?></span>
+                    </button>
+                </div>
+                <p id="alfawz-qaidah-download-status" class="text-sm text-[#6d4b45]" aria-live="polite"></p>
+            </div>
         </div>
     </div>
 </div>

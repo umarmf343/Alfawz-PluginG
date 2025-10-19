@@ -11,6 +11,8 @@ $logout_url     = wp_logout_url( get_permalink() );
 $can_register   = function_exists( 'wp_registration_enabled' ) ? wp_registration_enabled() : (bool) get_option( 'users_can_register' );
 $register_url   = $can_register ? wp_registration_url() : '';
 $lost_password  = wp_lostpassword_url( get_permalink() );
+$simple_login_endpoint = rest_url( 'alfawzquran/v1/simple-login' );
+$assisted_reset_redirect = add_query_arg( 'alfawz_notice', 'check_email', get_permalink() );
 
 $student_dashboard_url = function_exists( 'alfawz_get_bottom_nav_url' )
     ? alfawz_get_bottom_nav_url( 'dashboard' )
@@ -317,6 +319,30 @@ $role_icons = [
                                         <a href="<?php echo esc_url( $contact_developer_url ); ?>" target="_blank" rel="noopener noreferrer" class="font-semibold text-[#a52a2a] underline-offset-4 hover:text-[#800000] hover:underline"><?php esc_html_e( 'Need help? Chat with the portal team.', 'alfawzquran' ); ?></a>
                                     </div>
                                 </form>
+                                <div class="mt-6 space-y-3 rounded-2xl border border-[#d9b8b8]/60 bg-white/90 p-5 shadow-sm" data-alfawz-simple-login-card>
+                                    <div class="flex items-start gap-3">
+                                        <span class="inline-flex h-9 w-9 items-center justify-center rounded-full bg-[#fbeee4] text-lg text-[#7a1a31]">✨</span>
+                                        <div>
+                                            <p class="font-semibold text-[#571222]"><?php esc_html_e( 'Prefer a simple login?', 'alfawzquran' ); ?></p>
+                                            <p class="text-sm text-[#6d4b45]"><?php esc_html_e( 'We can email a one-tap magic link or open the guided reset helper for you.', 'alfawzquran' ); ?></p>
+                                        </div>
+                                    </div>
+                                    <div class="flex flex-col gap-2 sm:flex-row">
+                                        <button type="button" class="inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#7a1a31] via-[#c026d3] to-[#0ea5e9] px-5 py-2 text-sm font-semibold text-white shadow-lg transition hover:brightness-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#7a1a31]" data-alfawz-simple-login-button data-endpoint="<?php echo esc_url( $simple_login_endpoint ); ?>" data-redirect="<?php echo esc_url( $assisted_reset_redirect ); ?>">
+                                            <span>📩</span>
+                                            <span><?php esc_html_e( 'Email me a login link', 'alfawzquran' ); ?></span>
+                                        </button>
+                                        <button type="button" class="inline-flex items-center justify-center gap-2 rounded-full border border-[#7a1a31]/30 px-5 py-2 text-sm font-semibold text-[#7a1a31] shadow-sm transition hover:-translate-y-0.5 hover:bg-[#fdf6f0] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#7a1a31]" data-alfawz-assisted-reset-button>
+                                            <span>🪄</span>
+                                            <span><?php esc_html_e( 'Guide me through reset', 'alfawzquran' ); ?></span>
+                                        </button>
+                                    </div>
+                                    <p id="alfawz-simple-login-message" class="text-sm text-[#6d4b45]" aria-live="polite"></p>
+                                </div>
+                                <form id="alfawz-assisted-reset-form" action="<?php echo esc_url( $lost_password ); ?>" method="post" class="hidden" target="_blank">
+                                    <input type="hidden" name="user_login" id="alfawz-assisted-reset-login" value="" />
+                                    <input type="hidden" name="redirect_to" value="<?php echo esc_url( $assisted_reset_redirect ); ?>" />
+                                </form>
                             </div>
                             <div class="hidden" data-alfawz-tab-panel="register">
                                 <?php if ( $register_url ) : ?>
@@ -406,6 +432,12 @@ $role_icons = [
         const tabPanels = document.querySelectorAll('[data-alfawz-tab-panel]');
         const roleSelect = document.querySelector('[data-alfawz-role-select]');
         const redirectInput = document.querySelector('[data-alfawz-redirect-input]');
+        const loginEmailInput = document.getElementById('alfawz-login-email');
+        const simpleLoginButton = document.querySelector('[data-alfawz-simple-login-button]');
+        const assistedResetButton = document.querySelector('[data-alfawz-assisted-reset-button]');
+        const simpleLoginMessage = document.getElementById('alfawz-simple-login-message');
+        const assistedResetForm = document.getElementById('alfawz-assisted-reset-form');
+        const assistedResetLogin = document.getElementById('alfawz-assisted-reset-login');
 
         const activateTab = (target) => {
             tabButtons.forEach((button) => {
@@ -441,6 +473,108 @@ $role_icons = [
         if (roleSelect) {
             roleSelect.addEventListener('change', updateRedirect);
             updateRedirect();
+        }
+
+        const showSimpleLoginMessage = (message, tone = 'muted') => {
+            if (!simpleLoginMessage) {
+                return;
+            }
+            simpleLoginMessage.textContent = message || '';
+            let colour = '#6d4b45';
+            if (tone === 'success') {
+                colour = '#1d4e3e';
+            } else if (tone === 'error') {
+                colour = '#bf2c2c';
+            }
+            simpleLoginMessage.style.color = colour;
+        };
+
+        const getLoginValue = () => {
+            return loginEmailInput ? loginEmailInput.value.trim() : '';
+        };
+
+        const sendSimpleLoginLink = async () => {
+            if (!simpleLoginButton) {
+                return;
+            }
+
+            const email = getLoginValue();
+            if (!email) {
+                showSimpleLoginMessage('<?php echo esc_js( __( 'Please enter your email first so we can send the link.', 'alfawzquran' ) ); ?>', 'error');
+                if (loginEmailInput) {
+                    loginEmailInput.focus();
+                }
+                return;
+            }
+
+            const endpoint = simpleLoginButton.getAttribute('data-endpoint');
+            const redirect = simpleLoginButton.getAttribute('data-redirect') || '';
+
+            if (!endpoint) {
+                showSimpleLoginMessage('<?php echo esc_js( __( 'We could not reach the magic link helper right now.', 'alfawzquran' ) ); ?>', 'error');
+                return;
+            }
+
+            simpleLoginButton.disabled = true;
+            showSimpleLoginMessage('<?php echo esc_js( __( 'Sending a secure link to your email…', 'alfawzquran' ) ); ?>');
+
+            try {
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ login: email, redirect_to: redirect }),
+                });
+                let payload = null;
+                try {
+                    payload = await response.json();
+                } catch (error) {
+                    payload = null;
+                }
+                if (payload && payload.message) {
+                    showSimpleLoginMessage(payload.message, payload.success ? 'success' : 'muted');
+                } else if (response.ok) {
+                    showSimpleLoginMessage('<?php echo esc_js( __( 'Please check your email for a secure login link.', 'alfawzquran' ) ); ?>', 'success');
+                } else {
+                    showSimpleLoginMessage('<?php echo esc_js( __( 'We could not send the link right now. Please try again shortly.', 'alfawzquran' ) ); ?>', 'error');
+                }
+            } catch (error) {
+                showSimpleLoginMessage('<?php echo esc_js( __( 'We could not reach the login helper. Please try again shortly.', 'alfawzquran' ) ); ?>', 'error');
+            } finally {
+                simpleLoginButton.disabled = false;
+            }
+        };
+
+        const launchAssistedReset = () => {
+            const email = getLoginValue();
+            if (!email) {
+                showSimpleLoginMessage('<?php echo esc_js( __( 'Please enter your email so we can prefill the reset form.', 'alfawzquran' ) ); ?>', 'error');
+                if (loginEmailInput) {
+                    loginEmailInput.focus();
+                }
+                return;
+            }
+
+            if (assistedResetForm && assistedResetLogin) {
+                assistedResetLogin.value = email;
+                showSimpleLoginMessage('<?php echo esc_js( __( 'Opening the gentle reset helper in a new tab…', 'alfawzquran' ) ); ?>');
+                assistedResetForm.submit();
+            } else {
+                window.location.href = '<?php echo esc_url( $lost_password ); ?>';
+            }
+        };
+
+        if (simpleLoginButton) {
+            simpleLoginButton.addEventListener('click', function (event) {
+                event.preventDefault();
+                sendSimpleLoginLink();
+            });
+        }
+
+        if (assistedResetButton) {
+            assistedResetButton.addEventListener('click', function (event) {
+                event.preventDefault();
+                launchAssistedReset();
+            });
         }
     });
 })();
