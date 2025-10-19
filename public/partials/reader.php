@@ -99,6 +99,55 @@ if ( ! defined( 'ABSPATH' ) ) {
                     >
                         <?php esc_html_e( 'Enter Next', 'alfawzquran' ); ?>
                     </button>
+                    <div class="alfawz-language-preferences" aria-label="<?php esc_attr_e( 'Language preferences', 'alfawzquran' ); ?>">
+                        <div class="alfawz-language-preferences__group">
+                            <h4 class="alfawz-language-preferences__title"><?php esc_html_e( 'Translation style', 'alfawzquran' ); ?></h4>
+                            <p class="alfawz-language-preferences__hint"><?php esc_html_e( 'Tap once to switch between study-ready clarity, kid-friendly paraphrases, or senior-classic language.', 'alfawzquran' ); ?></p>
+                            <div class="alfawz-language-preferences__options" role="group" aria-label="<?php esc_attr_e( 'Choose translation tone', 'alfawzquran' ); ?>">
+                                <button type="button" class="alfawz-language-chip" data-translation-option="standard" aria-pressed="false">
+                                    <span class="alfawz-language-chip__icon" aria-hidden="true">🎓</span>
+                                    <span class="alfawz-language-chip__label"><?php esc_html_e( 'Study-ready', 'alfawzquran' ); ?></span>
+                                    <span class="alfawz-language-chip__hint"><?php esc_html_e( 'Balanced clarity', 'alfawzquran' ); ?></span>
+                                </button>
+                                <button type="button" class="alfawz-language-chip" data-translation-option="family" aria-pressed="false">
+                                    <span class="alfawz-language-chip__icon" aria-hidden="true">🌟</span>
+                                    <span class="alfawz-language-chip__label"><?php esc_html_e( 'Child-friendly', 'alfawzquran' ); ?></span>
+                                    <span class="alfawz-language-chip__hint"><?php esc_html_e( 'Gentle paraphrase', 'alfawzquran' ); ?></span>
+                                </button>
+                                <button type="button" class="alfawz-language-chip" data-translation-option="senior" aria-pressed="false">
+                                    <span class="alfawz-language-chip__icon" aria-hidden="true">🕊️</span>
+                                    <span class="alfawz-language-chip__label"><?php esc_html_e( 'Senior classic', 'alfawzquran' ); ?></span>
+                                    <span class="alfawz-language-chip__hint"><?php esc_html_e( 'Poetic cadence', 'alfawzquran' ); ?></span>
+                                </button>
+                                <button type="button" class="alfawz-language-chip" data-translation-option="heritage" aria-pressed="false">
+                                    <span class="alfawz-language-chip__icon" aria-hidden="true">📜</span>
+                                    <span class="alfawz-language-chip__label"><?php esc_html_e( 'Heritage tone', 'alfawzquran' ); ?></span>
+                                    <span class="alfawz-language-chip__hint"><?php esc_html_e( 'Traditional phrasing', 'alfawzquran' ); ?></span>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="alfawz-language-preferences__group">
+                            <h4 class="alfawz-language-preferences__title"><?php esc_html_e( 'Transliteration guide', 'alfawzquran' ); ?></h4>
+                            <p class="alfawz-language-preferences__hint"><?php esc_html_e( 'Surface phonetic helpers tailored to budding readers or elders who prefer gentler pacing.', 'alfawzquran' ); ?></p>
+                            <div class="alfawz-language-preferences__options" role="group" aria-label="<?php esc_attr_e( 'Choose transliteration helper', 'alfawzquran' ); ?>">
+                                <button type="button" class="alfawz-language-chip" data-transliteration-option="standard" aria-pressed="false">
+                                    <span class="alfawz-language-chip__icon" aria-hidden="true">🔤</span>
+                                    <span class="alfawz-language-chip__label"><?php esc_html_e( 'Tajweed cues', 'alfawzquran' ); ?></span>
+                                    <span class="alfawz-language-chip__hint"><?php esc_html_e( 'Detailed phonetics', 'alfawzquran' ); ?></span>
+                                </button>
+                                <button type="button" class="alfawz-language-chip" data-transliteration-option="gentle" aria-pressed="false">
+                                    <span class="alfawz-language-chip__icon" aria-hidden="true">😊</span>
+                                    <span class="alfawz-language-chip__label"><?php esc_html_e( 'Kid-friendly', 'alfawzquran' ); ?></span>
+                                    <span class="alfawz-language-chip__hint"><?php esc_html_e( 'Soft phonetics', 'alfawzquran' ); ?></span>
+                                </button>
+                                <button type="button" class="alfawz-language-chip" data-transliteration-option="assistive" aria-pressed="false">
+                                    <span class="alfawz-language-chip__icon" aria-hidden="true">👓</span>
+                                    <span class="alfawz-language-chip__label"><?php esc_html_e( 'Senior assist', 'alfawzquran' ); ?></span>
+                                    <span class="alfawz-language-chip__hint"><?php esc_html_e( 'Large-print phonetics', 'alfawzquran' ); ?></span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                     <div class="alfawz-verse-toggles" role="group" aria-label="<?php esc_attr_e( 'Toggle verse details', 'alfawzquran' ); ?>">
                         <button
                             type="button"
