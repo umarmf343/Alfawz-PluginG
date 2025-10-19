@@ -36,6 +36,158 @@
     ...(settings.strings || {}),
   };
 
+  const escapeHtml = (value) => {
+    const replacements = {
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#039;',
+    };
+    return String(value ?? '')
+      .replace(/[&<>"']/g, (char) => replacements[char] || char);
+  };
+
+  const slugify = (value, fallback = 'qaidah') => {
+    if (!value) {
+      return fallback;
+    }
+    const slug = String(value)
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+    return slug || fallback;
+  };
+
+  const downloadBlob = (blob, filename) => {
+    if (!(blob instanceof Blob)) {
+      return;
+    }
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = filename;
+    document.body.appendChild(anchor);
+    anchor.click();
+    document.body.removeChild(anchor);
+    setTimeout(() => URL.revokeObjectURL(url), 0);
+  };
+
+  const fetchImageDataUrl = async (url) => {
+    if (!url) {
+      return null;
+    }
+    try {
+      const response = await fetch(url, { mode: 'cors' });
+      if (!response.ok) {
+        return null;
+      }
+      const blob = await response.blob();
+      return await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = () => reject(reader.error);
+        reader.readAsDataURL(blob);
+      });
+    } catch (error) {
+      return null;
+    }
+  };
+
+  const buildPracticeSheetHtml = (assignment, imageDataUrl) => {
+    const title = escapeHtml(assignment?.title || 'Qa’idah practice sheet');
+    const teacherName = assignment?.teacher?.name ? escapeHtml(assignment.teacher.name) : '';
+    const updated = assignment?.updated ? escapeHtml(formatDate(assignment.updated)) : '';
+    const intro = strings.downloadSheetIntro || 'Trace each highlighted area with generous handwriting, then recite aloud at a gentle pace.';
+    const hotspotList = Array.isArray(assignment?.hotspots)
+      ? assignment.hotspots
+          .map((hotspot, index) => {
+            const label = escapeHtml(hotspot?.label || `Focus ${index + 1}`);
+            const guidance = strings.downloadSheetStep || 'Recite aloud three times, then trace the letter slowly.';
+            return `<li><strong>${label}</strong> — ${escapeHtml(guidance)}</li>`;
+          })
+          .join('\n')
+      : '';
+
+    const imageMarkup = imageDataUrl
+      ? `<img src="${imageDataUrl}" alt="${title}" style="width:100%;max-width:100%;margin:24px 0;border:4px solid #7a1a31;border-radius:24px;" />`
+      : assignment?.image?.url
+      ? `<img src="${escapeHtml(assignment.image.url)}" alt="${title}" style="width:100%;max-width:100%;margin:24px 0;border:4px solid #7a1a31;border-radius:24px;" />`
+      : '';
+
+    const hotspotMarkup = hotspotList
+      ? `<ol style="font-size:20px;line-height:1.6;margin:16px 0 0 24px;color:#4b2a33;">${hotspotList}</ol>`
+      : '<p style="font-size:20px;line-height:1.6;color:#4b2a33;">Use the space below to outline the Qa’idah page and highlight tricky letters.</p>';
+
+    return `<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>${title}</title>
+    <style>
+      body { font-family: 'Segoe UI', Arial, sans-serif; background:#fdf6f0; color:#3b222f; padding:48px; }
+      header { text-align:center; margin-bottom:32px; }
+      h1 { font-size:42px; margin-bottom:12px; }
+      h2 { font-size:28px; margin-top:32px; margin-bottom:12px; }
+      .info { font-size:18px; color:#684040; margin:6px 0; }
+      .practice-space { border:3px dashed #d9b8a2; border-radius:28px; min-height:420px; margin-top:40px; background:#fffdf8; }
+      footer { margin-top:48px; font-size:18px; text-align:center; color:#684040; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>${title}</h1>
+      ${teacherName ? `<p class="info">${teacherName}</p>` : ''}
+      ${updated ? `<p class="info">${updated}</p>` : ''}
+      <p class="info">${escapeHtml(intro)}</p>
+    </header>
+    ${imageMarkup}
+    <section>
+      <h2>Practice steps</h2>
+      ${hotspotMarkup}
+    </section>
+    <section class="practice-space"></section>
+    <footer>Trace, recite, and colour each success. When you’re ready, sync progress inside Alfawz.</footer>
+  </body>
+</html>`;
+  };
+
+  const buildTactileContent = (assignment) => {
+    const lines = [];
+    lines.push(`Qa’idah tactile guide — ${assignment?.title || 'Lesson'}`);
+    if (assignment?.teacher?.name) {
+      lines.push(`Teacher: ${assignment.teacher.name}`);
+    }
+    if (assignment?.updated) {
+      lines.push(`Updated: ${formatDate(assignment.updated)}`);
+    }
+    lines.push('');
+    lines.push('Tips: Print on card stock, outline letters with glue or yarn, and let the textures dry before tracing.');
+    lines.push('');
+
+    const hotspots = Array.isArray(assignment?.hotspots) ? assignment.hotspots : [];
+    if (hotspots.length) {
+      hotspots.forEach((hotspot, index) => {
+        const label = hotspot?.label ? hotspot.label.trim() : '';
+        const safeLabel = label || `Focus ${index + 1}`;
+        lines.push(`${index + 1}. ${safeLabel}`);
+        lines.push('   • Trace the outline three times while reciting slowly.');
+        lines.push('   • Feel the raised texture with both index fingers.');
+        lines.push('   • When back online, tap the hotspot to compare with your teacher’s recording.');
+        lines.push('');
+      });
+    } else {
+      lines.push('Use this space to sketch the Qa’idah page and mark any letters that need extra attention.');
+      lines.push('');
+    }
+
+    lines.push('Celebrate each tactile session with a sticker or star, then record progress inside Alfawz.');
+    lines.push('');
+    lines.push('Bismillah — may this rehearsal nourish confident recitation!');
+
+    return lines.join('\n');
+  };
+
   const buildApiUrl = (path) => {
     const clean = String(path || '').replace(/^\/+/, '');
     return `${apiBase}${clean}`;
@@ -105,6 +257,8 @@
     currentAudio: null,
     playingHotspot: null,
     audioStatusEl: null,
+    downloadStatusEl: null,
+    downloadStatusTimeout: null,
   };
 
   const resetRecordingUI = () => {
@@ -1000,8 +1154,105 @@
     const modalImage = document.getElementById('alfawz-qaidah-modal-image');
     const modalHotspots = document.getElementById('alfawz-qaidah-modal-hotspots');
     const audioStatus = document.getElementById('alfawz-qaidah-audio-status');
+    const downloadStatus = document.getElementById('alfawz-qaidah-download-status');
 
     studentState.audioStatusEl = audioStatus;
+    studentState.downloadStatusEl = downloadStatus;
+
+    const statusToneClasses = {
+      success: ['border-emerald-200', 'bg-emerald-50', 'text-emerald-700'],
+      error: ['border-rose-300', 'bg-rose-50', 'text-rose-700'],
+      info: ['border-amber-200', 'bg-amber-50', 'text-amber-700'],
+    };
+
+    const setDownloadStatus = (message, tone = 'info') => {
+      if (studentState.downloadStatusTimeout) {
+        clearTimeout(studentState.downloadStatusTimeout);
+        studentState.downloadStatusTimeout = null;
+      }
+      if (!studentState.downloadStatusEl) {
+        return;
+      }
+      const el = studentState.downloadStatusEl;
+      Object.values(statusToneClasses).forEach((classes) => {
+        classes.forEach((className) => el.classList.remove(className));
+      });
+      if (!message) {
+        el.classList.add('hidden');
+        el.textContent = '';
+        return;
+      }
+      el.classList.remove('hidden');
+      el.textContent = message;
+      (statusToneClasses[tone] || statusToneClasses.info).forEach((className) => el.classList.add(className));
+    };
+
+    const scheduleDownloadStatusClear = () => {
+      if (!studentState.downloadStatusEl) {
+        return;
+      }
+      if (studentState.downloadStatusTimeout) {
+        clearTimeout(studentState.downloadStatusTimeout);
+      }
+      studentState.downloadStatusTimeout = window.setTimeout(() => {
+        setDownloadStatus('');
+        studentState.downloadStatusTimeout = null;
+      }, 6000);
+    };
+
+    const handlePracticeSheetDownload = async (assignment, triggerButton) => {
+      const preparingMessage = strings.downloadSheetPreparing || 'Preparing printable sheet…';
+      const successMessage = strings.downloadSheetReady || 'Practice sheet ready! Check your downloads.';
+      const errorMessage = strings.downloadSheetError || 'We could not prepare that download. Please try again.';
+
+      try {
+        if (triggerButton) {
+          triggerButton.disabled = true;
+        }
+        setDownloadStatus(preparingMessage, 'info');
+        const imageUrl = assignment?.image?.url || '';
+        const imageDataUrl = imageUrl ? await fetchImageDataUrl(imageUrl) : null;
+        const html = buildPracticeSheetHtml(assignment, imageDataUrl);
+        const filename = `${slugify(assignment?.title || 'qaidah')}-practice-sheet.html`;
+        const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+        downloadBlob(blob, filename);
+        setDownloadStatus(successMessage, 'success');
+        scheduleDownloadStatusClear();
+      } catch (error) {
+        console.error('[AlfawzQuran] Practice sheet download failed', error);
+        setDownloadStatus(errorMessage, 'error');
+      } finally {
+        if (triggerButton) {
+          triggerButton.disabled = false;
+        }
+      }
+    };
+
+    const handleTactileDownload = (assignment, triggerButton) => {
+      const successMessage = strings.downloadTactileReady || 'Tactile exercises saved! Print and trace together.';
+      const errorMessage = strings.downloadSheetError || 'We could not prepare that download. Please try again.';
+      const preparingMessage = strings.downloadTactilePreparing || strings.downloadSheetPreparing || 'Preparing download…';
+
+      try {
+        if (triggerButton) {
+          triggerButton.disabled = true;
+        }
+        setDownloadStatus(preparingMessage, 'info');
+        const content = buildTactileContent(assignment);
+        const filename = `${slugify(assignment?.title || 'qaidah')}-tactile-guide.txt`;
+        const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+        downloadBlob(blob, filename);
+        setDownloadStatus(successMessage, 'success');
+        scheduleDownloadStatusClear();
+      } catch (error) {
+        console.error('[AlfawzQuran] Tactile guide download failed', error);
+        setDownloadStatus(errorMessage, 'error');
+      } finally {
+        if (triggerButton) {
+          triggerButton.disabled = false;
+        }
+      }
+    };
 
     const renderAssignments = () => {
       if (!assignmentList) {
@@ -1062,6 +1313,9 @@
         header.appendChild(info);
         header.appendChild(badge);
 
+        const actionRow = document.createElement('div');
+        actionRow.className = 'flex flex-wrap items-center gap-3';
+
         const button = document.createElement('button');
         button.type = 'button';
         button.className = 'qaidah-assignment-card__cta inline-flex items-center gap-3 self-start rounded-full bg-gradient-to-r from-[#7a1a31] to-[#a43246] px-5 py-2 text-base font-semibold text-[#fdeee2] shadow-md transition-all duration-200 hover:from-[#8d243d] hover:to-[#bc3c4e] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#7a1a31]';
@@ -1073,8 +1327,32 @@
           openAssignmentModal(assignment);
         });
 
+        const practiceButton = document.createElement('button');
+        practiceButton.type = 'button';
+        practiceButton.className = 'qaidah-assignment-card__download inline-flex items-center gap-2 rounded-full border border-[#7a1a31]/20 bg-white/80 px-4 py-2 text-sm font-semibold text-[#7a1a31] shadow-sm transition hover:bg-[#fdf2f8] focus:outline-none focus:ring-2 focus:ring-[#7a1a31]/40';
+        const downloadSheetLabel = strings.downloadSheet || 'Download practice sheet';
+        practiceButton.innerHTML = `<span aria-hidden="true" class="text-lg">⬇️</span><span>${downloadSheetLabel}</span>`;
+        practiceButton.setAttribute('aria-label', `${downloadSheetLabel} – ${accessibleTitle}`);
+        practiceButton.addEventListener('click', () => {
+          handlePracticeSheetDownload(assignment, practiceButton);
+        });
+
+        const tactileButton = document.createElement('button');
+        tactileButton.type = 'button';
+        tactileButton.className = 'qaidah-assignment-card__download inline-flex items-center gap-2 rounded-full border border-[#7a1a31]/15 bg-[#fef3c7]/90 px-4 py-2 text-sm font-semibold text-[#7a1a31] shadow-sm transition hover:bg-[#fde68a] focus:outline-none focus:ring-2 focus:ring-[#d97706]/40';
+        const downloadTactileLabel = strings.downloadTactile || 'Download tactile guide';
+        tactileButton.innerHTML = `<span aria-hidden="true" class="text-lg">👐</span><span>${downloadTactileLabel}</span>`;
+        tactileButton.setAttribute('aria-label', `${downloadTactileLabel} – ${accessibleTitle}`);
+        tactileButton.addEventListener('click', () => {
+          handleTactileDownload(assignment, tactileButton);
+        });
+
+        actionRow.appendChild(button);
+        actionRow.appendChild(practiceButton);
+        actionRow.appendChild(tactileButton);
+
         content.appendChild(header);
-        content.appendChild(button);
+        content.appendChild(actionRow);
         item.appendChild(content);
         assignmentList.appendChild(item);
       });

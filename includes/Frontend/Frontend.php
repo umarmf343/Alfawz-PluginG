@@ -1,6 +1,8 @@
 <?php
 namespace AlfawzQuran\Frontend;
 
+use AlfawzQuran\Support\DailyTargets;
+
 /**
  * Frontend functionality and shortcodes
  */
@@ -125,6 +127,8 @@ class Frontend {
                 'memorizerUrl' => home_url('/alfawz-memorizer/'),
                 'hasanatPerLetter' => get_option('alfawz_hasanat_per_letter', 10),
                 'dailyTarget' => get_option('alfawz_daily_verse_target', 10),
+                'dailyTargetBands' => DailyTargets::get_band_targets($current_user_id),
+                'dailyAgeBand'     => DailyTargets::resolve_age_band($current_user_id),
                 'defaultReciter' => get_option('alfawz_default_reciter', 'ar.alafasy'),
                 'defaultTranslation' => get_option('alfawz_default_translation', 'en.sahih'),
                 'defaultTransliteration' => get_option('alfawz_default_transliteration', 'en.transliteration'),
@@ -163,6 +167,12 @@ class Frontend {
                     'growthCelebrationMessage' => __('Takbir! Your tree blossomed into a new canopy.', 'alfawzquran'),
                     'readerGrowthInProgress' => __('Keep nurturing your tree with every verse.', 'alfawzquran'),
                     'readerGrowthComplete' => __('Takbir! Your tree blossomed—strive for the next canopy.', 'alfawzquran'),
+                    'dailyChildBandLabel'   => __('Kid-friendly pace', 'alfawzquran'),
+                    'dailyAdultBandLabel'   => __('Steady personal rhythm', 'alfawzquran'),
+                    'dailySeniorBandLabel'  => __('Gentle senior pacing', 'alfawzquran'),
+                    'dailyChildBandHint'    => __('Short bursts build bright confidence.', 'alfawzquran'),
+                    'dailyAdultBandHint'    => __('A consistent rhythm keeps the heart engaged.', 'alfawzquran'),
+                    'dailySeniorBandHint'   => __('Soft pacing protects your energy while staying connected.', 'alfawzquran'),
                     'playAyah'          => __('Play this ayah', 'alfawzquran'),
                     'focusAyah'         => __('Focus this ayah', 'alfawzquran'),
                     'toggleVerseMode'   => __('Navigate verse by verse', 'alfawzquran'),
@@ -303,6 +313,13 @@ class Frontend {
                     'uploadButton'   => __('Upload Audio', 'alfawzquran'),
                     'hotspotTitle'   => __('Hotspot', 'alfawzquran'),
                     'openLesson'     => __('Open Lesson', 'alfawzquran'),
+                    'downloadSheet'  => __('Download practice sheet', 'alfawzquran'),
+                    'downloadSheetPreparing' => __('Preparing printable sheet…', 'alfawzquran'),
+                    'downloadSheetReady'     => __('Practice sheet ready! Check your downloads.', 'alfawzquran'),
+                    'downloadSheetError'     => __('We could not prepare that download. Please try again.', 'alfawzquran'),
+                    'downloadTactile'        => __('Download tactile guide', 'alfawzquran'),
+                    'downloadTactilePreparing' => __('Preparing tactile guide…', 'alfawzquran'),
+                    'downloadTactileReady'   => __('Tactile exercises saved! Print and trace together.', 'alfawzquran'),
                     'fromLabel'      => __('From', 'alfawzquran'),
                     'stopRecording'  => __('Stop', 'alfawzquran'),
                     'newBadge'       => __('New', 'alfawzquran'),
@@ -680,7 +697,10 @@ class Frontend {
 
     private function get_user_preferences_for_script() {
         if (!is_user_logged_in()) {
-            return [];
+            return [
+                'age_band'           => DailyTargets::resolve_age_band(),
+                'daily_target_bands' => DailyTargets::get_band_targets(),
+            ];
         }
 
         $defaults = [
@@ -720,6 +740,9 @@ class Frontend {
                 $preferences[$key] = $value;
             }
         }
+
+        $preferences['age_band']           = DailyTargets::resolve_age_band($user_id);
+        $preferences['daily_target_bands'] = DailyTargets::get_band_targets($user_id);
 
         return $preferences;
     }

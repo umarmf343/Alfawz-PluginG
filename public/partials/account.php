@@ -11,6 +11,7 @@ $logout_url     = wp_logout_url( get_permalink() );
 $can_register   = function_exists( 'wp_registration_enabled' ) ? wp_registration_enabled() : (bool) get_option( 'users_can_register' );
 $register_url   = $can_register ? wp_registration_url() : '';
 $lost_password  = wp_lostpassword_url( get_permalink() );
+$magic_link_endpoint = rest_url( 'alfawzquran/v1/auth/magic-link' );
 
 $student_dashboard_url = function_exists( 'alfawz_get_bottom_nav_url' )
     ? alfawz_get_bottom_nav_url( 'dashboard' )
@@ -313,6 +314,24 @@ $role_icons = [
                                             <span class="bg-gradient-to-r from-emerald-600 via-sky-600 to-rose-600 bg-clip-text text-transparent transition duration-300 group-hover:tracking-wide"><?php esc_html_e( 'Sign in to Alfawz', 'alfawzquran' ); ?></span>
                                         </span>
                                     </button>
+                                    <button
+                                        type="button"
+                                        id="alfawz-login-magic-link"
+                                        data-endpoint="<?php echo esc_url( $magic_link_endpoint ); ?>"
+                                        data-preparing="<?php esc_attr_e( 'Sending a secure link…', 'alfawzquran' ); ?>"
+                                        data-success="<?php esc_attr_e( 'Check your email for the one-tap login link.', 'alfawzquran' ); ?>"
+                                        data-error="<?php esc_attr_e( 'We could not send the link right now. Please try again shortly.', 'alfawzquran' ); ?>"
+                                        data-missing="<?php esc_attr_e( 'Please enter your email so we can send the link.', 'alfawzquran' ); ?>"
+                                        class="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-[#800000]/20 bg-white/95 px-4 py-3 text-sm font-semibold text-[#333333] shadow-md transition hover:-translate-y-0.5 hover:bg-[#fdf6f0] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#800000]/20"
+                                    >
+                                        <span>✉️</span>
+                                        <span><?php esc_html_e( 'Email me a login link', 'alfawzquran' ); ?></span>
+                                    </button>
+                                    <p
+                                        id="alfawz-login-simple-status"
+                                        class="hidden rounded-2xl border px-4 py-3 text-sm font-semibold"
+                                        aria-live="polite"
+                                    ></p>
                                     <div class="pt-2 text-center text-sm text-[#333333]">
                                         <a href="<?php echo esc_url( $contact_developer_url ); ?>" target="_blank" rel="noopener noreferrer" class="font-semibold text-[#a52a2a] underline-offset-4 hover:text-[#800000] hover:underline"><?php esc_html_e( 'Need help? Chat with the portal team.', 'alfawzquran' ); ?></a>
                                     </div>
@@ -441,6 +460,82 @@ $role_icons = [
         if (roleSelect) {
             roleSelect.addEventListener('change', updateRedirect);
             updateRedirect();
+        }
+
+        const magicButton = document.getElementById('alfawz-login-magic-link');
+        const magicStatus = document.getElementById('alfawz-login-simple-status');
+        const loginEmail = document.getElementById('alfawz-login-email');
+
+        const statusToneClasses = {
+            success: ['border-emerald-200', 'bg-emerald-50', 'text-emerald-700'],
+            error: ['border-rose-300', 'bg-rose-50', 'text-rose-700'],
+            info: ['border-amber-200', 'bg-amber-50', 'text-amber-700'],
+        };
+
+        const clearStatusTones = () => {
+            if (!magicStatus) {
+                return;
+            }
+            Object.values(statusToneClasses).forEach((classes) => {
+                classes.forEach((className) => magicStatus.classList.remove(className));
+            });
+        };
+
+        const setMagicStatus = (message, tone = 'info') => {
+            if (!magicStatus) {
+                return;
+            }
+            clearStatusTones();
+            if (!message) {
+                magicStatus.classList.add('hidden');
+                magicStatus.textContent = '';
+                return;
+            }
+            magicStatus.classList.remove('hidden');
+            magicStatus.textContent = message;
+            (statusToneClasses[tone] || statusToneClasses.info).forEach((className) => magicStatus.classList.add(className));
+        };
+
+        if (magicButton) {
+            magicButton.addEventListener('click', async () => {
+                const endpoint = magicButton.dataset.endpoint;
+                if (!endpoint) {
+                    return;
+                }
+
+                const identifier = (loginEmail?.value || '').trim();
+                if (!identifier) {
+                    setMagicStatus(magicButton.dataset.missing || 'Please enter your email address.', 'error');
+                    if (loginEmail) {
+                        loginEmail.focus();
+                    }
+                    return;
+                }
+
+                setMagicStatus(magicButton.dataset.preparing || 'Sending a secure link…', 'info');
+
+                try {
+                    const response = await fetch(endpoint, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ identifier }),
+                    });
+
+                    const payload = await response.json().catch(() => ({}));
+
+                    if (response.ok) {
+                        setMagicStatus(
+                            payload?.message || magicButton.dataset.success || 'Check your email for the one-tap login link.',
+                            'success'
+                        );
+                    } else {
+                        const errorMessage = payload?.message || magicButton.dataset.error || 'We could not send the link right now. Please try again shortly.';
+                        throw new Error(errorMessage);
+                    }
+                } catch (error) {
+                    setMagicStatus(error.message, 'error');
+                }
+            });
         }
     });
 })();

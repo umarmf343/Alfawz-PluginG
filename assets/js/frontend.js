@@ -64,6 +64,67 @@
     headers['X-WP-Nonce'] = wpData.nonce;
   }
 
+  const normaliseBand = (band) => {
+    const value = String(band || '').toLowerCase();
+    return value === 'child' || value === 'senior' || value === 'adult' ? value : 'adult';
+  };
+
+  const mergeBandTargets = (base = {}) => {
+    const next = { ...base };
+    ['child', 'adult', 'senior'].forEach((band) => {
+      const value = Number(base[band]);
+      if (!Number.isFinite(value) || value <= 0) {
+        delete next[band];
+      } else {
+        next[band] = value;
+      }
+    });
+    return next;
+  };
+
+  const rawBandTargets = mergeBandTargets({
+    ...(wpData.dailyTargetBands || {}),
+    ...(wpData.userPreferences?.daily_target_bands || {}),
+  });
+
+  const bandLabels = {
+    child: wpData.strings?.dailyChildBandLabel || 'Kid-friendly pace',
+    adult: wpData.strings?.dailyAdultBandLabel || 'Steady personal rhythm',
+    senior: wpData.strings?.dailySeniorBandLabel || 'Gentle senior pacing',
+  };
+
+  const bandHints = {
+    child: wpData.strings?.dailyChildBandHint || 'Short bursts build bright confidence.',
+    adult: wpData.strings?.dailyAdultBandHint || 'A consistent rhythm keeps the heart engaged.',
+    senior: wpData.strings?.dailySeniorBandHint || 'Soft pacing protects your energy while staying connected.',
+  };
+
+  const resolveBandLabel = (band) => bandLabels[band] || bandLabels.adult;
+  const resolveBandHint = (band) => bandHints[band] || bandHints.adult;
+
+  const fallbackAdultTarget = Number(
+    rawBandTargets.adult ||
+      wpData.userPreferences?.daily_verse_target ||
+      wpData.dailyTarget ||
+      10
+  ) || 10;
+
+  const buildBandTargets = (incoming = {}) => {
+    const merged = { ...rawBandTargets, ...mergeBandTargets(incoming) };
+    const adult = Number(merged.adult || fallbackAdultTarget || 10) || 10;
+    return {
+      child: Number(merged.child) > 0 ? Number(merged.child) : Math.max(1, Math.round(adult * 0.6)),
+      adult,
+      senior: Number(merged.senior) > 0 ? Number(merged.senior) : Math.max(1, Math.round(adult * 0.7)),
+    };
+  };
+
+  let currentBandTargets = buildBandTargets();
+  let activeAgeBand = normaliseBand(wpData.dailyAgeBand || wpData.userPreferences?.age_band);
+  const defaultDailyTarget = Number(
+    currentBandTargets[activeAgeBand] || currentBandTargets.adult || fallbackAdultTarget || 10
+  );
+
   const state = {
     surahs: null,
     verseCache: new Map(),
@@ -2189,8 +2250,6 @@
     let hasTransliteration = false;
     let hasTranslation = false;
 
-    const defaultDailyTarget = Number(wpData.dailyTarget || 10);
-
     const safeSetText = (element, value) => {
       if (element) {
         element.textContent = value || '';
@@ -3368,21 +3427,37 @@
     };
 
     const updateDailyWidget = (state) => {
-      const resolved = state || {
-        count: 0,
-        target: defaultDailyTarget,
-        remaining: defaultDailyTarget,
-        percentage: 0,
-      };
-      const percentage = Math.min(100, Number(resolved.percentage ?? (resolved.target ? (resolved.count / resolved.target) * 100 : 0)));
+      const resolved = state && typeof state === 'object' ? state : {};
+      if (resolved.band_targets) {
+        currentBandTargets = buildBandTargets(resolved.band_targets);
+      }
+      const band = normaliseBand(resolved.age_band || activeAgeBand);
+      activeAgeBand = band;
+      const targetValue = Number(resolved.target || currentBandTargets[band] || defaultDailyTarget);
+      const countValue = Number(resolved.count || 0);
+      const remainingValue = Number.isFinite(resolved.remaining)
+        ? Number(resolved.remaining)
+        : Math.max(0, targetValue - countValue);
+      const percentage = Math.min(
+        100,
+        Number(
+          resolved.percentage ?? (targetValue ? (countValue / targetValue) * 100 : 0)
+        )
+      );
+
       animateBar(dailyBar, percentage);
-      safeSetText(dailyLabel, `${resolved.count || 0} / ${resolved.target || defaultDailyTarget} Verses Today`);
+      safeSetText(
+        dailyLabel,
+        `${countValue || 0} / ${targetValue || defaultDailyTarget} Verses (${resolveBandLabel(band)})`
+      );
       if (dailyNote) {
-        if (resolved.remaining <= 0) {
-          dailyNote.textContent = wpData.strings?.goalComplete || 'Goal completed for today!';
+        if (remainingValue <= 0) {
+          const completionMessage = wpData.strings?.goalComplete || 'Goal completed for today!';
+          dailyNote.textContent = `${completionMessage} ${resolveBandHint(band)}`.trim();
         } else {
-          const remaining = resolved.remaining ?? Math.max(0, (resolved.target || defaultDailyTarget) - (resolved.count || 0));
-          dailyNote.textContent = `${remaining} ${remaining === 1 ? 'verse' : 'verses'} left to reach today's goal.`;
+          dailyNote.textContent = `${remainingValue} ${remainingValue === 1 ? 'verse' : 'verses'} left · ${resolveBandHint(
+            band
+          )}`;
         }
       }
     };
@@ -3397,16 +3472,22 @@
         const modalMessage = qs('#alfawz-daily-modal-message', dailyModal);
         safeSetText(modalTitle, 'MashaAllah! Goal achieved');
         if (modalMessage) {
-          modalMessage.textContent = `You read ${state.target || defaultDailyTarget} verses today. Keep the baraka flowing!`;
+          if (state.band_targets) {
+            currentBandTargets = buildBandTargets(state.band_targets);
+          }
+          const band = normaliseBand(state.age_band || activeAgeBand);
+          const targetValue = Number(state.target || currentBandTargets[band] || defaultDailyTarget);
+          modalMessage.textContent = `You read ${targetValue} verses today. ${resolveBandHint(band)}`;
         }
       }
       spawnConfetti(dailyModalConfetti || confettiHost, 28);
       announceCelebration('MashaAllah! Daily goal achieved.');
       if (window.AlfawzCelebrations && typeof window.AlfawzCelebrations.celebrate === 'function') {
-        const verses = state?.target || defaultDailyTarget;
+        const band = normaliseBand(state?.age_band || activeAgeBand);
+        const verses = Number(state?.target || currentBandTargets[band] || defaultDailyTarget);
         window.AlfawzCelebrations.celebrate('daily', {
           message: `You reached your daily goal of ${verses} verses. MashaAllah!`,
-          detail: 'Set a fresh intention or revisit your favourite passage.',
+          detail: resolveBandHint(band),
           cta: 'Plan tomorrow’s goal',
         });
       }
@@ -4906,21 +4987,31 @@
 
     const updateDailyGoal = (goalState) => {
       const state = goalState && typeof goalState === 'object' ? goalState : {};
+      if (state.band_targets) {
+        currentBandTargets = buildBandTargets(state.band_targets);
+      }
+      const band = normaliseBand(state.age_band || activeAgeBand);
+      activeAgeBand = band;
       const count = Number(state.count || 0);
-      const target = Number(state.target || state.daily_goal_target || 0);
+      const target = Number(
+        state.target || state.daily_goal_target || currentBandTargets[band] || defaultDailyTarget
+      );
       const percentage = target > 0 ? Math.min(100, Math.round((count / target) * 100)) : 0;
       if (goalFillEl) {
         goalFillEl.style.width = `${percentage}%`;
         goalFillEl.setAttribute('aria-valuenow', String(percentage));
       }
       if (goalTextEl) {
-        setText(goalTextEl, `${formatNumber(count)} / ${formatNumber(target)} verses completed`);
+        setText(
+          goalTextEl,
+          `${formatNumber(count)} / ${formatNumber(target)} verses completed • ${resolveBandLabel(band)}`
+        );
       }
       if (goalNoteEl) {
         const remaining = Math.max(0, target - count);
         const message = percentage >= 100
-          ? 'MashaAllah! Today’s goal is complete—every verse is a jewel.'
-          : `Only ${formatNumber(remaining)} verses to reach today’s goal.`;
+          ? `MashaAllah! Today’s goal is complete—${resolveBandHint(band)}`
+          : `${formatNumber(remaining)} verses left • ${resolveBandHint(band)}`;
         setText(goalNoteEl, message);
       }
       if (goalResetEl) {

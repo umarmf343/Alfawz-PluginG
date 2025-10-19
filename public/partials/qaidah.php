@@ -102,6 +102,11 @@ if ( ! defined( 'ABSPATH' ) ) {
                     <span><?php esc_html_e( 'Refresh list', 'alfawzquran' ); ?></span>
                 </button>
             </div>
+            <p
+                id="alfawz-qaidah-download-status"
+                class="hidden rounded-[26px] border border-[#7a1a31]/15 bg-white/90 px-5 py-3 text-sm font-semibold text-[#4b2a33]"
+                aria-live="polite"
+            ></p>
             <ul id="alfawz-qaidah-assignment-list" class="grid gap-5 md:grid-cols-2 xl:grid-cols-3" aria-live="polite" aria-busy="true"></ul>
             <p id="alfawz-qaidah-empty" class="hidden items-center gap-3 rounded-[28px] border border-emerald-100 bg-gradient-to-r from-emerald-50/90 via-white/90 to-emerald-100/90 p-6 text-base font-semibold text-[#1d4e3e] shadow-inner">
                 <span class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-emerald-200/60 text-lg text-emerald-800">✨</span>
