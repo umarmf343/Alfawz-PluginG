@@ -74,7 +74,7 @@ body.has-alfawz-bottom-nav {
   transform: translateY(-4px);
   box-shadow: 0 16px 28px rgba(107, 33, 48, 0.45);
   background: linear-gradient(150deg, #7c1d2d, #b91c3a);
-  color: #000000;
+  color: #333333;
 }
 
 #alfawz-bottom-nav .alfawz-bottom-nav__tab.is-inactive:hover::before,
@@ -123,6 +123,13 @@ body.has-alfawz-bottom-nav {
 
 #alfawz-bottom-nav .alfawz-bottom-nav__tab:focus-visible {
   box-shadow: 0 0 0 3px rgba(254, 240, 138, 0.65), 0 16px 28px rgba(107, 33, 48, 0.45);
+}
+
+#alfawz-bottom-nav .alfawz-bottom-nav__tab:hover,
+#alfawz-bottom-nav .alfawz-bottom-nav__tab:active,
+#alfawz-bottom-nav .alfawz-bottom-nav__tab:focus,
+#alfawz-bottom-nav .alfawz-bottom-nav__tab:focus-visible {
+  color: #333333 !important;
 }
 
 #alfawz-bottom-nav .alfawz-bottom-nav__tab.is-inactive:active {
