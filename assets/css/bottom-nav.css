@@ -223,6 +223,85 @@ body.has-alfawz-bottom-nav {
   }
 }
 
+.alfawz-bottom-nav__tab--hidden {
+  display: none !important;
+}
+
+#alfawz-bottom-nav.alfawz-bottom-nav--senior {
+  padding-bottom: calc(env(safe-area-inset-bottom) + 1.5rem);
+}
+
+#alfawz-bottom-nav.alfawz-bottom-nav--senior [data-nav-scroll] {
+  justify-content: center;
+  gap: 1rem;
+  padding: 0.5rem 1rem 0.85rem;
+}
+
+#alfawz-bottom-nav.alfawz-bottom-nav--senior .alfawz-bottom-nav__tab {
+  min-width: 7.25rem;
+  min-height: 3.9rem;
+  padding: 1rem;
+  font-size: 1rem;
+}
+
+#alfawz-bottom-nav.alfawz-bottom-nav--senior .alfawz-bottom-nav__icon {
+  width: 2.85rem;
+  height: 2.85rem;
+  font-size: 1.8rem;
+}
+
+#alfawz-bottom-nav.alfawz-bottom-nav--senior .alfawz-bottom-nav__label {
+  margin-top: 0.35rem;
+  font-size: 0.95rem;
+  letter-spacing: 0.05em;
+  text-transform: none;
+}
+
+html.alfawz-accessibility-senior body.has-alfawz-bottom-nav {
+  padding-bottom: calc(7.25rem + env(safe-area-inset-bottom));
+}
+
+html.alfawz-accessibility-high-contrast #alfawz-bottom-nav {
+  background: rgba(15, 23, 42, 0.95);
+  border-top-color: rgba(248, 250, 252, 0.4);
+  box-shadow: 0 -10px 28px rgba(15, 23, 42, 0.55);
+}
+
+html.alfawz-accessibility-high-contrast #alfawz-bottom-nav [data-nav-scroll] {
+  background: #0f172a;
+}
+
+html.alfawz-accessibility-high-contrast #alfawz-bottom-nav .alfawz-bottom-nav__tab {
+  background: #1f2937;
+  border-color: rgba(148, 163, 184, 0.65);
+  color: #f8fafc;
+  box-shadow: 0 14px 30px rgba(15, 23, 42, 0.6);
+}
+
+html.alfawz-accessibility-high-contrast #alfawz-bottom-nav .alfawz-bottom-nav__tab.is-active,
+html.alfawz-accessibility-high-contrast #alfawz-bottom-nav .alfawz-bottom-nav__tab[aria-current="page"] {
+  background: #f8fafc;
+  color: #0f172a;
+  border-color: rgba(59, 130, 246, 0.65);
+  box-shadow: 0 18px 34px rgba(59, 130, 246, 0.45);
+}
+
+html.alfawz-accessibility-high-contrast #alfawz-bottom-nav .alfawz-bottom-nav__tab::before {
+  opacity: 0;
+  background: none;
+}
+
+html.alfawz-accessibility-high-contrast #alfawz-bottom-nav .alfawz-bottom-nav__icon {
+  background: none;
+  box-shadow: none;
+}
+
+html.alfawz-accessibility-high-contrast #alfawz-bottom-nav .alfawz-bottom-nav__scroll-indicator {
+  background: #f8fafc;
+  color: #0f172a;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.5);
+}
+
 @keyframes alfawzBadgePop {
   0% {
     transform: scale(0.6);

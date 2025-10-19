@@ -26,6 +26,7 @@ class Frontend {
         add_action('wp_enqueue_scripts', [$this, 'enqueue_assets']);
         add_action('wp_head', [$this, 'add_meta_tags']);
         add_action('template_redirect', [$this, 'redirect_alfawz_pages_to_account']);
+        add_action('wp_footer', [$this, 'render_accessibility_panel']);
         add_filter('get_avatar_data', [$this, 'filter_avatar_data'], 10, 2);
     }
 
@@ -134,6 +135,9 @@ class Frontend {
                     'male'   => ALFAWZQURAN_PLUGIN_URL . 'assets/images/avatar-male.svg',
                     'female' => ALFAWZQURAN_PLUGIN_URL . 'assets/images/avatar-female.svg',
                 ],
+                'accessibility' => [
+                    'storageKey' => 'alfawzAccessibilityPrefs',
+                ],
                 'strings' => [
                     'settingsSaved' => __('Preferences updated!', 'alfawzquran'),
                     'settingsError' => __('Unable to save preferences. Please try again.', 'alfawzquran'),
@@ -169,6 +173,11 @@ class Frontend {
                     'toggleSurahMode'   => __('All verses visible at once', 'alfawzquran'),
                     'ayahLabel'         => __('Ayah', 'alfawzquran'),
                     'bismillahLabel'    => __('Bismillah', 'alfawzquran'),
+                    'accessibilityUpdated' => __('Accessibility preferences updated.', 'alfawzquran'),
+                    'accessibilityReset'   => __('Accessibility preferences reset.', 'alfawzquran'),
+                    'accessibilityPanel'   => __('Accessibility', 'alfawzquran'),
+                    'toggleOnLabel'        => __('enabled', 'alfawzquran'),
+                    'toggleOffLabel'       => __('disabled', 'alfawzquran'),
                 ],
             ]);
 
@@ -428,6 +437,75 @@ class Frontend {
                 ],
             ]);
         }
+    }
+
+    public function render_accessibility_panel() {
+        if (is_admin() || wp_doing_ajax()) {
+            return;
+        }
+
+        if (!$this->is_alfawz_page()) {
+            return;
+        }
+
+        $panel_id  = 'alfawz-accessibility-panel';
+        $toggle_id = 'alfawz-accessibility-toggle';
+        ?>
+        <div id="alfawz-accessibility-root" class="alfawz-accessibility" data-open="false">
+            <button
+                type="button"
+                id="<?php echo esc_attr($toggle_id); ?>"
+                class="alfawz-accessibility__trigger"
+                aria-expanded="false"
+                aria-controls="<?php echo esc_attr($panel_id); ?>"
+            >
+                <span aria-hidden="true" class="alfawz-accessibility__trigger-icon">♿</span>
+                <span class="alfawz-accessibility__trigger-label"><?php esc_html_e('Accessibility', 'alfawzquran'); ?></span>
+            </button>
+            <div
+                id="<?php echo esc_attr($panel_id); ?>"
+                class="alfawz-accessibility__panel"
+                role="dialog"
+                aria-modal="false"
+                aria-labelledby="<?php echo esc_attr($panel_id); ?>-title"
+                tabindex="-1"
+                hidden
+            >
+                <div class="alfawz-accessibility__panel-header">
+                    <h2 id="<?php echo esc_attr($panel_id); ?>-title" class="alfawz-accessibility__panel-title">
+                        <?php esc_html_e('Accessibility preferences', 'alfawzquran'); ?>
+                    </h2>
+                    <p class="alfawz-accessibility__panel-description">
+                        <?php esc_html_e('Tune readability for elders and young readers with quick toggles.', 'alfawzquran'); ?>
+                    </p>
+                </div>
+                <div class="alfawz-accessibility__options" role="group" aria-label="<?php esc_attr_e('Accessibility options', 'alfawzquran'); ?>">
+                    <button type="button" class="alfawz-accessibility__option" data-accessibility-toggle="largeText" aria-pressed="false">
+                        <span class="alfawz-accessibility__option-title"><?php esc_html_e('Larger text', 'alfawzquran'); ?></span>
+                        <span class="alfawz-accessibility__option-description"><?php esc_html_e('Increase font sizes across the experience for gentle reading.', 'alfawzquran'); ?></span>
+                    </button>
+                    <button type="button" class="alfawz-accessibility__option" data-accessibility-toggle="highContrast" aria-pressed="false">
+                        <span class="alfawz-accessibility__option-title"><?php esc_html_e('High contrast', 'alfawzquran'); ?></span>
+                        <span class="alfawz-accessibility__option-description"><?php esc_html_e('Boost colour contrast so text and buttons stand out clearly.', 'alfawzquran'); ?></span>
+                    </button>
+                    <button type="button" class="alfawz-accessibility__option" data-accessibility-toggle="dyslexia" aria-pressed="false">
+                        <span class="alfawz-accessibility__option-title"><?php esc_html_e('Dyslexia-friendly text', 'alfawzquran'); ?></span>
+                        <span class="alfawz-accessibility__option-description"><?php esc_html_e('Use letterforms that are easier to track for emerging readers.', 'alfawzquran'); ?></span>
+                    </button>
+                    <button type="button" class="alfawz-accessibility__option" data-accessibility-toggle="seniorMode" aria-pressed="false">
+                        <span class="alfawz-accessibility__option-title"><?php esc_html_e('Senior mode navigation', 'alfawzquran'); ?></span>
+                        <span class="alfawz-accessibility__option-description"><?php esc_html_e('Show an enlarged reader/profile nav for elders who visit those areas most.', 'alfawzquran'); ?></span>
+                    </button>
+                </div>
+                <div class="alfawz-accessibility__actions">
+                    <button type="button" class="alfawz-accessibility__reset" data-accessibility-reset>
+                        <?php esc_html_e('Reset adjustments', 'alfawzquran'); ?>
+                    </button>
+                </div>
+                <div class="sr-only" aria-live="polite" data-accessibility-status></div>
+            </div>
+        </div>
+        <?php
     }
     
     public function add_meta_tags() {
