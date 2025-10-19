@@ -3,20 +3,20 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 ?>
-<div id="alfawz-memorization" class="relative overflow-hidden bg-gradient-to-br from-[#081129] via-[#3b1d5a] to-[#fde4a7] pb-[160px] text-slate-100">
+<div id="alfawz-memorization" class="relative overflow-hidden bg-gradient-to-br from-[#14000a] via-[#1c0a17] to-[#020005] pb-[160px] text-[#f8f5f7]">
     <div class="pointer-events-none absolute inset-0" aria-hidden="true">
-        <div class="absolute -top-36 right-12 h-96 w-96 rounded-full bg-sky-400/25 blur-3xl"></div>
-        <div class="absolute top-20 left-10 h-72 w-72 rounded-full bg-fuchsia-500/20 blur-3xl"></div>
-        <div class="absolute bottom-0 right-1/3 h-64 w-64 rounded-full bg-amber-300/30 blur-3xl"></div>
+        <div class="absolute -top-36 right-12 h-96 w-96 rounded-full bg-rose-500/25 blur-3xl"></div>
+        <div class="absolute top-20 left-10 h-72 w-72 rounded-full bg-amber-200/20 blur-3xl"></div>
+        <div class="absolute bottom-0 right-1/3 h-64 w-64 rounded-full bg-rose-900/40 blur-3xl"></div>
     </div>
     <div class="relative mx-auto max-w-6xl space-y-16 px-4 py-14 sm:px-6 lg:px-8">
         <section aria-labelledby="alfawz-memorization-start-title" class="space-y-8 text-center">
             <header class="mx-auto max-w-4xl space-y-3">
-                <p class="text-sm font-semibold uppercase tracking-[0.45em] text-sky-200/90"><?php esc_html_e( 'Sacred Repetition Practice', 'alfawzquran' ); ?></p>
-                <h2 id="alfawz-memorization-start-title" class="text-4xl font-bold text-white drop-shadow-sm sm:text-5xl">
+                <p class="text-base font-semibold uppercase tracking-[0.45em] text-rose-200/90"><?php esc_html_e( 'Sacred Repetition Practice', 'alfawzquran' ); ?></p>
+                <h2 id="alfawz-memorization-start-title" class="text-5xl font-extrabold text-white drop-shadow-sm sm:text-6xl">
                     <?php esc_html_e( 'Craft a soulful memorisation journey filled with rhythm and awe.', 'alfawzquran' ); ?>
                 </h2>
-                <p class="text-base text-slate-100/90 sm:text-lg">
+                <p class="text-lg text-rose-100/90 sm:text-xl">
                     <?php esc_html_e( 'Select your surah, choose the ayah range, and flow through verses with immersive focus tools.', 'alfawzquran' ); ?>
                 </p>
             </header>
@@ -26,7 +26,7 @@ if ( ! defined( 'ABSPATH' ) ) {
                     <div class="pointer-events-none absolute inset-0 opacity-50 mix-blend-screen bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.35),_transparent_65%)]"></div>
                     <div class="relative space-y-3">
                         <p class="text-xs uppercase tracking-[0.35em] text-[#fff1e6]/90"><?php esc_html_e( 'Momentum', 'alfawzquran' ); ?></p>
-                        <p class="text-2xl font-semibold text-[#800000] drop-shadow-sm">
+                        <p class="text-3xl font-semibold text-[#800000] drop-shadow-sm">
                             <?php esc_html_e( 'Keep your pace with daily repetition bursts.', 'alfawzquran' ); ?>
                         </p>
                     </div>
@@ -35,7 +35,7 @@ if ( ! defined( 'ABSPATH' ) ) {
                     <div class="pointer-events-none absolute inset-0 opacity-45 mix-blend-screen bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.4),_transparent_60%)]"></div>
                     <div class="relative space-y-3">
                         <p class="text-xs uppercase tracking-[0.35em] text-[#fff1e6]/90"><?php esc_html_e( 'Mindful focus', 'alfawzquran' ); ?></p>
-                        <p class="text-2xl font-semibold text-[#800000] drop-shadow-sm">
+                        <p class="text-3xl font-semibold text-[#800000] drop-shadow-sm">
                             <?php esc_html_e( 'Revisit verses with calming prompts and visuals.', 'alfawzquran' ); ?>
                         </p>
                     </div>
@@ -44,7 +44,7 @@ if ( ! defined( 'ABSPATH' ) ) {
                     <div class="pointer-events-none absolute inset-0 opacity-45 mix-blend-screen bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.38),_transparent_62%)]"></div>
                     <div class="relative space-y-3">
                         <p class="text-xs uppercase tracking-[0.35em] text-[#fff1e6]/90"><?php esc_html_e( 'Community spirit', 'alfawzquran' ); ?></p>
-                        <p class="text-2xl font-semibold text-[#800000] drop-shadow-sm">
+                        <p class="text-3xl font-semibold text-[#800000] drop-shadow-sm">
                             <?php esc_html_e( 'Share progress and celebrate each memorisation milestone.', 'alfawzquran' ); ?>
                         </p>
                     </div>
@@ -54,11 +54,11 @@ if ( ! defined( 'ABSPATH' ) ) {
             <form id="alfawz-memorization-form" class="mx-auto flex w-full max-w-4xl flex-col gap-6 rounded-3xl bg-white/95 p-8 text-left shadow-2xl ring-1 ring-slate-200/60 backdrop-blur">
                 <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                     <div>
-                        <p class="text-sm font-semibold uppercase tracking-[0.35em] text-slate-500"><?php esc_html_e( 'Plan builder', 'alfawzquran' ); ?></p>
-                        <h3 class="mt-2 text-2xl font-semibold text-slate-900 sm:text-3xl">
+                        <p class="text-sm font-semibold uppercase tracking-[0.35em] text-rose-500"><?php esc_html_e( 'Plan builder', 'alfawzquran' ); ?></p>
+                        <h3 class="mt-2 text-3xl font-semibold text-slate-900 sm:text-4xl">
                             <?php esc_html_e( 'Start your memorisation flow', 'alfawzquran' ); ?>
                         </h3>
-                        <p class="mt-2 max-w-xl text-base text-slate-600">
+                        <p class="mt-2 max-w-xl text-lg text-slate-600">
                             <?php esc_html_e( 'Choose a surah and define the verse range that you wish to seal in your heart today.', 'alfawzquran' ); ?>
                         </p>
                     </div>
@@ -101,6 +101,45 @@ if ( ! defined( 'ABSPATH' ) ) {
                     </label>
                 </div>
             </form>
+        </section>
+
+        <section id="alfawz-plan-browser" class="rounded-3xl border border-white/15 bg-white/10 p-8 text-left text-white shadow-2xl backdrop-blur-lg">
+            <header class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                <div class="space-y-2">
+                    <p class="text-sm font-semibold uppercase tracking-[0.45em] text-rose-200/80"><?php esc_html_e( 'Your memorisation plans', 'alfawzquran' ); ?></p>
+                    <h3 class="text-3xl font-bold sm:text-4xl"><?php esc_html_e( 'Tap a plan to preview its verses', 'alfawzquran' ); ?></h3>
+                    <p class="max-w-3xl text-lg text-rose-100/80"><?php esc_html_e( 'Every plan becomes a lantern. Choose one to open its focused verse tray and customise what appears during practice.', 'alfawzquran' ); ?></p>
+                </div>
+                <div class="hidden sm:flex items-center gap-3 rounded-full bg-black/30 px-4 py-2 text-sm font-semibold uppercase tracking-[0.35em] text-rose-100/70">
+                    <span aria-hidden="true">🌙</span>
+                    <span><?php esc_html_e( 'Responsive & smooth', 'alfawzquran' ); ?></span>
+                </div>
+            </header>
+            <div id="alfawz-plan-list" class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3"></div>
+            <p id="alfawz-memorization-plan-empty" class="mt-6 hidden rounded-3xl border border-dashed border-white/30 bg-black/20 px-6 py-5 text-center text-lg text-rose-100/80">
+                <?php esc_html_e( 'Create a plan above to see it appear here for quick access.', 'alfawzquran' ); ?>
+            </p>
+        </section>
+
+        <section id="alfawz-plan-viewer" class="hidden">
+            <div class="mx-auto flex w-full max-w-5xl flex-col gap-6 overflow-hidden rounded-3xl border border-rose-200/40 bg-gradient-to-br from-[#2b0012]/90 via-[#14000a]/95 to-black/90 p-8 text-white shadow-2xl backdrop-blur">
+                <header class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                    <div class="space-y-2 text-left">
+                        <p id="alfawz-plan-viewer-surah" class="text-sm font-semibold uppercase tracking-[0.45em] text-rose-200/80"></p>
+                        <h3 id="alfawz-plan-viewer-title" class="text-4xl font-bold sm:text-5xl"></h3>
+                        <p id="alfawz-plan-viewer-range" class="text-lg text-rose-100/80"></p>
+                        <div id="alfawz-plan-viewer-progress" class="inline-flex items-center gap-3 rounded-full bg-white/10 px-5 py-2 text-lg font-semibold text-white shadow-inner"></div>
+                    </div>
+                    <button type="button" id="alfawz-plan-viewer-close" class="inline-flex items-center gap-2 self-start rounded-full border border-white/40 bg-white/10 px-5 py-2 text-base font-semibold text-white transition hover:bg-white/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-200 focus-visible:ring-offset-2 focus-visible:ring-offset-[#1a0008]">
+                        <span aria-hidden="true">✖️</span>
+                        <span><?php esc_html_e( 'Close viewer', 'alfawzquran' ); ?></span>
+                    </button>
+                </header>
+                <p id="alfawz-plan-viewer-description" class="text-lg text-rose-100/80">
+                    <?php esc_html_e( 'Use the toggle beside each ayah to show or hide it from the live memorisation tray.', 'alfawzquran' ); ?>
+                </p>
+                <div id="alfawz-plan-viewer-verses" class="space-y-6"></div>
+            </div>
         </section>
 
         <section id="alfawz-memorization-empty" class="mx-auto hidden max-w-2xl rounded-3xl border border-white/30 bg-gradient-to-br from-emerald-500/80 to-teal-400/70 p-10 text-center text-white shadow-xl backdrop-blur">

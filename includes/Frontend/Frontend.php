@@ -216,6 +216,13 @@ class Frontend {
                 'planLoadedMessage' => __('Plan loaded! Ready to begin.', 'alfawzquran'),
                 'chooseSavedPlanLabel' => __('Choose a saved plan', 'alfawzquran'),
                 'noSavedPlansLabel' => __('No saved plans yet', 'alfawzquran'),
+                'planStatusActive' => __('Active', 'alfawzquran'),
+                'planStatusCompleted' => __('Completed', 'alfawzquran'),
+                'planViewerHideLabel' => __('Hide verse', 'alfawzquran'),
+                'planViewerShowLabel' => __('Show verse', 'alfawzquran'),
+                'planViewerLoadingVerses' => __('Loading verses…', 'alfawzquran'),
+                'planViewerError' => __('We could not load the verses for this plan.', 'alfawzquran'),
+                'planViewerDescription' => __('Use the toggle beside each ayah to show or hide it from the live memorisation tray.', 'alfawzquran'),
             ]);
 
             wp_localize_script('alfawz-recitation', 'alfawzRecitationData', [
